@@ -124,6 +124,19 @@ def schritte(h):
     )
     h.bild("2_ueber_der_grenze")
     h.bild("2_ueber_der_grenze_fenster", panel.form)  # die Achsbalken
+    # Am roten Balken steht, wie weit es fehlt – und ein Klick darauf fährt die Maschine dorthin
+    # (wie der Klick auf den Satz).
+    balken = panel.bereiche_bild.findChildren(_gr.Achsbalken)
+    rot = [b for b in balken if b.zu_weit > 0]
+    h.pruefe(
+        [(b.bereich.name, b.zu_weit_text()) for b in rot] == [("X1", "220,00 mm zu weit")],
+        f"rote Balken: {[(b.bereich.name, b.zu_weit_text()) for b in rot]}",
+    )
+    h.pruefe(all(b.height() == 16 for b in balken if b.zu_weit <= 0), "grüne Balken sind höher")
+    if rot:
+        rot[0].geklickt.emit()
+        yield 500
+        h.pruefe(panel.liste.currentRow() == 0, "Klick auf den roten Balken wählt den Satz nicht")
 
     # Ein Klick fährt die Maschine dorthin: X1 an seiner Grenze.
     panel.liste.setCurrentRow(0)

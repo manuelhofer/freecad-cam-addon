@@ -578,6 +578,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.366.0):* **Prüffenster zeigt statt zu erzählen:** Am roten Achsbalken steht, wie weit es fehlt
+  („220,00 mm zu weit“), ein Klick darauf fährt die Maschine an die Stelle. Die Hinweise unter „Kollision“
+  sind je Werkzeug nur noch der Satz „gerechnet mit …“ samt Verweis; der Ratschlag dazu steht unter der Maus.
 - *Korrektur (0.365.2):* **Planfräsen taucht neben einer Insel nicht mehr senkrecht ins Material:** Jedes
   Stück einer unterbrochenen Zeile beginnt an dem Ende, das in der Luft liegt – an Manuels Platte mit dem
   Plan 50 0-mal statt 20-mal, 23,7 statt 24,6 min (Spezifikation Strategien 13.7).

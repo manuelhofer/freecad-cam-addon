@@ -1364,6 +1364,7 @@
     "rw.ueberschreitung": "{achse} travels to {stellung} in “{operation}”; the limit is {grenze} (at {punkt}).",
     "rw.ueberschreitung.spitze": "At the limit the tip of {werkzeug} would be at {punkt}.",
     "rw.bereich": "{achse} needs {von} … {bis}; the limits are {minimum} … {maximum}.",
+    "rw.zu_weit": "{weg} too far",
     "rw.keine_grenze": "open",
     "rw.eigenschaft": "Job origin as seen from the workpiece mount (CAM Addon, “Check on machine”)",
     "sn.eigenschaft": "This much of the stock sits in the vise from below (“Machining” assistant, step 1). “Check on machine” reports every path that goes below it beside the stock or below the stock. 0: not checked.",

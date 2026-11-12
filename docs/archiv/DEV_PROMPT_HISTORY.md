@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-12-06 pruefenster-zeigt-statt-erzaehlt
+
+### EINGELESEN
+- Arbeitsregeln, Abschnitt 8 („Zeigen statt sagen – wenig Text im Fenster“), Gedächtnis „Zeigen statt sagen“
+  und „Nächster Schritt als Knopf“.
+- Bild des Prüffensters am Schwenkteil: unter „Kollision“ je Werkzeug zwei lange Sätze (womit gerechnet
+  wurde und was man tun sollte); bei einer überschrittenen Achse stand die Zahl nur im Satz der Liste, der
+  rote Balken darunter trug nichts.
+- `gui_reichweite.Achsbalken`, `PruefPanel._zeige`, `fahre_hin`; `reichweite.Hinweis`,
+  `gui_kollision.hinweis_label`.
+
+### DATEIEN
+- `camaddon/reichweite.py`: `Hinweis` trägt `kurz` und `mehr`; die sechs Längen-Hinweise geben den Ratschlag
+  als `mehr`.
+- `camaddon/gui_kollision.py`: `hinweise_setzen` – im Fenster nur `kurz` mit Verweis, `mehr` als Tooltip
+  des Verweises.
+- `camaddon/gui_reichweite.py`: `Achsbalken.zu_weit`, `zu_weit_text`, Signal `geklickt`; der Balken einer
+  überschrittenen Achse ist höher und trägt die Zahl in Rot über dem roten Stück;
+  `PruefPanel._zur_ueberschreitung`.
+- `translations/de.json`, `en.json` (`rw.zu_weit`, `rw.laenge_*.mehr`), `help/de|en/reichweite.html`.
+- `tests/test_reichweite.py`, `tests/gui/szenario_schwenkteil.py`, `tests/gui/szenario_reichweite.py`.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.366.0).
+
+### ERGEBNIS
+- Prüffenster am Schwenkteil: 182 Wörter; die Hinweise halb so lang.
+- Überschrittene Achse (Nullpunkt X 300 an der Beispiel-Fräse): über dem roten Stück von X1 steht
+  „220,00 mm zu weit“; ein Klick wählt den Satz und fährt hin.
+- Grün: `test_sprache`, `test_reichweite`, `szenario_schwenkteil`, `szenario_reichweite` (Bilder angesehen).
+- Sehen: „Auf der Maschine prüfen“, Nullpunkt X so setzen, dass eine Achse nicht reicht – am roten Balken
+  steht die Zahl; darauf klicken, die Maschine steht an der Grenze.
 ## P-2026-11-12-05 planfraesen-aus-der-luft
 
 ### EINGELESEN

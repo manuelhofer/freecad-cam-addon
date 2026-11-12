@@ -174,16 +174,51 @@ class Zeitanteile(QtGui.QWidget):
 
 class Achsbalken(QtGui.QWidget):
     """Eine Achse als Balken: grau der Weg zwischen ihren Grenzen, darauf grün, was die Bahn davon
-    braucht – rot, wenn es über eine Grenze hinausgeht. Links ihr Name; die Zahlen stehen im
-    Tooltip (Bereich.text)."""
+    braucht – rot, wenn es über eine Grenze hinausgeht; dann steht darüber, wie weit („220,00 mm
+    zu weit“), und ein Klick fährt die Maschine an die Stelle. Links ihr Name; alle Zahlen stehen
+    im Tooltip (Bereich.text)."""
 
     NAME = 34  # Pixel für den Namen der Achse
+    geklickt = QtCore.Signal()
 
     def __init__(self, bereich):
         super().__init__()
         self.bereich = bereich
-        self.setFixedHeight(16)
+        self.zu_weit = self._zu_weit()
+        self.setFixedHeight(30 if self.zu_weit > 0 else 16)
         self.setToolTip(bereich.text())
+        if self.zu_weit > 0:
+            self.setCursor(QtCore.Qt.PointingHandCursor)
+
+    def _zu_weit(self):
+        """Um wie viel die Bahn über eine Grenze der Achse hinaus will (mm oder Grad; 0: reicht)."""
+        import math
+
+        b = self.bereich
+        minimum, maximum = b.achse.minimum, b.achse.maximum
+        if minimum is None or maximum is None:
+            return 0.0
+        if not (math.isfinite(minimum) and math.isfinite(maximum)) or maximum <= minimum:
+            return 0.0
+        von, bis = min(b.von, b.bis), max(b.von, b.bis)
+        ueber = max(minimum - von, bis - maximum, 0.0)
+        return ueber if ueber > 1e-6 else 0.0
+
+    def zu_weit_text(self):
+        """„220,00 mm zu weit“ – leer, wenn die Achse reicht. Im Durchmesser gezählt (X einer
+        Drehmaschine) das Doppelte, wie die Steuerung es zeigt."""
+        if self.zu_weit <= 0:
+            return ""
+        b = self.bereich
+        if b.achse.art != rw.LINEAR:
+            weg = rw.winkel_text(self.zu_weit)
+        else:
+            weg = rw.weg_text(self.zu_weit * (2.0 if b.durchmesser else 1.0))
+        return tr("rw.zu_weit", weg=weg)
+
+    def mousePressEvent(self, _ereignis):  # noqa: N802 – Qt-Name
+        if self.zu_weit > 0:
+            self.geklickt.emit()
 
     def paintEvent(self, _ereignis):  # noqa: N802 – Qt-Name
         from . import verfahren as vf
@@ -195,16 +230,31 @@ class Achsbalken(QtGui.QWidget):
         maler = QtGui.QPainter(self)
         maler.setRenderHint(QtGui.QPainter.Antialiasing)
         maler.setPen(self.palette().color(QtGui.QPalette.WindowText))
-        feld = QtCore.QRect(0, 0, self.NAME, self.height())
+        unten = 16  # so hoch ist die Zeile mit dem Balken, unten im Feld
+        feld = QtCore.QRect(0, self.height() - unten, self.NAME, unten)
         maler.drawText(feld, QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft, b.name)
         breite = max(10, self.width() - self.NAME - 4)
         stelle = lambda anteil: self.NAME + int(round(breite * anteil))  # noqa: E731
         maler.setPen(QtCore.Qt.NoPen)
         maler.setBrush(QtGui.QColor(GRAU.name()))
-        mitte = self.height() // 2
+        mitte = self.height() - unten // 2
         maler.drawRoundedRect(stelle(g0), mitte - 2, max(4, stelle(g1) - stelle(g0)), 4, 2, 2)
         maler.setBrush(QtGui.QColor(GRUEN if reicht else ROT))
         maler.drawRoundedRect(stelle(v0), mitte - 4, max(5, stelle(v1) - stelle(v0)), 8, 3, 3)
+        text = self.zu_weit_text()
+        if text:
+            # Über dem Stück, das über die Grenze hinausragt – links oder rechts der Grenzen.
+            maler.setPen(QtGui.QColor(ROT))
+            masse = maler.fontMetrics()
+            weit = masse.horizontalAdvance(text)
+            links_ueber = v0 < g0 - 1e-9
+            x = stelle(v0) if links_ueber else stelle(v1) - weit
+            x = min(max(x, self.NAME), max(self.NAME, self.width() - weit - 2))
+            maler.drawText(
+                QtCore.QRect(x, 0, weit + 2, self.height() - unten),
+                QtCore.Qt.AlignVCenter | QtCore.Qt.AlignLeft,
+                text,
+            )
         maler.end()
 
 
@@ -1238,7 +1288,9 @@ class PruefPanel:
             if alter is not None:
                 alter.deleteLater()
         for bereich in e.bereiche:
-            bild.addWidget(Achsbalken(bereich))
+            balken = Achsbalken(bereich)
+            balken.geklickt.connect(functools.partial(self._zur_ueberschreitung, bereich.name))
+            bild.addWidget(balken)
         self.bereiche_titel.setText(tr("rw.bereiche.bild", anzahl=e.punkte))
         self.bereiche_titel.setToolTip("\n".join(zeilen))
         self.bereiche_titel.setVisible(bool(e.bereiche))
@@ -1354,6 +1406,21 @@ class PruefPanel:
             blaettere_zu(self.kollision)
 
     # --- Die Maschine ---------------------------------------------------------------
+
+    def _zur_ueberschreitung(self, name):
+        """Ein Klick auf den roten Balken der Achse `name`: an die Stelle, an der sie am weitesten
+        über ihre Grenze müsste (fahre_hin)."""
+        if self.ergebnis is None:
+            return
+        treffer = [
+            (abs(u.stellung - u.grenze), nummer)
+            for nummer, u in enumerate(self.ergebnis.ueberschreitungen)
+            if u.name == name
+        ]
+        if treffer:
+            nummer = max(treffer)[1]
+            self.liste.setCurrentRow(nummer)
+            self.fahre_hin(nummer)
 
     def fahre_hin(self, nummer):
         """Fährt die Maschine an die Stelle der Überschreitung Nummer `nummer` – so weit
