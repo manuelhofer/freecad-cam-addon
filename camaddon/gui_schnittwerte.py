@@ -718,7 +718,12 @@ class SchnittwertBereich(QtGui.QWidget):
         self._eingriff_zeigen()
         # Vergleichen lassen sich zwei Einsätze, die für den Werkstoff der Zeile gelten.
         liste = w.einsaetze(self.gewaehlter_werkstoff) if w is not None else []
-        self.knopf_vergleich.setEnabled(not self._bohrend() and len(liste) >= 2)
+        vergleichbar = not self._bohrend() and len(liste) >= 2
+        self.knopf_vergleich.setEnabled(vergleichbar)
+        # Grau sagt unter der Maus, was fehlt – nicht nur, was der Knopf täte.
+        self.knopf_vergleich.setToolTip(
+            tr("wv.strategie.knopf.tooltip") if vergleichbar else tr("wv.strategie.knopf.fehlt")
+        )
         if einsatz is not None and w is not None and not self._bohrend():
             if w.durchmesser and einsatz.ae > w.durchmesser:
                 saetze.append(tr("wv.hinweis.ae_zu_gross"))

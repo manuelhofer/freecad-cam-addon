@@ -95,6 +95,26 @@ def schritte(h):
     yield 500
     h.bild("1_revolver")
     h.bild("1b_fenster", panel.form)
+    # Ohne Magazin an der Maschine führt der Satz dazu gleich nach „Magazine …“ (der nächste
+    # Schritt als Knopf, an Ort und Stelle).
+    if panel.ohne_magazin.isVisible():
+        from camaddon import gui_magazine, gui_werkzeuge
+
+        h.pruefe(
+            'href="magazine"' in panel.ohne_magazin.text(),
+            f"kein Magazin, ohne Verweis: {panel.ohne_magazin.text()!r}",
+        )
+        fenster = panel.magazine_oeffnen()
+        yield 800
+        h.pruefe(
+            isinstance(fenster, gui_magazine.MagazinDialog) and fenster.isVisible(),
+            "„Magazine …“ geht aus der Bestückung nicht auf",
+        )
+        fenster.reject()
+        yield 300
+        if gui_werkzeuge.WerkzeugDialog.offen is not None:
+            gui_werkzeuge.WerkzeugDialog.offen.reject()
+        yield 300
 
     def waehle(platz, werkzeug):
         wahl = wahlen[platz]

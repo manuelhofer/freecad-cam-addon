@@ -818,8 +818,11 @@ class MaschinenPanel:
         achse = self.kette.achse_von(self._gewaehltes_gelenk())
         self.knopf_betriebsart.setEnabled(achse is not None)
         mit = [ba.Gelenk for ba in m.betriebsarten(self.maschine)]
-        self.knopf_vorschlagen.setEnabled(
-            any(all(g != a.gelenk for g in mit) for a in self.kette.achsen)
+        offen = any(all(g != a.gelenk for g in mit) for a in self.kette.achsen)
+        self.knopf_vorschlagen.setEnabled(offen)
+        # Grau sagt unter der Maus, warum: Es ist nichts mehr vorzuschlagen.
+        self.knopf_vorschlagen.setToolTip(
+            tr("dialog.vorschlagen.tooltip") if offen else tr("dialog.vorschlagen.fertig")
         )
         art, _objekt = _zeilendaten(self.achsen.currentItem())
         self.knopf_ba_weg.setEnabled(art == ZEILE_BETRIEBSART)

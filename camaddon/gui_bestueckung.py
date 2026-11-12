@@ -271,6 +271,7 @@ class BestueckungsPanel:
         self.knopf_nummern.clicked.connect(self.nummern_aus_magazin)
         aufbau.addWidget(self.knopf_nummern)
         self.ohne_magazin = _satz(GRAU)
+        self.ohne_magazin.linkActivated.connect(lambda _ziel: self.magazine_oeffnen())
         aufbau.addWidget(self.ohne_magazin)
         self.knopf_hinsehen = QtGui.QPushButton(tr("bs.hinsehen"))
         self.knopf_hinsehen.setToolTip(tr("bs.hinsehen.tooltip"))
@@ -412,10 +413,20 @@ class BestueckungsPanel:
         if mit:
             ziel = bs.nummern_nach_magazin(self.eintraege, magazin, self._nummern())
             self.knopf_nummern.setEnabled(any(e.nummern != [ziel[id(e)]] for e in self.eintraege))
+        # Der nächste Schritt als Knopf, an Ort und Stelle: der Verweis öffnet „Magazine …“.
         self.ohne_magazin.setText(
-            tr("bs.ohne_magazin") if magazin is None and self.eintraege else ""
+            f'{tr("bs.ohne_magazin")} <a href="magazine">{tr("bs.ohne_magazin.knopf")}</a>'
+            if magazin is None and self.eintraege
+            else ""
         )
         self.ohne_magazin.setVisible(bool(self.ohne_magazin.text()))
+
+    def magazine_oeffnen(self):
+        """„Magazine …“ aus dem Satz „Die Maschine hat kein Magazin“: die Werkzeugverwaltung und
+        darin ihre Magazine. Gibt das Fenster „Magazine“ zurück."""
+        from . import gui_werkzeuge
+
+        return gui_werkzeuge.oeffne().magazine_zeigen()
 
     def nummern_aus_magazin(self):
         """„Nummern aus dem Magazin“ (E4): der Job nummeriert wie das Magazin
