@@ -1930,6 +1930,7 @@ class VierachsPanel:
         )
         self.erklaerung_entgraten = erklaerung(self.mit_entgraten, tr("va.entgraten.text"))
         self.entgrat_grund = grau()  # der Vorschlag mit Grund – oder warum es nicht geht
+        self.entgrat_grund.linkActivated.connect(self._werkzeug_oeffnen)
         entgraten = _Reihen()
         self.wahl_entgratfraeser = QtGui.QComboBox()
         self.wahl_entgratfraeser.currentIndexChanged.connect(
@@ -3936,8 +3937,24 @@ class VierachsPanel:
                     break
         self.plan_stirnseite.setVisible(bool(paare))
         self.plan_stirnseite_grund.setVisible(bool(paare))
-        self.plan_stirnseite_grund.setText(
+        # Je Stirnseite ein Satz: Am Sechskant grenzt dieselbe an sechs Ebenen – sechsmal derselbe
+        # Satz las niemand (Zeigen statt sagen); die Namen der Ebenen stehen unter der Maus.
+        je_stirn = {}
+        for stirn, ebene in paare:
+            je_stirn.setdefault(stirn, []).append(ebene)
+        saetze = [
+            (
+                tr("va.plan.stirnseite.geht", stirn=stirn, ebene=ebenen[0])
+                if len(ebenen) == 1
+                else tr("va.plan.stirnseite.gehen", stirn=stirn, anzahl=len(ebenen))
+            )
+            for stirn, ebenen in je_stirn.items()
+        ]
+        self.plan_stirnseite_grund.setText(" ".join(saetze))
+        self.plan_stirnseite_grund.setToolTip(
             " ".join(tr("va.plan.stirnseite.geht", stirn=s, ebene=e) for s, e in paare)
+            if len(saetze) < len(paare)
+            else ""
         )
         self._stirnseiten_da = bool(paare)
 
@@ -4234,7 +4251,12 @@ class VierachsPanel:
         werkzeug = self.entgratfraeser()
         kanten = self._entgrat_kanten() if werkzeug is not None else []
         if werkzeug is None:
-            geht, vorschlag, grund = False, False, tr("va.entgraten.kein_fraeser")
+            # Der nächste Schritt als Knopf, an Ort und Stelle (Arbeitsregeln): der Verweis öffnet
+            # die Werkzeugverwaltung.
+            satz = html.escape(tr("va.entgraten.kein_fraeser"), quote=False)
+            verweis = html.escape(tr("va.werkzeugverwaltung"), quote=False)
+            geht, vorschlag = False, False
+            grund = f'{satz} <a href="werkzeug:0">{verweis}</a>'
         elif not kanten and stl_teil.aus_stl(self.teil):
             geht, vorschlag, grund = False, False, tr("va.entgraten.stl")
         elif not kanten:
@@ -5943,7 +5965,7 @@ class VierachsPanel:
             nummer, laenge, heraus, platz = rw.ausspannen_lesen(ziel)
             self.werkzeug_ausspannen(nummer, laenge, int(heraus), platz)
         else:
-            self.werkzeugverwaltung(int(wert))
+            self.werkzeugverwaltung(int(wert) or None)  # „werkzeug:0“: ohne ein bestimmtes
 
     def ins_magazin(self, kennung):
         """„Ins Magazin übernehmen“ (W-002 Stufe H2, E3 a): das Werkzeug ins Magazin der

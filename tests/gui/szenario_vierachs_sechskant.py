@@ -103,6 +103,22 @@ def schritte(h):
     text = panel.ergebnis_plan.text()
     h.pruefe(text.startswith("→ 6 Flächen: "), f"Vorschau: {text!r}")
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
+    # Grenzt dieselbe Stirnseite an mehrere Ebenen, steht es einmal da, nicht je Ebene ein Satz
+    # (bis 0.364 sechsmal „In einer Stellung: … mit dem Umfang, FaceN mit der Stirn.“).
+    grund = panel.plan_stirnseite_grund.text()
+    if panel.plan_stirnseite_grund.isVisible():
+        h.pruefe(
+            grund.count("In einer Stellung") == 1 and "Ebenen mit der Stirn" in grund,
+            f"Stirnseite: {grund!r}",
+        )
+        h.pruefe(
+            panel.plan_stirnseite_grund.toolTip().count("In einer Stellung") >= 2,
+            f"Stirnseite, unter der Maus: {panel.plan_stirnseite_grund.toolTip()!r}",
+        )
+    # Fehlt der Fräser zum Entgraten, führt der Satz dazu gleich in die Werkzeugverwaltung.
+    entgrat = panel.entgrat_grund.text()
+    if "braucht einen Fasenfräser" in entgrat:
+        h.pruefe('href="werkzeug:0"' in entgrat, f"Entgraten ohne Verweis: {entgrat!r}")
     from camaddon.gui_teile import blaettere_zu
 
     blaettere_zu(panel.mit_plan)

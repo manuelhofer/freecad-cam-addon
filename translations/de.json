@@ -3279,6 +3279,7 @@
     "va.plan.stirnseite": "Stirnseite daneben mit dem Umfang",
     "va.plan.stirnseite.tooltip": "Grenzt hinten an eine gewählte Fläche eine Stirnseite quer zur Stange (an der Nase die Stirnseite der Welle), fräst der Fräser sie in derselben Stellung mit seinem Umfang und die Fläche mit seiner Stirn – Züge quer mit dem Y, von außen aus der Luft, je höchstens ap und ae aus seinen Schnittwerten. Wie weit er dafür heraus muss, steht gelb darunter.",
     "va.plan.stirnseite.geht": "In einer Stellung: {stirn} mit dem Umfang, {ebene} mit der Stirn.",
+    "va.plan.stirnseite.gehen": "In einer Stellung: {stirn} mit dem Umfang, {anzahl} Ebenen mit der Stirn.",
     "pp.rechnet": "Rechnet auf einem Nebenrechner … – das Fenster bleibt bedienbar.",
     "va.halter_stoesst": "Halter oder Schaft von {werkzeug} stoßen hier ans Teil ({richtung} {von} … {bis} {e_laenge}): {werkzeug} steht {heraus} {e_laenge} heraus, bräuchte mindestens {mindestens} {e_laenge}. Länger ausspannen oder ein längeres Werkzeug nehmen. Gewinkelte Halter prüft „Kollision prüfen“.",
     "vo.eigenschaft.sektoren_y": "Mit der Querachse: Steht über einer Lage nur noch in Sektoren etwas, Zeilen dort mit Y bei stehender Rundachse (die Werkzeugachse parallel zum Strahl auf die Sektormitte); reicht Y nicht, ein C-Schritt dazwischen.",
