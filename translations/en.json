@@ -1679,7 +1679,6 @@
     "rw.urteil.zeit": "Time",
     "rw.zeit": "calculated {dauer} – feed {vorschub}, rapid {eilgang}",
     "rw.zeit.wechsel": "{text}, tool changes {anzahl} × {je}",
-    "rw.zeit.operationen": "{text} · {operationen}",
     "rw.zeit.tooltip": "Calculated from the run: the feeds of the tool controllers, the machine’s rapid and acceleration, stopping at corners, the moves to the home and tool-change points. The tool change itself counts once the machine says how long it takes (“Edit machine”, “Home and tool change”). Not included: a measuring stop.",
     "rw.urteil.schnittwerte": "Cutting data",
     "rw.urteil.spannung": "Clamping",

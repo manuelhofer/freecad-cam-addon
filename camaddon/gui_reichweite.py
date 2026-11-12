@@ -84,6 +84,94 @@ def balken_stellen(von, bis, minimum, maximum):
     return anteil(minimum), anteil(maximum), anteil(von), anteil(bis), reicht
 
 
+class Zeitanteile(QtGui.QWidget):
+    """Die Zeit des Jobs als ein Balken: je Operation ein Stück in ihrer Farbe, so breit wie ihr
+    Anteil – wer die Zeit frisst, sieht man, statt es aus einer Kette von Namen und Zahlen zu
+    lesen (Zeigen statt sagen; bis 0.364 „… · „Räumen T1“ 9,8 min · „Räumen T3“ 22 s · …“ über drei
+    Zeilen). Im Stück steht, was hineinpasst (Name und Zeit, sonst die Zeit); unter der Maus beides.
+    Ein Klick springt im Abspieler an den Anfang der Operation."""
+
+    geklickt = QtCore.Signal(int)
+    HOEHE = 18
+    LUECKE = 1  # Pixel zwischen zwei Stücken
+
+    def __init__(self):
+        super().__init__()
+        self._teile = []  # [(Name, Sekunden)]
+        self.setFixedHeight(self.HOEHE)
+        self.setMouseTracking(True)
+        self.setCursor(QtCore.Qt.PointingHandCursor)
+        self.hide()
+
+    def setzen(self, teile):
+        """`teile`: [(Name, Sekunden)] je Operation in ihrer Reihenfolge – mit nur einer bleibt
+        der Balken weg (die Zahl daneben sagt schon alles)."""
+        self._teile = [(name, max(float(s), 0.0)) for name, s in teile]
+        self.setVisible(len(self._teile) > 1 and sum(s for _n, s in self._teile) > 0)
+        self.update()
+
+    def texte(self):
+        """[„Räumen T1 9,8 min“, …] – was unter der Maus steht, je Operation."""
+        return [f"{name} {ab.dauer_text(s)}" for name, s in self._teile]
+
+    def _grenzen(self):
+        """[(links, rechts)] der Stücke in Pixeln."""
+        gesamt = sum(s for _n, s in self._teile)
+        breite = self.width()
+        grenzen, bisher = [], 0.0
+        for _name, s in self._teile:
+            links = int(round(breite * bisher / gesamt)) if gesamt > 0 else 0
+            bisher += s
+            rechts = int(round(breite * bisher / gesamt)) if gesamt > 0 else 0
+            grenzen.append((links, max(rechts, links + 2)))
+        return grenzen
+
+    def nummer_bei(self, x):
+        """Die Operation unter der Stelle `x` (Pixel) – −1 daneben."""
+        for nummer, (links, rechts) in enumerate(self._grenzen()):
+            if links <= x < rechts:
+                return nummer
+        return -1
+
+    def mouseMoveEvent(self, ereignis):  # noqa: N802 – Qt-Name
+        nummer = self.nummer_bei(ereignis.pos().x())
+        self.setToolTip(self.texte()[nummer] if nummer >= 0 else "")
+
+    def mousePressEvent(self, ereignis):  # noqa: N802 – Qt-Name
+        nummer = self.nummer_bei(ereignis.pos().x())
+        if nummer >= 0:
+            self.geklickt.emit(nummer)
+
+    def paintEvent(self, _ereignis):  # noqa: N802 – Qt-Name
+        if not self._teile:
+            return
+        from . import gui_bahnvorschau as gv
+
+        maler = QtGui.QPainter(self)
+        maler.setRenderHint(QtGui.QPainter.Antialiasing)
+        masse = maler.fontMetrics()
+        for nummer, ((links, rechts), (name, s)) in enumerate(
+            zip(self._grenzen(), self._teile, strict=True)
+        ):
+            farbe = QtGui.QColor(gv.farbe_hex(nummer))
+            breite = max(rechts - links - self.LUECKE, 1)
+            maler.setPen(QtCore.Qt.NoPen)
+            maler.setBrush(farbe)
+            maler.drawRoundedRect(links, 0, breite, self.height(), 3, 3)
+            zeit = ab.dauer_text(s)
+            text = next(
+                (t for t in (f"{name} {zeit}", zeit) if masse.horizontalAdvance(t) + 8 <= breite),
+                "",
+            )
+            if text:
+                hell = 0.299 * farbe.redF() + 0.587 * farbe.greenF() + 0.114 * farbe.blueF()
+                maler.setPen(QtGui.QColor("#000000" if hell > 0.55 else "#ffffff"))
+                maler.drawText(
+                    QtCore.QRect(links, 0, breite, self.height()), QtCore.Qt.AlignCenter, text
+                )
+        maler.end()
+
+
 class Achsbalken(QtGui.QWidget):
     """Eine Achse als Balken: grau der Weg zwischen ihren Grenzen, darauf grün, was die Bahn davon
     braucht – rot, wenn es über eine Grenze hinausgeht. Links ihr Name; die Zahlen stehen im
@@ -549,6 +637,10 @@ class PruefPanel:
             self._beschriftung[urteil] = QtGui.QLabel(text)
             urteile.addWidget(self._beschriftung[urteil], zeile, 0, QtCore.Qt.AlignTop)
             urteile.addWidget(urteil, zeile, 1)
+        # Unter der Zeit: wer sie braucht, als Balken (Zeitanteile) – ein Klick springt dorthin.
+        self.zeitanteile = Zeitanteile()
+        self.zeitanteile.geklickt.connect(self._zur_operation)
+        urteile.addWidget(self.zeitanteile, urteile.rowCount(), 1)
         aufbau.addLayout(urteile)
         # Gleich weiter zum Programm dieses Jobs – ohne ihn noch einmal zu wählen.
         self.knopf_programm = QtGui.QPushButton(tr("befehl.programm.titel"))
@@ -989,11 +1081,12 @@ class PruefPanel:
         self._zeit_zeigen()
 
     def _zeit_zeigen(self):
-        """„Rechnerisch 2 h 40 min – Vorschub 2 h 31 min, Eilgang 9 min · Rundum schruppen T1
-        2 h 12 min, …“ – ohne Bahn ein Strich."""
+        """„Rechnerisch 2 h 40 min – Vorschub 2 h 31 min, Eilgang 9 min“, darunter der Balken mit
+        dem Anteil jeder Operation (Zeitanteile) – ohne Bahn ein Strich."""
         abfahrt = self.abfahrt
         if abfahrt is None or not abfahrt.stationen:
             self.urteil_zeit.setText("–")
+            self.zeitanteile.setzen([])
             return
         vorschub, eilgang = abfahrt.anteile()
         text = tr(
@@ -1010,11 +1103,14 @@ class PruefPanel:
                 anzahl=wechsel,
                 je=ab.dauer_text(abfahrt.wechselzeit),
             )
-        je_operation = abfahrt.dauer_je_operation()
-        if len(je_operation) > 1:
-            teile = [f"„{name}“ {ab.dauer_text(s)}" for name, s in je_operation]
-            text = tr("rw.zeit.operationen", text=text, operationen=" · ".join(teile))
+        # Je Operation: als Balken darunter, nicht als Kette von Namen und Zahlen.
+        self.zeitanteile.setzen(abfahrt.dauer_je_operation())
         self.urteil_zeit.setText(text)
+
+    def _zur_operation(self, nummer):
+        """Ein Klick auf ein Stück des Zeitbalkens: im Abspieler an den Anfang der Operation."""
+        if self.abspieler is not None:
+            self.abspieler.springe_zu_operation(nummer)
 
     def _abtragen(self, station):
         """Rohteil und Fertigteil (W-003 V3g): die Stange bis zu dieser Station abgetragen;

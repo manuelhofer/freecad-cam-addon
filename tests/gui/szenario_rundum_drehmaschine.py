@@ -205,15 +205,19 @@ def schritte(h):
         pruef.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.",
         f"Urteil: {pruef.urteil.text()!r}",
     )
-    # Die rechnerische Zeit (Manuel, 2026-10-03): gesamt, Vorschub, Eilgang, je Operation.
+    # Die rechnerische Zeit (Manuel, 2026-10-03): gesamt, Vorschub, Eilgang – je Operation als
+    # Balken darunter (seit 0.364: zeigen statt einer Kette von Namen und Zahlen).
     zeit = pruef.urteil_zeit.text()
+    anteile = pruef.zeitanteile.texte()
     h.pruefe(
         zeit.startswith("rechnerisch ")
         and "Vorschub" in zeit
         and "Eilgang" in zeit
-        and "„Rundum schruppen T1“" in zeit
-        and "„Rundum schlichten T2“" in zeit,
-        f"Zeit: {zeit!r}",
+        and "„" not in zeit
+        and pruef.zeitanteile.isVisible()
+        and any(t.startswith("Rundum schruppen T1 ") for t in anteile)
+        and any(t.startswith("Rundum schlichten T2 ") for t in anteile),
+        f"Zeit: {zeit!r}, Balken: {anteile}",
     )
     hinweise = pruef.hinweise.text()
     h.pruefe("radial aus" not in hinweise, f"Hinweise: {hinweise!r}")

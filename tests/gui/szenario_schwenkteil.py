@@ -231,6 +231,25 @@ def schritte(h):
     h.pruefe(len(namen) >= 4, f"Operationen im Abspieler: {namen}")
     zeit = pruefung.urteil_zeit.text()
     h.pruefe("Werkzeugwechsel 1 × 8 s" in zeit, f"Zeit ohne den Wechsel: {zeit!r}")
+    # Je Operation ein Stück im Zeitbalken; ein Klick darauf springt im Abspieler an ihren Anfang.
+    balken = pruefung.zeitanteile
+    h.pruefe(
+        balken.isVisible() and len(balken.texte()) == len(namen),
+        f"Zeitbalken: {balken.texte()} für {namen}",
+    )
+    if fahrt is not None and len(namen) >= 2:
+        links, rechts = balken._grenzen()[1]
+        h.pruefe(
+            balken.nummer_bei((links + rechts) // 2) == 1, "Zeitbalken: Stück 2 nicht getroffen"
+        )
+        balken.geklickt.emit(1)
+        yield 300
+        h.pruefe(
+            abs(spieler.zeit - fahrt.stationen[fahrt.operationen[1].erste].zeit) < 1e-6,
+            f"Klick auf den Zeitbalken: Abspieler bei {spieler.zeit:.1f} s",
+        )
+        spieler.springe_zu_station(0)
+        yield 200
     h.bild("1_fenster", pruefung.form)
     for k, (job, bild) in enumerate(((ebene1, "2_schraege"), (ebene2, "3_45_grad"))):
         op = job.Operations.Group[0]
