@@ -570,6 +570,20 @@ for von, nach in zip(gross.punkte, gross.punkte[1:], strict=False):
             naechste = min(naechste, math.hypot(x - 50.0, y - 50.0))
 pruefe(naechste >= 35.0 - 0.05, f"Ø 50 am Zapfen: {naechste:.2f} mm von der Achse (nötig 35)")
 print(f"Ø 50 auf der Platte: {gross.zeit:.1f} min, am Zapfen {naechste:.2f} mm von der Achse")
+# Kein Stück einer Zeile beginnt senkrecht über dem Rohteil: Neben dem Zapfen, wo es zwischen zwei
+# Zeilen in der Tiefe nicht hinübergeht, kommt jedes aus der Luft (_von_der_luft). Bis 0.365.1
+# tauchte der Fräser dort je Lage zweimal senkrecht neben der Zeile davor ein – 35 von 50 mm der
+# Stirn im Material, 20-mal (ein Messerkopf taucht nicht).
+ueber_dem_rohteil = [
+    (round(p.x, 1), round(p.y, 1), round(p.z, 1))
+    for p in gross.punkte
+    if p.eintauchen and abs(p.x) < 100.0 + 25.0 - 0.5 and abs(p.y) < 100.0 + 25.0 - 0.5
+]
+pruefe(
+    not ueber_dem_rohteil,
+    f"Ø 50: {len(ueber_dem_rohteil)}-mal senkrecht über dem Rohteil hinab: {ueber_dem_rohteil[:4]}",
+)
+pruefe(gross.zeit < 24.5, f"Ø 50 auf der Platte: {gross.zeit:.2f} min (ohne Eintauchen 24,0)")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

@@ -37,23 +37,25 @@ gerechnet und auf zweitem Weg nachgerechnet. Bild:
 
 - alles mit dem Ø 12 (Räumen): **33,4 min**
 - Plan 50 in Zeilen (ae 35, ap 2, zehn Lagen) 24,6 min + Wechsel 10 s + Ø 12 für den Rest am Zapfen 1,4 min =
-  **26,1 min**
+  **26,1 min** – seit 0.365.2 ohne das Eintauchen neben dem Zapfen 23,7 min, zusammen rund **25,2 min** (der
+  Rest für den Ø 12 dabei nicht neu gemessen; Bild:
+  [planfraesen_zeilen_aus_der_luft.png](bilder/vorschlaege/planfraesen_zeilen_aus_der_luft.png))
 - Plan 50 in Ringen vom Rand, mit dem Räumen, wie es heute ist: 27,3 min + Wechsel + Ø 12 Rest 0,8 min =
   **28,3 min**
 - Untergrenze des Plan 50 mit ae 35: 11,9 min
 
 Alle drei nehmen dasselbe weg, nichts geht ins Teil. Die Ringe sind heute **langsamer** als die Zeilen: Das
 Räumen lässt höchstens ae = R zu (25 statt 35), die Quadratringe überlappen sich, um den Zapfen läuft ein
-eigener Kreisring mit 8 Rampen – 24 m Vorschub, wo 16 m reichten. Die Zeilen fahren jede zweite im Gegenlauf
-und tauchen 20-mal senkrecht ins Material, links und rechts neben dem Zapfen; das Eintauchen nehme ich in
-jedem Fall heraus (ein Messerkopf taucht nicht).
+eigener Kreisring mit 8 Rampen – 24 m Vorschub, wo 16 m reichten. Die Zeilen fahren jede zweite im
+Gegenlauf. (Sie tauchten dazu 20-mal senkrecht ins Material, links und rechts neben dem Zapfen – das ist
+seit 0.365.2 heraus: Jedes Stück neben dem Zapfen beginnt in der Luft.)
 
 Gebaut würden Ringe nur für den Planfräser: ae bis 0,7 D, an jeder Stelle im Bogen eingerollt, immer
 Gleichlauf, zusammenhängend, keine Rampe – was nur über eine Rampe ginge, bleibt dem Ø 12. Wie schnell das
 wird, ist **nicht gemessen**; die Untergrenze sinkt von 16,6 auf 11,9 min.
 
 - **a)** Bauen, als Haken beim Planfräsen „in Ringen von außen“, angehakt – bleibt nur drin, wenn es an deiner
-  Platte gemessen unter den 24,6 min der Zeilen liegt. *Claudes Vorschlag.*
+  Platte gemessen unter den 23,7 min der Zeilen liegt. *Claudes Vorschlag.*
 - **b)** Nein, Zeilen und der Ø 12 für den Rest reichen.
 
 *Warum nur Manuel:* Es geht darum, wie dein Messerkopf fahren soll – in Ringen mit 0,7 D umlaufen statt in

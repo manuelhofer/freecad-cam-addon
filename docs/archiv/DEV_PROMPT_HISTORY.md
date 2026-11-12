@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-12-05 planfraesen-aus-der-luft
+
+### EINGELESEN
+- Messung „der Große von außen“ an Manuels Platte (Plan 50, ae 35, ap 2, zehn Lagen): die Zeilen tauchen
+  20-mal senkrecht ins Material, je Lage links und rechts neben dem Zapfen – von der Gegenrechnung bestätigt.
+- Spezifikation Strategien, Abschnitt 5 (Einfahren: von außen aus der Luft → Helix → Zickzack nur in der zu
+  schmalen geschlossenen Nut); Gedächtnis „Unnötiges ohne Rückfrage weg“.
+- `planfraesen_bahn._zellenfahrten`, `vierachs_bahn._geteilt`: Wo zwischen zwei Zeilen etwas steht, wird die
+  Fahrt geteilt; das zweite Stück begann am Zapfen, `_einfahrt` mit `nachbar` senkrecht hinab.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`: `_von_der_luft` – ein Stück aus einer einzigen Zeile, das im Rohteil
+  begänne und in der Luft endet, fährt andersherum.
+- `tests/test_planfraesen.py`: an der Platte mit dem Ø 50 kein Eintauchen über dem Rohteil, unter 24,5 min.
+- `docs/spezifikation_strategien.md` (13.7), `docs/OFFENE_FRAGEN.md` (Frage 2: die Zeilen jetzt 23,7 min),
+  `docs/bilder/vorschlaege/planfraesen_zeilen_aus_der_luft.png`, `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.365.2).
+
+### ERGEBNIS
+- Manuels Platte, Plan 50 in Zeilen: 20 → 0 Eintauchungen im Material, 24,6 → 23,7 min (Form T2), 25,0 → 24,0
+  (Scheibe 25), Luft 11 → 9 %, Eilgang 6,3 → 8,6 m; Rest und Einschnitt unverändert 0 (am Zapfen bleibt, was
+  der Ø 50 nicht erreicht).
+- Grün: `test_planfraesen`, `test_pruefstand`.
+- Sehen: eine Platte mit Zapfen planfräsen, „Auf der Maschine prüfen“ abspielen – neben dem Zapfen kommt der
+  Fräser jedes Mal von außen, er taucht dort nicht mehr ein.
 ## P-2026-11-12-04 vorbohren-morph-im-loch
 
 ### EINGELESEN

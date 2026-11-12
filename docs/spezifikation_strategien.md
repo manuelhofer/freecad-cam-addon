@@ -2536,11 +2536,15 @@ Gegenrechnung in den Ordnern daneben.
   (24 m Vorschub statt 16), 8 Rampen am Kreisring um den Zapfen, am Zapfen 0,7 mm Luft nur mit
   45°-Platten. Eigene Ringe (ae bis 0,7 D, Einrollbogen, zusammenhängend, ohne Rampe) sind nicht
   gebaut und nicht gemessen – Frage 2.
-- **Nebenbefund Planfräsen:** Die Zeilen des Plan 50 tauchen an der Platte 20-mal senkrecht ins
+- **Nebenbefund Planfräsen:** Die Zeilen des Plan 50 tauchten an der Platte 20-mal senkrecht ins
   Material (je Lage links und rechts neben dem Zapfen, `_einfahrt` mit `nachbar`: unter der Stirn
-  steht der Streifen ae – beim Messerkopf 35 von 50 mm). Das kommt heraus, gleich wie Frage 2
-  ausgeht: Jedes Stück einer unterbrochenen Zeile beginnt an dem Ende, das in der Luft liegt.
-  *Offen.*
+  steht der Streifen ae – beim Messerkopf 35 von 50 mm). *Behoben, P-2026-11-12-05:* Wo es
+  zwischen zwei Zeilen in der Tiefe nicht hinübergeht (`vierachs_bahn._geteilt`), beginnt das Stück
+  der nächsten Zeile an dem Ende, das in der Luft liegt (`planfraesen_bahn._von_der_luft`) – an
+  der Platte 0-mal ins Material, 23,7 statt 24,6 min (Form T2) bzw. 24,0 statt 25,0 (Scheibe 25);
+  Bild [planfraesen_zeilen_aus_der_luft.png](bilder/vorschlaege/planfraesen_zeilen_aus_der_luft.png).
+  Liegen beide Enden eines Stücks im Rohteil (zwischen zwei Inseln), bleibt es beim Eintauchen
+  neben der Zeile davor oder der Helix.
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130

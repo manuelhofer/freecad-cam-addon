@@ -654,11 +654,36 @@ def _zellenfahrten(raster, mit_luecke):
             richtung = -richtung
         fahrten.append(fahrt)
         for teil in vb._geteilt(fahrten, r_.zwischen):
-            ergebnis.append((r_, teil))
+            ergebnis.append((r_, _von_der_luft(r_, teil)))
         m_ende = int(fahrt[-1][1])
         j_ende = min(max(ende - 1, 0), len(raster.u_stellen) - 1)
         hier = (float(r_.u_stellen[j_ende]), float(r_.v_zeilen[m_ende]))
     return ergebnis
+
+
+def _von_der_luft(r_, fahrt):
+    """Eine Fahrt aus einer einzigen Zeile, die im Rohteil begänne, deren anderes Ende aber in der
+    Luft liegt: andersherum – aus der Luft hinein (Grundsatz Einfahren 1), sonst die Fahrt, wie
+    sie ist. So eine Fahrt entsteht hinter einer Insel oder vor einer Wand, wo es zwischen zwei
+    Zeilen in der Tiefe nicht hinübergeht: Die zweite begann dort senkrecht im Material neben der
+    ersten – an Manuels Platte mit dem Plan 50 zweimal je Lage neben dem Zapfen, 35 von 50 mm der
+    Stirn im Material (gemessen 2026-11-12; ein Messerkopf taucht nicht)."""
+    if any(art != "zeile" for art, _m, _js in fahrt) or len({m for _art, m, _js in fahrt}) != 1:
+        return fahrt
+    m = fahrt[0][1]
+    alle = np.concatenate([np.atleast_1d(js) for _art, _m, js in fahrt])
+    beginn, schluss = int(alle[0]), int(alle[-1])
+    von, bis = int(alle.min()), int(alle.max())
+    if schluss not in (von, bis) or von == bis:
+        return fahrt
+    n = len(r_.u_stellen)
+
+    def im_rohteil(stelle):
+        return bool(r_.im_rohteil[min(max(stelle - 1, 0), n - 1)])
+
+    if not im_rohteil(beginn) or im_rohteil(schluss):
+        return fahrt
+    return [("zeile", m, vb._von_bis(schluss, von if schluss == bis else bis))]
 
 
 def _luecken_zu(drin, ganz, schritt_u, laenge):
