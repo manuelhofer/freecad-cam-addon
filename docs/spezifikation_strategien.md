@@ -2583,18 +2583,38 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
     statt an der vorigen Lage – im Tal rampte der Ø 6 sonst 3 mm in der Luft (0,68 → 0,45 min).
     Ohne Materialstand ist beides dasselbe.
 
-  **Noch offen:** Das Räumen der dreieckigen Tasche mit T3 ist unverändert (181 Sätze, 132 Ecken,
-  Wandabstand 0,72 … 1,19 mm). Der Baustein ist in `raeumen_bahn` vorbereitet (`_Feld.grenze`,
-  `_erlaubt_bei`), im Räumen aber nicht eingeschaltet und dort nicht erprobt; ein Feld mit
-  Taschengrenze (`_Feld.nur`) lehnt `Nachrechner.grenze` bisher ab. Gemessen, warum dort die
-  Treppen bleiben: Die Wände der Tasche sind senkrecht (drei Ebenen, ein Zylinder), der genaue
-  Ring aus der Kontur (`inselringe`) ist da – aber `_genau` verwirft ihn, weil der Ring aus dem
-  Raster in der spitzen Ecke bis 1,60 mm von ihm abliegt (erlaubt 2 · 0,5 + 0,25 = 1,25 mm, im
-  Mittel 0,76). Ihn stattdessen gegen das Netz nachzurechnen geht nicht ohne Weiteres: Der genaue
-  Ring liegt bei Radius + Aufmaß, das Raster rechnet mit Aufmaß + Toleranz des Netzes – er fiele
-  an der eigenen Wand durch. Der nächste Schritt gehört in `_genau` (die spitze Ecke erkennen),
-  nicht in `ringgrenze`. Ebenso nicht angefasst: der Gang des Adaptiv-Kerns an der schrägen
-  Stufenwand.
+  **Die spitze Ecke der Tasche (Räumen T3) – behoben (2026-11-13, `raeumen_bahn._genau`):** Der
+  genaue Ring aus der Kontur (`inselringe`) fiel in `_genau` durch, weil der Ring aus dem Raster
+  die Ecken (60°) abschneidet und dort bis 1,60 mm von ihm abliegt (erlaubt 2 · 0,5 + 0,25 =
+  1,25 mm). Jetzt gilt er an der Wand einer Tasche trotzdem, wenn (a) umgekehrt der Ring aus dem
+  Raster überall höchstens 1,25 mm vom genauen liegt – weicht er irgendwo aus, steht dort etwas,
+  das nicht zur Kontur gehört – und (b) der ganze genaue Ring, alle 0,2 mm gegen das Netz
+  nachgerechnet, hält (`_Nachpruefen`: dieselbe Rechnung wie das Raster, an der Stelle selbst,
+  mit einem Fräser, der um die Toleranz des Netzes + 0,02 mm kleiner ist als Radius + Aufmaß –
+  sonst fiele der Ring an der eigenen Wand durch). Auch die Wege auf ihn (kurz quer,
+  Einschwenken) werden dann dicht nachgerechnet. Ein Hindernis, das mehr als 0,04 mm ins Aufmaß
+  ragt (ein Brett über der Ecke, ein Stift), lässt (b) scheitern – dann gilt wie bisher der Ring
+  aus dem Raster (`test_raeumen.py` (k)). Abschaltbar: `raeumen_bahn.GENAU_ECKE`.
+  Gemessen mit `messen2.py` an der Jobkopie, 0.368.0 und nachher:
+
+  | Räumen T3, dreieckige Tasche | 0.368.0 | nachher |
+  | --- | ---: | ---: |
+  | Ring an der Wand: Abstand Fräser–Wand | 0,72 … 1,19 mm (Streuung 0,10) | 0,2995 … 0,300 mm |
+  | Sätze im Vorschub / Ecken ab 15° | 181 / 132 | 187 / 136 |
+  | abgetragen (Prüfstand) | 530 mm³ | 701 mm³ |
+  | Zeit (Untergrenze des Prüfstands) | 0,1875 min (0,16) | 0,2536 min (0,22) |
+  | Rest / Einschnitt / Abtrag im Eilgang / Rampen | 0 / 0 / 0 / 1 | 0 / 0 / 0 / 1 |
+  | Eingriff | bis 5,5 ae, 15 mm über 1,25 ae | gleich |
+
+  Die Zeit steigt, weil der Ring an der Wand jetzt die 0,4 … 0,9 mm nimmt, die vorher stehen
+  blieben (171 mm³ mehr, 26 mm mehr Weg, in den Ecken mit der Last auf 0,3 × Vorschub gebremst).
+  Die Ecken ab 15° kommen vom Ring aus dem Raster davor (er bleibt, damit der Schritt auf den
+  genauen nicht größer als ae wird) – der Ring an der Wand selbst hat 6 Sätze. Die Mulde ist
+  unverändert (1,2945 min, Wandring 0,34 … 0,36 mm, auf 0.368.0 und nachher gleich).
+  **Noch offen:** Der Ring davor könnte statt aus dem Raster der genaue um ae weiter innen sein
+  (dann ohne Treppen); die Morph-Spirale in der Tasche (`_ringe_morph_tasche`) prüft ihren Ring
+  an der Wand weiter nur gegen das Raster. Nicht angefasst: der Gang des Adaptiv-Kerns an der
+  schrägen Stufenwand.
 
 Die Messwerkzeuge liegen bei Manuel in `~/freecad_cam/wip/pruefhelfer/` (`luft.py`,
 `last_verlauf.py`, `last_bild.py`), der gespeicherte Job in `~/freecad_cam/wip/strategien/`.

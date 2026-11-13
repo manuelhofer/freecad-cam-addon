@@ -171,6 +171,15 @@ LAST_LANGSAMER = 0.3  # × Vorschub
 
 GLEICH = vb.GLEICH
 _WINZIG = 1e-9
+# Der genaue Ring an der Wand einer Tasche auch, wo der aus dem Raster eine spitze Ecke abschneidet
+# (_genau, _Nachpruefen) – abschaltbar zum Vergleich. An Manuels Testteil lag der Ring aus dem
+# Raster in der dreieckigen Tasche (Ecken 60°) 0,72 … 1,19 mm vor der Wand statt 0,3.
+GENAU_ECKE = True
+# Nachgerechnet wird der genaue Ring mit einem Fräser, der um die Toleranz des Netzes und dieses
+# Maß kleiner ist als Radius + Aufmaß: An der eigenen Wand hält er (das Netz liegt höchstens um
+# seine Toleranz neben ihr), ein Hindernis, das mehr als diese 0,04 mm ins Aufmaß ragt, nicht.
+GENAU_WENIGER = 0.02  # mm
+GENAU_PRUEFEN = 0.2  # mm – so dicht (wie ringgrenze.PRUEFEN)
 
 
 @dataclass(frozen=True)
@@ -319,6 +328,7 @@ class _Feld:
         # Die genaue Grenze der Lage (ringgrenze.Grenze, nur im 3D-Schruppen): Dann ist D der
         # Abstand zu ihr, der Ring an der Wand kommt von ihr, die davor sind in Bögen gefasst.
         self.grenze = None
+        self._streng = None  # (Aufmaß, ringgrenze.Nachrechner) für _Nachpruefen
 
     def zellen(self, x, y):
         """(i, j) der Zellen, in denen (x, y) liegen – auf das Raster begrenzt."""
@@ -765,6 +775,10 @@ class _Ring:
     # sich selbst durch statt quer über die Sehne – die liefe an einer Kuppel bis 0,1 mm näher an
     # die Fläche als das Aufmaß (am Prüfteil der Kuppel 0,20 statt 0,30).
     grenze: bool = False
+    # Nur auf einer Lage gültig: der genaue Ring einer Tasche, der in der spitzen Ecke weiter als
+    # der aus dem Raster reicht und dafür nachgerechnet wurde (_Nachpruefen) – auch die Wege auf
+    # ihn rechnet er nach (_Lage._lauf, _schwenke_ein).
+    streng: object = None
 
 
 def _ring_aus_linie(
@@ -905,6 +919,9 @@ class _Lage:
 
     # Mit Materialstand (W-012): (nx, ny), bis wohin das Material je Knoten reicht.
     stand_hoehe = None
+    # Rechnet den genauen Ring an der Wand einer Tasche gegen das Netz nach (_Nachpruefen; nur das
+    # Räumen setzt es, _flaeche) – None: wie bisher nur der Blick aufs Raster (_genau).
+    nachpruefen = None
 
     def __init__(
         self, st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben=None, decke=None
@@ -1170,6 +1187,10 @@ class _Lage:
             np.append(self.ort[0], px), np.append(self.ort[1], py)
         ):
             return start  # an der genauen Grenze: auch der Weg dorthin nachgerechnet
+        if ring.streng is not None and not _dicht_erlaubt(
+            ring.streng, np.append(self.ort[0], px), np.append(self.ort[1], py)
+        ):
+            return start  # der genaue Ring in der spitzen Ecke: ebenso
         punkte = self.st.punkte
         for i in range(1, k + 1):
             punkt = bn.Punkt(False, float(px[i]), float(py[i]), self.lage)
@@ -1209,12 +1230,17 @@ class _Lage:
                             np.linspace(self.ort[1], p0[1], dicht),
                         ).all()
                     )
+                elif kurz and ring.streng is not None:
+                    # Auf den genauen Ring in der spitzen Ecke (_genau): Er liegt dort, wo das
+                    # Raster nichts mehr erlaubt – auch der kurze Weg quer wird nachgerechnet.
+                    kurz = _dicht_erlaubt(ring.streng, [self.ort[0], p0[0]], [self.ort[1], p0[1]])
                 if (
                     self.frei(qx, qy)
                     or kurz
                     or (
                         self.eckenboegen
                         and ring.genau
+                        and ring.streng is None
                         and self.frei(qx, qy, True, 2.0 * self.schwelle)
                     )
                 ):
@@ -2567,6 +2593,9 @@ def _flaeche(
         beginn = len(st.punkte)
         ablauf = _Lage(st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben, decke)
         ablauf.stand_hoehe = hoehe
+        if tasche is not None:
+            # Der genaue Ring an der Wand auch in der spitzen Ecke, nachgerechnet (_genau).
+            ablauf.nachpruefen = _Nachpruefen(feld, netz, w_flaeche, lage, ziel, toleranz)
         gesperrt = ~erlaubt
         # Zur sicheren Seite: das Gesperrte um eine Zelle breiter – auch diagonal, sonst
         # berührt der Ring am Niveau 0 an runden Wänden einen gesperrten Knoten und reißt ab.
@@ -4135,20 +4164,94 @@ def inselringe(konturen, ebene, w, r, schritt, toleranz, material_links):
     return ergebnis
 
 
-def _genau(ring, genaue, schritt):
+def _genau(ring, genaue, schritt, nachpruefen=None):
     """Der genaue Ring (inselringe), der auf dem Ring aus dem Raster liegt – sonst dieser. Der
     aus dem Raster liegt um die Zelle, um die das Gesperrte breiter ist, und die Zugabe der
     Hüllfläche weiter außen (bis etwa 2 Zellen); liegt er weiter weg, stört dort etwas anderes
-    (eine zweite Insel, ein Überhang) – dann gilt der aus dem Raster."""
+    (eine zweite Insel, ein Überhang) – dann gilt der aus dem Raster.
+
+    Die spitze Ecke einer Tasche (`nachpruefen`, _Nachpruefen der Lage): Dort schneidet der Ring
+    aus dem Raster die Ecke ab – um seinen Abstand ÷ sin(halber Eckwinkel), an Manuels Testteil
+    (Ecken 60°) bis 1,60 mm vom genauen, erlaubt sind 1,25. Der genaue gilt trotzdem, wenn
+    (a) umgekehrt der Ring aus dem Raster überall nahe am genauen liegt – weicht er irgendwo aus,
+    steht dort etwas, das nicht zur Kontur gehört –, und (b) der ganze genaue Ring, alle 0,2 mm
+    gegen das Netz nachgerechnet, hält. Ein Hindernis, das nur das Raster sah (ein Überhang, ein
+    Stift in der Ecke), lässt (b) scheitern: Dann gilt wie bisher der aus dem Raster."""
+    weit = 2.0 * schritt + 0.25
     for genauer in genaue:
         gx, gy = genauer.proben.x, genauer.proben.y
         rx, ry = ring.proben.x, ring.proben.y
         if len(gx) < 2 or len(rx) < 2:
             continue
-        abstand = np.hypot(gx[:, None] - rx[None, :], gy[:, None] - ry[None, :]).min(axis=1)
-        if float(abstand.max()) <= 2.0 * schritt + 0.25:
+        abstand = np.hypot(gx[:, None] - rx[None, :], gy[:, None] - ry[None, :])
+        if float(abstand.min(axis=1).max()) <= weit:
             return genauer
+        if nachpruefen is None or not GENAU_ECKE or not genauer.tasche:
+            continue
+        if float(abstand.min(axis=0).max()) > weit:
+            continue  # (a) der aus dem Raster weicht aus
+        if nachpruefen.ring_haelt(genauer):
+            return dataclasses.replace(genauer, streng=nachpruefen)  # (b)
     return ring
+
+
+class _Nachpruefen:
+    """Rechnet auf einer Lage nach, ob die Spitze an beliebigen Stellen hin darf – für den genauen
+    Ring an der Wand einer Tasche (_genau). Wie das Raster (_Feld.erlaubt_feld: die Hüllfläche
+    plus Zugabe nicht über der Lage, oder nicht über dem Ziel; in der Tasche nur in ihrer Kontur),
+    aber an der Stelle selbst (ringgrenze.Nachrechner) und mit einem Fräser, der um die Toleranz
+    des Netzes und GENAU_WENIGER kleiner ist als Radius + Aufmaß: Der genaue Ring liegt genau bei
+    Radius + Aufmaß vor der Wand – mit dem Fräser des Rasters (Aufmaß + Toleranz) fiele er an der
+    eigenen Wand durch. Ein Hindernis, das mehr als 0,04 mm ins Aufmaß ragt, findet er."""
+
+    def __init__(self, feld, netz, w, lage, ziel, toleranz):
+        self.feld = feld
+        self.netz = netz
+        self.form = w.form
+        self.aufmass = max(max(w.aufmass, 0.0) - toleranz - GENAU_WENIGER, 0.0)
+        self.hoch = max(lage - self.aufmass - vb.RAND, ziel)
+
+    def _rechner(self):
+        """Der Nachrechner – je Feld und Aufmaß einmal (er hebt das Netz über 0)."""
+        feld = self.feld
+        if feld._streng is None or feld._streng[0] != self.aufmass:
+            from . import ringgrenze as rg  # erst hier: ringgrenze lädt raeumen_bahn
+
+            geformt = form_mit_aufmass(self.form, self.aufmass)
+            feld._streng = (self.aufmass, rg.Nachrechner(feld, self.netz, geformt))
+        return feld._streng[1]
+
+    def erlaubt_an(self, x, y):
+        """Je Stelle (x, y): darf die Spitze auf dieser Lage dorthin?"""
+        x = np.asarray(x, dtype=float).ravel()
+        y = np.asarray(y, dtype=float).ravel()
+        feld = self.feld
+        gut = feld.im_raster(x, y)
+        if feld.nur is not None:
+            gut &= feld.bei(feld.nur, x, y)
+        if gut.any():
+            rechner = self._rechner()
+            netz = rechner._ueber(self.hoch, x[gut], y[gut])
+            gut[gut] = rechner.hoehe(x[gut], y[gut], netz) <= self.hoch + GLEICH
+        return gut
+
+    def ring_haelt(self, ring):
+        """Hält der Ring überall – seine Strecken und Bögen alle GENAU_PRUEFEN abgetastet?"""
+        pruef = kb._abtasten(ring.segmente, GENAU_PRUEFEN, ring.geschlossen)
+        return bool(len(pruef.x)) and bool(self.erlaubt_an(pruef.x, pruef.y).all())
+
+
+def _dicht_erlaubt(pruefer, x, y, schritt=0.1):
+    """Hält der Linienzug durch (x, y), alle `schritt` mm nachgerechnet (`pruefer.erlaubt_an`)?"""
+    x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+    if len(x) < 2:
+        return bool(pruefer.erlaubt_an(x, y).all())
+    teile = np.maximum(1, np.ceil(np.hypot(np.diff(x), np.diff(y)) / schritt)).astype(int)
+    t = np.concatenate([np.arange(k) / k for k in teile])
+    von = np.repeat(np.arange(len(x) - 1), teile)
+    qx = np.append(x[von] + t * (x[von + 1] - x[von]), x[-1])
+    qy = np.append(y[von] + t * (y[von + 1] - y[von]), y[-1])
+    return bool(pruefer.erlaubt_an(qx, qy).all())
 
 
 def _bogenlaengen(x, y, geschlossen):
@@ -4574,7 +4677,7 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
                 continue
             geschlossen = ring.geschlossen
             if j == 0 and geschlossen:
-                genauer = _genau(ring, genaue, schritt)
+                genauer = _genau(ring, genaue, schritt, ablauf.nachpruefen)
                 if genauer is not ring and genauer.tasche:
                     # An der Wand einer Tasche nach dem Ring aus dem Raster: Er liegt eine Zelle
                     # weiter innen – der Schritt zum genauen bliebe sonst größer als ae, und

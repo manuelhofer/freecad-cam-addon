@@ -1408,6 +1408,132 @@ pruefe(
     f"{klein_m.rampen} Rampen, ins Volle {klein_m.eintauchen}",
 )
 
+# --- (k) Die spitze Ecke einer Tasche: der genaue Ring an der Wand ------------------------------
+# Wie „Räumen T3“ an Manuels Testteil (dreieckige Tasche, Ø 6, ae 0,6): Der Ring aus dem Raster
+# schneidet die spitze Ecke ab und bleibt 0,84 mm vor der Wand; der genaue Ring (inselringe) lag
+# in der Ecke 2,7 mm weiter und fiel in _genau durch. Jetzt gilt er, nachgerechnet – und ein
+# Hindernis in der Ecke, das nicht zur Kontur gehört (ein Brett darüber, ein Stift), lässt den aus
+# dem Raster gelten, ohne Einschnitt.
+form_k = ff.scheibe(3.0)
+ecken_k = [(10.0, 10.0), (45.0, 10.0)]
+ecken_k.append((10.0 + 30.0 * math.cos(math.radians(40)), 10.0 + 30.0 * math.sin(math.radians(40))))
+halb_k = (math.cos(math.radians(20)), math.sin(math.radians(20)))  # die Halbierende der Ecke 40°
+prisma_k = Part.Face(Part.makePolygon([V(x, y, 15) for x, y in ecken_k + ecken_k[:1]]))
+prisma_k = prisma_k.extrude(V(0, 0, 5))
+rohteil_k = (-1.0, 61.0, -1.0, 51.0)
+
+
+def tasche_k(hindernis=None):
+    teil = Part.makeBox(60, 50, 20).cut(prisma_k)
+    if hindernis == "brett":
+        # 7 mm von der Spitze, z 17 … 20: Der genaue Ring reichte mit dem Aufmaß bis 6,35 mm.
+        q = (10.0 + 7.0 * halb_k[0], 10.0 + 7.0 * halb_k[1])
+        n = (-halb_k[1] * 10.0, halb_k[0] * 10.0)
+        brett = [(10.0 - 3.0 * halb_k[0], 10.0 - 3.0 * halb_k[1])]
+        brett += [(q[0] + n[0], q[1] + n[1]), (q[0] - n[0], q[1] - n[1])]
+        brett = Part.Face(Part.makePolygon([V(x, y, 17) for x, y in brett + brett[:1]]))
+        teil = teil.fuse(brett.extrude(V(0, 0, 3)).common(prisma_k))
+    elif hindernis == "stift":
+        m = (10.0 + 8.6 * halb_k[0], 10.0 + 8.6 * halb_k[1])
+        teil = teil.fuse(Part.makeBox(1, 1, 5, V(m[0] - 0.5, m[1] - 0.5, 15)))
+    return teil.removeSplitter()
+
+
+def raeumen_k(teil):
+    werte = rb.Raeumwerte(
+        form_k, 12.0, 0.6, 0.3, 20.0, 25.0, rohteil_k, variante="inseln", vorschub=VF,
+        eintauchen=VF * 0.3,
+    )  # fmt: skip
+    ebenen = [e for e in hf.ebenen_oben(teil) if abs(e.z - 15.0) < 1e-6]
+    netz = hf.netz_ohne(teil, [e.name for e in ebenen])
+    return rb.planen(netz, werte, ebenen, ra.konturen_des_teils(teil))
+
+
+def soll_k(abstand):
+    """Das Dreieck um `abstand` nach innen versetzt, alle 0,1 mm."""
+    p = [np.array(e) for e in ecken_k]
+    s = [np.linalg.norm(p[(i + 1) % 3] - p[(i + 2) % 3]) for i in range(3)]
+    mitte = sum(si * pi for si, pi in zip(s, p, strict=True)) / sum(s)
+    h = sum(s) / 2.0
+    rho = math.sqrt(h * (h - s[0]) * (h - s[1]) * (h - s[2])) / h
+    innen = [mitte + (pi - mitte) * (rho - abstand) / rho for pi in p]
+    aus = []
+    for i in range(3):
+        a, b = innen[i], innen[(i + 1) % 3]
+        n = int(math.ceil(np.linalg.norm(b - a) / 0.1))
+        aus += [a + (b - a) * k / n for k in range(n)]
+    return np.array(aus)
+
+
+def auf_dem_boden_k(bahn):
+    """(x, y) der Vorschubsätze auf dem Boden (z 15), alle 0,1 mm."""
+    aus = []
+    for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if b.eilgang or abs(a.z - 15.0) > 1e-6 or abs(b.z - 15.0) > 1e-6:
+            continue
+        for von, nach in ps._stuecke(a, b):
+            n = max(1, int(math.ceil(math.dist(von[:2], nach[:2]) / 0.1)))
+            aus += [(von[0] + (nach[0] - von[0]) * k / n, von[1] + (nach[1] - von[1]) * k / n)
+                    for k in range(1, n + 1)]  # fmt: skip
+    return np.array(aus)
+
+
+def wand_k(xy):
+    """Je Stelle der Abstand der Mitte zur nächsten Wand der Tasche."""
+    p = [np.array(e) for e in ecken_k]
+    d = np.full(len(xy), np.inf)
+    for i in range(3):
+        a, b = p[i], p[(i + 1) % 3]
+        t = np.clip((xy - a) @ (b - a) / ((b - a) @ (b - a)), 0.0, 1.0)
+        d = np.minimum(d, np.linalg.norm(xy - (a + t[:, None] * (b - a)), axis=1))
+    return d
+
+
+def luecke_k(bahn):
+    """So weit liegt der Sollring (R + Aufmaß vor den Wänden) höchstens neben der Bahn."""
+    xy = auf_dem_boden_k(bahn)
+    return max(float(np.hypot(*(xy - q).T).min()) for q in soll_k(3.3)), xy
+
+
+teil_k = tasche_k()
+bahn_k = raeumen_k(teil_k)
+luecke, xy_k = luecke_k(bahn_k)
+naechste_k = float(wand_k(xy_k).min()) - 3.0
+pruefe(
+    luecke <= 0.05 and 0.3 - 0.005 <= naechste_k <= 0.3 + 0.005,
+    f"spitze Ecke: Sollring bis {luecke:.3f} mm neben der Bahn, Fräser bis {naechste_k:.3f} mm "
+    "an der Wand (Aufmaß 0,3)",
+)
+k_k = ps.messen(
+    [ps.Bahnlauf(bahn_k.punkte, VF, VF * 0.3)], teil_k, rohteil_k, 20.0, form_k, 0.6, 12.0,
+    ebenen_z=[15.0], aufmass=0.3,
+)  # fmt: skip
+pruefe(
+    k_k.einschnitt >= -0.01 and k_k.eilgang_abtrag <= 0.5 and bahn_k.rampen <= 1,
+    f"spitze Ecke: Einschnitt {k_k.einschnitt:.3f}, im Eilgang {k_k.eilgang_abtrag:.1f} mm³, "
+    f"{bahn_k.rampen} Rampen",
+)
+rb.GENAU_ECKE = False
+try:
+    luecke_aus, _xy = luecke_k(raeumen_k(teil_k))
+finally:
+    rb.GENAU_ECKE = True
+pruefe(luecke_aus > 1.0, f"spitze Ecke ohne GENAU_ECKE: Sollring bis {luecke_aus:.2f} mm daneben")
+for hindernis in ("brett", "stift"):
+    teil_h = tasche_k(hindernis)
+    bahn_h = raeumen_k(teil_h)
+    luecke_h, _xy = luecke_k(bahn_h)
+    k_h = ps.messen(
+        [ps.Bahnlauf(bahn_h.punkte, VF, VF * 0.3)], teil_h, rohteil_k, 20.0, form_k, 0.6, 12.0,
+        ebenen_z=[15.0], aufmass=0.3,
+    )  # fmt: skip
+    pruefe(
+        luecke_h > 1.0 and k_h.einschnitt >= -0.01,
+        f"spitze Ecke mit {hindernis}: Sollring bis {luecke_h:.2f} mm daneben (der Ring aus dem "
+        f"Raster gilt), Einschnitt {k_h.einschnitt:.3f}",
+    )
+print(ascii(f"spitze Ecke: Luecke {luecke:.3f} (ohne {luecke_aus:.2f}), Wand {naechste_k:.3f}"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
