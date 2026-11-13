@@ -2624,6 +2624,20 @@ Gegenrechnung in den Ordnern daneben.
   dem tiefsten neuen Grund (vorher: das größte Absenken einer Zelle – bei Fase und Kugel nur Vorschub ×
   Steigung). Eine Zeile mit 30 mm im Eingriff misst mit Stücken von 5 / 0,5 / 0,2 mm gleich: Plan 50
   25,2 mm (eben 24 + Fase), Scheibe 30,5 mm.
+- **Sicherheitsprüfung Nut und 3D-Schlichten (P-2026-11-13-09, 0.367.1):**
+  - *Nut, offenes Ende:* Hinter dem Ende wurde 0,5 mm weit geprüft, draußen hinab und die Bögen
+    reichen aber 2 R + `FREI_VOR`. `nut_bahn._frei_bis` misst am Teil, wie weit dort Luft ist
+    (`Nut.frei_a/frei_b`); steht die Gegenwand näher, gilt das Ende als geschlossen, näher als der
+    Radius der Nut: „zu nah für den Fräser“.
+  - *Bogennut:* Ein Eilgang längs der Nut wird wie der Vorschub auf den Bogen gelegt (5°-Sehnen) –
+    als Gerade lief er über die Mitte, wo „knapp über der Nut“ nicht gilt.
+  - *3D-Schlichten, niedrige Wand:* `_ecken` rechnet auch dort genau, wo ein nicht gewählter Knoten
+    höher liegt als ein gewählter (bisher nur bei Sprüngen über `STUFE` = 5 mm); Spirale und
+    „entlang der Fläche“ rechnen mit `STUFE` wie die Zeilen.
+  - *Lücken in der Zeile:* nur noch durchfahren, wenn die Hüllfläche darin nicht nach unten knickt
+    (`LUECKE_KNICK` 0,04 mm je Stelle).
+  - *Torusfräser:* Zeilenabstand aus der Eckrundung (`_gewoelbt`): R 3 / r 1 bei Grathöhe 0,01
+    0,28 statt 4,28 mm; die Kuppel dauert damit 1,9 statt 0,12 min – und wird fertig.
 - **Gegenprüfung „Bohrung fräsen beginnt am Material“ (0.364.0 → 0.366.1):** Der Rand um Bohrung
   und Helix war zu knapp (eine Zelle, für `oben` keine): Eilgang 9 mm tief durch das Wandaufmaß
   einer Tasche 0,1 mm neben der Bohrung, 18,5 mm an der Wand eines Vorlochs im Körper-Rohteil

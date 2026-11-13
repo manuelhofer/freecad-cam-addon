@@ -124,6 +124,9 @@ class Nut:
     # Eine Ringnut rundum (_ringnut): der Bogen geht einmal herum (w_b = w_a + 2π), A = B, sie hat
     # keine Enden.
     ring: bool = False
+    # So weit ist hinter dem offenen Ende A (B) Luft, über die Breite der Nut (mm; inf: weit).
+    frei_a: float = math.inf
+    frei_b: float = math.inf
 
     @property
     def laenge(self):
@@ -396,6 +399,33 @@ def _frei_hinter(form, ende, t, v, r, z_unten, z_oben):
     return True
 
 
+def _frei_bis(form, ende, t, r, z_unten):
+    """So weit (mm) ist hinter dem offenen Ende `ende` (in Richtung t) Luft – über die Breite
+    der Nut (±r), vom Grund bis über das Teil, bis 2r + FREI_VOR + 1 weit (weiter fährt der
+    Fräser dort nie); inf, wenn dort nichts steht."""
+    import FreeCAD
+    import Part
+
+    V = FreeCAD.Vector
+    weit = 2.0 * r + FREI_VOR + 1.0
+    v = (-t[1], t[0])
+    z0, z1 = z_unten + 0.05, form.BoundBox.ZMax + 1.0
+    ecken = [
+        V(ende[0] + t[0] * s + v[0] * q, ende[1] + t[1] * s + v[1] * q, z0)
+        for s, q in ((0.0, -r), (weit, -r), (weit, r), (0.0, r), (0.0, -r))
+    ]
+    kasten = Part.Face(Part.makePolygon(ecken)).extrude(V(0, 0, z1 - z0))
+    stueck = form.common(kasten)
+    if stueck.Volume < 1e-6:
+        return math.inf
+    ebene = Part.Face(
+        Part.makePolygon(
+            [ecken[0], ecken[3], ecken[3] + V(0, 0, z1 - z0), ecken[0] + V(0, 0, z1 - z0), ecken[0]]
+        )
+    )
+    return float(stueck.distToShape(ebene)[0])
+
+
 def _offene_nut(form, konturen):
     """Die offene Nut aus den Konturen ihrer Wände – None, wenn es keine ist: eine Kontur aus
     einem Halbkreis und zwei Geraden, die am Rand enden (an einem Ende offen), oder zwei
@@ -440,7 +470,11 @@ def _offene_nut(form, konturen):
             return None
         if _durch(form, a, b, r, z_unten):
             return None
-        return Nut(waende, a, b, r, z_oben, z_unten, False, True, True)
+        frei_a = _frei_bis(form, a, (-u[0], -u[1]), r, z_unten)
+        frei_b = _frei_bis(form, b, u, r, z_unten)
+        return Nut(
+            waende, a, b, r, z_oben, z_unten, False, True, True, frei_a=frei_a, frei_b=frei_b
+        )
     if len(konturen) != 1:
         return None
     kreise, geraden = [], []
@@ -506,7 +540,16 @@ def _offene_nut(form, konturen):
     if _durch(form, mitte, b, r, z_unten):
         return None
     return Nut(
-        waende, (float(mitte[0]), float(mitte[1])), b, r, z_oben, z_unten, False, False, True
+        waende,
+        (float(mitte[0]), float(mitte[1])),
+        b,
+        r,
+        z_oben,
+        z_unten,
+        False,
+        False,
+        True,
+        frei_b=_frei_bis(form, b, u, r, z_unten),
     )
 
 
@@ -1503,6 +1546,18 @@ def _nut(punkte, nut, w, stand=None, bei=None, eintauchen=None):
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0)
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+    for offen, frei in (("offen_a", nut.frei_a), ("offen_b", nut.frei_b)):
+        # Draußen hinab und die Bögen reichen 2R + FREI_VOR hinter das Ende: Steht dort das
+        # Teil (die Gegenwand einer schmalen Quernut), gilt das Ende als geschlossen – dann
+        # reicht der Fräser r dahinter; näher geht es nicht ohne Schnitt ins Teil. Bis 0.367.0
+        # wurde hinter dem Ende nur 0,5 mm weit geprüft: An einer T-Kreuzung (Stichnut in eine
+        # 4 mm breite Quernut) stand die Achse beim Eilgang hinab in der Gegenwand, mit
+        # Materialstand ging der Vorschub 3 bis 5,5 mm ins Teil (Sicherheitsprüfung,
+        # nachgestellt am 2026-11-13; so seit 2026-10-01).
+        if getattr(nut, offen) and frei < 2.0 * R + FREI_VOR:
+            if frei < nut.radius - GLEICH:
+                raise ValueError(tr("nt.fehler.ende_zu_nah"))
+            nut = replace(nut, **{offen: False})
     if nut.offen and stand is not None:
         nut = _offen_im_stand(nut, w, stand, z_ende)
     art = verfahren(nut, R, aufmass)
@@ -1835,6 +1890,16 @@ def _auf_den_bogen(punkte, nut):
     ergebnis = []
     vorher = None
     for p in punkte:
+        if p.eilgang and vorher is not None and abs(p.x - vorher.x) > GLEICH:
+            # Längs der Nut auch im Eilgang auf dem Bogen (5°-Sehnen): als Gerade wäre er eine
+            # Sehne quer über die Mitte – dort gilt „knapp“ nicht. An einer halben Scheibe mit
+            # Nabe (r 8, 15 mm höher) lief der Eilgang zwischen zwei Lagen 3,5 mm durch die Nabe
+            # (Sicherheitsprüfung, nachgestellt am 2026-11-13; so seit 2026-10-16).
+            anzahl = max(1, int(math.ceil(abs(p.x - vorher.x) / (r_m * math.radians(5.0)))))
+            for i in range(1, anzahl):
+                t = i / anzahl
+                x, y = ort(vorher.x + (p.x - vorher.x) * t, vorher.y + (p.y - vorher.y) * t)
+                ergebnis.append(bn.Punkt(True, x, y, vorher.z + (p.z - vorher.z) * t))
         if vorher is None or p.eilgang:
             x, y = ort(p.x, p.y)
             ergebnis.append(replace(p, x=x, y=y, bogen=None))

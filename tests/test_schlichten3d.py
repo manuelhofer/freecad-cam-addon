@@ -384,6 +384,35 @@ pruefe(abs(float(op.FinalDepth) - 10.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)
 pruefe(js.operationsart(op) == "schlichten3d", f"Art {js.operationsart(op)}")
 print(ascii(f"Operation: {len(op.Path.Commands)} Befehle"))
 
+# --- Aus der Sicherheitsprüfung vom 2026-11-13 ----------------------------------------------------
+# (Die Fälle am Teil – niedrige Wand, Rippe, Torus auf der Kuppel – misst der Zweifler exakt mit
+# distToShape: ~/freecad_cam/wip/pruefung_1113b/schlichten3dz/. Hier die beiden Regeln für sich.)
+# 1. Eine Lücke in der Zeile wird nur durchfahren, wenn die Hüllfläche darin nicht nach unten
+# knickt: Über einer Kante rollt die Kugel mit 1/R, die Sehne läge darunter (0,05 mm in der Rippe).
+stellen = np.arange(40) * 0.2
+maske_l = np.ones(40, dtype=bool)
+maske_l[15:25] = False  # eine Lücke von 2 mm
+glatt_z = np.full(40, 5.0)
+pruefe(
+    s3._laeufe(maske_l, glatt_z, 0.2) == [(0, 39)],
+    f"glatte Lücke: {s3._laeufe(maske_l, glatt_z, 0.2)}",
+)
+# Eine Kante in der Lücke: die Hüllfläche steigt an und fällt wieder, mit einem Knick nach unten.
+kante_z = 5.0 + np.maximum(0.0, 1.5 - np.abs(stellen - 4.0))
+laeufe_k = s3._laeufe(maske_l, kante_z, 0.2)
+pruefe(len(laeufe_k) == 2, f"Lücke über einer Kante durchfahren: {laeufe_k}")
+fuss_z = 5.0 + 0.05 * (stellen - 4.0) ** 2  # nach oben gewölbt (der Fuß einer Kuppel): harmlos
+pruefe(s3._laeufe(maske_l, fuss_z, 0.2) == [(0, 39)], "Lücke am Kuppelfuß nicht mehr durchfahren")
+# 2. Der Zeilenabstand des Torusfräsers kommt aus seiner Eckrundung, nicht aus der ebenen Stirn
+# (R 3 / r 1, Grathöhe 0,01: 0,28 statt 4,28 mm – auf einer Kuppel blieben sonst bis 1,6 mm stehen).
+torus = ff.torus(3.0, 1.0)
+pruefe(
+    abs(s3.zeilenabstand(s3._gewoelbt(torus), 0.01) - s3.zeilenabstand(ff.kugel(1.0), 0.01)) < 1e-9
+    and s3.zeilenabstand(s3._gewoelbt(torus), 0.01) < 0.3,
+    f"Torus: Zeilenabstand {s3.zeilenabstand(s3._gewoelbt(torus), 0.01):.3f}",
+)
+pruefe(s3._gewoelbt(ff.kugel(3.0)).radius == 3.0, "Kugel: Form verändert")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

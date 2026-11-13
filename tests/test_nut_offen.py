@@ -443,6 +443,58 @@ if ringe and ringe[0].ring:
     )
     pruefe(weit <= 8, f"nur schlichten: {weit} Punkte zwischen den Rändern (Bögen?)")
 
+
+# --- T-Kreuzung: hinter dem offenen Ende steht die Gegenwand einer schmalen Quernut -------------
+# Stichnut (Breite 2 r, Grund z 12) von x 20 bis in eine Quernut (x 50 … 50 + Steg, Grund z 5). Das
+# Ende bei x 50 ist offen – draußen hinab und die Bögen reichen aber 2 R + FREI_VOR dahinter. Steht
+# dort die Gegenwand, gilt das Ende als geschlossen; ist sie näher als der Radius der Nut, geht es
+# mit diesem Fräser nicht (ein Satz). Bis 0.367.0 wurde nur 0,5 mm hinter dem Ende geprüft: Eilgang
+# hinab mit der Achse in der Wand, mit Materialstand 3 bis 5,5 mm im Teil (nachgestellt 2026-11-13).
+def t_kreuzung(r_nut, steg):
+    platte = Part.makeBox(80, 60, 20)
+    quer = Part.makeBox(steg, 70, 20, FreeCAD.Vector(50, -5, 5))
+    stich = Part.makeBox(31, 2 * r_nut, 10, FreeCAD.Vector(20, 30 - r_nut, 12)).fuse(
+        Part.makeCylinder(r_nut, 10, FreeCAD.Vector(20, 30, 12))
+    )
+    teil_t = platte.cut(quer).cut(stich).removeSplitter()
+    grund_t = [
+        f"Face{i + 1}"
+        for i, f in enumerate(teil_t.Faces)
+        if abs(f.BoundBox.ZMin - 12) < 1e-6 and abs(f.BoundBox.ZMax - 12) < 1e-6
+    ]
+    return teil_t, nb.nuten(teil_t, grund_t)
+
+
+werte_t = nb.Nutwerte(
+    fraeser_radius=6.0, zustellung=25.0, zeilenabstand=1.5, oben=20.0, sicher=25.0, aufmass=0.3,
+    schneidenlaenge=26.0, eintauchwinkel=3.0, vorschub=902.0, eintauchen=270.0, schlichten=True,
+)  # fmt: skip
+for r_nut in (7.0, 9.5):
+    _teil_t, nuten_t = t_kreuzung(r_nut, 4.0)
+    pruefe(len(nuten_t) == 1 and abs(nuten_t[0].frei_b - 4.0) < 0.01, f"T, Steg 4: {nuten_t}")
+    try:
+        nb.planen(werte_t, nuten_t)
+    except ValueError as grund_t:
+        pruefe("zu nah" in str(grund_t), f"T, Steg 4, r {r_nut}: {grund_t}")
+    else:
+        pruefe(
+            False, f"T, Steg 4, r {r_nut}: gefräst, obwohl die Gegenwand 4 mm hinter dem Ende steht"
+        )
+teil_t, nuten_t = t_kreuzung(9.5, 12.6)
+bahn_t = nb.planen(werte_t, nuten_t)
+k_t = ps.messen(
+    [ps.Bahnlauf(bahn_t.punkte, 902.0, 270.0)], teil_t, (0, 80, 0, 60), 20.0, ff.scheibe(6.0), 1.5,
+    25.0, ebenen_z=[12.0],
+)  # fmt: skip
+rand_t = max(p.x for p in bahn_t.punkte if p.z < 20.0) + 6.0
+pruefe(rand_t <= 62.6 - 0.25, f"T, Steg 12,6: der Fräser reicht bis x {rand_t:.2f} (Wand 62,6)")
+pruefe(
+    k_t.einschnitt > -ps.EINSCHNITT_ZULAESSIG and k_t.eilgang_abtrag <= 1e-9,
+    f"T, Steg 12,6: Einschnitt {k_t.einschnitt:.3f}, im Eilgang {k_t.eilgang_abtrag:.1f} mm³",
+)
+teil_t, nuten_t = t_kreuzung(7.0, 20.0)  # weit genug: bleibt offen wie bisher
+pruefe(nuten_t[0].offen_b and nuten_t[0].frei_b > 2 * 6.0 + nb.FREI_VOR, f"T, Steg 20: {nuten_t}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

@@ -91,6 +91,7 @@ LUFT = 0.1  # mm – so hoch gleitet er zwischen zwei Zeilen über der Hüllflä
 # die Hüllfläche hinab (wie freiwege.LINK_LUFT über dem Material)
 HEBEN_EILGANG = 2.0
 LUECKE_FAHREN = 10.0  # mm – kürzere Lücken in einer Zeile fährt er auf der Hüllfläche durch
+LUECKE_KNICK = 0.04  # mm – so weit darf die Hüllfläche in einer Lücke je Stelle nach unten knicken
 TOLERANZ_GERADE = 0.002  # mm – so weit darf ein ausgelassener Punkt von der Geraden liegen
 NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst sieht er nichts
 GRENZWINKEL = 45.0  # Grad – steiler: Höhenlinien, flacher: Zeilen; 0: nur Zeilen
@@ -230,6 +231,20 @@ def zeilenabstand(form, grathoehe):
     return max(unten, 0.01)
 
 
+def _gewoelbt(form):
+    """Die Form, aus der der Zeilenabstand auf gewölbten Flächen folgt: Beim Torusfräser trägt
+    dort nur die Eckrundung – eine Kugel mit seinem kleinsten Bogenradius –, nicht die ebene Stirn.
+    Mit der Stirn gerechnet (Abstand 4,3 mm bei R 3 / r 1 und Grathöhe 0,01) blieben auf einer
+    Kuppel bis 1,6 mm stehen statt 0,01 (Sicherheitsprüfung, nachgestellt am 2026-11-13). Kugel
+    und Schaftfräser bleiben, wie sie sind."""
+    from . import fraeserform as ff
+
+    stuecke = getattr(form, "stuecke", ())
+    boegen = [s.radius for s in stuecke if s.art == ff.BOGEN and s.radius > 0]
+    eben = any(s.art == ff.EBEN and s.rho_bis - s.rho_von > 1e-6 for s in stuecke)
+    return ff.kugel(min(boegen)) if eben and boegen else form
+
+
 def _netze(form_teil, namen, toleranz):
     """(das ganze Teil, das Teil ohne die Flächen `namen`) als vierachs_huelle.Netz und die
     gewählten Flächen allein (Punkte, Dreiecke, Fläche je Dreieck) – einmal vernetzt."""
@@ -341,7 +356,14 @@ def _laeufe(maske, z, schritt):
             bis = i
             continue
         luecke = z[bis + 1 : i]
-        if (i - bis - 1) * schritt < LUECKE_FAHREN and np.all(np.isfinite(luecke)):
+        # Eine Lücke nur durchfahren, wenn die Hüllfläche darin nirgends nach unten knickt: Über
+        # einer Kante (eine Rippe zwischen zwei gewählten Flächen) rollt die Kugel mit Krümmung
+        # 1/R, die Sehne zwischen zwei Stellen läge darunter – 0,05 mm im Hindernis
+        # (Sicherheitsprüfung, nachgestellt am 2026-11-13). Nach oben gewölbt (der Fuß einer
+        # Kuppel) ist harmlos.
+        with np.errstate(invalid="ignore"):
+            glatt = bool(np.all(np.diff(z[max(bis - 1, 0) : i + 2], 2) >= -LUECKE_KNICK))
+        if (i - bis - 1) * schritt < LUECKE_FAHREN and np.all(np.isfinite(luecke)) and glatt:
             bis = i
             continue
         laeufe.append((von, bis))
@@ -788,6 +810,19 @@ def _ecken(raster, x, y, stufe=None):
         with np.errstate(invalid="ignore"):
             spanne = np.maximum.reduce(ecken) - np.minimum.reduce(ecken)
         sprung = endlich & (np.nan_to_num(spanne, nan=np.inf) > stufe)
+        if raster.gewaehlt is not None:
+            # Auch genau, wo die vier Knoten gemischt gewählt sind und ein NICHT gewählter höher
+            # liegt als ein gewählter: eine Wand oder Rippe, niedriger als `stufe`. Bilinear läge
+            # die Spitze dort in ihr – an einer 2 mm hohen Wand 0,07 mm (äquidistant) und 0,13 mm
+            # (Spirale; Sicherheitsprüfung, nachgestellt am 2026-11-13). Liegt der fremde Knoten
+            # tiefer (die Kehle am Fuß), bleibt es bilinear.
+            g = raster.gewaehlt
+            gk = (g[i0, j0], g[i0 + 1, j0], g[i0, j0 + 1], g[i0 + 1, j0 + 1])
+            gemischt = ~(gk[0] & gk[1] & gk[2] & gk[3])
+            with np.errstate(invalid="ignore"):
+                fremd = np.maximum.reduce([np.where(gk[k], -np.inf, ecken[k]) for k in range(4)])
+                eigen = np.minimum.reduce([np.where(gk[k], ecken[k], np.inf) for k in range(4)])
+            sprung = sprung | (endlich & gemischt & (fremd > eigen + MASKE))
     return tx, ty, ecken, endlich, sprung
 
 
@@ -995,7 +1030,10 @@ def _spirale(raster, w, abstand, vorweg):
     theta = np.array(winkel)
     x = mitte[0] + b * theta * np.cos(theta)
     y = mitte[1] + b * theta * np.sin(theta)
-    z = _bilinear(raster, x, y) + 0.0  # das Aufmaß steckt schon im Raster
+    # Wie die Zeilen: an Stufen genau (bis 0.367.0 ganz ohne – die Spirale ging 0,13 bis 0,16 mm in
+    # die Oberkante einer nicht gewählten Wand). Das Aufmaß steckt schon im Raster.
+    _genau_vorrechnen(raster, [(x, y)])
+    z = _bilinear(raster, x, y, STUFE) + 0.0
     maske = raster.bei(maske_raster, x, y) & np.isfinite(z)
     laeufe = _laeufe(maske, z, w.schritt)
     if not laeufe:
@@ -1115,7 +1153,7 @@ def _flaeche_entlang(form_teil, flaechen, raster, w, abstand, laengs_u, geformt)
             if umkehren:
                 x, y = x[::-1], y[::-1]
             with np.errstate(invalid="ignore"):
-                z = _bilinear(raster, x, y)
+                z = _bilinear(raster, x, y, STUFE)
                 maske = np.isfinite(x) & np.isfinite(z)
             if maske.any():
                 maske &= raster.bei(raster.gewaehlt, np.nan_to_num(x), np.nan_to_num(y))
@@ -1403,7 +1441,7 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
             )
     netz_alle, netz_rest, netz_gewaehlt = _netze(form_teil, flaechen, toleranz)
     geformt = w.form.mit_aufmass(max(w.aufmass, 0.0))
-    abstand = zeilenabstand(w.form, w.grathoehe)
+    abstand = zeilenabstand(_gewoelbt(w.form), w.grathoehe)
     raster = None
     vorweg = ([], 0.0, 0, math.inf)
     steil_flach = 0 < w.grenzwinkel < 90

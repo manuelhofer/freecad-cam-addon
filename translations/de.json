@@ -2741,6 +2741,7 @@
     "nt.fehler.zu_schmal": "Die Nut ist {breite} breit, der Fräser Ø {fraeser} – ein schmalerer Fräser.",
     "nt.fehler.zu_breit": "Die Nut ist {breite} breit – fast zwei Fräser: In der Mitte der Helix bliebe ein Kern stehen. Ein größerer Fräser, oder „Räumen“.",
     "nt.fehler.nichts": "Über den Nuten steht nichts – das Rohteil endet auf ihrem Grund.",
+    "nt.fehler.ende_zu_nah": "Hinter dem offenen Ende der Nut steht das Teil zu nah für den Fräser – ein kleinerer Fräser käme hinein.",
     "ba.nut": "Nut",
     "ba.nut.text": "Fräst Langlöcher mit einem schmaleren Schaftfräser: in breiten Nuten Bögen von Wand zu Wand, in knappen geradeaus in voller Breite (hinab mit einer kleinen Helix am Ende, nur ohne Platz dafür mit einer Zickzack-Rampe). Geschlossene Nuten beginnen mit einer Helix, offene von außen. Zuletzt die Wand rundum; durchgehende 0,5 mm tiefer.",
     "ba.nutfraeser.tooltip": "Ein Fräser mit ebener Stirn, schmaler als die Nut – am schnellsten mit 50 bis 75 % ihrer Breite.",

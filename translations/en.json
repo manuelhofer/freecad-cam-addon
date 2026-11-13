@@ -2741,6 +2741,7 @@
     "nt.fehler.zu_schmal": "The slot is {breite} wide, the cutter Ø {fraeser} – use a narrower cutter.",
     "nt.fehler.zu_breit": "The slot is {breite} wide – nearly two cutters: a core would stay in the middle of the helix. A larger cutter, or “Clearing”.",
     "nt.fehler.nichts": "Nothing stands above the slots – the stock ends at their floor.",
+    "nt.fehler.ende_zu_nah": "The part stands too close behind the open end of the slot for this cutter – a smaller cutter would fit.",
     "ba.nut": "Slot",
     "ba.nut.text": "Mills slots with a narrower end mill: arcs from wall to wall in wide slots, straight at full width in tight ones (down with a small helix at the end, a zigzag ramp only where there is no room for it). Closed slots start with a helix, open ones from outside. Finally the wall all round; through slots 0.5 mm deeper.",
     "ba.nutfraeser.tooltip": "A cutter with a flat end, narrower than the slot – fastest at 50 to 75 % of its width.",

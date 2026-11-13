@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-09 sicherheit-nut-und-schlichten3d
+
+### EINGELESEN
+- Manuel, 2026-11-13: „2. Nicht gleichzeitig“ – die abgebrochenen Läufe nacheinander. Zuerst die
+  Sicherheitsprüfung von Nut und 3D-Schlichten/Bleistift (Workflow auf dem eingefrorenen Stand 0.366.7,
+  je ein Prüfer und ein Zweifler mit eigenem Nachlauf: B-rep-Schnitt bei der Nut, distToShape beim
+  Schlichten), danach erst der Zacken-Umbau.
+- Sieben bestätigte Funde, je mit in einer Kopie erprobter Korrektur
+  (`~/freecad_cam/wip/pruefung_1113b/nutz/`, `…/schlichten3dz/`).
+
+### DATEIEN
+- `camaddon/nut_bahn.py`: `Nut.frei_a/frei_b`, `_frei_bis`; in `_nut` das Ende schließen oder ablehnen;
+  `_auf_den_bogen` legt auch Eilgänge längs des Bogens.
+- `camaddon/schlichten3d_bahn.py`: `_ecken` (fremder Knoten höher), `_spirale` und `_flaeche_entlang` mit
+  `STUFE`, `_laeufe` mit `LUECKE_KNICK`, `_gewoelbt` für den Zeilenabstand.
+- `translations/de.json`, `en.json` (`nt.fehler.ende_zu_nah`).
+- `tests/test_nut_offen.py` (T-Kreuzung), `tests/test_schlichten3d.py` (Lückenregel, Torus-Abstand).
+- `docs/spezifikation_strategien.md` (13.7), `docs/STATUS_SNAPSHOT.md` (B-033 offen), `package.xml` (0.367.1).
+
+### ERGEBNIS
+- Nut an der T-Kreuzung (Steg 4): abgelehnt mit einem Satz statt Eilgang mit der Achse in der Wand; Steg 12,6:
+  geschlossen gefahren, im B-rep-Nachlauf nichts im Teil (vorher 0,4 mm). Bogennut mit Nabe: kein langer
+  Eilgang mehr, nichts im Teil (vorher 3,5 mm im Eilgang).
+- 3D-Schlichten an der 2 mm hohen Wand: 0,000 mm im Teil (vorher 0,07 äquidistant, 0,13 bis 0,16 Spirale);
+  über die Rippe 0,004 (vorher 0,05); Torus auf der Kuppel höchstens 0,016 mm Rest (vorher 1,6).
+- Grün: `test_nut`, `test_nut_offen`, `test_schlichten3d`, `test_bleistift`, `test_stl_teil`,
+  `test_hinterschnitt_bahn`, `test_testteil`, `test_goldene_bahnen`, `test_sprache`; `szenario_schlichten3d`,
+  `szenario_nut_offen`; dazu die Prüfdateien des Zweiflers gegen den neuen Stand.
+- Nicht übernommen: „Spitze nie unter die Endtiefe heben“ (B-033) – das ist eine Werkstattfrage.
 ## P-2026-11-13-08 planfraesen-zeilen-von-beiden-seiten
 
 ### EINGELESEN
