@@ -26,6 +26,8 @@ patch_naming:
 - `camaddon/schruppen3d_bahn.py`: Lagen über dem ganzen Teil (`ueber_allem`) fahren mit `material_setzen`
   und `_ringe_vom_rohteil`; die unterste nimmt alles darüber mit (bis zur Zustellung); `stehen_bis` für die
   Einfahrt nach ausgefallenen Zwischenlagen.
+- `camaddon/freiwege.py`: `_rand` – vor dem Eilgang hinab eine Zelle Rand, zwei nur, wo im Umkreis Knoten
+  ohne Höhe stehen (Rand eines Körper-Rohteils); in `_tiefer_im_eilgang` und `_tiefste_spitze`.
 - `tests/test_schruppen3d.py`: Schale und Kuppel mit 5 mm Rohteil darüber.
 - `docs/spezifikation_strategien.md` (4.1, 3D-Schruppen), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.366.6).
 
@@ -34,8 +36,12 @@ patch_naming:
   mehr; 5,07 min (vorher 1,36 – ohne die Platte darüber abzutragen). Mit 0 und 1 mm darüber unverändert
   (1,12 / 1,33 min).
 - Kuppel + 5 mm: über der Spitze höchstens bis z 21,1 (vorher 25).
+- Testteil durch den ganzen Weg: 13,75 min (Räumen T1 9,94, T3 0,37, Kontur 0,64, 3D-Schruppen 0,79, Bohrung
+  fräsen 0,24, Restmaterial 0,25, 3D-Schlichten 1,52). Mit zwei Zellen Rand überall waren es 14,10 (Räumen T1
+  10,26); mit `_rand` bleiben Rundmaterial (0 von 200) und Wandaufmaß (0 von 50) sauber.
 - Grün: `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_testteil`, `test_goldene_bahnen`,
-  `test_restschruppen`; das Testteil durch den ganzen Weg nachgemessen (Zahl im Statuseintrag).
+  `test_restschruppen`, `test_freiwege`, `test_raeumen`, `test_bohrung`, `test_kontur`, `test_nut`.
+- B-031 und B-032 selbst nachgestellt (0,06 mm in der fertigen Wand; Wandteil über dem Absatz fehlt).
 - Offen: B-030 (Kontur: Schlichtzug im Eilgang ins Rohteil, wenn die Schruppversätze nicht fahren konnten –
   selbst nachgestellt: Nut 12,2 breit mit Ø 12, G0 8 mm tief, dann 10 mm in voller Breite), B-031, B-032.
 ## P-2026-11-13-05 freiwege-eilgang-hinab-zwei-zellen-rand
