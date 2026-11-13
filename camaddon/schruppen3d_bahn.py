@@ -84,6 +84,14 @@ STUFE_ORT = 0.5 * STUFE
 # Ein Ring weiter draußen (die Stufe breiter als ae) fährt nur, wo er mehr als diesen Anteil von ae
 # nimmt – den Rest nimmt der Ring dahinter mit.
 STUFE_AUSSEN = 0.25
+# Von unten auch mit Materialstand (Operationen davor im Job haben etwas weggenommen) – bis 0.370.0
+# dann von oben. Gemessen (Bauer, 2026-11-14; Standardfräser, Aufmaß 0,3): Kuppel, Rohteil 25 auf
+# 20 plangefräst 5,82 statt 6,30 min; Kuppel, ringsum schon geräumt 2,95 statt 3,42; Kegel 65°,
+# Rohteil 40 auf 36 plangefräst 10,35 statt 12,94; Kuppel mit einer Tasche daneben 5,80 statt 6,27 –
+# kein Einschnitt, nichts im Eilgang, nicht öfter senkrecht, Eingriff wie von oben. Die Mulde des
+# Testteils bleibt bei 1,2945 min (dort öffnet sich eine Höhlung: der Abschnitt von oben).
+# Abschaltbar für den Vergleich.
+MIT_STAND = True
 # _RUECKFALL – von unten ohne genaue Grenze (im Raster über GENAU_BIS_RASTER: die Vorschau, eine
 # gröbere Auflösung; oder auf einer Lage, auf der ein Ring beim Nachrechnen nicht hält): Das Raster
 # weiß je Zellmitte, bis wohin Material steht – was eine Lage stehen lässt, ist oft schmaler als
@@ -336,7 +344,7 @@ class _Treppe:
         return _naechste(self.punkte, punkte)[0]
 
 
-def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, fehler=0.0):
+def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, fehler=0.0, stand=False):
     """Je Punkt der Wand (m, 2) die Stufe (mm): der Abstand zur Treppe – höchstens so breit, wie das
     Raster unter der Stirn Material sieht (`voll`: Knoten (k, 2) über der Lage in Reichweite der
     Wand), plus eine Zelle (ein Streifen schmaler als sie ist im Raster nicht zu sehen); mindestens,
@@ -344,11 +352,21 @@ def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, fehler=0.0):
     (`steht`); beide Schranken um `fehler` schmaler (_RUECKFALL). Die Grenze nach oben: Die
     Treppe weiß nicht, was andere Operationen davor nahmen (Materialstand) – in der Mulde des
     Testteils öffnete sich auf −22,2 ein Absatz, den das Räumen schon geräumt hatte, die Treppe
-    maß dort 33 mm."""
+    maß dort 33 mm.
+
+    Mit `stand` (Materialstand, MIT_STAND): Wo die Treppe die Wand nicht kennt (ihr Abstand ist
+    breiter als die Grenze aus dem Raster), zählt nur, was das Raster eine Zelle weniger weit sieht
+    – wie bei der Zwischenlage von oben. Über einer solchen Wand hat eine Operation davor das
+    Material genommen; was das Raster in der Zelle an der Wand noch sieht, ist ihr Aufmaß oder das
+    großzügige Raster des Stands (hoehen_an: das Höchste der Zellen um den Knoten). In der Mulde des
+    Testteils fuhr sonst auf −21,27 ein Ring ums ganze Teil (Stufe 0,85 nur aus diesem Rand, die
+    Treppe 18,6 mm weit): 1,32 statt 1,29 min, 948 statt 158 Halte (Bauer, 2026-11-14)."""
     b = treppe.breite(p)
     oben = np.full(len(p), schritt)
     if len(voll):
         oben = np.maximum(oben, r + schritt - fehler - _naechste(voll, p)[0])
+    if stand:
+        oben = np.where(b > oben, 0.0, oben)
     b = np.minimum(b, oben)
     if len(erreichbar):
         b = np.maximum(b, r - 0.5 * schritt - fehler - _naechste(erreichbar, p)[0])
@@ -567,8 +585,9 @@ def _schruppen(
     er nicht überall das volle Rohteil zeigt. Mit `nur` (_Nur) zählt es, was rings um die Flächen
     noch steht (`st.drumherum`), und gilt `nur.an`, dort schon als gefräst: nur über den Flächen,
     jede Lage wie eine Zwischenlage. Mit `von_unten` die Zwischenlagen von unten nach oben, je ein
-    Streifen an der Wand mit voller Tiefe (VON_UNTEN, _ringe_streifen) – nicht im Rest und nicht
-    mit Materialstand (dann wie bisher von oben)."""
+    Streifen an der Wand mit voller Tiefe (VON_UNTEN, _ringe_streifen) – nicht im Rest (dann wie
+    bisher von oben); mit Materialstand nur, wo die Treppe oder das Raster dort Material sieht
+    (MIT_STAND)."""
     aufmass = max(w.aufmass, 0.0)
     ziel = z_unten + aufmass
     oben = w.oben
@@ -628,10 +647,9 @@ def _schruppen(
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
     # Nicht im Rest (davor: dort steht kein Streifen an einer Wand, sondern was der große Fräser in
-    # Ecken und Kehlen ließ) und nicht mit Materialstand: Die Treppe weiß nicht, was Operationen
-    # davor an den Wänden nahmen oder stehen ließen – in der Mulde des Testteils fuhr sonst ein Ring
-    # ums ganze Teil (1,32 statt 1,29 min, 948 statt 158 Halte, Eingriff bis 3,6 ae).
-    von_unten = bool(von_unten) and davor is None and not mit_stand
+    # Ecken und Kehlen ließ). Mit Materialstand (MIT_STAND) zählt an einer Wand, die die Treppe
+    # nicht kennt, nur, was das Raster eine Zelle weniger weit sieht (_stufe).
+    von_unten = bool(von_unten) and davor is None and (MIT_STAND or not mit_stand)
     genau = GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
     nachrechner = rg.Nachrechner(feld, netz, geformt) if genau else None
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen, von_unten)
@@ -758,7 +776,7 @@ def _schruppen(
             fehler = 0.0 if grenze is not None else schritt
 
             def stufe(p, treppe=treppe, erreichbar=erreichbar, voll=voll, steht=steht, f=fehler):
-                return _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, f)
+                return _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, f, mit_stand)
 
             breite, fahren = [], []
             for p, geschlossen in wand:

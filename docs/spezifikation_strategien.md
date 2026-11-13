@@ -307,16 +307,30 @@ eben). Kein OCL.
      schmaler als eine Zelle); der Eilgang hinab endet über dem höchsten Material unter der Stirn.
    - *Über dem ganzen Teil:* Die unterste solche Lage nimmt alles darüber mit (bis zur Oberkante,
      nie tiefer als die Zustellung) – die Zusammenfassung „die darunter nimmt es mit“ entfällt.
+   - *Mit Materialstand* (Operationen davor im Job haben etwas weggenommen; `MIT_STAND`, nach
+     0.370.0 – bis dahin von oben): auch von unten. Jede Lage räumt dann wie eine Zwischenlage nur,
+     wo laut Stand Material steht; die Treppe beginnt an der Wand der Hauptlage wie ohne Stand. Wo
+     sie eine Wand nicht kennt (ihr Abstand breiter als die Grenze aus dem Raster), zählt nur, was
+     das Raster eine Zelle weniger weit sieht – wie bei der Zwischenlage von oben: Über einer
+     solchen Wand hat eine Operation davor das Material genommen, was das Raster in der Zelle an ihr
+     noch sieht, ist deren Aufmaß oder das großzügige Raster des Stands. Ohne diese Regel fuhr in
+     der Mulde des Testteils (ohne die Ausnahme für die Höhlung) auf −21,27 ein Ring ums ganze Teil,
+     die Stufe 0,85 nur aus diesem Rand: 1,32 statt 1,29 min, 948 statt 158 Halte. Gemessen (13.7):
+     Kuppel nach dem Planfräsen 5,82 statt 6,30 min, Kuppel mit ringsum geräumter Platte 2,95 statt
+     3,42, Kegel 65° nach dem Planfräsen 10,35 statt 12,94; die Mulde des Testteils unverändert
+     (1,2945 min, 158 Halte – dort öffnet sich eine Höhlung).
    - *Ausgenommen, mit der Reihenfolge von oben:* der Rest (`davor`: dort steht kein Streifen an
-     einer Wand), der Materialstand (die Treppe weiß nicht, was Operationen davor an den Wänden
-     ließen – in der Mulde des Testteils fuhr sonst ein Ring ums ganze Teil, 1,32 statt 1,29 min,
-     Eingriff 3,6 ae) und ein Abschnitt, in dem sich eine Höhlung öffnet, die nicht an das Freie der
+     einer Wand) und ein Abschnitt, in dem sich eine Höhlung öffnet, die nicht an das Freie der
      Hauptlage grenzt (`_hoehlung`: die erste Lage darin ginge mit voller Tiefe über die Rampe, der
      erste Ring um die Mitte in voller Breite – an der Schale 4,4 ae auf 50 mm), oder ein Spalt
      zwischen zwei Wänden (`_spalt`: Erlaubtes, das die Hauptlage nicht erreichte, weiter als R von
      ihrem Freien und mittendrin gleich weit von zwei getrennten Stücken des Gesperrten, mit
      Material darüber – zwei Kuppeln, deren Spalt sich 1,9 mm über der Hauptlage öffnet: von unten
      kam der erste Ring mitten in den vollen Spalt, 6,1 statt 3,3 ae, 3,87 statt 3,48 min).
+     Nur die Höhlung und den Spalt von oben, den Rest des Abschnitts von unten, ist versucht und
+     nicht gebaut (13.7): Am Geist ist die Höhlung eine einzige Zelle, die eine Lage höher schon ans
+     Freie reicht, der Spalt aber 186 mm² groß – der Geist kam damit nur auf 30,93 statt 31,07 min,
+     neunmal statt siebenmal senkrecht ins Material (die Höhlung zuerst: 31,92 min).
    - *Ohne genaue Grenze* (`_RUECKFALL`: im Raster über 0,5 mm – die Vorschau, eine gröbere
      Auflösung – oder auf einer Lage, auf der ein Ring beim Nachrechnen nicht hält): Die Stufe kommt
      aus der Höhenlinie der Hüllfläche im Raster, die Ringe an der Wand aus dem Raster (das
@@ -2946,6 +2960,45 @@ Gegenrechnung in den Ordnern daneben.
   der fertigen Bahn. Bekannt und so belassen (fertige Bahn, feines Raster): steile Wand 85° +6 %
   Zeit bei kleinerem Rest, Rippe +8 %; die Ausnahmen Höhlung und Spalt gelten für den ganzen
   Abschnitt (am Geist 31,1 statt möglicher 29,4 min).
+  **Von unten auch mit Materialstand (2026-11-14, Abschnitt 4.2 „Mit Materialstand“; Skripte in
+  `~/freecad_cam/wip/strategien/geist_luft/stand_bau/`: stand.py, mulde.py, geist.py,
+  gleich_unten.py):** Bis 0.370.0 fiel „von unten“ zurück auf von oben, sobald Operationen davor im
+  Job etwas weggenommen hatten – in einem wirklichen Job nach Planfräsen oder Räumen brachte der
+  Haken also nichts. Gemessen je Fall von oben gegen von unten (Standardfräser, Aufmaß 0,3; Stand
+  als Höhenfeld nachgebaut, Prüfstand mit demselben Rohteil):
+
+  | Fall (mit Materialstand) | von oben | von unten | Rest über Aufmaß oben / unten |
+  | --- | ---: | ---: | ---: |
+  | Kuppel, Rohteil 25 auf 20 plangefräst | 6,30 min | 5,82 min | 819 / 728 mm³ |
+  | Kuppel, Rohteil 25 auf 22 plangefräst | 7,17 min | 6,12 min | 887 / 775 mm³ |
+  | Kuppel, Platte ringsum schon auf Maß geräumt | 3,42 min | 2,95 min | 816 / 725 mm³ |
+  | Kegel 65°, Rohteil 40 auf 36 plangefräst | 12,94 min | 10,35 min | 1476 / 1767 mm³ |
+  | Kuppel, nur eine Tasche daneben geräumt | 6,27 min | 5,80 min | 816 / 725 mm³ |
+  | Kuppel, außerhalb r 24 bis z 15 geräumt (Absatz) | 6,15 min | 5,68 min | 816 / 725 mm³ |
+  | Kuppel mit Schulter, ringsum geräumt | 3,61 min | 2,55 min | 1287 / 1215 mm³ |
+  | Mulde des Testteils (Jobkopie) | 1,2945 min, 158 Halte | gleich | – |
+
+  Überall kein Einschnitt, nichts im Eilgang, nicht öfter senkrecht und Eingriff wie von oben, der
+  Prüfstand ohne Urteil; im Raster 0,75 / 1,0 und in der Vorschau ebenso (dort ohnehin die
+  schnellere Reihenfolge), nie öfter senkrecht als von oben (Kegel im Raster 1,0: 0 statt 3). Rest
+  senkrecht zur Fläche wie ohne Stand (Kuppel p90 1,03 statt 1,04, Kegel 1,06 statt 0,87 – die
+  bekannte breitere Stufe am Kegel). Was die Treppe nicht weiß: In der Mulde
+  öffnet sich auf −21,27 eine Wand ums ganze Teil, über der das Räumen das Material schon genommen
+  hat – das Raster sah nur den Rand an ihr (Stufe 0,85) und fuhr einen Ring ums Teil (1,32 statt
+  1,29 min, 948 statt 158 Halte). Darum zählt mit Stand an einer Wand, die die Treppe nicht
+  kennt, nur, was das Raster eine Zelle weniger weit sieht (`_stufe`, `stand`); in der Mulde
+  schützt heute ohnehin die Höhlung (der Abschnitt von oben). Ohne Materialstand bleibt alles
+  bitgleich (Prüfsummen von elf Fällen von unten und „Haken aus“ wie 0.370.0; Geist 31,07 min,
+  Rest 5,62 cm³; Kegel 10,20). Nebenbefund: Mit Materialstand räumt jede Lage wie eine
+  Zwischenlage – die Kuppel auf 20 plangefräst braucht deshalb 5,82 statt 4,93 min wie ohne Stand
+  mit Rohteil 20, Eingriff bis 5,8 ae statt unter 2 (auch von oben); ein ebener Stand ist eigentlich
+  nur ein kleineres Rohteil (offen).
+  **Höhlung und Spalt nur örtlich – versucht, nicht gebaut:** Am Geist löst eine Höhlung von einer
+  einzigen Zelle (59,94 mm, eine Lage höher schon am Freien) den Abschnitt 42,1 … 62,9 aus, dazu ein
+  Spalt von 186 mm². Erst den Rest von unten ohne beide, dann sie von oben: 30,93 min, Rest 5,64
+  cm³, neunmal statt siebenmal senkrecht ins Material; sie zuerst: 31,92 min, fünfmal. Unter 30 min
+  (29,4) kommt der Geist nur, wenn der Spalt selbst von unten läuft – genau das, was der Gegenprüfer
+  an zwei Kuppeln verbot (6,1 statt 3,3 ae). Darum bleibt der ganze Abschnitt von oben.
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130

@@ -11,7 +11,8 @@
 # „schruppen3d“ mit dem Einsatz „Schruppen“. (e) Die Zwischenlagen von unten (VON_UNTEN): Kuppel,
 # nur darüber, Schale, Schale + 5 – kürzer, die Treppe in derselben Grenze, nichts ins Teil, nichts
 # im Eilgang, kein Eintauchen; die Vorschau höchstens 15 % neben der fertigen Zeit; die flache
-# Kuppel im gröberen Raster ohne genaue Grenze sicher; zwei Kuppeln mit Spalt nicht schlechter.
+# Kuppel im gröberen Raster ohne genaue Grenze sicher; zwei Kuppeln mit Spalt nicht schlechter; mit
+# Materialstand (die Platte ringsum schon geräumt) kürzer als von oben und nicht unsicherer.
 import math
 import os
 import pathlib
@@ -30,6 +31,7 @@ from Path.Tool.camassets import user_asset_store
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
+from camaddon import materialstand as mst
 from camaddon import pruefstand as ps
 from camaddon import raeumen_bahn as rb
 from camaddon import restmaterial as rm
@@ -350,6 +352,36 @@ print(ascii(f"Kuppel, nur darüber, von unten: {nur_u.zeit:.2f} min – {ps.zeil
 pruefe(nur_u.zeit < nur.zeit, f"nur darüber von unten: {nur_u.zeit:.2f} statt {nur.zeit:.2f} min")
 pruefe(k_nur_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"nur, von unten: {k_nur_u.einschnitt:.3f}")
 pruefe(k_nur_u.eilgang_abtrag <= 1e-9, f"nur, von unten: Eilgang {k_nur_u.eilgang_abtrag:.1f}")
+# Mit Materialstand (MIT_STAND): Ein Räumen davor hat die Platte ringsum schon bis aufs Aufmaß
+# genommen. Bis 0.370.0 liefen die Zwischenlagen dann von oben (3,42 min) – jetzt von unten: kürzer
+# (2,95 min), nichts ins Teil, nichts im Eilgang, nicht öfter senkrecht und nicht breiter im
+# Eingriff als von oben, der Prüfstand nicht strenger.
+q_stand = rm.Quader(0, 60, 0, 60, -1.0, 20.0, mst.SCHRITT)
+voll_stand = q_stand.h.copy()
+ringsum_gefraest(q_stand)
+stand = mst.Materialstand(q_stand, voll_stand, ["Räumen T1"], [q_stand.h < voll_stand - 1e-9])
+stand_o = r3.planen(teil, kugel, werte(20.0), stand=stand)
+stand_u = r3.planen(teil, kugel, werte(20.0), stand=stand, von_unten=True)
+k_stand_o = gemessen(teil, stand_o, 20.0, ringsum_gefraest)
+k_stand_u = gemessen(teil, stand_u, 20.0, ringsum_gefraest)
+print(ascii(f"Kuppel mit Materialstand: von unten {stand_u.zeit:.2f} min (von oben "
+            f"{stand_o.zeit:.2f}), {stand_u.lagen} + {stand_u.zwischenlagen} Lagen – "
+            f"{ps.zeile(k_stand_u)}"))  # fmt: skip
+pruefe(
+    stand_u.zeit < stand_o.zeit - 0.3,
+    f"Materialstand: von unten {stand_u.zeit:.2f} statt {stand_o.zeit:.2f} min",
+)
+pruefe(k_stand_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Stand: ins Teil {k_stand_u.einschnitt}")
+pruefe(k_stand_u.eilgang_abtrag <= 1e-9, f"Stand: im Eilgang {k_stand_u.eilgang_abtrag:.1f} mm³")
+pruefe(
+    k_stand_u.eintauchungen <= k_stand_o.eintauchungen
+    and k_stand_u.eingriff_max <= k_stand_o.eingriff_max + 0.05,
+    f"Stand: {ps.zeile(k_stand_u)} (von oben {ps.zeile(k_stand_o)})",
+)
+pruefe(
+    set(ps.urteile(k_stand_u)) <= set(ps.urteile(k_stand_o)),
+    f"Stand: {ps.urteile(k_stand_u)} (von oben {ps.urteile(k_stand_o)})",
+)
 # Die Schale (eine Höhlung: die erste Lage über die Rampe, dann je hinein vom Freien in der Mitte)
 # und die Schale mit 5 mm Rohteil darüber (die unterste Lage über dem ganzen Teil nimmt alles
 # darüber mit).
