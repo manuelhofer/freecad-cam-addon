@@ -470,7 +470,7 @@ print(
     ascii(f"Morph-Tasche: {bahn_mt.zeit:.2f} min, {bahn_mt.ringe} Ringe; Ringe {bahn_c.zeit:.2f}")
 )
 
-# --- (d) Manuels Platte: Räumen schlägt das Planfräsen, die Tasche die Kontur -------------------
+# --- (d) Manuels Platte: Räumen und Planfräsen gleichauf, die Tasche schlägt die Kontur -------------------
 platte = Part.makeBox(200, 200, 30, V(-100, -100, -30))
 zapfen = Part.makeCylinder(10, 20, V(50, 50, 0))
 tasche_d = Part.makeCylinder(22.5, 20, V(-50, -50, -20))
@@ -497,10 +497,11 @@ print(
     f"Platte oben: Raeumen {bahn_d.zeit:.1f} min ({bahn_d.zeiten}), Planfraesen {plan_d.zeit:.1f} min"
 )
 pruefe(bahn_d.variante == "rohteil", f"Platte: Variante {bahn_d.variante} {bahn_d.zeiten}")
-# Seit das Planfräsen Zelle für Zelle fährt (P-2026-10-03-29: 35,2 statt 41,9 min), liegt das
-# Räumen nur noch 4 % davor (33,8 min) – es schlägt es, mehr nicht.
+# Seit das Planfräsen Zelle für Zelle fährt (P-2026-10-03-29: 35,2 statt 41,9 min), lag das
+# Räumen nur noch 4 % davor (33,8 min); seit Überlauf und Halbkreis hinter dem Rohteil nicht mehr
+# im Arbeitsvorschub fahren (0.366.3: 33,2 min), liegen beide gleichauf – keines läuft davon.
 pruefe(
-    bahn_d.zeit < plan_d.zeit,
+    bahn_d.zeit < plan_d.zeit * 1.03,
     f"Platte: Räumen {bahn_d.zeit} min, Planfräsen {plan_d.zeit} min",
 )
 pruefe(bahn_d.zeit < 36.0, f"Platte: {bahn_d.zeit} min (Abschnitt 11: etwa 33)")

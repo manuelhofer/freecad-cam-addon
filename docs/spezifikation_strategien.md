@@ -2581,9 +2581,12 @@ Gegenrechnung in den Ordnern daneben.
   (wenn der ganze Fräser neben dem Rohteil steht) fahren mit `planfraesen_bahn.SCHNELL` = 3 × F.
   Platte mit dem Plan 50: 23,7 → 20,1 min; mit dem Ø 12 (Prüfstand) 35,2 → 33,2; Absatz 2,15 → 1,80.
   Der Prüfstand zählt nach, dass im Schnellvorschub nichts abgetragen wird.
-  Nebenbefund für den Prüfstand: Auf Bogensehnen von 0,5 mm misst er mit der 45°-Fase des Plan 50 die
-  Tiefe zu klein und die „Breite im Eingriff“ zu groß (2,4 statt 1,7 ae; „voll“ an Stellen mit 0,96 ae) –
-  offen.
+  Nebenbefund für den Prüfstand: Auf Bogensehnen von 0,5 mm maß er mit der 45°-Fase des Plan 50 die
+  Tiefe zu klein und die „Breite im Eingriff“ zu groß (2,4 statt 1,7 ae; „voll“ an Stellen mit 0,96 ae).
+  *Behoben (P-2026-11-13-04):* Die Tiefe eines Stücks ist jetzt das höchste Material, das fiel, minus
+  dem tiefsten neuen Grund (vorher: das größte Absenken einer Zelle – bei Fase und Kugel nur Vorschub ×
+  Steigung). Eine Zeile mit 30 mm im Eingriff misst mit Stücken von 5 / 0,5 / 0,2 mm gleich: Plan 50
+  25,2 mm (eben 24 + Fase), Scheibe 30,5 mm.
 - **Gegenprüfung „Bohrung fräsen beginnt am Material“ (0.364.0 → 0.366.1):** Der Rand um Bohrung
   und Helix war zu knapp (eine Zelle, für `oben` keine): Eilgang 9 mm tief durch das Wandaufmaß
   einer Tasche 0,1 mm neben der Bohrung, 18,5 mm an der Wand eines Vorlochs im Körper-Rohteil

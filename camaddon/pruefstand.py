@@ -52,6 +52,7 @@ BREIT_FENSTER = 3.0  # mm
 BREIT_WEG = 5.0  # mm
 MIN_TIEFE = 1.0  # mm
 _NICHTS = 1e-9
+_NICHTS_HOCH = 1e-6  # mm – so viel muss eine Zelle sinken, um als geschnitten zu zählen
 
 
 @dataclass
@@ -226,7 +227,18 @@ def messen(
                     continue
                 a, b = gruppe[0][0], gruppe[-1][1]
                 waagerecht = math.hypot(b[0] - a[0], b[1] - a[1])
-                tiefe_hier = float(gesenkt.max()) if gesenkt.size else 0.0
+                # Die Tiefe des Schnitts: vom höchsten Material, das hier fiel, bis zum tiefsten neuen
+                # Grund – nicht das größte Absenken einer Zelle. Eine Fase oder Kugel senkt eine
+                # Zelle je kurzem Stück nur um den Vorschub mal ihre Steigung: Der Plan 50 (45°) auf
+                # Bogensehnen von 0,5 mm kam so auf „2,4 ae“ und „in voller Breite“, wo er 0,96 ae
+                # schnitt (zweimal nachgerechnet am 2026-11-13).
+                geschnitten = gesenkt > _NICHTS_HOCH
+                if geschnitten.any():
+                    tiefe_hier = float(
+                        vorher[geschnitten].max() - q.h[ausschnitt][geschnitten].min()
+                    )
+                else:
+                    tiefe_hier = 0.0
                 fenster.append((waagerecht, hier, waagerecht * tiefe_hier))
                 summe = sum(f[0] for f in fenster)
                 while len(fenster) > 1 and summe - fenster[0][0] >= BREIT_FENSTER:

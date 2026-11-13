@@ -707,7 +707,9 @@ for kennung, aenderung in (
     ("mazak", {}),
     ("mach", {}),
 ):
-    s_g = pp.steuerung(kennung, aenderung)
+    # Satz für Satz: ohne „Kurze Geraden zu Bögen fassen“ (seit 0.364.0 an – mit Schwenkzyklus
+    # fasst das Programm sonst die Ketten der Ebene; das prüft der Block darunter).
+    s_g = pp.steuerung(kennung, {**aenderung, "boegen": False})
     mit_zyklus = bool(s_g.schwenkzyklus and s_g.schwenken)
     soll_l = [p if mit_zyklus else (p[0], *gesamt.punkt(list(p[1:]))[:3]) for p in lagen_soll]
     if not mit_zyklus:
@@ -718,6 +720,17 @@ for kennung, aenderung in (
         weit is not None and (not mit_zyklus or len(ist_l) == len(soll_l)),
         f"Gegenprobe {kennung} {aenderung}: Satz {bis + 1} von {len(soll_l)} fehlt "
         f"({len(ist_l)} im Programm) {soll_l[bis:bis + 1]}",
+    )
+# Mit dem Haken (vorbelegt) und Schwenkzyklus: weniger Sätze, nachgelesen ohne Befund – die Bögen
+# stehen in den Koordinaten der Ebene.
+for kennung, aenderung in (("siemens", {}), ("fanuc", {"schwenkzyklus": True})):
+    s_b = pp.steuerung(kennung, aenderung)
+    programm_b = pp.programm(teile, s_b, info, "Block")
+    befunde_b, _saetze = pp.nachlesen(programm_b, s_b, info)
+    pruefe(
+        s_b.boegen and len(lagen_programm(programm_b.zeilen)) < len(lagen_soll) and not befunde_b,
+        f"gefasst {kennung}: {len(lagen_programm(programm_b.zeilen))} Sätze, "
+        f"Befunde {[(b.art, b.satz) for b in befunde_b[:3]]}",
     )
 daneben = [(p[0], p[1] + 0.01, *p[2:]) for p in lagen_soll]
 pruefe(in_folge_lagen(daneben, lagen_programm(siemens))[0] is None, "Gegenprobe: 0,01 mm übersehen")

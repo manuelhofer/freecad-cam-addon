@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-04 pruefstand-breite-mit-fase-und-kugel
+
+### EINGELESEN
+- Die Rechner und Gegenrechner der Planfräser-Messung (P-2026-11-13-03) meldeten übereinstimmend: Der
+  Prüfstand nennt mit dem Plan 50 auf Bögen „Eingriff bis 2,4 ae“ und „in voller Breite“, wo quer nur
+  0,96 bis 1,14 ae im Eingriff sind.
+- `pruefstand.messen`: Breite = Abtrag ÷ Σ(Weg × Tiefe), mit der Tiefe als größtem Absenken einer Zelle je
+  Stück.
+
+### DATEIEN
+- `camaddon/pruefstand.py`: die Tiefe eines Stücks = höchstes Material, das fiel, minus tiefstem neuen Grund.
+- `tests/test_schwenken.py`: die Gegenprobe Satz für Satz ohne „Bögen fassen“; mit dem Haken: weniger Sätze,
+  nachgelesen ohne Befund (war seit 0.364.0 rot, nicht bemerkt).
+- `tests/test_raeumen.py`: Platte – Räumen und Planfräsen gleichauf (seit 0.366.3 rot, nicht bemerkt).
+- `docs/spezifikation_strategien.md` (13.7), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.366.4).
+
+### ERGEBNIS
+- Zeile mit 30 mm im Eingriff, in Stücken von 5 / 0,5 / 0,2 mm: Plan 50 25,2 / 25,2 / 25,3 mm, Scheibe 25
+  30,5 / 30,5 / 30,7 mm, Kugel 6 je 1,1 mm.
+- Grün: `test_pruefstand`, `test_schruppen3d`, `test_nut`, `test_nut_offen`, `test_kontur`, `test_raeumen`,
+  `test_testteil`, `test_restschruppen`, `test_flanke_frei`, `test_schwenken`.
+- Danach: alle Prüfdateien ohne Oberfläche als Skript auf diesem Stand (Tagesende).
 ## P-2026-11-13-03 planfraesen-ohne-luft-im-arbeitsvorschub
 
 ### EINGELESEN

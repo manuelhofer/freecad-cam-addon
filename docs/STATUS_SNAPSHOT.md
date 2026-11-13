@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.4):* **Prüfstand misst die Breite im Eingriff richtig, auch mit Fase und Kugel:** Die
+  Tiefe des Schnitts ist jetzt „vom höchsten Material, das fiel, bis zum tiefsten neuen Grund“ statt des
+  größten Absenkens einer Zelle – der Plan 50 kam auf kurzen Stücken auf 2,4 ae und „volle Breite“, wo er
+  0,96 ae schnitt. Dazu zwei Prüfdateien nachgezogen, die seit 0.364.0/0.366.3 rot waren (Schwenk-Gegenprobe
+  mit gefassten Bögen; Platte: Räumen und Planfräsen gleichauf).
 - *Korrektur (0.366.3):* **Planfräsen ohne Luft im Arbeitsvorschub:** Hinter dem Rohteil fuhr der Überlauf
   im halben Vorschub und der Halbkreis zur nächsten Zeile im vollen – beides Luft. Jetzt langsam nur, bis die
   Mitte an der Kante steht, dahinter und im Halbkreis neben dem Rohteil mit 3 × F. Manuels Platte mit dem
