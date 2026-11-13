@@ -316,6 +316,9 @@ class _Feld:
         # Mit Materialstand zählt `tiefe` vom Rand dessen, was noch steht (_tiefe_vom_material).
         self._tiefe_rohteil = self.tiefe
         self.vom_material = False
+        # Die genaue Grenze der Lage (ringgrenze.Grenze, nur im 3D-Schruppen): Dann ist D der
+        # Abstand zu ihr, der Ring an der Wand kommt von ihr, die davor sind in Bögen gefasst.
+        self.grenze = None
 
     def zellen(self, x, y):
         """(i, j) der Zellen, in denen (x, y) liegen – auf das Raster begrenzt."""
@@ -758,6 +761,10 @@ class _Ring:
     geschlossen: bool
     genau: bool = False
     tasche: bool = False  # genau, an der Wand einer Tasche (das Material außen)
+    # Aus der genauen Grenze (ringgrenze), überall nachgerechnet: Eine kurze Lücke fährt er auf
+    # sich selbst durch statt quer über die Sehne – die liefe an einer Kuppel bis 0,1 mm näher an
+    # die Fläche als das Aufmaß (am Prüfteil der Kuppel 0,20 statt 0,30).
+    grenze: bool = False
 
 
 def _ring_aus_linie(
@@ -794,6 +801,15 @@ def _ring_aus_linie(
     if not segmente:
         return None
     return _Ring(segmente, kb._abtasten(segmente, schritt, geschlossen), geschlossen)
+
+
+def _ring_des_feldes(punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz):
+    """Ein Ring aus einer Höhenlinie des Abstands D: mit genauer Grenze (feld.grenze) in Geraden
+    und Bögen gefasst (ringgrenze.ring_glatt) – ihre Höhenlinien haben keine Zacken mehr –, sonst
+    wie bisher (_ring_aus_linie)."""
+    if feld.grenze is not None:
+        return feld.grenze.ring_glatt(punkte, geschlossen, material_links, feld, D, schritt)
+    return _ring_aus_linie(punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz)
 
 
 def _rohteil_tiefe(gx, gy, rohteil):
@@ -903,6 +919,7 @@ class _Lage:
         self.lage = lage
         self.vorige = vorige
         self.erlaubt = erlaubt
+        self._gesperrt = None  # ~erlaubt, für _erlaubt_bei
         self.schritt = schritt
         # Wo das Material über der Fläche beginnt (in der Tasche ihre Oberkante) – und die Decke:
         # die Oberkante des Rohteils. Über der ersten Lage einer Tasche darf der Eilgang nur bis
@@ -966,11 +983,57 @@ class _Lage:
         if not self.feld.im_raster(qx, qy).all():
             return False
         if not ohne_sperre and not self.feld.bei(self.erlaubt, qx, qy).all():
-            return False
-        if len(qx) < 2:
+            if self.feld.grenze is None:
+                return False
+            nachrechnen = True  # mit genauer Grenze erst nach dem Blick aufs Material (billiger)
+        else:
+            nachrechnen = False
+        if len(qx) >= 2:
+            grenze = self.schwelle if schwelle is None else schwelle
+            if not (self.feld.ungeschnitten(qx[:-1], qy[:-1]) <= grenze).all():
+                return False
+        return not nachrechnen or self._erlaubt_bei(qx, qy)
+
+    def _erlaubt_bei(self, qx, qy, geschlossen=False):
+        """Darf die Spitze auf dieser Lage den Weg durch die Stellen (qx, qy) fahren? Im Raster:
+        an jeder Stelle alle vier Nachbarknoten erlaubt. Mit genauer Grenze (feld.grenze) zählt,
+        was das Raster dort nicht erlaubt, nachgerechnet – der Weg dicht abgetastet –: Der Ring an
+        der Wand liegt bis 0,015 mm vor dem Gesperrten, im Raster in Zellen mit gesperrter Ecke;
+        jedes Einfahren auf ihn sähe sonst gesperrt aus (an der Kuppel zwei Rampen mehr)."""
+        erlaubt = self.feld.bei(self.erlaubt, qx, qy)
+        if erlaubt.all():
             return True
-        grenze = self.schwelle if schwelle is None else schwelle
-        return bool((self.feld.ungeschnitten(qx[:-1], qy[:-1]) <= grenze).all())
+        grenze = self.feld.grenze
+        if grenze is None:
+            return False
+        x, y = np.asarray(qx, dtype=float), np.asarray(qy, dtype=float)
+        nein = np.flatnonzero(~erlaubt)
+        # Liegt eine Stelle zwischen lauter gesperrten Knoten, gilt sie ohne Rechnung als gesperrt
+        # (die Suche nach einem Eingang probiert viele Wege quer durchs Teil: an der Kuppel
+        # 9 300 Rechnungen, 6 statt 1,6 s) …
+        if self._gesperrt is None:
+            self._gesperrt = ~self.erlaubt
+        if self.feld.bei(self._gesperrt, x[nein], y[nein]).any():
+            return False
+        # … dann nur diese Stellen (die meisten Wege, die nicht gehen, scheitern schon da) …
+        if not grenze.erlaubt_an(x[nein], y[nein]).all():
+            return False
+        # … dann die Stücke zu ihren Nachbarn, dicht.
+        stuecke = np.concatenate([nein - 1, nein])
+        if geschlossen:
+            stuecke = np.where(stuecke < 0, len(x) - 1, stuecke)  # das Stück zurück zum Anfang
+            x, y = np.append(x, x[0]), np.append(y, y[0])
+        stuecke = np.unique(np.clip(stuecke, 0, len(x) - 2))
+        if len(x) < 2 or not len(stuecke):
+            return True
+        a, b = stuecke, stuecke + 1
+        teile = np.maximum(1, np.ceil(np.hypot(x[b] - x[a], y[b] - y[a]) / 0.1)).astype(int)
+        t = np.concatenate([np.arange(1, k) / k for k in teile])
+        von = np.repeat(a, teile - 1)
+        return bool(
+            grenze.erlaubt_an(x[von] + t * (x[von + 1] - x[von]),
+                              y[von] + t * (y[von + 1] - y[von])).all()
+        )  # fmt: skip
 
     def ring(self, ring, eng=False, kennung="", nur=None, luft=False):
         """Fährt einen Ring – in Läufen, wo erlaubt und Rohteil ist (`eng`: die Mitte höchstens
@@ -998,6 +1061,9 @@ class _Lage:
                 # Über eine kurze Lücke im Weggefrästen im Vorschub hinweg (LUECKE).
                 laenge = max(LUECKE * 2.0 * self.r, LUECKE_MIN)
                 drin = _luecken_zu(drin, ganz, proben, ring.geschlossen, laenge)
+        if ring.grenze:
+            weit = 2.0 * self.w.zeilenabstand + self.schritt  # so weit hängt _lauf Läufe an
+            drin = _luecken_zu(drin, self.feld.im_raster(x, y), proben, ring.geschlossen, weit)
         if not drin.any():
             return 0
         if not self._schneidet(x[drin], y[drin]):
@@ -1005,7 +1071,9 @@ class _Lage:
         laeufe = []  # [(Stellen, Austritt hinten)]
         if ring.geschlossen and drin.all():
             start = self._start(x, y)
-            if self.einschwenken:
+            if self.einschwenken or ring.grenze:
+                # Auf den Ring an der genauen Grenze auch: Er nimmt den Rand, den der Ring aus dem
+                # Raster stehen ließ (an der Kuppel quer hinein 2,2 statt 1,7 ae).
                 start = self._schwenke_ein(ring, start)
             laeufe.append((np.arange(start, start + n + 1) % n, False))
         elif ring.geschlossen:
@@ -1098,6 +1166,10 @@ class _Lage:
         px, py = x[stellen] + qx * rest, y[stellen] + qy * rest
         if not self.feld.im_raster(px, py).all():
             return start
+        if ring.grenze and not self._erlaubt_bei(
+            np.append(self.ort[0], px), np.append(self.ort[1], py)
+        ):
+            return start  # an der genauen Grenze: auch der Weg dorthin nachgerechnet
         punkte = self.st.punkte
         for i in range(1, k + 1):
             punkt = bn.Punkt(False, float(px[i]), float(py[i]), self.lage)
@@ -1126,9 +1198,20 @@ class _Lage:
                 anzahl = max(2, int(math.ceil(weg / self.schritt)) + 1)
                 qx = np.linspace(self.ort[0], p0[0], anzahl)
                 qy = np.linspace(self.ort[1], p0[1], anzahl)
+                kurz = weg <= w.zeilenabstand + self.schritt
+                if kurz and self.feld.grenze is not None:
+                    # Mit genauer Grenze liegt der Ring an der Wand bis 0,015 mm am Erlaubten: Der
+                    # kurze Weg quer muss nachgerechnet halten (das Raster sähe es nicht).
+                    dicht = max(2, int(math.ceil(weg / 0.1)) + 1)
+                    kurz = bool(
+                        self.feld.grenze.erlaubt_an(
+                            np.linspace(self.ort[0], p0[0], dicht),
+                            np.linspace(self.ort[1], p0[1], dicht),
+                        ).all()
+                    )
                 if (
                     self.frei(qx, qy)
-                    or weg <= w.zeilenabstand + self.schritt
+                    or kurz
                     or (
                         self.eckenboegen
                         and ring.genau
@@ -1620,9 +1703,7 @@ class _Lage:
                 anzahl = max(2, int(math.ceil(weite / self.schritt)) + 1)
                 qx = np.linspace(q[0], p0[0], anzahl)
                 qy = np.linspace(q[1], p0[1], anzahl)
-                if not (
-                    self.feld.im_raster(qx, qy).all() and self.feld.bei(self.erlaubt, qx, qy).all()
-                ):
+                if not (self.feld.im_raster(qx, qy).all() and self._erlaubt_bei(qx, qy)):
                     continue
                 if self._nichts_unter(q):
                     return q
@@ -1782,7 +1863,7 @@ class _Lage:
             radius = anteil * self.r
             qx = mitte[0] + radius * np.cos(winkel)
             qy = mitte[1] + radius * np.sin(winkel)
-            if self.feld.im_raster(qx, qy).all() and self.feld.bei(self.erlaubt, qx, qy).all():
+            if self.feld.im_raster(qx, qy).all() and self._erlaubt_bei(qx, qy, True):
                 return radius
         return None
 
@@ -4192,12 +4273,17 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         if ringe:
             stufen.append(ringe)
     letzte = []
-    for punkte, geschlossen in _hoehenlinien(D, feld.xs, feld.ys, 0.0):
-        if len(punkte) < 3:
-            continue
-        ring = _ring_aus_linie(punkte, geschlossen, material_links, feld, 0.0, D, schritt, toleranz)
-        if ring is not None:
-            letzte.append(_genau(ring, genaue, schritt) if geschlossen else ring)
+    if feld.grenze is not None:
+        letzte = list(feld.grenze.ringe)  # die genaue Grenze, schon nachgerechnet
+    else:
+        for punkte, geschlossen in _hoehenlinien(D, feld.xs, feld.ys, 0.0):
+            if len(punkte) < 3:
+                continue
+            ring = _ring_aus_linie(
+                punkte, geschlossen, material_links, feld, 0.0, D, schritt, toleranz
+            )
+            if ring is not None:
+                letzte.append(_genau(ring, genaue, schritt) if geschlossen else ring)
     feld.frei[:] = frei_vorher  # gefahren und gemerkt wird jetzt, der Reihe nach
     if letzte:
         stufen.append(letzte)
@@ -4449,20 +4535,28 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
         if w.verdichten and w.teilung > 1 and not nur_rest and j * ae < hoechste:
             _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j)
         niveau = j * ae
-        linien = _hoehenlinien(D, feld.xs, feld.ys, niveau)
+        if j == 0 and feld.grenze is not None:
+            # Die Ringe an der Wand: aus der genauen Grenze, schon nachgerechnet.
+            linien = [(None, ring) for ring in feld.grenze.ringe]
+        else:
+            linien = _hoehenlinien(D, feld.xs, feld.ys, niveau)
         ringe = []
         nur = {}
         for punkte, geschlossen in linien:
-            if len(punkte) < 2:
-                continue
-            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
-            if geschlossen and laenge < 2 * math.pi * ae:
-                continue  # winzig: der nächste Ring deckt es ab
-            ring = _ring_aus_linie(
-                punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
-            )
+            if punkte is None:
+                ring = geschlossen
+            else:
+                if len(punkte) < 2:
+                    continue
+                laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
+                if geschlossen and laenge < 2 * math.pi * ae:
+                    continue  # winzig: der nächste Ring deckt es ab
+                ring = _ring_des_feldes(
+                    punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
+                )
             if ring is None:
                 continue
+            geschlossen = ring.geschlossen
             if j == 0 and geschlossen:
                 genauer = _genau(ring, genaue, schritt)
                 if genauer is not ring and genauer.tasche:

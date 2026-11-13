@@ -41,6 +41,7 @@ from . import formteile as ft
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import raeumen_bahn as rb
+from . import ringgrenze as rg
 from . import schlichten3d_bahn as sb
 from . import vierachs_bahn as vb
 from . import vierachs_planbahn as vp
@@ -56,6 +57,9 @@ MINDESTFLAECHE = 2.0  # mm² – weniger Material auf einer Zwischenlage: nichts
 # Maschine hielte. Zum Teil hin bleibt das Gesperrte um eine Zelle breiter – sicher.
 GLAETTEN = 0.4
 GLEICH = rb.GLEICH
+# Der Ring an der Wand aus der genauen Grenze (ringgrenze, Spezifikation Strategien 13.6) statt
+# aus den Zellen – abschaltbar für den Vergleich.
+GENAUE_GRENZE = True
 
 
 @dataclass
@@ -173,21 +177,29 @@ def _ringe_zwischen(ablauf, feld, w, D, material, material_links, schritt, toler
     for nummer, niveau in enumerate(niveaus):
         ringe, nur = [], {}
         unter_stirn = aufweiten(material & ~feld.frei, feld.r - 0.01)
-        for punkte, geschlossen in rb._hoehenlinien(D, feld.xs, feld.ys, niveau):
-            if len(punkte) < 2:
-                continue
-            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
-            if geschlossen and laenge < 2 * math.pi * min(ae, 1.0):
-                continue  # winzig
-            ring = rb._ring_aus_linie(
-                punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
-            )
+        if niveau <= 0.0 and feld.grenze is not None:
+            # Die Ringe an der Wand: aus der genauen Grenze (ringgrenze), schon nachgerechnet.
+            linien = [(None, ring) for ring in feld.grenze.ringe]
+        else:
+            linien = rb._hoehenlinien(D, feld.xs, feld.ys, niveau)
+        for punkte, geschlossen in linien:
+            if punkte is None:
+                ring = geschlossen
+            else:
+                if len(punkte) < 2:
+                    continue
+                laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
+                if geschlossen and laenge < 2 * math.pi * min(ae, 1.0):
+                    continue  # winzig
+                ring = rb._ring_des_feldes(
+                    punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
+                )
             if ring is None:
                 continue
             noetig = unter_stirn[feld.zellen(ring.proben.x, ring.proben.y)]
             if not noetig.any():
                 continue
-            nur[id(ring)] = rb.verbreitert(noetig, breit, geschlossen)
+            nur[id(ring)] = rb.verbreitert(noetig, breit, ring.geschlossen)
             ringe.append(ring)
         rb._naechster_zuerst(ablauf, ringe, True, f"zwischen {nummer}", nur)
 
@@ -303,6 +315,7 @@ def _schruppen(
     gerade = kb.GERADE_ANTEIL * r
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
+    nachrechner = rg.Nachrechner(feld, netz, geformt) if GENAUE_GRENZE else None
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen)
     stehen_bis = None  # bis hierhin steht Material über einer Zwischenlage, die ausfiel
     for nummer, (lage, zwischenlage, vorige) in enumerate(folge):
@@ -381,7 +394,22 @@ def _schruppen(
             ablauf.schwelle = _Lage3D(
                 st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben
             ).schwelle
-        D = feld.abstand_zu(gesperrt & im_raster)
+        # Die Grenze zwischen den Knoten, aus der Hüllfläche selbst (ringgrenze): Der Ring an der
+        # Wand folgt ihr statt den Zellen, die Ringe davor ihrem Abstand. Hält sie nicht (ein Ring
+        # träfe beim Nachrechnen das Teil), bleibt es auf dieser Lage beim Raster.
+        feld.grenze = None
+        if nachrechner is not None:
+            # Nur die Linien, an denen ein Ring fahren kann: wo die Stirn das Rohteil trifft – auf
+            # einer Zwischenlage nur nahe dem Material, das sie nimmt (die anderen Ringe fallen in
+            # _ringe_zwischen ohnehin weg; am Testteil die halbe Rechenzeit).
+            wo = feld.beruehrt | feld.eng
+            if ist_zwischen:
+                wo &= aufweiten(material, r + schritt)
+            feld.grenze = nachrechner.grenze(lage, z_unten, erlaubt, material_links, schritt, wo)
+        if feld.grenze is not None:
+            D = feld.grenze.abstand
+        else:
+            D = feld.abstand_zu(gesperrt & im_raster)
         vorher = st.ringe
         if ueber_allem:
             rb._ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, glatt)
@@ -416,6 +444,7 @@ def _schruppen(
         elif zwischenlage and bool((hoehe > lage + MATERIAL).any()):
             stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
     feld.rohteil_zellen, feld.beruehrt, feld.eng = rechteck
+    feld.grenze = None
     return haupt, zwischenlagen
 
 

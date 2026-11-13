@@ -2509,6 +2509,44 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
   ebenso der Gang des Adaptiv-Kerns an der schrägen Stufenwand. Das Aufmaß an der Wand schwankt
   dort um eine halbe Zelle. Offen – es gehört in die Bahn (die Grenze des Gesperrten aus dem
   Höhenfeld statt aus der Zellenmaske), nicht ins Programm.
+- **Zacken im 3D-Schruppen – behoben (2026-11-13, `camaddon/ringgrenze.py`):** Der Ring an der
+  Wand kommt nicht mehr aus der Zellenmaske. Wo die Linie zwischen erlaubten und gesperrten Knoten
+  eine Kante des Rasters kreuzt, sucht `Nachrechner.grenze` die Stelle mit der Hüllfläche selbst
+  (dieselbe Rechnung wie an den Knoten, durch Halbieren auf 0,005 mm, immer die letzte erlaubte
+  Stelle), rückt 0,015 mm ins Freie, fasst in Geraden und Bögen (0,01 mm daneben) und rechnet den
+  fertigen Ring alle 0,2 mm noch einmal gegen das Netz nach. Hält eine Stelle nicht, rechnet die
+  ganze Lage wie bisher aus dem Raster. Die Ringe davor folgen dem Abstand zu diesen Punkten statt
+  zu den Zellen, ebenfalls in Bögen gefasst. Wege quer an diesen Ring heran (Einschwenken, kurze
+  Wege, Eingänge) werden dicht nachgerechnet, wo das Raster sie gesperrt sähe. Abschaltbar:
+  `schruppen3d_bahn.GENAUE_GRENZE`.
+  Gemessen mit demselben Skript vorher (0.365.2) und nachher, Jobkopie des Testteils,
+  Materialstand der gespeicherten Bahnen davor, Nebenrechner aus; Abstand Fräser–Teil als
+  Zylinder gegen eine Punktwolke des Teils (0,08 mm) alle 0,1 mm am Wandring, Aufmaß 0,3 mm:
+
+  | 3D-Schruppen T1, Mulde | vorher | nachher |
+  | --- | ---: | ---: |
+  | Sätze im Vorschub | 447 | 295 |
+  | davon mit Ecke ab 15° | 332 | 78 |
+  | Wandring: Sätze / Ecken ab 15° / Bögen | 237 / 219 / 0 | 127 / 12 / 45 |
+  | Wandring: Abstand Fräser–Teil | 0,64 … 1,19 mm (Streuung 0,11) | 0,34 … 0,36 mm (Streuung 0,003) |
+  | kleinster Abstand über alle Sätze (alle 0,25 mm) | 0,348 mm | 0,339 mm |
+  | Zeit (bahn.zeit) | 1,33 min | 1,29 min |
+  | Prüfstand: Rest / Einschnitt / Abtrag im Eilgang | 0 / 0 / 0 | 0 / 0 / 0 |
+  | Prüfstand: Halte | 412 | 158 |
+  | Eingriff (Mindesttiefe 0,5 statt 1 mm, die Zwischenlagen sind 0,97 mm) | 7,9 ae, 28 mm über 1,25 ae | 8,3 ae, 30 mm über 1,25 ae |
+  | Rechenzeit | 1,5 s | 3,3 s |
+
+  Der Ring in der Mulde ist jetzt ein Kreis (Bild bei Manuel:
+  `~/freecad_cam/wip/strategien/zacken/bild2_vorher_nachher3.png`). Mit der üblichen
+  Mindesttiefe 1 mm zeigt der Prüfstand nachher „Eingriff bis 0,0 ae“ – kein Fenster erreicht
+  1 mm Tiefe; mit 0,5 mm gemessen ist der Eingriff wie vorher. Kein Satz kommt näher als das
+  Aufmaß. An der Kuppel aus `test_schruppen3d.py`: 5,40 min, senkrecht 0,324 … 1,367 mm über der
+  Fläche, Rechenzeit 2,7 s.
+  **Noch offen:** Das Räumen der dreieckigen Tasche mit T3 ist unverändert (181 Sätze, 132 Ecken,
+  Wandabstand 0,72 … 1,19 mm). Der Baustein ist in `raeumen_bahn` vorbereitet (`_Feld.grenze`,
+  `_erlaubt_bei`), im Räumen aber nicht eingeschaltet und dort nicht erprobt; ein Feld mit
+  Taschengrenze (`_Feld.nur`) lehnt `Nachrechner.grenze` bisher ab. Ebenso nicht angefasst: der Gang des Adaptiv-Kerns an der schrägen
+  Stufenwand.
 
 Die Messwerkzeuge liegen bei Manuel in `~/freecad_cam/wip/pruefhelfer/` (`luft.py`,
 `last_verlauf.py`, `last_bild.py`), der gespeicherte Job in `~/freecad_cam/wip/strategien/`.
