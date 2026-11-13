@@ -2804,7 +2804,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Offen: B-033 (Frage 3) (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
+Offen: B-033 (Frage 3) und B-035 (kleine Taschen) (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57. **Offen (gefunden 2026-11-06 mit `~/freecad_cam/wip/pruefhelfer/nc_pruefen.py` über die NC-Ausgaben des
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
 B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fuhr es Y 27 →
@@ -2841,7 +2841,14 @@ Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sec
 - B-034 **Absturz (SIGSEGV) beim Räumen/der Kontur an einer Tasche mit rundem Stift bis Ø 2:** OpenCascade
   stürzt beim Versatz kleiner Vollkreise nach innen ab – im Wochen-Build 27.1 und im stabilen 1.1.4
   (nachgestellt: Kreis Radius 0,5 und 1,0, `makeOffset2D`). **Behoben in
-  P-2026-11-13-15 (0.368.1)** – Vollkreise rechnet das Addon selbst. Nächste freie Nummer B-035.
+  P-2026-11-13-15 (0.368.1)** – Vollkreise rechnet das Addon selbst.
+- B-035 **Räumen meldet „der Fräser passt nicht hinein“, obwohl er passt** (offen, gefunden vom Zweifler am
+  13.11., nachgemessen): Eine quadratische Tasche räumt der Ø 6 (braucht mit Aufmaß 6,6 mm) erst ab 9,5 mm
+  Seitenlänge – 6,7 bis 9,0 mm werden abgelehnt, mit und ohne Eckenradius
+  (`~/freecad_cam/wip/strategien/kleine_tasche/klein.py`). Grund: Das Raster (0,5 mm, das Gesperrte eine
+  Zelle breiter) lässt in einer Tasche unter etwa Fräser + 3 mm keinen erlaubten Knoten. Weg: der genaue
+  Ring aus der Kontur mit Rampe rundum, nachgerechnet wie in 0.369.0 (`_Nachpruefen`). Nächste freie
+  Nummer B-036.
 
 ## Offene Tasks
 
