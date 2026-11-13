@@ -656,6 +656,61 @@ def senkrecht_im_rohteil(bahn, roh, radius):
     ]
 
 
+# „Nur im Gleichlauf, von beiden Seiten“ (Frage 2, Manuel am 2026-11-13: „1. ok“): sechs Zeilen zu
+# 35 statt sieben zu 30, die der einen Seite in einer Richtung, die der anderen andersherum, die
+# Zeile am Zapfen zuletzt – je Stück aus der Luft, kein Eintauchen im Rohteil, schneller als hin
+# und her: 17,7 statt 20,1 min. Mit der Form des Plan 50 aus der Testkiste (eben bis R 19, 45° bis
+# R 25) – eine ganz ebene Scheibe R 25 braucht in beiden Folgen sieben Zeilen.
+werte_t2 = replace(werte_gross, form=ff.von_werkzeug(wz.testkiste()[1]))
+hin_her = pb.planen(hf.netze_je_hoehe(manuel, ebenen_manuel), werte_t2, ebenen_manuel)
+beide = pb.planen(
+    hf.netze_je_hoehe(manuel, ebenen_manuel), replace(werte_t2, beidseitig=True), ebenen_manuel
+)
+zeilen_b = {}  # y der Zeile → Richtungen ihrer Schnitte auf der ersten Lage
+for von, nach in zip(beide.punkte, beide.punkte[1:], strict=False):
+    if nach.eilgang or abs(nach.z - 18.0) > 1e-6 or abs(von.z - 18.0) > 1e-6:
+        continue
+    if abs(nach.y - von.y) < 1e-9 and abs(nach.x - von.x) > 20.0 and nach.anteil <= 1.0:
+        zeilen_b.setdefault(round(von.y, 2), set()).add(nach.x > von.x)
+lagen_y = sorted(zeilen_b)
+pruefe(
+    len(lagen_y) == 6 and abs(lagen_y[0] + 87.5) < 0.01 and abs(lagen_y[-1] - 87.5) < 0.01,
+    f"von beiden Seiten: Zeilen bei {lagen_y}",
+)
+# Die Folge: Süd, Nord, Süd, Süd, Süd – die Zeile am Zapfen (y 52,5) zuletzt. Die von Süden her
+# laufen alle in einer Richtung, die von Norden her (y 87,5) andersherum.
+von_sueden = {next(iter(zeilen_b[y])) for y in lagen_y[:4] if len(zeilen_b[y]) == 1}
+pruefe(
+    len(von_sueden) == 1
+    and zeilen_b[lagen_y[-1]] == {not next(iter(von_sueden))}
+    and zeilen_b[lagen_y[4]] == {False, True},
+    f"von beiden Seiten: Richtungen {zeilen_b}",
+)
+im_rohteil_b = [
+    (round(p.x, 1), round(p.y, 1), round(p.z, 1))
+    for p in beide.punkte
+    if p.eintauchen and abs(p.x) < 100.0 + 25.0 - 0.5 and abs(p.y) < 100.0 + 25.0 - 0.5
+]
+pruefe(not im_rohteil_b, f"von beiden Seiten: senkrecht über dem Rohteil hinab {im_rohteil_b[:4]}")
+pruefe(
+    beide.zeit < hin_her.zeit - 1.5,
+    f"von beiden Seiten: {beide.zeit:.2f} min, hin und her {hin_her.zeit:.2f}",
+)
+# Am Zapfen: Die Fase des Plan 50 (45°, eben bis R 19) darf über seine Oberkante – je Höhe der
+# Radius des Fräsers dort plus der des Zapfens.
+knapp_b = math.inf
+for von, nach in zip(beide.punkte, beide.punkte[1:], strict=False):
+    if nach.eilgang:
+        continue
+    for t in np.linspace(0.0, 1.0, 41):
+        z = von.z + t * (nach.z - von.z)
+        if z < 20.0 - 1e-6:
+            x, y = von.x + t * (nach.x - von.x), von.y + t * (nach.y - von.y)
+            noetig = 10.0 + 19.0 + min(20.0 - z, 6.0)
+            knapp_b = min(knapp_b, math.hypot(x - 50.0, y - 50.0) - noetig)
+pruefe(knapp_b >= -0.05, f"von beiden Seiten: {knapp_b:.2f} mm im Zapfen")
+print(f"Ø 50, nur im Gleichlauf von beiden Seiten: {beide.zeit:.1f} min, Zeilen {lagen_y}")
+
 # Ragt das Rohteil rundum 6 mm über die Fläche, berührt die Stirn es am Zeilenende noch – die
 # Stücke neben dem Zapfen kommen trotzdem aus der Luft: Die Mitte liegt dort neben dem Rohteil, die
 # Einfahrt beginnt so weit daneben, dass der Fräser frei ist (_daneben). Bis 0.366.0 blieb mit

@@ -84,6 +84,7 @@ class PlanFraesen(PathOp.ObjectOp):
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
             ("App::PropertyPercent", "VorschubAustritt", tr("pf.eigenschaft.austritt")),
             ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
+            ("App::PropertyBool", "VonBeidenSeiten", tr("pf.eigenschaft.von_beiden")),
             ("App::PropertyInteger", "Ebenen", tr("pf.eigenschaft.ebenen")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Zeilen", tr("pf.eigenschaft.zeilen")),
@@ -159,6 +160,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
+        beidseitig=bool(getattr(obj, "VonBeidenSeiten", False)),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         stand=stand,
         schritt=au.wert(obj, pb.SCHRITT),
@@ -196,6 +198,7 @@ def bahn_fuer(
     nur_gleichlauf=False,
     gleichlauf=True,
     stand=None,
+    beidseitig=False,
 ):
     """Die Bahn „Planfräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – gefräst werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
@@ -203,7 +206,8 @@ def bahn_fuer(
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
     für die Zeit, nach der je Fläche die Zeilenrichtung fällt; `nur_gleichlauf`: jede Zeile im
     Gleichlauf, danach abheben und von vorne (sonst hin und her), `gleichlauf` die Richtung dafür
-    bei M3 (spindel.fuer_m3); `stand`: der Materialstand davor (materialstand) – was die
+    bei M3 (spindel.fuer_m3); `beidseitig`: die Zeilen von beiden offenen Seiten nach innen, alle
+    im Gleichlauf (planfraesen_bahn._von_beiden_seiten); `stand`: der Materialstand davor (materialstand) – was die
     Operationen davor weggenommen haben, fräst es nicht noch einmal. ValueError mit einem Satz,
     wenn es nicht geht."""
     form_teil = vs._teil(modell)
@@ -232,6 +236,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
         nur_gleichlauf=nur_gleichlauf,
+        beidseitig=beidseitig,
         gleichlauf=gleichlauf,
         eilgang=dynamik[0],
         beschleunigung=dynamik[1],
@@ -252,6 +257,7 @@ def vorschau(
     eintauchen=0.0,
     nur_gleichlauf=False,
     stand=None,
+    beidseitig=False,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weniger Stellen je Zeile. ValueError wie bahn_fuer()."""
@@ -270,6 +276,7 @@ def vorschau(
         eintauchen=eintauchen,
         nur_gleichlauf=nur_gleichlauf,
         stand=stand,
+        beidseitig=beidseitig,
     )
 
 
@@ -282,6 +289,7 @@ def lege_an(
     name=None,
     flaechen=(),
     nur_gleichlauf=False,
+    beidseitig=False,
 ):
     """Legt „Planfräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen
     und Höhen wie FreeCADs Operationen: die Starttiefe folgt dem Rohteil, die sichere Höhe und
@@ -306,6 +314,7 @@ def lege_an(
     obj.Aufmass = aufmass
     obj.Flaechen = list(flaechen)
     obj.NurGleichlauf = bool(nur_gleichlauf)
+    obj.VonBeidenSeiten = bool(beidseitig)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("pf.name", werkzeug=f"T{tc.ToolNumber}"), obj
@@ -350,7 +359,9 @@ def _endtiefe(obj, job):
         obj.FinalDepth = min(e.z for e in ebenen) + float(obj.Aufmass)
 
 
-def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None, nur_gleichlauf=None):
+def aendere(
+    obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None, nur_gleichlauf=None, beidseitig=None
+):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` und `nur_gleichlauf` ohne bleiben. Der Name folgt dem Werkzeug,
     solange es der vorgeschlagene ist."""
@@ -365,6 +376,8 @@ def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None, nur_glei
         obj.Flaechen = list(flaechen)
     if nur_gleichlauf is not None:
         obj.NurGleichlauf = bool(nur_gleichlauf)
+    if beidseitig is not None and hasattr(obj, "VonBeidenSeiten"):
+        obj.VonBeidenSeiten = bool(beidseitig)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)

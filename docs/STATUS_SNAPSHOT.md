@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.367.0):* **Planfräsen: neuer Haken „Zeilen von beiden Seiten, wo es schneller ist“, angehakt** (Manuel, 13.11., Frage 2:
+  „1. ok“): Die Zeilen kommen abwechselnd von beiden offenen Seiten nach innen, alle im Gleichlauf, je aus
+  der Luft, am Ende abheben; so wenige Zeilen, wie der Zeilenabstand erlaubt (Plan 50 an der Platte: sechs
+  statt sieben). 17,7 statt 20,1 min. Ohne den Haken, vor einer Wand und wo es nicht schneller wäre (Ø 12 mit vielen schmalen Zeilen) alles wie bisher. Offen bei Manuel: Fragen 1 (zwei gleiche Schlichtschnitte) und 2 (vorgedreht).
 - *Korrektur (0.366.7):* **Kontur in einer Nut, kaum breiter als der Fräser (B-030, gefährlich):** Der
   Schlichtzug nahm das Band der Schruppversätze als geräumt, auch wenn keiner fahren konnte – Eilgang 8 mm
   tief ins Rohteil, dann 10 mm in voller Breite. Jetzt zählt nur, was gefahren ist; die Nut fährt als Rampe

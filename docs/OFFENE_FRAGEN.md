@@ -29,53 +29,7 @@ gemessen am 12.11.) und das Messen (nicht gemessen).
 Schruppen vorschlägt. Später möglich: Messen in zwei Höhen (oben und knapp über dem Boden), damit eine Wand
 gerade wird. Seit 2026-11-12.
 
-## 2. Wie soll der Planfräser die große Fläche abtragen – Zeilen nur im Gleichlauf von beiden Seiten, oder Ringe von außen?
-
-**Die Frage:** Deine Platte (200 × 200, 20 mm ab bis auf die Oberseite, Zapfen Ø 20), Plan 50, ae 35, ap 2,
-zehn Lagen. Am 13.11. drei Wege als Prototyp gebaut, im Prüfstand gemessen und je von einem zweiten Rechner
-auf eigenem Weg nachgerechnet (die Zeiten stimmen auf 1 %). „Zusammen“ heißt: mit 10 s Wechsel und dem Ø 12
-für den Rest am Zapfen.
-
-| Weg | Plan 50 allein | zusammen |
-| --- | ---: | ---: |
-| heute: Zeilen hin und her | 20,1 min | 21,6 min |
-| **a)** Zeilen, alle im Gleichlauf, abwechselnd von beiden Seiten | 15,4 min | **17,2 min** |
-| **b)** Ringe von außen, eingerollt | 14,7 min | **15,8 min** |
-| Spirale in einem Zug | 20,8 min | 21,7 min |
-| Untergrenze (nie aus dem Eingriff) | 11,9 min | |
-
-Bilder: [frage2_zeilen_gleichlauf_beide_seiten.png](bilder/vorschlaege/frage2_zeilen_gleichlauf_beide_seiten.png)
-(links die Zeilen, wie sie bis 0.366.2 fuhren – 23,7 min; seit 0.366.3 fahren Überlauf und Halbkreis hinter dem
-Rohteil nicht mehr im Arbeitsvorschub, das sind die 20,1 min oben) und
-[frage2_ringe_gemessen.png](bilder/vorschlaege/frage2_ringe_gemessen.png).
-
-- **Weg a):** sechs Zeilen zu höchstens 35 mm statt sieben zu 30. Jede kommt aus der Luft und hebt ab, sobald
-  die Mitte über der Kante steht – kein Überlauf, kein Halbkreis. Die südlichen Zeilen laufen nach Westen,
-  die nördlichen nach Osten, immer abwechselnd: Jede endet dort, wo die nächste beginnt, und alle fahren im
-  Gleichlauf (heute jede zweite im Gegenlauf). Die Zeile am Zapfen kommt zuletzt, von beiden Seiten bis
-  0,7 mm vor ihn. Gilt für jedes Teil.
-- **Weg b):** drei Ringe im Uhrzeigersinn vom Rand nach innen, jeder im Bogen eingerollt, ohne Abheben. Noch
-  1,4 min schneller – aber der Prototyp passt nur auf diese Platte (der Zapfen steht günstig am Rand), und um
-  den Zapfen fährt er 0,6 m im Gegenlauf mit fast der ganzen Stirn (38 von 50 mm im Eingriff); ganz im
-  Gleichlauf sind es 16,4 min. Für beliebige Teile müsste das erst gebaut werden; ob es dort trägt, ist nicht
-  gemessen.
-
-- **1)** Weg a), als Haken beim Planfräsen („nur im Gleichlauf, von beiden Seiten“), angehakt – „hin und
-  her“ bleibt wählbar. Bringt 4,4 der 5,8 min und gilt überall. *Claudes Vorschlag.*
-- **2)** Erst Weg a), danach die Ringe als weiteren Weg, zwischen denen das Addon nach Zeit wählt.
-- **3)** Gleich die Ringe, die Zeilen bleiben hin und her.
-- **4)** Bleibt wie heute.
-
-Dazu, weil es nur die Werkstatt weiß: Der halbe Vorschub beim Austritt aus dem Rohteil gilt heute in jeder
-Lage. In Weg a) nur in der letzten (die Kanten darüber werden ohnehin noch weggefräst) – das sind 0,9 der
-4,4 min. Soll er in jeder Lage bleiben?
-
-*Warum nur Manuel:* Es geht darum, wie dein Messerkopf fahren soll, und es ändert, was das Addon für ihn
-vorschlägt. Am Zapfen bleiben beide Wege 0,7 mm frei; das geht mit 45°-Platten, mit 90°-Platten nicht – welche
-du fährst, weiß nur die Werkstatt.
-*Was die Antwort ändert:* was gebaut wird. Seit 2026-11-12, mit Messung seit 2026-11-13.
-
-## 3. Soll das Addon dir die Drehkontur geben und dann nur noch fräsen, was nicht rund ist?
+## 2. Soll das Addon dir die Drehkontur geben und dann nur noch fräsen, was nicht rund ist?
 
 **Die Frage:** Am Ring (Ø 65 aus der Stange Ø 70, Planzugabe 1 mm) fräst „Rundum schruppen“ heute alles mit
 dem Ø 4: **12,9 min**, 11,0 km (vf 859, ohne Eilgang). Zwei Dinge davon würdest du an der CLX drehen. Bild:

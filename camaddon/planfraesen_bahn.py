@@ -38,6 +38,7 @@ Gerechnet in (u, v, z): u längs der Zeilen, v quer, z nach oben; die Punkte am 
 y des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
+import dataclasses
 import math
 from dataclasses import dataclass
 
@@ -52,6 +53,7 @@ from .sprache import tr
 
 UEBERLAUF_ANTEIL = 0.6  # vom Fräser-Ø: so weit läuft die Mitte längs über die Fläche hinaus
 SEITE_ANTEIL = 0.2  # vom Fräser-Ø: so weit ragt der ebene Teil der Stirn seitlich über den Rand
+UEBERSTAND = 1.0  # mm – so weit überragt der ebene Teil der Stirn den Rand des Rohteils mindestens
 WANDZEILE_NAH = 0.05  # mm – liegt eine Zeile so nah an der Zeile an der Wand, fährt sie allein
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 # × Vorschub: so schnell durchs Freie hinter dem Rohteil – der Überlauf am Zeilenende und der
@@ -100,6 +102,11 @@ class Planwerte:
     # sonst hin und her. `gleichlauf`: die Richtung dafür bei M3 (spindel.fuer_m3).
     nur_gleichlauf: bool = False
     gleichlauf: bool = True
+    # Die Zeilen abwechselnd von beiden offenen Seiten nach innen, alle im Gleichlauf, so wenige
+    # wie möglich (_von_beiden_seiten; Frage 2, Manuel am 2026-11-13: „1. ok“) – wo das schneller
+    # ist als ohne. Wo es nicht geht (eine Wand quer oder am Zeilenende, Materialstand mit
+    # Lücken) oder langsamer wäre, gilt `nur_gleichlauf`.
+    beidseitig: bool = False
 
 
 @dataclass
@@ -212,6 +219,31 @@ def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
                 tiefere,
                 stand,
             )
+            if w.beidseitig and e != ZU_SCHMAL and e is not None:
+                # Von beiden Seiten nur, wo es schneller ist als ohne (und nicht dafür ins
+                # Material taucht): Mit vielen schmalen Zeilen (Ø 12, ae 1,5) kostet das Abheben
+                # je Zeile mehr, als der Gleichlauf bringt – am Block 60 × 40 mit Absatz 3,20
+                # statt 2,28 min (gemessen 2026-11-13). Mit dem Planfräser gewinnt es über die
+                # Zeilenzahl.
+                ohne = _ebene(
+                    hf.netz_fuer(netz, ebene),
+                    dataclasses.replace(w, beidseitig=False),
+                    ebene,
+                    laengs_x,
+                    r_eben,
+                    ueberlauf,
+                    seite,
+                    zugabe,
+                    geformt,
+                    schritt,
+                    oben,
+                    tiefere,
+                    stand,
+                )
+                if ohne != ZU_SCHMAL and ohne is not None and ohne.lagen:
+                    rang = lambda b: (b.getaucht > 0 and not w.nur_gleichlauf, b.zeit)  # noqa: E731
+                    if not e.lagen or rang(ohne) <= rang(e):
+                        e = ohne
             if e == ZU_SCHMAL:
                 if ebene.name not in zu_schmal:
                     zu_schmal.append(ebene.name)
@@ -378,6 +410,20 @@ def _ebene(
     if offen[1] and not abgedeckt[1]:
         v_ende = max(v_ende, roh_v[1] + r_eben - breit)
     v_zeilen = _zeilen_quer(v_start, v_ende, 0.0, w.zeilenabstand)
+    # Im Gleichlauf von beiden Seiten (beide offen): so wenige Zeilen, wie es geht. Die äußeren
+    # dürfen bis `breit` ins Rohteil greifen; der ebene Teil der Stirn muss nur den Rand des
+    # Rohteils überdecken, nicht um SEITE_ANTEIL · Ø überragen – an Manuels Platte mit dem Plan 50
+    # sechs Zeilen zu 35 statt sieben zu 30 (Frage 2, Manuel am 2026-11-13: „1. ok“).
+    beidseitig = w.beidseitig and offen[0] and offen[1] and not abgedeckt[0] and not abgedeckt[1]
+    if beidseitig:
+        innen_a = max(v_start, min(roh_v[0] - r_eben + breit, roh_v[0] + r_eben - UEBERSTAND))
+        innen_e = min(v_ende, max(roh_v[1] + r_eben - breit, roh_v[1] - r_eben + UEBERSTAND))
+        if innen_e - innen_a > GLEICH:
+            n_zeilen = int(math.ceil((innen_e - innen_a) / w.zeilenabstand - 1e-9)) + 1
+            luft = max((n_zeilen - 1) * w.zeilenabstand - (innen_e - innen_a), 0.0) / 2
+            v_zeilen = np.linspace(
+                max(v_start, innen_a - luft), min(v_ende, innen_e + luft), n_zeilen
+            )
     # Vor einer Wand längs der Zeilen (die Seite ist nicht offen) ragte die letzte Zeile in die
     # Wand und fiel weg – die vorige ließ an ihr bis zu einem Zeilenabstand stehen (gemessen
     # 0,5 mm, P-2026-10-02-18). Dazu eine Zeile, die an der Wand entlang fräst: die Stirn im
@@ -520,14 +566,45 @@ def _ebene(
             raster = raster.umgekehrt()
         mit_luecke = np.zeros((len(v_zeilen), anzahl + 2), dtype=bool)
         mit_luecke[:, 1:-1] = raster.drin
-        if w.nur_gleichlauf:
+        von_beiden = None
+        if beidseitig and material is None:
+            von_beiden = _von_beiden_seiten(
+                raster,
+                mit_luecke,
+                _steigend(raster, w.gleichlauf),
+                lage > lagen[-1] + GLEICH,
+                float(w.form.radius),
+            )
+        if beidseitig and von_beiden is None:
+            # Hier geht es nicht von beiden Seiten: alles wie ohne (auch die Zeilen quer).
+            return _ebene(
+                netz,
+                dataclasses.replace(w, beidseitig=False),
+                ebene,
+                laengs_x,
+                r_eben,
+                ueberlauf,
+                seite,
+                zugabe,
+                geformt,
+                schritt,
+                oben,
+                tiefere,
+                stand,
+                gesenkt,
+            )
+        if von_beiden is not None:
+            fahrten = [(raster, fahrt) for fahrt in von_beiden]
+        elif w.nur_gleichlauf:
             fahrten = vb._einzeln(mit_luecke, _steigend(raster, w.gleichlauf))
             fahrten = [(raster, fahrt) for fahrt in fahrten]
         else:
             fahrten = _zellenfahrten(raster, mit_luecke)
         gefraest = set()  # (x, y) der Stellen, die auf dieser Lage schon gefräst sind
         for raster_fahrt, fahrt in fahrten:
-            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w, gefraest, getaucht)
+            laenge += _fahrt(
+                punkte, fahrt, raster_fahrt, lage, vorige, w, gefraest, getaucht, von_beiden is None
+            )
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
         vorige = lage
@@ -733,6 +810,80 @@ def _von_der_luft(r_, fahrt):
     return [gedreht, rest] if rest else [gedreht]
 
 
+def _von_beiden_seiten(raster, mit_luecke, steigend, kuerzen, r_voll):
+    """Die Fahrten einer Lage „nur im Gleichlauf, von beiden Seiten“ (Frage 2, 2026-11-13): je
+    Stück einer Zeile eine Fahrt. Die Zeilen von der ersten her laufen im Gleichlauf (`steigend`:
+    mit wachsenden Stellen), die von der letzten her andersherum – dort liegt das Material auf der
+    anderen Seite, also auch Gleichlauf –, immer abwechselnd: Jede endet an der Seite, an der die
+    nächste beginnt, kein Rückweg quer über das Teil. Eine Zeile, die eine Insel teilt, kommt
+    möglichst spät (ihre Nachbarn sind dann gefräst, der Eingriff liegt mittig); ihre Stücke
+    kommen je aus der Luft (_von_der_luft). `kuerzen`: Die Zeile endet, sobald die Mitte der Stirn
+    eine Stelle hinter der Kante des Rohteils steht (dahinter ist nichts mehr zu schneiden) – nicht
+    auf der letzten Lage, dort läuft der Fräser ganz von der fertigen Fläche. Der Anfang in der
+    Luft beginnt erst, wo der ganze Fräser (`r_voll`) gerade neben dem Rohteil steht. None, wenn
+    eine Zeile nicht an beiden Enden in der Luft liegt (eine Wand am Zeilenende): dann wie bisher
+    der Reihe nach, alle in einer Richtung."""
+    r_ = raster
+    n = len(r_.u_stellen)
+    zeilen = mit_luecke.shape[0]
+
+    def daneben(stelle):
+        u = float(r_.u_stellen[min(max(stelle - 1, 0), n - 1)])
+        return u < r_.roh_u[0] - GLEICH or u > r_.roh_u[1] + GLEICH
+
+    stuecke = [vb._bereiche(mit_luecke[m]) for m in range(zeilen)]
+    for liste in stuecke:
+        # Jede Zeile muss an beiden Enden in der Luft liegen: Die Zeilen der einen Seite laufen
+        # hin, die der anderen her – vor einer Wand am Zeilenende begänne die Hälfte im Material.
+        if liste and not (daneben(liste[0][0]) and daneben(liste[-1][0] + liste[-1][1] - 1)):
+            return None
+
+    def ganz_frei(stelle):
+        u = float(r_.u_stellen[min(max(stelle - 1, 0), n - 1)])
+        return u <= r_.roh_u[0] - r_voll - GLEICH or u >= r_.roh_u[1] + r_voll + GLEICH
+
+    def gekuerzt(js):
+        """Vom Anfang weg, was ganz in der Luft liegt (bis auf eine Stelle), und – mit `kuerzen` –
+        das Ende bis eine Stelle hinter die Kante des Rohteils."""
+        anfang = 0
+        while len(js) - anfang > 2 and ganz_frei(int(js[anfang + 1])):
+            anfang += 1
+        js = js[anfang:]
+        if not kuerzen or len(js) < 3 or not daneben(int(js[-1])):
+            return js
+        ende = len(js)
+        while ende > 2 and daneben(int(js[ende - 2])):
+            ende -= 1
+        return js[:ende]
+
+    def fahrten_der(m, hin):
+        ergebnis = []
+        liste = stuecke[m] if hin else list(reversed(stuecke[m]))
+        for anfang, laenge in liste:
+            letzte = anfang + laenge - 1
+            js = vb._von_bis(anfang, letzte) if hin else vb._von_bis(letzte, anfang)
+            for fahrt in _von_der_luft(r_, [("zeile", m, js)]):
+                art, m_, js_ = fahrt[0]
+                ergebnis.append([(art, m_, gekuerzt(js_))])
+        return ergebnis
+
+    ergebnis = []
+    unten, oben = 0, zeilen - 1
+    von_unten = True
+    while unten <= oben:
+        geteilt_unten, geteilt_oben = len(stuecke[unten]) > 1, len(stuecke[oben]) > 1
+        if unten < oben and geteilt_unten != geteilt_oben:
+            von_unten = geteilt_oben  # die ganze Zeile zuerst, die geteilte später
+        if von_unten:
+            ergebnis += fahrten_der(unten, steigend)
+            unten += 1
+        else:
+            ergebnis += fahrten_der(oben, not steigend)
+            oben -= 1
+        von_unten = not von_unten
+    return [fahrt for fahrt in ergebnis if len(fahrt[0][2]) > 1]
+
+
 def _luecken_zu(drin, ganz, schritt_u, laenge):
     """`drin` (Zeilen × Stellen: fährt die Zeile hier?) mit den Lücken je Zeile gefüllt, die
     höchstens `laenge` (mm) lang sind und ganz in `ganz` liegen – zwischen zwei Stücken
@@ -862,12 +1013,14 @@ class _Raster:
         return (float(u), float(v)) if self.laengs_x else (float(v), float(u))
 
 
-def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None, getaucht=None):
+def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None, getaucht=None, der_reihe=True):
     """Eine Fahrt (vierachs_bahn._fahrten mit Zeile = Zeile quer, Winkelschritt = Stelle
     längs, mit der Lücke an beiden Enden) an die Bahn: hinein über das erste Stück, die Zeilen,
     zwischen ihnen Halbkreis oder Schritt, am Ende hinauf. `gefraest`: die Stellen (x, y), die
     auf dieser Lage schon gefräst sind – die Fahrt trägt ihre ein. `getaucht`: Liste, an die
-    _einfahrt hängt, wo sie senkrecht ins Material taucht. Gibt die Länge im Vorschub zurück."""
+    _einfahrt hängt, wo sie senkrecht ins Material taucht. `der_reihe`: Die Zeilen folgen einander
+    mit wachsender Nummer (nicht von beiden Seiten, _von_beiden_seiten). Gibt die Länge im Vorschub
+    zurück."""
     r_ = raster
     teile = []  # (art, m, js) mit js ohne die Lücke (0 … N − 1)
     for art, m, js in fahrt:
@@ -878,13 +1031,13 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None, getaucht=None)
     _art, m0, js0 = teile[0]
     # Nur im Gleichlauf: Lief die vorige Zeile schon über den Anfang, steht dort nur noch ihr
     # Streifen ae – senkrecht hinein statt der Rampe von oben.
-    nachbar = w.nur_gleichlauf and m0 > 0 and bool(r_.drin[m0 - 1, int(js0[0])])
+    nachbar = w.nur_gleichlauf and der_reihe and m0 > 0 and bool(r_.drin[m0 - 1, int(js0[0])])
     # Auch hin und her: Ist die Zeile daneben auf dieser Lage am Anfang schon gefräst, steht
     # unter der Stirn nur ihr Streifen ae (am Zapfen begann so die Zeile neben ihm mit 213 mm
     # Rampe, obwohl die Zeile darüber schon gefahren war).
     nachbar = nachbar or _neben_gefraest(r_, m0, int(js0[0]), gefraest)
     laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w, nachbar, getaucht)
-    if w.nur_gleichlauf and len(js0) > 1:
+    if w.nur_gleichlauf and der_reihe and len(js0) > 1:
         # Beginnt die Zeile an einer Wand, bliebe dort zwischen ihr und der vorigen die Ecke
         # der Stirn stehen (hin und her nimmt sie der Schritt): an der Wand hin und zurück.
         richtung = 1 if js0[-1] > js0[0] else -1

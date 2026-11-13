@@ -1,9 +1,10 @@
 # Planfräsen nur im Gleichlauf (P-2026-10-02-24, Manuel: „auswählbar, ob er abhebt und wieder von
 # vorne anfängt“): Block 60 × 40 × 20 im Rohteil mit 1 mm rundum, T1 der Standardfräser Ø 12. Die
-# Oberseite anklicken, im Block Planfräsen den Haken „nur im Gleichlauf (abheben, von vorne)“
-# setzen: Die Zeit in der Zeile wird länger als hin und her – hier langsamer als Räumen, der
-# Haken geht dorthin; von Hand wieder an. „Anlegen“: „Planfräsen T1“ mit NurGleichlauf, alle
-# Zeilen in derselben Richtung; zwischen ihnen hebt der Fräser ab (G0).
+# Oberseite anklicken: Im Block Planfräsen ist „Zeilen von beiden Seiten (alle im Gleichlauf)“
+# angehakt (Manuel, 2026-11-13, Frage 2). Ohne den Haken: hin und her. „Anlegen“: „Planfräsen T1“
+# mit VonBeidenSeiten, die Zeilen der einen Hälfte in einer Richtung, die der anderen andersherum;
+# zwischen ihnen hebt der Fräser ab (G0). (Der Haken „nur im Gleichlauf (abheben, von vorne)“
+# von 2026-10-02 bleibt daneben, aus.)
 import re
 
 import FreeCAD
@@ -59,25 +60,29 @@ def schritte(h):
     plan = panel.plan
     yield from h.warte_auf(lambda: plan.vorschau is not None, 300000)
     yield 1500
-    hin_und_her = _minuten(plan.ergebnis.text())
-    kasten = plan.haken_felder.get("nur_gleichlauf")
-    h.pruefe(kasten is not None and not kasten.isChecked(), "Haken fehlt oder ist an")
+    einzeln = _minuten(plan.ergebnis.text())
+    kasten = plan.haken_felder.get("von_beiden")
+    # Angehakt (Manuel, 2026-11-13, Frage 2); „hin und her“ bleibt wählbar: Haken weg.
+    h.pruefe(kasten is not None and kasten.isChecked(), "Haken fehlt oder ist nicht an")
     if kasten is None:
         return
-    alter_text = plan.ergebnis.text()
-    kasten.setChecked(True)
-    yield 1000
-    yield from h.warte_auf(
-        lambda: plan.vorschau is not None and plan.ergebnis.text() != alter_text, 300000
-    )
+    # Der Text muss sich nicht ändern (wo von beiden Seiten nicht schneller ist, fährt es mit und
+    # ohne Haken gleich) – nur auf die neue Vorschau warten.
+    kasten.setChecked(False)
+    yield 2500
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 300000)
     yield 1500
-    einzeln = _minuten(plan.ergebnis.text())
+    hin_und_her = _minuten(plan.ergebnis.text())
     h.pruefe(
-        hin_und_her is not None and einzeln is not None and einzeln >= hin_und_her,
-        f"Zeit: hin und her {hin_und_her}, nur im Gleichlauf {einzeln} ({plan.ergebnis.text()!r})",
+        # Der Haken greift nur, wo es schneller ist: nie langsamer als hin und her.
+        hin_und_her is not None and einzeln is not None and einzeln <= hin_und_her + 0.02,
+        f"Zeit: hin und her {hin_und_her}, von beiden Seiten {einzeln} ({plan.ergebnis.text()!r})",
     )
-    # Die Zeit entscheidet: Nur im Gleichlauf ist Planfräsen hier langsamer als Räumen – der
-    # Haken geht zu Räumen. Von Hand wieder an: Planfräsen nur im Gleichlauf.
+    kasten.setChecked(True)
+    yield 2500
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 300000)
+    yield 1500
+    # Entscheidet die Zeit gegen das Planfräsen, geht der Haken zu Räumen – von Hand wieder an.
     if not plan.aktiv():
         h.pruefe(
             "langsamer als Räumen" in plan.ergebnis.text() and panel.raeumen.aktiv(),
@@ -91,11 +96,15 @@ def schritte(h):
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 3000
     ops = [o for o in job.Operations.Group if pf.ist_planfraesen(o)]
-    h.pruefe(len(ops) == 1 and ops[0].NurGleichlauf, f"Operationen: {[o.Label for o in ops]}")
+    h.pruefe(
+        len(ops) == 1 and ops[0].VonBeidenSeiten and not ops[0].NurGleichlauf,
+        f"Operationen: {[o.Label for o in ops]}",
+    )
     if not ops:
         return
     befehle = list(ops[0].Path.Commands)
     richtungen = set()
+    zeilen = []  # (Achse, Lage quer, Richtung) je Zeile
     vorher = None
     for b in befehle:
         if b.Name in ("G0", "G1") and "X" in b.Parameters and "Y" in b.Parameters:
@@ -103,10 +112,23 @@ def schritte(h):
                 dx, dy = b.Parameters["X"] - vorher[0], b.Parameters["Y"] - vorher[1]
                 if abs(dy) < 1e-6 and abs(dx) > 20.0:
                     richtungen.add(("x", dx > 0))
+                    zeilen.append(("x", vorher[1], dx > 0))
                 elif abs(dx) < 1e-6 and abs(dy) > 20.0:
                     richtungen.add(("y", dy > 0))
+                    zeilen.append(("y", vorher[0], dy > 0))
             vorher = (b.Parameters["X"], b.Parameters["Y"])
-    h.pruefe(len(richtungen) == 1, f"Zeilen nicht alle in einer Richtung: {richtungen}")
+    # Von beiden Seiten (wenn das hier schneller war): die Zeilen der einen Hälfte in einer
+    # Richtung, die der anderen andersherum – beides Gleichlauf. Sonst hin und her wie ohne Haken
+    # (mit dem Ø 12 und vielen schmalen Zeilen kostet das Abheben je Zeile mehr, als es bringt).
+    mitte = (min(z[1] for z in zeilen) + max(z[1] for z in zeilen)) / 2 if zeilen else 0.0
+    je_seite = {}
+    for achse, quer, richtung in zeilen:
+        if abs(quer - mitte) > 1.0:
+            je_seite.setdefault((achse, quer > mitte), set()).add(richtung)
+    beide = len(je_seite) == 2 and all(len(r) == 1 for r in je_seite.values())
+    if einzeln is not None and hin_und_her is not None and einzeln < hin_und_her - 0.02:
+        h.pruefe(beide, f"schneller, aber nicht von beiden Seiten: {je_seite}")
+    h.pruefe(bool(richtungen), "keine Zeilen im Programm")
     Gui.Selection.clearSelection()
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

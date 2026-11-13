@@ -2586,6 +2586,33 @@ Gegenrechnung in den Ordnern daneben.
     der Kerbe um den Zapfen 0,6 m Gegenlauf (ganz im Gleichlauf 15,4 / 16,4). Nur für diese Platte.
   - *Spirale (Morph Quadrat → Kreis um den Zapfen):* 20,8 / 21,7 min – 17 % des Wegs Luft auf dem
     Kreis um den Zapfen.
+  **Entschieden (Manuel, 2026-11-13, auf Frage 2: „1. ok“) und gebaut (P-2026-11-13-08, 0.367.0):**
+  Im Assistenten hat das Planfräsen einen neuen Haken „Zeilen von beiden Seiten, wo es schneller
+  ist“, angehakt (`Planwerte.beidseitig`, Eigenschaft `VonBeidenSeiten`; alte Operationen
+  haben sie nicht und fahren wie bisher). Der Haken „nur im Gleichlauf (abheben, von vorne)“ vom
+  2026-10-02 bleibt daneben, aus. Was der neue tut (`planfraesen_bahn._von_beiden_seiten`):
+  - Sind beide Seiten quer offen und liegt jede Zeile an beiden Enden in der Luft: die Zeilen
+    abwechselnd von beiden Seiten nach innen, die von der einen Seite hin, die von der anderen her
+    (beides Gleichlauf), je Stück aus der Luft, am Ende abheben (außer auf der letzten Lage: dort
+    läuft der Fräser ganz von der Fläche). Eine Zeile, die eine Insel teilt, kommt möglichst
+    spät; ihre Stücke kommen je aus der Luft.
+  - So wenige Zeilen, wie es geht: Die äußeren greifen bis ae ins Rohteil, der ebene Teil der
+    Stirn überragt den Rand nur noch um mindestens 1 mm (`UEBERSTAND`) statt um 0,2 Ø.
+  - Sonst (eine Wand quer oder am Zeilenende, Materialstand mit Lücken): alles wie ohne den Haken,
+    auch die Zahl der Zeilen – hin und her, oder mit dem anderen Haken alle in einer Richtung.
+    (Erst war es ein Haken für beides, vorbelegt an: Vor einer Wand fuhr das Planfräsen dann die
+    langsame Folge „abheben, von vorne“ und verlor im Assistenten gegen das Räumen –
+    `szenario_bearbeitung` zeigte es. Darum zwei Haken.)
+  - Nur wo es schneller ist als ohne den Haken (`planen` rechnet beides): Mit dem Ø 12 und ae 1,5
+    (50 Zeilen am Block 60 × 40) kostet das Abheben je Zeile mehr, als es bringt – 3,20 statt
+    2,28 min; dort bleibt es bei hin und her. Der Gewinn kommt über die Zeilenzahl des großen
+    Planfräsers.
+  - Der halbe Vorschub beim Austritt bleibt in jeder Lage (die Nebenfrage dazu blieb ohne Antwort –
+    es bleibt, wie es war).
+  Manuels Platte mit dem Plan 50: 17,7 min (hin und her 20,1; der Prototyp kam mit Austritt nur in
+  der letzten Lage und Eilgang knapp über dem Material auf 15,4). Mit einer ganz ebenen Scheibe
+  R 25 braucht es in beiden Folgen sieben Zeilen – dort bringt die Folge keine Zeit, nur den
+  Gleichlauf. Die Ringe von außen sind nicht gebaut.
   *Gleich gebaut (P-2026-11-13-03, 0.366.3), weil es nur Luft war:* Der halbe Vorschub gilt bis die
   Mitte an der Kante des Rohteils steht; der Überlauf dahinter und der Halbkreis zur nächsten Zeile
   (wenn der ganze Fräser neben dem Rohteil steht) fahren mit `planfraesen_bahn.SCHNELL` = 3 × F.

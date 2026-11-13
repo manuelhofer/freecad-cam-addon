@@ -1592,6 +1592,12 @@ class _Planfraesen(_Strategie):
     def haken(self):
         return (
             (
+                "von_beiden",
+                tr("ba.von_beiden"),
+                tr("ba.von_beiden.tooltip"),
+                True,  # Manuel, 2026-11-13 (Frage 2): angehakt – „hin und her“ bleibt wählbar
+            ),
+            (
                 "nur_gleichlauf",
                 tr("ba.nur_gleichlauf"),
                 tr("ba.nur_gleichlauf.tooltip"),
@@ -1643,6 +1649,7 @@ class _Planfraesen(_Strategie):
             "vorschub": werte.get("vorschub", 0.0),
             "eintauchen": werte.get("eintauchen", 0.0),
             "nur_gleichlauf": werte.get("nur_gleichlauf", False),
+            "beidseitig": werte.get("von_beiden", True),
             "stand": werte.get("materialstand"),
         }
 
@@ -1687,6 +1694,7 @@ class _Planfraesen(_Strategie):
             werte["aufmass"],
             flaechen=flaechen,
             nur_gleichlauf=werte.get("nur_gleichlauf", False),
+            beidseitig=werte.get("von_beiden", True),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -1698,6 +1706,7 @@ class _Planfraesen(_Strategie):
             werte["aufmass"],
             flaechen=flaechen,
             nur_gleichlauf=werte.get("nur_gleichlauf", False),
+            beidseitig=werte.get("von_beiden", True),
         )
 
     def ist(self, op):
@@ -1709,6 +1718,7 @@ class _Planfraesen(_Strategie):
             "zeilenabstand": float(op.Zeilenabstand),
             "aufmass": float(op.Aufmass),
             "nur_gleichlauf": bool(getattr(op, "NurGleichlauf", False)),
+            "von_beiden": bool(getattr(op, "VonBeidenSeiten", False)),
         }
 
 

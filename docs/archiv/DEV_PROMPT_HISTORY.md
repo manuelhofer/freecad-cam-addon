@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-08 planfraesen-zeilen-von-beiden-seiten
+
+### EINGELESEN
+- Manuel, 2026-11-13, auf den Bericht mit den zwei Punkten „Frage 2 (mein Vorschlag: Zeilen nur im
+  Gleichlauf von beiden Seiten als angehakter Haken)“ und „Soll ich die abgebrochenen Läufe neu starten?“:
+  „2. Nicht gleichzeitig. 1.ok“. Meine Deutung: Frage 2 → Weg 1 (der Haken, angehakt, „hin und her“ bleibt
+  wählbar); die Läufe (Sicherheitsprüfung Nut/3D-Schlichten, Zacken-Umbau) nacheinander. Die Nebenfrage
+  (halber Vorschub beim Austritt nur in der letzten Lage?) blieb ohne Antwort – es bleibt, wie es war.
+- Frage 2 mit der Messung vom 13.11. (Prototyp `~/freecad_cam/wip/strategien/plan_ringe/zeilen/`).
+- `planfraesen_bahn._ebene` (Zeilen quer, `offen`, `breit`, SEITE_ANTEIL), `_zellenfahrten`, `_einzeln`.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`: `Planwerte.beidseitig`; `_von_beiden_seiten` (Folge, Kürzen an Anfang und
+  Ende); in `_ebene` die Zeilen quer mit `UEBERSTAND` und der Rückfall auf „wie ohne“, wo es nicht geht;
+  `planen` rechnet mit dem Haken beide Folgen und nimmt die schnellere ohne Eintauchen.
+- `camaddon/planfraesen.py`: Eigenschaft `VonBeidenSeiten`, `beidseitig` in `bahn_fuer`, `vorschau`,
+  `lege_an`, `aendere`.
+- `camaddon/gui_bearbeitung.py`: Haken „Zeilen von beiden Seiten, wo es schneller ist“, angehakt.
+- `translations/de.json`, `en.json`, `help/de|en/bearbeitung.html`.
+- `tests/test_planfraesen.py`, `tests/gui/szenario_plan_gleichlauf.py`.
+- `docs/OFFENE_FRAGEN.md` (Frage 2 heraus, „vorgedreht“ ist jetzt Frage 2), `docs/spezifikation_strategien.md`
+  (13.7), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.367.0).
+
+### ERGEBNIS
+- Manuels Platte, Plan 50 (Form T2): sechs Zeilen bei ±87,5 / ±52,5 / ±17,5 statt sieben; Folge Süd, Nord,
+  Süd, Süd, Süd, zuletzt die Zeile am Zapfen von beiden Seiten; 17,70 statt 20,08 min; kein Eintauchen im
+  Rohteil, im Eilgang und im Schnellvorschub 0 mm³ abgetragen.
+- Mit einer ganz ebenen Scheibe R 25 sieben Zeilen in beiden Folgen: dann 20,7 gegen 20,4 min – die Folge
+  bringt dort nur den Gleichlauf, keine Zeit.
+- Ein erster Einbau (ein Haken für beides, vorbelegt an) ließ das Planfräsen vor einer Wand die alte Folge
+  „abheben, von vorne“ fahren und im Assistenten gegen das Räumen verlieren (`szenario_bearbeitung`);
+  darum zwei Haken. Und mit dem Ø 12 und ae 1,5 (50 Zeilen am Block 60 × 40) ist von beiden Seiten
+  langsamer als hin und her (3,20 statt 2,28 min: Abheben je Zeile) – der Haken greift darum nur, wo es
+  geht und schneller ist. Der Gewinn an der Platte kommt aus der Zeilenzahl des Planfräsers (sechs statt
+  sieben), nicht aus der Folge.
+- Sehen: eine Platte mit freien Seiten planfräsen – im Schritt „Wie soll das Material raus?“ ist der neue
+  Haken an; nach „Anlegen“ kommen die Zeilen abwechselnd von beiden Seiten, jede aus der Luft.
+- Grün: `test_planfraesen`, `test_sprache`, `test_pruefstand`, `test_goldene_bahnen`, `test_testteil`,
+  `test_materialstand`, `test_quader`, `test_freiwege`; die 24 Szenarien, die das Planfräsen des Assistenten
+  benutzen (nacheinander, als Skript) – alle OK.
 ## P-2026-11-13-07 kontur-enge-nut-kein-eilgang-ins-rohteil
 
 ### EINGELESEN
