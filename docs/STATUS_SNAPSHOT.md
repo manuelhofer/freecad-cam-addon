@@ -612,6 +612,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   **Manuel prüft:** ein Teil mit Freiformfläche (z. B. den Geist) → 3D-Schruppen: unter „Gleichlauf“ steht
   der Haken „Zwischenlagen von unten mit voller Schneide“; mit Haken deutlich weniger Zeit, die Ringe der
   Zwischenlagen liegen als schmale Streifen an der Wand.
+  Voller Lauf auf 0.370.0 (13.11. spät): 147/147 Prüfdateien grün; 186/188 Szenarien im parallelen Lauf
+  grün, `szenario_vierachs_wendel` und `szenario_vierachs_vorschlichten` nur unter Last rot (einzeln grün).
+  Im fertigen Programm des Geists (Szenario, mit Schnellvorschub im Freien): 22,6 statt 34,7 min.
 - *Korrektur (0.369.1):* **Kleine Taschen werden geräumt statt abgelehnt (B-035):** Eine Tasche, kaum größer
   als der Fräser, hieß bisher „der Fräser passt nicht hinein“ – mit dem Ø 6 (braucht mit Aufmaß 6,6 mm) alles
   unter 9,5 mm Seitenlänge, weil im 0,5-mm-Raster kein erlaubter Knoten blieb. Jetzt fährt dort der genaue
