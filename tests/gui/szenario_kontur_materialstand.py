@@ -71,7 +71,14 @@ def schritte(h):
     panel.knopf_weiter.click()
     yield from h.warte_auf(lambda: panel.raeumen.vorschau is not None, 180000)
     yield 1500
-    h.pruefe(panel.raeumen.aktiv(), "das Räumen nicht angehakt")
+    if not panel.raeumen.aktiv():
+        # Die Zeit entscheidet zwischen Planfräsen und Räumen; seit das Planfräsen hinter dem
+        # Rohteil nicht mehr im Arbeitsvorschub fährt (0.366.3), gewinnt es hier. Dieses Szenario
+        # braucht das Räumen (die Kontur danach soll von ihm wissen): von Hand.
+        panel.plan.haken.setChecked(False)
+        panel.raeumen.haken.setChecked(True)
+        yield 1500
+    h.pruefe(panel.raeumen.aktiv() and not panel.plan.aktiv(), "das Räumen nicht angehakt")
     h.pruefe(panel.accept() is True, "Räumen: „Anlegen“ ging nicht")
     yield 3000
     raeumen = [o for o in job.Operations.Group if ra.ist_raeumen(o)]

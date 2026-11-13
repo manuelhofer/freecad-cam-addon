@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-10 kontur-kein-spiel-an-geraden-waenden
+
+### EINGELESEN
+- B-031 aus der Sicherheitsprüfung, selbst nachgestellt (`~/freecad_cam/wip/pruefung_1113/kontur/
+  test_kontur_f2_wandspiel.py`): Tasche 60 × 40 mit Insel Ø 10 7 mm vor der Wand – der Schlichtkreis der
+  Insel beginnt 5,94 mm von der geraden Wand, die Stirn 0,06 mm im fertigen Teil (exakt mit distToShape).
+- `kontur_bahn._bahnen` (`spiel = WAND_SPIEL + Sehnenpfeil`), `_Huelle.zu_nah`, `_abstand_ohne_enden`.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_abstand_ohne_enden(…, nur_gerade)`, `zu_nah(…, mindest_gerade)`,
+  `GERADE_SPIEL`; `_bahnen` prüft gerade Strecken mit Radius − 0,005.
+- `tests/gui/szenario_kontur_materialstand.py`: wählt das Räumen von Hand, wenn die Zeit für das Planfräsen
+  spricht (seit 0.366.3 gewinnt dort das Planfräsen – das Szenario war seitdem rot, nicht bemerkt).
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.367.2).
+
+### ERGEBNIS
+- An der geraden Wand 0,000 mm (vorher −0,060); exakt über alle Wände höchstens −0,001.
+- Zwei eigene Fehler unterwegs: Der Vorfilter in `zu_nah` rechnete mit dem kleineren Abstand (der Fall kam
+  gar nicht an), und die Enden offener Bogenketten galten als gerade (`test_kontur` 12 statt 9 Bahnen).
+- Grün: `test_kontur`, `test_kontur_korrektur`, `test_goldene_bahnen`, `test_testteil`, `test_pruefstand`,
+  `test_materialstand`; `szenario_kontur`, `szenario_kontur_materialstand`, `szenario_ring_vorn`,
+  `szenario_schritte_cring_alles`.
+- Offen: B-030 hinter einer Insel, B-032 (Wand mit gestufter Unterkante), B-033 (Frage 3).
 ## P-2026-11-13-09 sicherheit-nut-und-schlichten3d
 
 ### EINGELESEN

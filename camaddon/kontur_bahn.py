@@ -58,6 +58,7 @@ NAH = 1e-5  # mm – so nah ist dieselbe Stelle
 WANDHOEHE_SCHRITT = 1.0  # mm – so dicht wird die Höhe einer Wand über ihrer Unterkante abgefragt
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
+GERADE_SPIEL = 0.005  # mm – an einer geraden Wand nur die Rechengenauigkeit
 KNICK = 1e-3  # rad – so weit muss ein Linienzug abknicken, damit der Punkt eine Ecke ist
 ABSTAND_STUECK = 2_000_000  # so viele Paare (Stelle, Ecke) rechnet _Huelle.zu_nah auf einmal
 REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
@@ -948,9 +949,11 @@ class _Huelle:
         roh = self.roh_bei(x, y)
         return (roh + self.zugabe <= lage + GLEICH) | (roh <= ziel + GLEICH)
 
-    def zu_nah(self, x, y, lage, mindest):
+    def zu_nah(self, x, y, lage, mindest, mindest_gerade=None):
         """Je Stelle: liegt sie näher als `mindest` an einer Wand der Konturen, die über die Lage
-        hinaufreicht – quer zu ihr oder an einer ihrer inneren Ecken (_abstand_ohne_enden)?
+        hinaufreicht – quer zu ihr oder an einer ihrer inneren Ecken (_abstand_ohne_enden)? Mit
+        `mindest_gerade` gilt für die geraden Strecken der Wand dieser (größere) Abstand: Dort
+        hat die Kette keinen Sehnenpfeil, das Spiel dafür wäre ein Schnitt ins Teil.
         Gerechnet nur nahe der Wand (ihr Umriss plus `mindest`) und in Stücken – eine lange
         Kontur gäbe sonst eine Matrix aus Stellen mal Ecken."""
         x = np.asarray(x, dtype=float)
@@ -961,17 +964,22 @@ class _Huelle:
                 continue
             kx = np.asarray(kx, dtype=float)
             ky = np.asarray(ky, dtype=float)
+            weit = mindest if mindest_gerade is None else max(mindest, mindest_gerade)
             dort = np.flatnonzero(
                 ~nah
-                & (x > kx.min() - mindest)
-                & (x < kx.max() + mindest)
-                & (y > ky.min() - mindest)
-                & (y < ky.max() + mindest)
+                & (x > kx.min() - weit)
+                & (x < kx.max() + weit)
+                & (y > ky.min() - weit)
+                & (y < ky.max() + weit)
             )
             stueck = max(1, ABSTAND_STUECK // len(kx))
             for von in range(0, len(dort), stueck):
                 i = dort[von : von + stueck]
                 nah[i] |= _abstand_ohne_enden(x[i], y[i], kx, ky, geschlossen) < mindest
+                if mindest_gerade is not None:
+                    nah[i] |= (
+                        _abstand_ohne_enden(x[i], y[i], kx, ky, geschlossen, True) < mindest_gerade
+                    )
         return nah
 
     def abstand_zur_wand(self, x, y, lage):
@@ -1032,14 +1040,16 @@ def _abstand_polylinie(qx, qy, kx, ky, geschlossen):
     return np.hypot(qx - (ax + t * dx), qy - (ay + t * dy)).min(axis=1)
 
 
-def _abstand_ohne_enden(qx, qy, kx, ky, geschlossen):
+def _abstand_ohne_enden(qx, qy, kx, ky, geschlossen, nur_gerade=False):
     """Wie _abstand_polylinie, an einem offenen Linienzug aber ohne seine beiden Enden: nur quer
     zu einer Strecke (der Fußpunkt auf ihr) und zu den Ecken dazwischen, an denen er abknickt
     (KNICK – die Punkte, mit denen eine gerade Wand abgetastet ist, sind keine Ecken). Am Ende
     geht die Wand um eine Ecke weiter – eine andere Wand oder keine –, der Abstand zum Endpunkt
     sagt nicht, ob der Fräser in sie fährt (am Testteil begann die Kontur T1 sonst 2 mm zu spät:
     5,3 mm vom Ende der Inselwand, die dort nach außen abbiegt; an Manuels Ring von vorn maß sie
-    zum Punkt 1 mm vor dem Ende einer 3 mm kurzen Schlitzwand und zerlegte die Bahn um sie)."""
+    zum Punkt 1 mm vor dem Ende einer 3 mm kurzen Schlitzwand und zerlegte die Bahn um sie).
+    `nur_gerade`: nur die geraden Strecken (an mindestens einem Ende kein Knick) – an ihnen ist
+    die Kette die Wand selbst, ohne den Pfeil einer Sehne."""
     ax, ay = np.asarray(kx, dtype=float), np.asarray(ky, dtype=float)
     bx, by = np.roll(ax, -1), np.roll(ay, -1)
     vx, vy = np.roll(ax, 1), np.roll(ay, 1)  # die Punkte davor
@@ -1049,10 +1059,20 @@ def _abstand_ohne_enden(qx, qy, kx, ky, geschlossen):
     if not geschlossen:
         ecke[0] = ecke[-1] = False
     ecken_x, ecken_y = ax[ecke], ay[ecke]
+    # Je Strecke: an einem ihrer Enden kein Knick. Am Ende eines offenen Zugs ist der Knick nicht
+    # bekannt – dort zählt der Punkt daneben (das Ende eines Bogens bleibt Bogen).
+    knickt = ecke.copy()
+    if not geschlossen and len(knickt) > 2:
+        knickt[0], knickt[-1] = knickt[1], knickt[-2]
+    gerade = ~(knickt & np.roll(knickt, -1))
     if not geschlossen:
         ax, ay, bx, by = ax[:-1], ay[:-1], bx[:-1], by[:-1]
+        gerade = gerade[:-1]
     dx, dy = bx - ax, by - ay
     laenge2 = dx * dx + dy * dy
+    if nur_gerade:
+        laenge2 = np.where(gerade, laenge2, 0.0)  # die Bogenstrecken zählen nicht
+        ecken_x, ecken_y = ecken_x[:0], ecken_y[:0]
     qx = np.asarray(qx, dtype=float)[:, None]
     qy = np.asarray(qy, dtype=float)[:, None]
     t = ((qx - ax) * dx + (qy - ay) * dy) / np.where(laenge2 > 0, laenge2, 1.0)
@@ -1527,8 +1547,10 @@ def _bahnen(
     # Läufe, die im Zickzack einstiegen (Manuels Ring von vorn, T2 Ø 10, szenario_ring_vorn).
     # Spiel: die Sehnen der Kette (alle 2 · schritt) an einer runden Wand innen, höchstens
     # (2 · schritt)² / 8r.
+    # An geraden Wänden gibt es keinen Sehnenpfeil: dort kein Spiel (bis 0.367.1 kam der
+    # Schlichtkreis einer Insel 0,06 mm in die gerade Taschenwand daneben – B-031).
     spiel = WAND_SPIEL + (2 * schritt) ** 2 / (8 * r)
-    eng = huelle.zu_nah(x, y, lage, r - spiel)
+    eng = huelle.zu_nah(x, y, lage, r - spiel, r - GERADE_SPIEL)
     erlaubt &= ~eng
     im_rohteil = _im_rohteil(x, y, w.rohteil, r)
     drin = erlaubt & im_rohteil
