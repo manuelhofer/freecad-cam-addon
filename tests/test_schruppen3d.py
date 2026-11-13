@@ -386,6 +386,30 @@ rand5u = (
 )
 pruefe(float(q5u.h[rand5u].max()) < 21.2, f"Schale + 5 von unten: {float(q5u.h[rand5u].max()):.2f}")
 pruefe(schale5_u.zeit < 6.0, f"Schale + 5 von unten: {schale5_u.zeit:.2f} min")
+# Dünne Wände ohne genaue Grenze: ein Ring mit 1,5 mm Wand und eine Spitze. Der vorsichtige Weg von
+# unten brauchte im Raster 1,0 11,3 statt 5,4 min (74 Rampen, 52 % des Vorschubwegs in der Luft –
+# Gegenprüfer, zweite Runde). Ohne genaue Grenze gilt deshalb die schnellere der beiden
+# Reihenfolgen: nie langsamer als von oben, und der Prüfstand hat nichts auszusetzen.
+ring_r = Part.makeCone(20, 19, 15, V(30, 30, 5)).cut(Part.makeCone(18.5, 18, 15.01, V(30, 30, 5)))
+rippe = (
+    Part.makeBox(60, 60, 5)
+    .fuse(ring_r)
+    .fuse(Part.makeCone(2.5, 0.5, 15, V(30, 30, 5)))
+    .removeSplitter()
+)
+kegel_r = [f"Face{i + 1}" for i, f in enumerate(rippe.Faces) if isinstance(f.Surface, Part.Cone)]
+for schritt_r in (1.0,):
+    oben_r = r3.planen(rippe, kegel_r, werte(20.0), schritt=schritt_r)
+    unten_r = r3.planen(rippe, kegel_r, werte(20.0), schritt=schritt_r, von_unten=True)
+    k_r = gemessen(rippe, unten_r, 20.0)
+    print(ascii(f"Rippe, Raster {schritt_r}: von unten {unten_r.zeit:.2f} min (von oben "
+                f"{oben_r.zeit:.2f}) – {ps.zeile(k_r)}"))  # fmt: skip
+    pruefe(
+        unten_r.zeit <= oben_r.zeit + 1e-6,
+        f"Rippe, Raster {schritt_r}: von unten {unten_r.zeit:.2f} statt {oben_r.zeit:.2f} min",
+    )
+    pruefe(k_r.eilgang_abtrag <= 1e-9, f"Rippe: im Eilgang {k_r.eilgang_abtrag:.1f} mm³")
+    pruefe(k_r.luftanteil <= ps.LUFT_ZULAESSIG, f"Rippe: {k_r.luftanteil * 100:.0f} % Luft")
 
 # --- (c) Ohne Freiformfläche ----------------------------------------------------------------------
 andere = [f"Face{i + 1}" for i in range(len(teil.Faces)) if f"Face{i + 1}" not in kugel]

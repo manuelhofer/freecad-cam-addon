@@ -2934,6 +2934,18 @@ Gegenrechnung in den Ordnern daneben.
   10,20, flache Kuppel 6,22, Kuppel + 5 5,41); mit erzwungenem Rückfall auch im Raster 0,5 (auf
   keiner Lage eine genaue Grenze) nichts im Eilgang, nie senkrecht (flache Kuppel 7,30, Kuppel
   5,24, Kuppel + 5 5,70 min).
+  **Zweite Runde des Gegenprüfers (2026-11-13 abends):** kein Sicherheitsfund, „Haken aus“
+  bitgleich zum alten Stand (acht Fälle, Prüfsumme der Bahnpunkte). Aber der vorsichtige Weg ohne
+  genaue Grenze wird an dünnen Wänden viel langsamer als von oben: ein Ring mit 1,5 mm Wand und
+  eine dünne Spitze („Rippe“) im Raster 1,0 11,3 statt 5,4 min, 74 statt 17 Rampen, 52 % des
+  Vorschubwegs in der Luft; die Vorschau 11,3 gegen 4,6 min der fertigen Bahn. Darum rechnet
+  `planen` **ohne genaue Grenze beide Reihenfolgen und nimmt die schnellere** (im Raster der
+  fertigen Bahn gilt der Haken unverändert): dort nie langsamer als von oben. Rippe im Raster
+  0,75 und 1,0 und in der Vorschau jetzt wie von oben (6,88 / 5,35 / 5,40 min, der Prüfstand
+  ohne Befund), im Raster 0,6 4,75 statt 5,40 min; die Vorschau der Rippe liegt damit 17 % über
+  der fertigen Bahn. Bekannt und so belassen (fertige Bahn, feines Raster): steile Wand 85° +6 %
+  Zeit bei kleinerem Rest, Rippe +8 %; die Ausnahmen Höhlung und Spalt gelten für den ganzen
+  Abschnitt (am Geist 31,1 statt möglicher 29,4 min).
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130

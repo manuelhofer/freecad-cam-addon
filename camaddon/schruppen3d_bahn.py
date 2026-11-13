@@ -454,6 +454,11 @@ def _nach_davor(feld, netz, davor, aufmass, toleranz, ziel):
     return hoehe
 
 
+def _mit_genauer_grenze(schritt):
+    """Rechnet eine Bahn in diesem Raster mit der genauen Grenze (ringgrenze)?"""
+    return GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
+
+
 def _lagen(oben, ziel, zustellung, zwischen, von_unten=False):
     """([(z, ist_zwischenlage, vorige)], ap der Hauptlagen) – die Hauptlagen von oben bis
     `ziel`, je höchstens `zustellung` und gleich weit, nach jeder die Zwischenlagen darüber bis
@@ -1170,6 +1175,7 @@ def planen(
     nachbereiten=None,
     nur_ueber=False,
     von_unten=False,
+    _nur_diese=False,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
@@ -1181,6 +1187,16 @@ def planen(
     mit einem Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
+    if von_unten and not _nur_diese and davor is None and not _mit_genauer_grenze(schritt):
+        # Ohne genaue Grenze (die Vorschau, eine Auflösung gröber als GENAU_BIS_RASTER) fährt der
+        # Weg von unten vorsichtig (_RUECKFALL) – an dünnen Wänden viel langsamer als von oben
+        # (Zweifler, zweite Runde: ein Ring mit 1,5 mm Wand im Raster 1,0 11,3 statt 5,4 min, 52 %
+        # des Vorschubwegs in der Luft). Dort beide Reihenfolgen, die schnellere gilt: nie
+        # langsamer als von oben.
+        gemeinsam = (form_teil, namen, werte, zwischen, toleranz, schritt, davor, stand)
+        unten = planen(*gemeinsam, nachbereiten, nur_ueber, True, True)
+        oben = planen(*gemeinsam, nachbereiten, nur_ueber, False)
+        return unten if unten.zeit <= oben.zeit else oben
     w = werte
     r = float(w.form.radius)
     if r <= 0 or vp.ebener_radius(w.form) <= 0:

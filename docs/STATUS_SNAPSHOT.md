@@ -597,6 +597,40 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.370.0):* **3D-Schruppen: Zwischenlagen von unten mit voller Schneide** (Manuel, 13.11. abends,
+  Antwort auf Frage 4: „a“) – neuer Haken beim 3D-Schruppen, angehakt; gespeicherte Jobs bleiben beim alten
+  Weg. Jede Zwischenlage fräst nur den schmalen Streifen an der Wand, so tief wie die Hauptlage; eine Lage
+  kommt erst, wo die Stufe sonst breiter als 1 mm würde. **Geist: 31,1 statt 48,9 min** (46 statt 69
+  Zwischenlagen, 9,3 statt 19,2 m Weg; es bleiben 5,6 statt 5,3 cm³ für die Kugel), Kegel 65° 10,2 statt
+  12,8 min, Kuppel 4,9 statt 5,4, flache Kuppel 6,2 statt 8,5 min. Von oben bleibt es im Rest, mit
+  Materialstand (die Mulde des Testteils: unverändert 1,29 min), in einer Höhlung und in einem Spalt, der
+  sich erst über der Hauptlage öffnet. Gebaut von Unteragenten in zwei Runden mit Gegenprüfung (erste
+  Fassung: bei grober Auflösung Eilgang durchs Material – behoben); ohne genaue Grenze (Vorschau, Auflösung
+  über 0,5 mm) rechnet das Addon beide Reihenfolgen und nimmt die schnellere. „Haken aus“ ist bitgleich zum
+  alten Stand. Bekannt: steile Wand 85° +6 % Zeit bei kleinerem Rest. Bild
+  `docs/bilder/vorschlaege/zwischenlagen_von_unten.png`, Spezifikation Strategien 4.2 und 13.7.
+  **Manuel prüft:** ein Teil mit Freiformfläche (z. B. den Geist) → 3D-Schruppen: unter „Gleichlauf“ steht
+  der Haken „Zwischenlagen von unten mit voller Schneide“; mit Haken deutlich weniger Zeit, die Ringe der
+  Zwischenlagen liegen als schmale Streifen an der Wand.
+- *Korrektur (0.369.1):* **Kleine Taschen werden geräumt statt abgelehnt (B-035):** Eine Tasche, kaum größer
+  als der Fräser, hieß bisher „der Fräser passt nicht hinein“ – mit dem Ø 6 (braucht mit Aufmaß 6,6 mm) alles
+  unter 9,5 mm Seitenlänge, weil im 0,5-mm-Raster kein erlaubter Knoten blieb. Jetzt fährt dort der genaue
+  Ring aus der Kontur (nachgerechnet wie in 0.369.0) mit der Rampe rundum: Taschen 6,7 … 9,0 mm in 0,25 …
+  0,40 min, kein Rest, kein Einschnitt, kein senkrechtes Eintauchen; 6,5 mm passt weiter nicht.
+  **Manuel prüft:** eine Tasche 8 × 8 mit dem Ø 6 räumen – es kommt eine Bahn statt der roten Meldung.
+- *Neu (0.369.0):* **Räumen: der Ring an der Wand einer Tasche ist auch in der spitzen Ecke genau** –
+  am Testteil, dreieckige Tasche (Räumen T3): 0,30 mm vor der Wand statt 0,72 … 1,19 (Aufmaß 0,3); das
+  Material in den Ecken (171 mm³) nimmt jetzt der Schruppgang mit gebremstem Vorschub statt der Gang
+  danach, 0,25 statt 0,19 min. Gebaut von Unteragenten in zwei Runden mit Gegenprüfung (40 Gegenfälle:
+  Sims, Brett, Stift, Insel, Nuten, Zähne), die letzte Lücke selbst geschlossen: Der genaue Ring gilt nur,
+  wenn er überall nachgerechnet hält UND nur an Ecken der Tasche vom Rasterring abweicht – nie in einer Nut
+  oder einem Spalt (dort schnitte er in voller Breite; alle Nut-Gegenfälle rechnen wie 0.368.0).
+  Abschaltbar `raeumen_bahn.GENAU_ECKE`. Bekannt: In spitzen Ecken steigt die Zeit um 5 … 25 %, weil die
+  Ecke jetzt ausgeräumt wird; die Treppen des Rings davor bleiben. Spezifikation Strategien 13.6.
+  **Manuel prüft:** Testteil → „Räumen T3“ neu rechnen: der letzte Ring liegt in den drei Ecken der Tasche
+  an der Wand an.
+  Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
+  Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
 - *In Arbeit (Manuel, 13.11. abends, Antwort auf Frage 4: „a“):* **Zwischenlagen beim 3D-Schruppen von unten
   nach oben mit voller Schneide**, neue Lage erst ab 1 mm Stufenbreite – als Haken beim 3D-Schruppen,
   angehakt. Am Geist kosten die Zwischenlagen heute 31,6 von 48,9 min (19 m Weg für 11 % des Materials);

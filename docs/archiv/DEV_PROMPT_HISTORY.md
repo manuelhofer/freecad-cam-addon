@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-19 zwischenlagen-von-unten
+
+### EINGELESEN
+- Manuels Antwort auf Frage 4 („a“, P-2026-11-13-17); Befund und Vorversuch
+  (`~/freecad_cam/wip/strategien/geist_luft/BEFUND.md`, `vorversuch.diff`).
+- Zwei Workflows mit Unteragenten (Bauer im eigenen Arbeitsbaum, Zweifler dagegen), Zweig `zl_unten`:
+  62020ea6 (Umbau, umgesetzt auf 0.369.1) und 9d901508 (Nacharbeit); beide Urteile „nacharbeiten“.
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `_lagen(von_unten)`, `_ringe_streifen`, `_Treppe` (die Stufe an der
+  genauen Grenze), `STUFE` 1,0, `STUFE_ORT` 0,5, Ausnahmen `_hoehlung` und `_spalt`, vorsichtiger Weg ohne
+  genaue Grenze (`_RUECKFALL`), `planen(…, von_unten)`; dazu von mir: ohne genaue Grenze beide
+  Reihenfolgen, die schnellere gilt (`_mit_genauer_grenze`).
+- `camaddon/ringgrenze.py` (kleine Ergänzung der Nacharbeit), `camaddon/schruppen3d.py` (Eigenschaft
+  `ZwischenlagenVonUnten`: neu angelegt an, beim Laden alter Dateien aus), `camaddon/gui_bearbeitung.py`
+  (Haken „Zwischenlagen von unten mit voller Schneide“, vorbelegt an).
+- `tests/test_schruppen3d.py` Teil (e): Kuppel, nur darüber, Schale, Schale + 5, flache Kuppel im Raster
+  0,75 und 1,0, Spalt, Vorschau ±15 %, Rippe im Raster 1,0.
+- `translations/de.json`, `en.json`, `help/de/bearbeitung.html`, `help/en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md` (4.2, 13.7), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.370.0).
+
+### ERGEBNIS
+- Geist (STL, 3D-Schruppen von oben, Ø 12, ap 25, ae 1,5), auf dem Hauptzweig nachgemessen: 31,07 statt
+  48,85 min, 4 + 46 statt 4 + 69 Lagen, Weg der Zwischenlagen 9,3 statt 19,2 m, über dem Aufmaß bleiben
+  5,62 statt 5,30 cm³; Einschnitt 0, nichts im Eilgang, Eintauchen 7 wie vorher (Hauptlagen).
+- Kegel 65°: 10,20 statt 12,76 min, Rest senkrecht zur Wand Mittel/p90/max 0,73 / 1,06 / 1,15 statt
+  0,59 / 0,75 / 1,55 mm. Kuppel 4,93 statt 5,40, flache Kuppel 6,22 statt 8,48, halb Kuppel halb Wand
+  4,64 statt 5,49, Kuppel + 5 mm 5,41 statt 6,56 min.
+- Unverändert (bewusst von oben): Rest (`davor`), Materialstand (Mulde des Testteils 1,2945 min), Schale
+  (Höhlung), zwei Kuppeln mit Spalt (3,48 min, Eingriff 3,3 ae).
+- Runde 1 des Zweiflers: Zeiten bestätigt, Haken aus bitgleich; **Sicherheitsfund** – bei einer Auflösung
+  über 0,5 mm fuhr die fertige Bahn im Eilgang durchs Material (flache Kuppel, Raster 1,0: 2,4 mm³,
+  fünfmal senkrecht) – und der Spalt lief mit 6,1 statt 3,3 ae. Nacharbeit: vorsichtiger Weg ohne genaue
+  Grenze, Spalt von oben. Runde 2: kein Sicherheitsfund mehr; an dünnen Wänden war der vorsichtige Weg im
+  groben Raster und in der Vorschau viel langsamer (Rippe 11,3 statt 5,4 min). Selbst geschlossen: ohne
+  genaue Grenze beide Reihenfolgen, die schnellere gilt.
+- „Haken aus“ auf dem Hauptzweig nachgeprüft: acht Prüfsummen gleich dem alten Stand.
+- Offen: die Ausnahmen Höhlung/Spalt nur örtlich (Geist dann etwa 29,4 min); Materialstand von unten
+  (die Mulde bliebe sonst ohne Gewinn); steile Wand 85° +6 % Zeit bei kleinerem Rest.
+- Grün: `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_restschruppen`, `test_materialstand`,
+  `test_testteil`, `test_goldene_bahnen` (nichts bewegt), `test_pruefstand` (keine Bestmarke bewegt),
+  `test_raeumen`, `test_simultan_folge`, `test_simultan_planung`, `test_sprache`.
+- Oberfläche: der Haken steht in Schritt 3 unter „Gleichlauf“, angehakt (als Bild angesehen);
+  `szenario_mulde`, `szenario_bearbeitung_stl`, `szenario_bearbeitung`, `szenario_schritte_testteil`,
+  `szenario_restschruppen` grün. Manuels Testteil durch den ganzen Weg unverändert 13,82 min (sein
+  3D-Schruppen rechnet mit Materialstand, also weiter von oben).
 ## P-2026-11-13-18 kleine-taschen-raeumen
 
 ### EINGELESEN
