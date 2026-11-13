@@ -2610,8 +2610,18 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
   (d) dort nach dem Ring aus dem Raster höchstens 75 % der Stirn über Ungeschnittenem stehen
   (`GENAU_MATERIAL` – Ecke 20° 0,62, 40° 0,43, 60° 0,33; Nut und Spalt 1,0). Sonst gilt wie in
   0.368.0 der Ring aus dem Raster: Nut 6,7 / 7,2 und Spalt 7,0 jetzt wieder voll 0 mm, Eingriff
-  5,8 / 4,5 / 5,4 ae wie in 0.368.0 (`test_raeumen.py` (k) prüft die Nut 6,7). Eine kurze Nut
-  (4 mm) lässt ihn noch zu: 1,5 mm voll, 8,9 ae.
+  5,8 / 4,5 / 5,4 ae wie in 0.368.0 (`test_raeumen.py` (k) prüft die Nut 6,7).
+
+  Eine kurze Nut (bis etwa 4 mm lang) bestand (c) und (d) noch: Ihr Ende sind zwei Knicke von 90°,
+  die als „Ecken“ zählten (zweite Runde des Zweiflers: Nut 6,9 breit und 3,5 lang 2,6 mm in voller
+  Breite, 10,3 statt 5,8 ae; drei solche Nuten 7,75 mm – über der Grenze des Prüfstands). Darum
+  zählt für (c) nur eine Ecke der Tasche: Der Ring knickt dort in seinem Umlaufsinn, der Eckwinkel
+  ist höchstens 100° (`GENAU_ECKWINKEL`), und im Umkreis von 0,35 · Radius (`GENAU_ECKE_ALLEIN`)
+  liegt kein weiterer Knick im Umlaufsinn. Danach rechnen alle Nut-Gegenfälle (lang, kurz, drei in
+  einer Reihe, spitz zulaufend) Zahl für Zahl wie 0.368.0; die Ecken 20°/40°/60°, die
+  rechteckige Tasche in der Insel (90°) und der Zahn behalten den Ring bei 0,30 mm, mit demselben
+  Vollschnitt wie in 0.368.0 (`gegen4.py`, `h2_neu.json` bei Manuel unter
+  `~/freecad_cam/wip/strategien/tasche/gegen/`; `test_raeumen.py` (k) prüft die kurze Nut).
 
   Was in den Ecken bleibt (Gegenfälle, Dreieck 40 mm, Ø 6, ae 0,6): Die Zeit steigt um 5 … 25 %
   (e20 0,194 → 0,241, e40 0,537 → 0,616, e60 0,808 → 0,905 min), weil der Ring an der Wand die

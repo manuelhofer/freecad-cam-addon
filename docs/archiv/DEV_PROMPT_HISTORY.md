@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-16 raeumen-genauer-ring-spitze-ecke
+
+### EINGELESEN
+- Spezifikation Strategien 13.6, „Noch offen“ (die Tasche mit T3 behält Treppen): `raeumen_bahn._genau`
+  verwirft den genauen Ring aus der Kontur, weil der Ring aus dem Raster die spitze Ecke abschneidet.
+- Zwei Workflows mit Unteragenten (Bauer im eigenen Arbeitsbaum, Zweifler dagegen), Zweig `tasche_genau`:
+  Commits b98955b6, e5951fce; beide Urteile „nacharbeiten“ mit Gegenfällen
+  (`~/freecad_cam/wip/strategien/tasche/gegen/`, 40 Fälle).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_genau` mit zweitem Weg für die Wand einer Tasche; `_Nachpruefen` (der Ring
+  alle 0,2 mm gegen das Netz, Fräser um Netztoleranz + 0,02 mm kleiner); `_Ring.streng` (Wege auf den Ring
+  dicht nachgerechnet); `_scharfe_ecken`; Schalter `GENAU_ECKE`, Maße `GENAU_ECKE_MASS`, `GENAU_MATERIAL`,
+  `GENAU_ECKWINKEL`, `GENAU_ECKE_ALLEIN`.
+- `tests/test_raeumen.py`, Abschnitt (k): spitze Ecke, Brett und Stift als Hindernis, Nut 6,7, kurze Nut
+  6,9 × 3,5.
+- `docs/spezifikation_strategien.md` (13.6), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.369.0).
+
+### ERGEBNIS
+- Testteil, „Räumen T3“ (dreieckige Tasche, Ø 6): Ring an der Wand 0,2995 … 0,300 mm statt 0,72 … 1,19
+  (Aufmaß 0,3), 701 statt 530 mm³ abgetragen, 0,2536 statt 0,1875 min; Rest, Einschnitt, Eilgang-Abtrag
+  unverändert 0. Die Mulde (3D-Schruppen T1) unverändert.
+- Runde 1 (Zweifler): kollisionssicher (Sims, Brett, Stift, Insel mit Spalt → Rasterring wie vorher), aber
+  der genaue Ring fuhr in schmale Nuten und Spalte und schnitt dort in voller Breite (0 → 9 mm). Runde 2:
+  behoben für lange Nuten; kurze Nuten (bis 4 mm) bestanden noch, drei in einer Reihe 7,75 mm voll.
+- Selbst geschlossen: Als Ecke zählt nur ein Knick im Umlaufsinn des Rings mit Eckwinkel bis 100°, in
+  dessen Umkreis (0,35 · Radius) kein weiterer liegt – das Ende einer Nut zählt nicht. Nachgerechnet mit
+  den Fällen des Zweiflers (`gegen4.py`, `h2_neu.json`): alle zwölf Nut-Fälle Zahl für Zahl wie 0.368.0;
+  Ecken 20°/40°/60°, Tasche in der Insel (90°), Zahn, kleine Tasche: Ring bei 0,30 mm, Vollschnitt wie
+  in 0.368.0, kein Einschnitt, nichts im Eilgang.
+- Bekannt und so belassen: In spitzen Ecken steigt die Zeit um 5 … 25 % (die Ecke wird jetzt
+  ausgeräumt), der Eingriff an der Spitze ist höher (e20 adaptiv 6,9 → 9,4 ae); ein fremdes Hindernis bis
+  0,04 mm im Aufmaß wird nicht erkannt.
+- Nebenbefunde der Unteragenten: der Absturz bei kleinem Vollkreis (B-034, behoben in 0.368.1); der
+  Prüfstand wertet eine lange Gerade als ein Stück (`last_lang` wirkt dadurch länger) – offen; sehr
+  kleine Taschen (8 × 8 mit Ø 6) meldet das Räumen als „passt nicht hinein“ – offen.
+- Grün: `test_raeumen`, `test_kontur`, `test_testteil`, `test_goldene_bahnen` (nichts bewegt),
+  `test_pruefstand` (keine Bestmarke bewegt), `test_materialstand`, `test_nut_offen`, `test_schruppen3d`,
+  `test_restschruppen`, `test_simultan_folge`, `test_simultan_planung`.
+
+## P-2026-11-13-17 antwort-frage-4-zwischenlagen
+
+### EINGELESEN
+- Frage 4 in `docs/OFFENE_FRAGEN.md` (Zwischenlagen beim 3D-Schruppen: von unten nach oben mit voller
+  Schneide statt dünner Scheiben?), mit Bild und Messung am Geist.
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 4 heraus), `docs/STATUS_SNAPSHOT.md` (in Arbeit).
+
+### ERGEBNIS
+- **Manuel, 2026-11-13 abends: „a“** – von unten nach oben mit voller Schneide, neue Lage erst ab 1 mm
+  Stufenbreite, als Haken beim 3D-Schruppen, angehakt. Die Wahlmöglichkeiten waren: a) so bauen,
+  b) bleibt wie heute (alle 1 mm von oben), c) ohne Umbau nur gröber (alle 3 mm).
+- Wird gebaut (Bauer und Zweifler), danach an Geist, Mulde und Kuppel nachgemessen.
 ## P-2026-11-13-15 kein-absturz-kleiner-vollkreis
 
 ### EINGELESEN
