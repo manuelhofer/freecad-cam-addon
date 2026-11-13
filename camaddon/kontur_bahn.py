@@ -1136,6 +1136,11 @@ class _Stand:
     ziel: float = math.inf  # die tiefste Unterkante dabei
     mit_material: bool = False  # eine Kontur fuhr nur, wo Material steht
     ausgelassen: int = 0  # Läufe, die nur im Zickzack hineinkämen (_lauf)
+    # Die Stellen (x, y) der Läufe, die auf der laufenden Lage wirklich gefahren sind – und, fürs
+    # Schlichten danach, die der tiefsten Schrupplage als Strecken (Anfänge, Enden): „Luft“ ist im
+    # geräumten Band nur, wo in der Nähe auch geschruppt wurde (B-030; None: nicht prüfen).
+    gefahren: list = field(default_factory=list)
+    nur_gefahren: object = None
 
 
 @dataclass(frozen=True)
@@ -1407,6 +1412,7 @@ def _kontur(
         lage = float(lage)
         gefahren = False
         geschruppt = set()
+        st.gefahren = []
         for schleife in schleifen:  # je Schleife von außen zur Wand
             # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
             geraeumt = (math.inf, 0.0)
@@ -1445,6 +1451,14 @@ def _kontur(
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
         vorige = lage
+    # Wo die tiefste Schrupplage wirklich fuhr – für die Einfahrt des Schlichtens (luft_bei).
+    anfaenge, enden = [np.zeros((0, 2))], [np.zeros((0, 2))]
+    for gx, gy in st.gefahren:
+        if len(gx) > 1:
+            punkte_g = np.column_stack([gx, gy])
+            anfaenge.append(punkte_g[:-1])
+            enden.append(punkte_g[1:])
+    geschruppt_xy = (np.concatenate(anfaenge), np.concatenate(enden))
     # Der Zug beim Aufmaß wäre dieselbe Bahn noch einmal, wenn die eine Lage den innersten Versatz
     # schon ganz gefahren hat und die Schneide über die Höhe reicht (B-012: eine Runde Luft).
     hoehe = oben_schlichten - ziel
@@ -1458,15 +1472,16 @@ def _kontur(
                 huelle, mit_stand,
             )  # fmt: skip
     for zug in ([schlicht] if schlicht is not None else []) + schlichte_weitere:
-        if len(
-            lagen
-        ):  # ohne Schruppen davor (nichts mehr zu schruppen) bleibt das Band, wie es war
+        # Ohne Schruppen davor (nichts mehr zu schruppen) bleibt das Band, wie es war.
+        if len(lagen):
             band = [b for b in _schleife_zu(zug, schrupp, weitere) if id(b[2]) in geschruppt]
+            st.nur_gefahren = geschruppt_xy
         else:
             band = _schleife_zu(zug, schrupp, weitere)
         _ein_zug(
             st, k, w, r, r_ein, gerade, schritt, zug, band, oben_schlichten, ziel, huelle, mit_stand,
         )  # fmt: skip
+        st.nur_gefahren = None
     if mit_stand is not None and st.bahnen == bahnen_vorher:
         st.konturen -= 1  # hier war nichts mehr zu tun
 
@@ -1646,6 +1661,25 @@ def _bahnen(
     return anzahl
 
 
+def _nah_an(qx, qy, strecken, weit):
+    """Je Punkt (qx, qy): liegt er höchstens `weit` von einer der `strecken` ((Anfänge (M, 2),
+    Enden (M, 2)) – die gefahrenen Bahnen als Linienzüge)?"""
+    qx, qy = np.asarray(qx, dtype=float), np.asarray(qy, dtype=float)
+    nah = np.zeros(len(qx), dtype=bool)
+    a, b = strecken
+    if not len(a):
+        return nah
+    d = b - a
+    laenge2 = np.maximum((d * d).sum(axis=1), 1e-12)
+    for von in range(0, len(qx), 128):
+        px = qx[von : von + 128, None] - a[None, :, 0]
+        py = qy[von : von + 128, None] - a[None, :, 1]
+        t = np.clip((px * d[None, :, 0] + py * d[None, :, 1]) / laenge2[None, :], 0.0, 1.0)
+        dx, dy = px - t * d[None, :, 0], py - t * d[None, :, 1]
+        nah[von : von + 128] = (dx * dx + dy * dy <= weit * weit).any(axis=1)
+    return nah
+
+
 def _einheit(dx, dy):
     laenge = math.hypot(dx, dy)
     return (dx / laenge, dy / laenge) if laenge > 0 else (1.0, 0.0)
@@ -1729,7 +1763,19 @@ def _lauf(
         """Je Punkt: steht dort (die Stirn mit Radius `rand`) nichts mehr über der Lage?"""
         luft = ~_im_rohteil(qx, qy, w.rohteil, max(rand, 2 * GLEICH))  # 0: der Punkt
         dq = huelle.abstand_zur_wand(qx, qy, lage)
-        luft |= (dq - rand >= frei_von - GLEICH) & (dq + rand <= frei_bis + GLEICH)
+        im_band = (dq - rand >= frei_von - GLEICH) & (dq + rand <= frei_bis + GLEICH)
+        if st.nur_gefahren is not None and im_band.any():
+            # Im Band der Schruppversätze, aber nur, wo sie dort auch gefahren sind: Hinter einer
+            # Insel dicht vor der Wand kommen sie nicht hin – die Einfahrt des Schlichtzugs nahm
+            # dort Luft an und fuhr im Eilgang bis 2 mm über die Lage, über 14 mm Rohteil (B-030,
+            # Sicherheitsprüfung vom 2026-11-13).
+            # Geräumt ist, was eine Schruppbahn mit ihrem Radius überstrichen hat (zwischen zwei
+            # Versätzen überdecken sich ihre Kreise) – dazu das Aufmaß, das der Schlichtzug selbst
+            # nimmt. Gemessen zur Bahn (Strecken), nicht zu ihren Proben: Ein Zuschlag für deren
+            # Abstand ließe einen Reststreifen unter 1 mm als Luft gelten.
+            weit = max(r - rand, 0.0) + max(w.aufmass, 0.0) + GLEICH
+            im_band &= _nah_an(qx, qy, st.nur_gefahren, weit)
+        luft |= im_band
         if mit_stand is not None:
             ms = mit_stand.stand
             luft |= np.array(
@@ -1769,6 +1815,7 @@ def _lauf(
         # Sonst nähme der nächste mehr als ae.
         st.ausgelassen += 1
         return
+    st.gefahren.append((np.asarray(x, dtype=float), np.asarray(y, dtype=float)))
     hinab = neben if neben is not None else start
     punkte = st.punkte
     punkte.append(bn.Punkt(True, hinab[0], hinab[1], w.sicher))

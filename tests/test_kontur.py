@@ -555,6 +555,44 @@ for roh_eng in ((0.0, 60.0, 0.0, 40.0), (-5.0, 65.0, -5.0, 45.0)):
     )
     pruefe(k_eng.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"enge Nut: ins Teil {k_eng.einschnitt}")
 
+# Dasselbe hinter einer Insel dicht vor der Wand (7 mm Spalt, Ø 12): Die Schruppversätze kommen
+# dort nur streckenweise hin. „Luft“ gilt im geräumten Band nur, wo auch geschruppt wurde – bis
+# 0.367.3 fuhr die Einfahrt eines Schlichtstücks dort im Eilgang bis 2 mm über den Boden, über
+# 14 mm Rohteil (141 mm³ im Eilgang).
+tasche_insel = (
+    Part.makeBox(100, 60, 20)
+    .cut(Part.makeBox(60, 40, 15, FreeCAD.Vector(20, 10, 5)))
+    .fuse(Part.makeCylinder(5, 15, FreeCAD.Vector(32, 30, 5)))
+    .removeSplitter()
+)
+waende_insel = [
+    f"Face{i + 1}"
+    for i, f in enumerate(tasche_insel.Faces)
+    if kb.ist_wand(f) and f.BoundBox.ZMin > 4.9
+]
+roh_insel = (0.0, 100.0, 0.0, 60.0)
+werte_insel = kb.Konturwerte(
+    form=form, zustellung=25.0, zeilenabstand=1.5, aufmass=0.3, schlichten=True, oben=20.0,
+    sicher=25.0, rohteil=roh_insel,
+)  # fmt: skip
+w_insel = kb.waende(tasche_insel, waende_insel)
+netz_insel, fern_insel = hf.netze_ohne(
+    tasche_insel, [kb.ohne_flaechen(tasche_insel, w_insel), [w_.name for w_ in w_insel]]
+)
+bahn_insel = kb.planen(
+    netz_insel, werte_insel, kb.konturen(tasche_insel, waende_insel), netz_fern=fern_insel
+)
+k_insel = ps.messen(
+    [ps.Bahnlauf(bahn_insel.punkte, 1000.0, 300.0)], tasche_insel, roh_insel, 20.0, form, 1.5, 25.0,
+    raster=0.25,
+)  # fmt: skip
+pruefe(
+    k_insel.eilgang_abtrag <= 1e-9 and k_insel.eintauchungen == 0,
+    f"Insel vor der Wand: im Eilgang {k_insel.eilgang_abtrag:.1f} mm³, "
+    f"{k_insel.eintauchungen}-mal senkrecht ins Material",
+)
+pruefe(k_insel.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Insel: ins Teil {k_insel.einschnitt}")
+
 # --- Eine Wand mit gestufter Unterkante (B-032) ----------------------------------------------------
 # Block 60 × 40 × 20, vorn bis z 5 weggefräst (die Wand y 20 von z 5 bis 20), davor rechts ein
 # Absatz bis z 12: Die Wand ist EINE Fläche mit zwei Unterkanten, bei z 5 (x 0 … 40) und bei z 12

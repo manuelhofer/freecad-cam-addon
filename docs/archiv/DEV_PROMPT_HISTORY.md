@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-12 kontur-luft-nur-wo-geschruppt
+
+### EINGELESEN
+- B-030, der Rest: Tasche 60 × 40 mit Insel Ø 10 7 mm vor der Wand – die Einfahrt eines Schlichtstücks
+  hinter der Insel fuhr im Eilgang auf z 7 über 14 mm Rohteil (141 mm³), weil `_lauf.luft_bei` das ganze
+  Band der Schruppversätze für Luft hielt, auch wo sie an der Insel nicht hinkamen.
+- `kontur_bahn._kontur`, `_lauf`, `luft_bei`, `_Stand`.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_Stand.gefahren` (die Läufe der laufenden Lage), `nur_gefahren` (die der
+  tiefsten Schrupplage als Strecken); `luft_bei` verlangt im Band die Nähe zur gefahrenen Bahn
+  (Radius − Prüfradius + Aufmaß); `_nah_an`.
+- `tests/test_kontur.py`: die Tasche mit Insel vor der Wand.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.367.4).
+
+### ERGEBNIS
+- Inselfall: 0 mm³ im Eilgang, kein senkrechtes Eintauchen, Einschnitt 0.
+- Zwei Fehlversuche unterwegs, vom Prüfstand gezeigt: erst zu eng gerechnet (ohne den Fräserradius –
+  „tasche/kontur“ 2,76 statt 2,35 min, weil geräumte Stellen als Material galten), dann zu weit (Zuschlag für
+  den Probenabstand – der Reststreifen von 0,85 mm rutschte durch). Jetzt Abstand zur Bahn selbst.
+- Grün: `test_kontur`, `test_kontur_korrektur`, `test_pruefstand` (keine Bestmarke bewegt),
+  `test_goldene_bahnen`, `test_testteil`, `test_materialstand`; `szenario_kontur`, `szenario_ring_vorn`,
+  `szenario_schritte_cring_alles`; Testteil durch den ganzen Weg unverändert 13,75 min.
+- Voller Lauf aller 188 Oberflächen-Szenarien auf dem Stand 0.367.2 (`pruefhelfer/voll_szenarien.sh`, drei
+  gleichzeitig): 187 grün; `szenario_vierachs_vorschlichten` lief dabei in eine Wartezeit, allein grün.
 ## P-2026-11-13-11 kontur-wand-mit-gestufter-unterkante
 
 ### EINGELESEN
