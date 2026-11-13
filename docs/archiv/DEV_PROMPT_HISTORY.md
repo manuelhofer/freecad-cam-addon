@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-11 kontur-wand-mit-gestufter-unterkante
+
+### EINGELESEN
+- B-032 aus der Sicherheitsprüfung, selbst nachgestellt (`~/freecad_cam/wip/pruefung_1113/kontur/
+  test_kontur_absatz.py`): Die Wand y 20 eines Blocks (z 5 bis 20) mit einem Absatz davor (bis z 12) ist
+  eine Fläche mit zwei Unterkanten; `kontur_bahn._wand` nahm nur die bei ZMin – vor der Wand über dem
+  Absatz blieb das Material bis z 20 stehen, ohne Meldung.
+- `kontur_bahn.Wand`, `waende`, `konturen` (Wände gruppiert nach Unterkante).
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_stufen` – je höherer Stufe der Unterkante dieselbe Fläche noch einmal als
+  Wand (eine waagerechte Kante, über der die Fläche liegt und unter der nicht); `waende` hängt sie an.
+- `tests/test_kontur.py`: die gestufte Wand.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.367.3).
+
+### ERGEBNIS
+- Gestufte Wand: zwei Konturen (5 … 20 über x 0 … 40, 12 … 20 über x 40 … 60); vor der Wand über dem Absatz
+  bleibt nichts über z 12 stehen (vorher bis 20).
+- Testteil durch den ganzen Weg unverändert 13,75 min.
+- Grün: `test_kontur`, `test_kontur_korrektur`, `test_nut`, `test_nut_offen`, `test_fase`, `test_fase_bahn`,
+  `test_fase_op`, `test_entgraten`, `test_entgraten3d`, `test_flanke`, `test_goldene_bahnen`, `test_testteil`,
+  `test_pruefstand`, `test_materialstand`, `test_raeumen`.
+- Der volle Lauf aller Oberflächen-Szenarien läuft auf dem Stand 0.367.2 (117 von 188 durch, alle OK).
 ## P-2026-11-13-10 kontur-kein-spiel-an-geraden-waenden
 
 ### EINGELESEN

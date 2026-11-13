@@ -578,6 +578,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.367.3):* **Kontur: Wand mit gestufter Unterkante (B-032):** Steht vor einem Teil einer Wand
+  ein Absatz, wird jetzt auch der Teil darüber gefräst (bis auf den Absatz) – bisher fiel er ohne Meldung
+  weg.
 - *Korrektur (0.367.2):* **Kontur: an geraden Wänden kein Spiel (B-031):** Der Schlichtkreis um eine Insel
   kam 0,06 mm in die gerade Taschenwand daneben – das Spiel für die Sehnen runder Wände galt überall.
   Jetzt 0,000 mm.
@@ -2753,7 +2756,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Offen: B-030 (Rest), B-032, B-033 (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
+Offen: B-030 (Rest) und B-033 (Frage 3) (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57. **Offen (gefunden 2026-11-06 mit `~/freecad_cam/wip/pruefhelfer/nc_pruefen.py` über die NC-Ausgaben des
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
 B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fuhr es Y 27 →
@@ -2781,16 +2784,8 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
 - B-031 Kontur 0,06 mm in einer anderen fertigen Wand: **behoben in P-2026-11-13-10 (0.367.2)** – an
   geraden Strecken einer Wand gilt kein Sehnenspiel mehr (`GERADE_SPIEL` 0,005). Offen dazu: Das Ein- und
   Ausfahren darf weiter `WAND_SPIEL` 0,05 mm näher an eine Wand (`_lauf`, `mindest`).
-- B-032 **Kontur, Wand mit gestufter Unterkante (selbst nachgestellt):** der Teil über dem Absatz fällt still weg
-  (`kontur_bahn._wand` nimmt nur die Kanten bei ZMin).
-
-Zu B-030, wie es dazu kam: Die Ursache ist, dass `_ein_zug` das Band aus den Schruppversätzen
-nimmt, die es geometrisch gibt (`geraeumt`), nicht aus denen, die gefahren sind; `_lauf.luft_bei` nennt
-danach alles im Band Luft. Der enge geschlossene Fall (Tasche 12,2 breit) fährt richtig als Wendel – der
-offene (zwei Wände einer Nut) und Stücke hinter einer Insel nicht. Richtig wäre: Luft nur, wo ein Versatz
-dieser Operation wirklich bis zur Tiefe gefahren ist (je Stelle), sonst Wendel längs der Kontur in Lagen.
-In der Operation fängt `freiwege` den Eilgang ins Material ab; der Zug in voller Breite und Tiefe bleibt.
-
+- B-032 Kontur, Wand mit gestufter Unterkante: **behoben in P-2026-11-13-11 (0.367.3)** – je höherer
+  Stufe der Unterkante eine eigene Wand (`kontur_bahn._stufen`).
 - B-033 **3D-Schlichten fährt neben dem Teil unter die Endtiefe** (selbst nicht nachgestellt, vom Zweifler
   bestätigt): Reicht eine gewählte Fläche bis zum Teilboden, geht die Spitze neben dem Teil bis 1,7 mm
   unter Boden und Endtiefe. Ins Teil geht nichts; gefährlich nur, wenn dort Unterlage oder Spannmittel

@@ -194,7 +194,41 @@ def waende(form, namen):
         wand = _wand(form, nummer)
         if wand is not None:
             ergebnis.append(wand)
+            # Dieselbe Fläche noch einmal je höherer Stufe ihrer Unterkante – einmal gerechnet,
+            # gemerkt bei der Wand (in `stuecke`, die Wand selbst ist unveränderlich).
+            if _STUFEN not in wand.stuecke:
+                wand.stuecke[_STUFEN] = _stufen(wand)
+            ergebnis.extend(wand.stuecke[_STUFEN])
     return ergebnis
+
+
+_STUFEN = "stufen"  # Schlüssel in Wand.stuecke (die anderen sind _schluessel von Kanten)
+
+
+def _stufen(wand):
+    """Die Wand einer Fläche mit gestufter Unterkante noch einmal je höherer Stufe: Steht vor einem
+    Teil der Wand ein Absatz, liegt ihre Unterkante dort höher. Bis 0.367.2 zählte nur die tiefste
+    Unterkante – der Teil der Wand über dem Absatz bekam weder Schruppen noch Schlichten, ohne
+    Meldung (B-032, Sicherheitsprüfung vom 2026-11-13). Unterkante heißt: eine waagerechte Kante,
+    über der die Fläche liegt und unter der nicht."""
+    import FreeCAD
+
+    flaeche = wand.flaeche
+    bb = flaeche.BoundBox
+    je_hoehe = {}
+    for kante in flaeche.Edges:
+        z = kante.Vertexes[0].Point.z if kante.Vertexes else None
+        if z is None or z <= bb.ZMin + NAH or z >= bb.ZMax - NAH or not _waagerecht(kante, z):
+            continue
+        mitte = kante.valueAt((kante.FirstParameter + kante.LastParameter) / 2)
+        darueber = flaeche.isInside(FreeCAD.Vector(mitte.x, mitte.y, mitte.z + 0.01), 1e-4, True)
+        darunter = flaeche.isInside(FreeCAD.Vector(mitte.x, mitte.y, mitte.z - 0.01), 1e-4, True)
+        if darueber and not darunter:
+            je_hoehe.setdefault(round(float(z), 6), []).append(kante)
+    return tuple(
+        Wand(wand.name, wand.nummer, flaeche, z, float(bb.ZMax), tuple(kanten), {_STUFEN: ()})
+        for z, kanten in sorted(je_hoehe.items())
+    )
 
 
 _WAND = {}  # (Prüfsumme der Form, Nummer, Kasten der Fläche) → Wand oder None

@@ -555,6 +555,48 @@ for roh_eng in ((0.0, 60.0, 0.0, 40.0), (-5.0, 65.0, -5.0, 45.0)):
     )
     pruefe(k_eng.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"enge Nut: ins Teil {k_eng.einschnitt}")
 
+# --- Eine Wand mit gestufter Unterkante (B-032) ----------------------------------------------------
+# Block 60 × 40 × 20, vorn bis z 5 weggefräst (die Wand y 20 von z 5 bis 20), davor rechts ein
+# Absatz bis z 12: Die Wand ist EINE Fläche mit zwei Unterkanten, bei z 5 (x 0 … 40) und bei z 12
+# (x 40 … 60). Beide Teile werden gefahren – bis 0.367.2 fiel der über dem Absatz still weg.
+stufe = Part.makeBox(60, 40, 20).cut(Part.makeBox(60, 20, 15, FreeCAD.Vector(0, 0, 5)))
+stufe = stufe.fuse(Part.makeBox(20, 20, 7, FreeCAD.Vector(40, 0, 5))).removeSplitter()
+wand_stufe = [
+    f"Face{i + 1}"
+    for i, f in enumerate(stufe.Faces)
+    if kb.ist_wand(f)
+    and abs(f.BoundBox.YMin - 20) < 1e-6
+    and abs(f.BoundBox.YMax - 20) < 1e-6
+    and f.BoundBox.ZMax > 19
+]
+konturen_stufe = kb.konturen(stufe, wand_stufe)
+unterkanten = sorted((round(k.z_unten, 3), round(k.z_oben, 3)) for k in konturen_stufe)
+pruefe(
+    len(wand_stufe) == 1 and unterkanten == [(5.0, 20.0), (12.0, 20.0)],
+    f"gestufte Wand {wand_stufe}: Konturen {unterkanten}",
+)
+werte_stufe = kb.Konturwerte(
+    form=form, zustellung=25.0, zeilenabstand=1.5, aufmass=0.3, schlichten=True, oben=20.0,
+    sicher=25.0, rohteil=(0.0, 60.0, 0.0, 40.0),
+)  # fmt: skip
+w_stufe = kb.waende(stufe, wand_stufe)
+netz_stufe, fern_stufe = hf.netze_ohne(
+    stufe, [kb.ohne_flaechen(stufe, w_stufe), [w_.name for w_ in w_stufe]]
+)
+bahn_stufe = kb.planen(netz_stufe, werte_stufe, konturen_stufe, netz_fern=fern_stufe)
+ueber_dem_absatz = [
+    p for p in bahn_stufe.punkte if not p.eilgang and p.x > 47.0 and abs(p.z - 12.0) < 1e-6
+]
+pruefe(bool(ueber_dem_absatz), "gestufte Wand: über dem Absatz fährt nichts auf z 12")
+k_stufe = ps.messen(
+    [ps.Bahnlauf(bahn_stufe.punkte, 1000.0, 300.0)], stufe, (0.0, 60.0, 0.0, 40.0), 20.0, form, 1.5,
+    25.0,
+)  # fmt: skip
+pruefe(
+    k_stufe.einschnitt > -ps.EINSCHNITT_ZULAESSIG and k_stufe.eilgang_abtrag <= 1e-9,
+    f"gestufte Wand: Einschnitt {k_stufe.einschnitt:.3f}, im Eilgang {k_stufe.eilgang_abtrag:.1f}",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
