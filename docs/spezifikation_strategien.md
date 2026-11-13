@@ -2545,7 +2545,14 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
   **Noch offen:** Das Räumen der dreieckigen Tasche mit T3 ist unverändert (181 Sätze, 132 Ecken,
   Wandabstand 0,72 … 1,19 mm). Der Baustein ist in `raeumen_bahn` vorbereitet (`_Feld.grenze`,
   `_erlaubt_bei`), im Räumen aber nicht eingeschaltet und dort nicht erprobt; ein Feld mit
-  Taschengrenze (`_Feld.nur`) lehnt `Nachrechner.grenze` bisher ab. Ebenso nicht angefasst: der Gang des Adaptiv-Kerns an der schrägen
+  Taschengrenze (`_Feld.nur`) lehnt `Nachrechner.grenze` bisher ab. Gemessen, warum dort die
+  Treppen bleiben: Die Wände der Tasche sind senkrecht (drei Ebenen, ein Zylinder), der genaue
+  Ring aus der Kontur (`inselringe`) ist da – aber `_genau` verwirft ihn, weil der Ring aus dem
+  Raster in der spitzen Ecke bis 1,60 mm von ihm abliegt (erlaubt 2 · 0,5 + 0,25 = 1,25 mm, im
+  Mittel 0,76). Ihn stattdessen gegen das Netz nachzurechnen geht nicht ohne Weiteres: Der genaue
+  Ring liegt bei Radius + Aufmaß, das Raster rechnet mit Aufmaß + Toleranz des Netzes – er fiele
+  an der eigenen Wand durch. Der nächste Schritt gehört in `_genau` (die spitze Ecke erkennen),
+  nicht in `ringgrenze`. Ebenso nicht angefasst: der Gang des Adaptiv-Kerns an der schrägen
   Stufenwand.
 
 Die Messwerkzeuge liegen bei Manuel in `~/freecad_cam/wip/pruefhelfer/` (`luft.py`,
