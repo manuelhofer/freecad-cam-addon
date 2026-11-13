@@ -10,7 +10,8 @@
 # (c) Ohne Freiformfläche ein Satz. (d) Die Operation im Job: „3D-Schruppen T1“, Art
 # „schruppen3d“ mit dem Einsatz „Schruppen“. (e) Die Zwischenlagen von unten (VON_UNTEN): Kuppel,
 # nur darüber, Schale, Schale + 5 – kürzer, die Treppe in derselben Grenze, nichts ins Teil, nichts
-# im Eilgang, kein Eintauchen; die Vorschau mit ähnlicher Zeit.
+# im Eilgang, kein Eintauchen; die Vorschau höchstens 15 % neben der fertigen Zeit; die flache
+# Kuppel im gröberen Raster ohne genaue Grenze sicher; zwei Kuppeln mit Spalt nicht schlechter.
 import math
 import os
 import pathlib
@@ -86,8 +87,8 @@ def im_quader(teil, bahn, oben, start=None):
     return q, soll, xs, ys
 
 
-def gemessen(teil, bahn, oben, start=None):
-    k = ps.messen([ps.Bahnlauf(bahn.punkte, VF, EINTAUCHEN)], teil, (0, 60, 0, 60), oben, form,
+def gemessen(teil, bahn, oben, start=None, rohteil=(0, 60, 0, 60)):
+    k = ps.messen([ps.Bahnlauf(bahn.punkte, VF, EINTAUCHEN)], teil, rohteil, oben, form,
                   1.5, 25.0, start=start)  # fmt: skip
     return k
 
@@ -255,8 +256,9 @@ pruefe(
 
 # --- (e) Zwischenlagen von unten (Frage 4, VON_UNTEN) ---------------------------------------------
 # Je Zwischenlage ein Streifen an der Wand mit voller Tiefe, eine Lage erst, wo die Stufe sonst
-# breiter als STUFE würde: kürzer als von oben, die Treppe auf der Kuppel in derselben Grenze, nichts
-# ins Teil, nichts im Eilgang, nie senkrecht ins Material, keine Rampe (hinein von der freien Seite).
+# breiter als STUFE würde: kürzer als von oben, die Treppe auf der Kuppel in derselben Grenze,
+# nichts ins Teil, nichts im Eilgang, nie senkrecht ins Material, keine Rampe (hinein von der
+# freien Seite).
 bahn_u = r3.planen(teil, kugel, werte(20.0), von_unten=True)
 k_u = gemessen(teil, bahn_u, 20.0)
 print(ascii(f"Kuppel von unten: {bahn_u.zeit:.2f} min (von oben {bahn.zeit:.2f}), {bahn_u.lagen} + "
@@ -275,11 +277,72 @@ pruefe(
     np.all(np.abs((q_u.h - _soll_u)[platte_frei] - 0.3) < 0.02),
     "von unten: auf der Platte nicht 0,3",
 )
-# Die Vorschau des Assistenten (gröberes Raster, ohne genaue Grenze) zeigt eine ähnliche Zeit.
+# Die Vorschau des Assistenten (gröberes Raster, ohne genaue Grenze: _RUECKFALL) zeigt eine
+# ähnliche Zeit (höchstens 15 % daneben) und fährt nirgends im Eilgang ins Material.
 grob_u = r3.planen(teil, kugel, werte(20.0), toleranz=hf.VORSCHAU_TOLERANZ,
                    schritt=r3.VORSCHAU_SCHRITT, von_unten=True)  # fmt: skip
-print(ascii(f"Kuppel von unten, Vorschau: {grob_u.zeit:.2f} min (fertig {bahn_u.zeit:.2f})"))
-pruefe(abs(grob_u.zeit - bahn_u.zeit) < 0.25 * bahn_u.zeit, f"Vorschau {grob_u.zeit:.2f} min")
+k_grob_u = gemessen(teil, grob_u, 20.0)
+print(ascii(f"Kuppel von unten, Vorschau: {grob_u.zeit:.2f} min (fertig {bahn_u.zeit:.2f}) – "
+            f"{ps.zeile(k_grob_u)}"))  # fmt: skip
+pruefe(abs(grob_u.zeit - bahn_u.zeit) <= 0.15 * bahn_u.zeit, f"Vorschau {grob_u.zeit:.2f} min")
+pruefe(k_grob_u.eilgang_abtrag <= 1e-9, f"Vorschau: im Eilgang {k_grob_u.eilgang_abtrag:.1f} mm³")
+pruefe(k_grob_u.eintauchungen == 0, f"Vorschau: {k_grob_u.eintauchungen}-mal senkrecht")
+# Die flache Kuppel (Kugel R 60 über einer Platte 80 × 80): im gröberen Raster der Operation (0,75
+# und 1,0, ohne genaue Grenze) nichts im Eilgang und nicht öfter senkrecht ins Material als von
+# oben – vor _RUECKFALL im Raster 1,0 2,4 mm³ im Eilgang und fünfmal senkrecht (Gegenprüfer,
+# 2026-11-13); die Vorschau höchstens 15 % neben der fertigen Bahn (vorher +16 %).
+roh_f = (0.0, 80.0, 0.0, 80.0)
+flach = (
+    Part.makeBox(80, 80, 5)
+    .fuse(Part.makeSphere(60, V(40, 40, -45)).common(Part.makeBox(80, 80, 10, V(0, 0, 5))))
+    .removeSplitter()
+)
+kugel_f = [f"Face{i + 1}" for i, f in enumerate(flach.Faces) if isinstance(f.Surface, Part.Sphere)]
+for schritt in (0.75, 1.0):
+    alt_f = r3.planen(flach, kugel_f, werte(15.0, rohteil=roh_f), schritt=schritt)
+    neu_f = r3.planen(flach, kugel_f, werte(15.0, rohteil=roh_f), schritt=schritt, von_unten=True)
+    k_alt_f = gemessen(flach, alt_f, 15.0, rohteil=roh_f)
+    k_neu_f = gemessen(flach, neu_f, 15.0, rohteil=roh_f)
+    print(ascii(f"Flache Kuppel, Raster {schritt}: von unten {neu_f.zeit:.2f} min (von oben "
+                f"{alt_f.zeit:.2f}, {k_alt_f.eintauchungen}-mal senkrecht) – "
+                f"{ps.zeile(k_neu_f)}"))  # fmt: skip
+    pruefe(k_neu_f.eilgang_abtrag <= 1e-9, f"flach {schritt}: Eilgang {k_neu_f.eilgang_abtrag:.1f}")
+    pruefe(
+        k_neu_f.eintauchungen <= k_alt_f.eintauchungen,
+        f"flach {schritt}: {k_neu_f.eintauchungen}-mal senkrecht (oben {k_alt_f.eintauchungen})",
+    )
+    pruefe(k_neu_f.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"flach {schritt}: {k_neu_f.einschnitt}")
+    pruefe(neu_f.zeit < alt_f.zeit, f"flach {schritt}: {neu_f.zeit:.2f} statt {alt_f.zeit:.2f} min")
+fertig_f = r3.planen(flach, kugel_f, werte(15.0, rohteil=roh_f), von_unten=True)
+grob_f = r3.planen(flach, kugel_f, werte(15.0, rohteil=roh_f), toleranz=hf.VORSCHAU_TOLERANZ,
+                   schritt=r3.VORSCHAU_SCHRITT, von_unten=True)  # fmt: skip
+k_grob_f = gemessen(flach, grob_f, 15.0, rohteil=roh_f)
+print(ascii(f"Flache Kuppel, Vorschau: {grob_f.zeit:.2f} min (fertig {fertig_f.zeit:.2f}) – "
+            f"{ps.zeile(k_grob_f)}"))  # fmt: skip
+pruefe(abs(grob_f.zeit - fertig_f.zeit) <= 0.15 * fertig_f.zeit, f"Vorschau {grob_f.zeit:.2f}")
+pruefe(k_grob_f.eilgang_abtrag <= 1e-9, f"Vorschau flach: Eilgang {k_grob_f.eilgang_abtrag:.1f}")
+# Zwei Kuppeln mit einem Spalt, der sich erst über der Hauptlage öffnet (_spalt): Von unten käme
+# der erste Ring mitten in den vollen Spalt (6,1 statt 3,3 ae, 3,87 statt 3,48 min) – der Abschnitt
+# bleibt von oben: Eingriff und Zeit nicht über dem Weg von oben.
+roh_s = (0.0, 66.0, 0.0, 40.0)
+zwei = Part.makeBox(66, 40, 10)
+for mx in (18.0, 48.0):
+    zwei = zwei.fuse(
+        Part.makeSphere(18, V(mx, 20, -3)).common(Part.makeBox(66, 40, 10, V(0, 0, 10)))
+    )
+zwei = zwei.removeSplitter()
+kugeln = [f"Face{i + 1}" for i, f in enumerate(zwei.Faces) if isinstance(f.Surface, Part.Sphere)]
+alt_s = r3.planen(zwei, kugeln, werte(15.0, rohteil=roh_s))
+neu_s = r3.planen(zwei, kugeln, werte(15.0, rohteil=roh_s), von_unten=True)
+k_alt_s = gemessen(zwei, alt_s, 15.0, rohteil=roh_s)
+k_neu_s = gemessen(zwei, neu_s, 15.0, rohteil=roh_s)
+print(ascii(f"Spalt von unten: {neu_s.zeit:.2f} min (von oben {alt_s.zeit:.2f}, Eingriff bis "
+            f"{k_alt_s.eingriff_max:.2f} ae) – {ps.zeile(k_neu_s)}"))  # fmt: skip
+pruefe(
+    k_neu_s.eingriff_max <= k_alt_s.eingriff_max + 0.05,
+    f"Spalt: Eingriff {k_neu_s.eingriff_max:.2f} statt {k_alt_s.eingriff_max:.2f} ae",
+)
+pruefe(neu_s.zeit <= alt_s.zeit + 1e-6, f"Spalt: {neu_s.zeit:.2f} statt {alt_s.zeit:.2f} min")
 # Nur über der Kuppel: wie oben, von unten.
 nur_u = r3.planen(teil, kugel, werte(20.0), nur_ueber=True, von_unten=True)
 k_nur_u = gemessen(teil, nur_u, 20.0, ringsum_gefraest)
@@ -296,9 +359,9 @@ print(ascii(f"Schale von unten: {schale_u.zeit:.2f} min (von oben {bahn_s.zeit:.
             f"{schale_u.rampen} Rampen – {ps.zeile(k_su)}"))  # fmt: skip
 pruefe(k_su.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Schale von unten: ins Teil {k_su.einschnitt}")
 pruefe(k_su.eilgang_abtrag <= 1e-9, f"Schale von unten: im Eilgang {k_su.eilgang_abtrag:.1f} mm³")
-# Eine Höhlung (über der Hauptlage öffnet sich Erlaubtes ohne Verbindung zu ihrem Freien): Von unten
-# ginge die erste Lage darin mit voller Tiefe über die Rampe, der erste Ring in voller Breite (4,4 ae)
-# – sie bleibt bei der Reihenfolge von oben.
+# Eine Höhlung (über der Hauptlage öffnet sich Erlaubtes ohne Verbindung zu ihrem Freien): Von
+# unten ginge die erste Lage darin mit voller Tiefe über die Rampe, der erste Ring in voller Breite
+# (4,4 ae) – sie bleibt bei der Reihenfolge von oben.
 pruefe(
     schale_u.rampen == bahn_s.rampen and abs(schale_u.zeit - bahn_s.zeit) < 1e-6,
     f"Schale von unten: {schale_u.rampen} Rampen, {schale_u.zeit:.2f} min",

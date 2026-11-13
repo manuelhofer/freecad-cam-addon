@@ -312,10 +312,25 @@ eben). Kein OCL.
      ließen – in der Mulde des Testteils fuhr sonst ein Ring ums ganze Teil, 1,32 statt 1,29 min,
      Eingriff 3,6 ae) und ein Abschnitt, in dem sich eine Höhlung öffnet, die nicht an das Freie der
      Hauptlage grenzt (`_hoehlung`: die erste Lage darin ginge mit voller Tiefe über die Rampe, der
-     erste Ring um die Mitte in voller Breite – an der Schale 4,4 ae auf 50 mm).
-   - *Ohne genaue Grenze* (Vorschau mit 1 mm Raster, oder sie hält auf einer Lage nicht): Die Stufe
-     kommt aus der Höhenlinie der Hüllfläche im Raster, die Ringe an der Wand aus dem Raster (das
-     Gesperrte eine Zelle breiter, sicher). Kuppel: Vorschau 4,27 min, fertig 4,93.
+     erste Ring um die Mitte in voller Breite – an der Schale 4,4 ae auf 50 mm), oder ein Spalt
+     zwischen zwei Wänden (`_spalt`: Erlaubtes, das die Hauptlage nicht erreichte, weiter als R von
+     ihrem Freien und mittendrin gleich weit von zwei getrennten Stücken des Gesperrten, mit
+     Material darüber – zwei Kuppeln, deren Spalt sich 1,9 mm über der Hauptlage öffnet: von unten
+     kam der erste Ring mitten in den vollen Spalt, 6,1 statt 3,3 ae, 3,87 statt 3,48 min).
+   - *Ohne genaue Grenze* (`_RUECKFALL`: im Raster über 0,5 mm – die Vorschau, eine gröbere
+     Auflösung – oder auf einer Lage, auf der ein Ring beim Nachrechnen nicht hält): Die Stufe kommt
+     aus der Höhenlinie der Hüllfläche im Raster, die Ringe an der Wand aus dem Raster (das
+     Gesperrte eine Zelle breiter). Das Raster weiß je Zellmitte, bis wohin Material steht – was
+     eine Lage stehen lässt, ist oft schmaler als eine Zelle. Ohne Vorsicht endete an der flachen
+     Kuppel im Raster 1,0 der Eilgang hinab im Material (2,4 mm³: die Zelle galt als gefräst, ihr
+     Rand stand noch), und das Einfahren von der freien Seite sah unter der Stirn nur einen dünnen
+     Rand (Anteil 0,04, erlaubt wie im Streifen ae) statt der Säule bis zur Oberkante – fünfmal
+     senkrecht ins Material. Darum dort: zum Einfahren eine Zelle mehr Material, hinab und hinein
+     nur, wo nichts unter der Stirn steht (Schwelle 0), der Eilgang endet über dem, was sicher noch
+     steht (`sicher`: gesenkt nur, wo auch die Nachbarn der Zelle gefräst sind), und die Stufe zählt
+     eine Zelle schmaler (das Raster sieht sie bis eine Zelle zu breit). Die genaue Grenze auch im
+     Raster 1,0 (der Ring dazu 0,06 statt 0,015 mm ins Freie gerückt, dann hält sie) kostete die
+     Vorschau am Geist 74 statt 2 s – darum nicht.
    Gemessen (Standardfräser, Aufmaß 0,3; Messung in 13.7): Kuppel 4,93 statt 5,40 min, die Treppe
    senkrecht 0,32 … 1,25 mm wie von oben, nur über der Kuppel 2,73 statt 3,20 min, kein Eintauchen,
    keine Rampe, nichts im Eilgang (`test_schruppen3d` (e)); Kegelstumpf 65° 10,2 statt 12,8 min;
@@ -2874,8 +2889,9 @@ Gegenrechnung in den Ordnern daneben.
   Regel „eine Zelle weniger“ in `_schruppen`; 33 von 69 Lagen fielen aus). Das fertige Programm des
   Assistenten (mit Schnellvorschub im Freien) braucht für dieselbe Bahn rund 35 min: 29 min Schnitt,
   442 Abheber, 40 m Eilgang. Nichts gebaut – erst Manuels Antwort auf Frage 4.
-  **Gebaut (Antwort „a“, Abschnitt 4.2 „Zwischenlagen von unten“), gemessen mit denselben Skripten
-  (`~/freecad_cam/wip/strategien/geist_luft/bau/`: kegel.py, messen.py, mulde.py; alt = Haken aus):**
+  **Gebaut (Antwort „a“, Abschnitt 4.2 „Zwischenlagen von unten“), gemessen mit denselben
+  Skripten (`~/freecad_cam/wip/strategien/geist_luft/bau/`: kegel.py, messen.py, mulde.py;
+  alt = Haken aus):**
 
   | Fall | alt (von oben) | neu (von unten) |
   | --- | ---: | ---: |
@@ -2889,12 +2905,35 @@ Gegenrechnung in den Ordnern daneben.
   | Kuppel, nur darüber | 3,20 min | 2,73 min |
   | Schale, Schale + 5 mm (Höhlung) | 1,15 / 2,68 min | gleich (von oben) |
   | Mulde des Testteils (Materialstand) | 1,2945 min | gleich (von oben) |
+  | Zwei Kuppeln, Spalt öffnet sich über der Hauptlage | 3,48 min, 3,3 ae | gleich (von oben) |
 
   Die Stufe bleibt am Kegel unter 1 mm waagrecht (Lagen alle 1,9 mm statt 1 mm), darum p90 1,06
-  statt 0,75. Vor den Ausnahmen gemessen: Geist 29,4 min (5,42 cm³) – der Abschnitt mit einer Höhlung
-  läuft jetzt von oben; Mulde mit „von unten“ 1,32 min, 948 Halte, Eingriff 3,6 ae. Offen: im
-  Abschnitt mit Höhlung nur die Höhlung von oben, den Rest von unten; der Materialstand mit einer
-  Treppe, die ihn kennt.
+  statt 0,75. Vor den Ausnahmen gemessen: Geist 29,4 min (5,42 cm³) – der Abschnitt mit einer
+  Höhlung läuft jetzt von oben; Mulde mit „von unten“ 1,32 min, 948 Halte, Eingriff 3,6 ae. Offen:
+  im Abschnitt mit Höhlung nur die Höhlung von oben, den Rest von unten (am Geist 29,4 statt
+  31,1 min – braucht eine zweite Lagenfolge je Abschnitt, nicht gebaut); der Materialstand mit
+  einer Treppe, die ihn kennt; steile Wand 85°: 7,57 statt 7,15 min bei kleinerem Rest (3,20 statt
+  4,26 cm³ über dem Aufmaß).
+
+  **Nacharbeit nach dem Gegenprüfer (`_RUECKFALL`, `_spalt`; Skripte in
+  `~/freecad_cam/wip/strategien/geist_luft/bau2/` und `gegen/`):** Ohne genaue Grenze (Raster
+  der Operation 0,75 / 1,0) nichts mehr im Eilgang und nie öfter senkrecht als von oben:
+
+  | Fall (von unten) | vorher | jetzt | von oben |
+  | --- | ---: | ---: | ---: |
+  | Flache Kuppel, Raster 1,0 | 7,51 min, 2,4 mm³ Eilgang, 5 senkrecht | 6,83 min, 0, 0 | 8,11 min, 0, 0 |
+  | Flache Kuppel, Raster 0,75 | 7,59 min, 5 senkrecht | 6,95 min, 0 | 8,74 min, 0 |
+  | Kuppel + 5, Raster 1,0 | 5,27 min, 1 senkrecht | 5,28 min, 0 | 6,21 min, 1 |
+  | Kuppel + 5, Raster 0,75 | 4,71 min, 6 senkrecht | 4,41 min, 0 | 5,54 min, 1 |
+  | Vorschau flache Kuppel (fertig 6,22) | 7,23 min (+16 %), 8,1 mm³ Eilgang | 6,71 min (+8 %), 0 | – |
+  | Vorschau Kuppel (fertig 4,93) | 4,27 min (−13 %) | 4,25 min (−14 %) | – |
+  | Vorschau Kuppel + 5 (fertig 5,41) | 4,62 min (−15 %), 5,1 mm³ Eilgang | 4,74 min (−12 %), 0 | – |
+  | Vorschau Geist (fertig 31,07), Rechenzeit | 28,40 min (−9 %), 1,2 s | 28,32 min (−9 %), 2,1 s | 37,46 min, 2,7 s |
+
+  Die fertigen Bahnen im Raster 0,5 sind unverändert (Geist 31,07 min, Kuppel 4,93, Kegel
+  10,20, flache Kuppel 6,22, Kuppel + 5 5,41); mit erzwungenem Rückfall auch im Raster 0,5 (auf
+  keiner Lage eine genaue Grenze) nichts im Eilgang, nie senkrecht (flache Kuppel 7,30, Kuppel
+  5,24, Kuppel + 5 5,70 min).
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130

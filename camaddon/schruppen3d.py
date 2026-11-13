@@ -316,8 +316,8 @@ def lege_an(
 ):
     """Legt „3D-Schruppen“ im Job an – mit `davor` (Ø, Eckenradius des Fräsers davor; Ø > 0)
     als „Restschruppen“, mit `nur_ueber` nur über den Flächen, mit `von_unten` die Zwischenlagen
-    von unten nach oben – ohne eigene Transaktion, die hält der Aufrufer. Die Endtiefe ist der tiefste Punkt der Flächen plus Aufmaß. Gibt die
-    Operation zurück."""
+    von unten nach oben – ohne eigene Transaktion, die hält der Aufrufer. Die Endtiefe ist der
+    tiefste Punkt der Flächen plus Aufmaß. Gibt die Operation zurück."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Schruppen3D")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -378,8 +378,8 @@ def aendere(
     von_unten=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen`, `davor`, `nur_ueber` und `von_unten` ohne bleiben. Der Name folgt dem Werkzeug,
-    solange es der vorgeschlagene ist."""
+    Transaktion; `flaechen`, `davor`, `nur_ueber` und `von_unten` ohne bleiben. Der Name folgt dem
+    Werkzeug, solange es der vorgeschlagene ist."""
     if davor is not None:
         obj.DurchmesserDavor, obj.EckenradiusDavor = (float(davor[0]), float(davor[1]))
     if _vorgeschlagener_name(obj.Label):

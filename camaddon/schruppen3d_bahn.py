@@ -62,7 +62,8 @@ GLEICH = rb.GLEICH
 GENAUE_GRENZE = True
 # Nur im Raster der fertigen Bahn: Im gröberen der Vorschau (1 mm) hält die genaue Grenze auf
 # keiner Lage (gemessen vom Gegenprüfer, 2026-11-13: 19 von 19 Lagen zurück) – sie kostete dort nur
-# Rechenzeit (0,5 → 2,0 s und 0,6 → 4,3 s).
+# Rechenzeit (0,5 → 2,0 s und 0,6 → 4,3 s). Mit einem um (1 ÷ 0,5)² weiter ins Freie gerückten Ring
+# hielte sie auch dort, kostete am Geist aber 74 statt 2 s für die Vorschau (2026-11-13).
 GENAU_BIS_RASTER = 0.5  # mm
 # An der genauen Grenze zählt auf einer Zwischenlage als Material, was die Stirn des Rings an der
 # Wand trifft (statt was die des Rings aus dem Raster träfe) – abschaltbar für den Vergleich.
@@ -83,6 +84,19 @@ STUFE_ORT = 0.5 * STUFE
 # Ein Ring weiter draußen (die Stufe breiter als ae) fährt nur, wo er mehr als diesen Anteil von ae
 # nimmt – den Rest nimmt der Ring dahinter mit.
 STUFE_AUSSEN = 0.25
+# _RUECKFALL – von unten ohne genaue Grenze (im Raster über GENAU_BIS_RASTER: die Vorschau, eine
+# gröbere Auflösung; oder auf einer Lage, auf der ein Ring beim Nachrechnen nicht hält): Das Raster
+# weiß je Zellmitte, bis wohin Material steht – was eine Lage stehen lässt, ist oft schmaler als
+# eine Zelle. An der flachen Kuppel im Raster 1,0 endete der Eilgang hinab darum im Material
+# (2,4 mm³: die Zelle galt als gefräst, ihr Rand stand noch), und das Einfahren von der freien
+# Seite sah unter der Stirn nur einen dünnen Rand (Anteil 0,04, erlaubt wie im Streifen ae) statt
+# der Säule bis zur Oberkante: fünfmal senkrecht ins Material (Gegenprüfer, 2026-11-13). Dort
+# zählt zum Einfahren eine Zelle mehr Material, hinab und hinein geht es nur, wo nichts unter der
+# Stirn steht, der Eilgang endet über dem, was sicher noch steht (`sicher`: gesenkt nur, wo auch
+# die Nachbarn der Zelle gefräst sind), und die Stufe zählt eine Zelle schmaler (das Raster sieht
+# sie bis eine Zelle zu breit: an der flachen Kuppel sonst zwei Ringe je Lage statt einem, die
+# Vorschau 7,25 statt 6,71 min). Gemessen in der Vorschau: flache Kuppel 6,71 (fertig 6,22),
+# Kuppel 4,25 (4,93), Kuppel + 5 4,74 (5,41) min – nichts im Eilgang, nie senkrecht ins Material.
 
 
 @dataclass
@@ -122,10 +136,10 @@ class _Lage3D(rb._Lage):
     # Grenze entschieden – der Streifen ist oft schmaler als eine Zelle, das Raster sähe ihn nicht.
     streifen = False
 
-    def _schneidet(self, x, y):
+    def _schneidet(self, x, y, streng=False):
         if self.streifen:
             return True
-        return super()._schneidet(x, y)
+        return super()._schneidet(x, y, streng)
 
     def _hinab(self, start, hoch):
         knapp = min(hoch, self.lage + self.w.sicherheit)
@@ -322,21 +336,22 @@ class _Treppe:
         return _naechste(self.punkte, punkte)[0]
 
 
-def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt):
+def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, fehler=0.0):
     """Je Punkt der Wand (m, 2) die Stufe (mm): der Abstand zur Treppe – höchstens so breit, wie das
     Raster unter der Stirn Material sieht (`voll`: Knoten (k, 2) über der Lage in Reichweite der
     Wand), plus eine Zelle (ein Streifen schmaler als sie ist im Raster nicht zu sehen); mindestens,
     was es eine Zelle weniger weit sieht (`erreichbar`); 0, wo nichts über der Lage steht
-    (`steht`). Die Grenze nach oben: Die Treppe weiß nicht, was andere Operationen davor nahmen
-    (Materialstand) – in der Mulde des Testteils öffnete sich auf −22,2 ein Absatz, den das Räumen
-    schon geräumt hatte, die Treppe maß dort 33 mm."""
+    (`steht`); beide Schranken um `fehler` schmaler (_RUECKFALL). Die Grenze nach oben: Die
+    Treppe weiß nicht, was andere Operationen davor nahmen (Materialstand) – in der Mulde des
+    Testteils öffnete sich auf −22,2 ein Absatz, den das Räumen schon geräumt hatte, die Treppe
+    maß dort 33 mm."""
     b = treppe.breite(p)
     oben = np.full(len(p), schritt)
     if len(voll):
-        oben = np.maximum(oben, r + schritt - _naechste(voll, p)[0])
+        oben = np.maximum(oben, r + schritt - fehler - _naechste(voll, p)[0])
     b = np.minimum(b, oben)
     if len(erreichbar):
-        b = np.maximum(b, r - 0.5 * schritt - _naechste(erreichbar, p)[0])
+        b = np.maximum(b, r - 0.5 * schritt - fehler - _naechste(erreichbar, p)[0])
     return np.where(steht[feld.zellen(p[:, 0], p[:, 1])], b, 0.0)
 
 
@@ -480,6 +495,39 @@ def _hoehlung(feld, lage, hoehen, z_unten, im_raster):
     return False
 
 
+def _spalt(feld, lage, hoehen, z_unten, im_raster, hoehe, r):
+    """Öffnet sich auf einer der Höhen `hoehen` über der Hauptlage `lage` ein Spalt zwischen zwei
+    Wänden – Erlaubtes, das die Hauptlage nicht erreichte, mittendrin gleich weit von zwei
+    getrennten Stücken des Gesperrten und weiter als R von ihrem Erlaubten, mit Material darüber?
+    Von unten käme der erste Ring dort mitten in den vollen Spalt (zwei Kuppeln, der Spalt öffnet
+    sich 1,9 mm über der Hauptlage: 6,1 statt 3,3 ae, 3,87 statt 3,48 min; Gegenprüfer)."""
+    from scipy import ndimage
+
+    unten = feld.erlaubt_feld(lage, z_unten) & im_raster
+    # So weit (mm) liegt jede Zelle vom Erlaubten der Hauptlage – von dort ginge ein Ring hinein.
+    vom_freien = ndimage.distance_transform_edt(~unten) * feld.schritt
+    for z in hoehen:
+        erlaubt = feld.erlaubt_feld(z, z_unten) & im_raster
+        neu = erlaubt & ~unten & (vom_freien > r) & (hoehe > z + MATERIAL)
+        if not neu.any():
+            continue
+        stuecke, anzahl = ndimage.label(~erlaubt & im_raster)
+        if anzahl < 2:
+            continue
+        # Je Zelle das nächste Stück des Gesperrten; wo zwei Nachbarn verschiedene haben, liegt
+        # die Mitte zwischen ihnen.
+        naechstes = ndimage.distance_transform_edt(
+            stuecke == 0, return_distances=False, return_indices=True
+        )
+        welches = stuecke[naechstes[0], naechstes[1]]
+        mitte = np.zeros_like(neu)
+        mitte[1:, :] |= welches[1:, :] != welches[:-1, :]
+        mitte[:, 1:] |= welches[:, 1:] != welches[:, :-1]
+        if (mitte & neu).any():
+            return True
+    return False
+
+
 def _von_oben(folge, ab):
     """Die Zwischenlagen in `folge` ab Stelle `ab` bis zur nächsten Hauptlage wieder von oben nach
     unten (wie _lagen ohne `von_unten`), an Ort und Stelle."""
@@ -574,13 +622,13 @@ def _schruppen(
     gerade = kb.GERADE_ANTEIL * r
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
-    genau = GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
-    nachrechner = rg.Nachrechner(feld, netz, geformt) if genau else None
     # Nicht im Rest (davor: dort steht kein Streifen an einer Wand, sondern was der große Fräser in
     # Ecken und Kehlen ließ) und nicht mit Materialstand: Die Treppe weiß nicht, was Operationen
     # davor an den Wänden nahmen oder stehen ließen – in der Mulde des Testteils fuhr sonst ein Ring
     # ums ganze Teil (1,32 statt 1,29 min, 948 statt 158 Halte, Eingriff bis 3,6 ae).
     von_unten = bool(von_unten) and davor is None and not mit_stand
+    genau = GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
+    nachrechner = rg.Nachrechner(feld, netz, geformt) if genau else None
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen, von_unten)
     stehen_bis = None  # bis hierhin steht Material über einer Zwischenlage, die ausfiel
     treppe = _Treppe()  # von unten: bis wohin die Spitze an der Wand war
@@ -599,10 +647,16 @@ def _schruppen(
         return waende[schluessel]
 
     unten = von_unten  # in diesem Abschnitt (bis zur nächsten Hauptlage) von unten
+    # Von unten ohne genaue Grenze (_RUECKFALL): bis wohin das Material je Zelle sicher noch reicht
+    # – gesenkt nur, wo die ganze Zelle gefräst ist. Für den Eilgang hinab; `hoehe` für die Ringe.
+    sicher = None
     for nummer, (lage, zwischenlage, vorige) in enumerate(folge):
         if not zwischenlage:
             stehen_bis = None
             waende.clear()
+            if sicher is not None:
+                hoehe = np.maximum(hoehe, sicher)  # auch die Lagen darunter rechnen damit
+                sicher = None
             unten = von_unten
             if von_unten:
                 # Bis an die Wand der Hauptlage ist danach alles frei – auch wenn sie ausfällt.
@@ -612,11 +666,16 @@ def _schruppen(
                     if not ist:
                         break
                     hoehen.append(z)
-                if treppe.leer() or _hoehlung(feld, lage, hoehen, z_unten, im_raster):
+                if (
+                    treppe.leer()
+                    or _hoehlung(feld, lage, hoehen, z_unten, im_raster)
+                    or _spalt(feld, lage, hoehen, z_unten, im_raster, hoehe, r)
+                ):
                     # Öffnet sich über der Hauptlage eine Höhlung, die nicht an ihr Freies grenzt:
                     # Von unten ginge die erste Lage darin mit voller Tiefe über die Rampe, der
                     # erste Ring um die Mitte in voller Breite (an der Schale 4,4 ae auf 50 mm). In
-                    # diesem Abschnitt wie bisher von oben, je über die Rampe der dünnen Lage.
+                    # diesem Abschnitt wie bisher von oben, je über die Rampe der dünnen Lage –
+                    # ebenso ein Spalt zwischen zwei Wänden (_spalt).
                     unten = False
                     _von_oben(folge, nummer + 1)
         elif stehen_bis is not None and not unten:
@@ -690,8 +749,11 @@ def _schruppen(
                 frei_material[ij[nah, 0], ij[nah, 1]] = False
             absatz = frei_material.sum() * schritt * schritt >= MINDESTFLAECHE
 
-            def stufe(p, treppe=treppe, erreichbar=erreichbar, voll=voll, steht=steht):
-                return _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt)
+            # _RUECKFALL: Das Raster sieht die Stufe bis eine Zelle zu breit.
+            fehler = 0.0 if grenze is not None else schritt
+
+            def stufe(p, treppe=treppe, erreichbar=erreichbar, voll=voll, steht=steht, f=fehler):
+                return _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, f)
 
             breite, fahren = [], []
             for p, geschlossen in wand:
@@ -722,6 +784,9 @@ def _schruppen(
             # Rohteil ist, was über der Lage steht und die Stirn von der Wand aus trifft – für das
             # Einfahren (ungeschnitten); berührt (für die Läufe) auch die Säule dahinter.
             feld.rohteil_zellen = ueber & (-(r - 0.01) < D)
+            if grenze is None:
+                # _RUECKFALL: zum Einfahren eine Zelle mehr Material, auch hinter der Stirn.
+                feld.rohteil_zellen = _breiter(ueber) & (-(r + schritt) < D)
             feld.beruehrt = aufweiten(ueber & aufweiten(erlaubt, r + schritt), r + schritt)
             feld.eng = feld.beruehrt
             feld.frei[:] = False
@@ -729,11 +794,19 @@ def _schruppen(
                 st, feld, werte, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben
             )
             ablauf.hoehe = hoehe
+            if grenze is None:  # _RUECKFALL: hinab nur bis über das, was sicher noch steht
+                if sicher is None:
+                    sicher = hoehe.copy()
+                ablauf.hoehe = sicher
             ablauf.stempel = stempel
             ablauf.streifen = True
             ablauf.schwelle = _Lage3D(
                 st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben
             ).schwelle
+            if grenze is None:
+                # _RUECKFALL: Unter der Stirn stünde kein dünner Rand (wie im Streifen ae), sondern
+                # die Säule bis zur Oberkante – hinab und hinein nur, wo nichts darunter steht.
+                ablauf.schwelle = 0.0
             vorher = st.ringe
             if absatz and np.isfinite(D).any():
                 _ringe_zwischen(
@@ -745,6 +818,10 @@ def _schruppen(
                 )
             ablauf.reste_fahren()
             ablauf.heben()
+            if sicher is not None:
+                # _RUECKFALL: sicher gefräst nur, wo auch die Nachbarn der Zelle frei sind.
+                ganz = feld.frei if grenze is not None else ~_breiter(~feld.frei)
+                sicher[ganz] = np.minimum(sicher[ganz], lage)
             hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
             if st.ringe > vorher:
                 zwischenlagen += 1
