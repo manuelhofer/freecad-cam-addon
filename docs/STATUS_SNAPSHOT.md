@@ -2789,7 +2789,8 @@ In der Operation fängt `freiwege` den Eilgang ins Material ab; der Zug in volle
 - B-033 **3D-Schlichten fährt neben dem Teil unter die Endtiefe** (selbst nicht nachgestellt, vom Zweifler
   bestätigt): Reicht eine gewählte Fläche bis zum Teilboden, geht die Spitze neben dem Teil bis 1,7 mm
   unter Boden und Endtiefe. Ins Teil geht nichts; gefährlich nur, wenn dort Unterlage oder Spannmittel
-  stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – noch nicht gestellt.
+  stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – gestellt als Frage 3 in
+  OFFENE_FRAGEN.md.
 
 Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben. Nächste freie Nummer B-034.
 

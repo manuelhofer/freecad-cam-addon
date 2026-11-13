@@ -57,3 +57,23 @@ Bohrung fährt er heute 3,4 km und nimmt 8 cm³ – bohrst du vorher, fällt dav
 „vorgedreht“; dabei fährt die oberste Lage nicht mehr im Freivorschub auf dem gedrehten Ø entlang (ist er ein
 paar Hundertstel dicker, schnitte der Ø 4 dort mit 5000 mm/min). Drehzyklen im Programm bleiben draußen. Seit
 2026-11-12.
+
+## 3. Darf das 3D-Schlichten neben dem Teil unter den Teilboden fahren?
+
+**Die Frage:** Reicht eine gewählte Freiformfläche bis an die Unterkante des Teils (eine Schräge oder
+Rundung, die außen am Teilboden endet), fährt die Kugel über die Kante hinaus – und ihre Spitze dabei neben
+dem Teil **bis 1,7 mm unter den Teilboden** (gemessen am 13.11. mit der Kugel Ø 6: je nach Richtung 1,2 bis
+1,7 mm). Nur so wird die Fläche bis an ihre Unterkante fertig. Die Operation zeigt als Endtiefe aber den
+Teilboden an, und dort unten stehen bei dir vielleicht Backen oder Unterlagen. Ins Teil geht dabei nichts.
+
+- **a)** Nie unter den Teilboden: Die Spitze bleibt auf der Endtiefe; an der Unterkante der Fläche bleibt
+  dann ein schmaler Rest (so breit, wie die Kugel nicht hinkommt). *Claudes Vorschlag* – sicher, und die
+  angezeigte Endtiefe stimmt.
+- **b)** Bleibt wie heute (bis zur Kante fertig, Spitze darunter) – dafür sagt das Prüffenster und das
+  Einrichtblatt, wie tief neben dem Teil gefahren wird.
+- **c)** Ein Haken „bis unter die Kante“ beim 3D-Schlichten, aus.
+
+*Warum nur Manuel:* Ob neben dem Teil unter seinem Boden Platz ist, hängt davon ab, wie du spannst.
+*Was die Antwort ändert:* bei a) und c) hebt die Bahn die Spitze auf die Endtiefe (bei c) abschaltbar).
+Seit 2026-11-13.
+
