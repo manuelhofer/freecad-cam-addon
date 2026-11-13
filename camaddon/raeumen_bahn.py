@@ -180,6 +180,17 @@ GENAU_ECKE = True
 # seine Toleranz neben ihr), ein Hindernis, das mehr als diese 0,04 mm ins Aufmaß ragt, nicht.
 GENAU_WENIGER = 0.02  # mm
 GENAU_PRUEFEN = 0.2  # mm – so dicht (wie ringgrenze.PRUEFEN)
+# Nur nahe einer spitzen Ecke (_genau, (c)): Wo der genaue Ring weiter als 1,25 mm vom Ring aus
+# dem Raster liegt, höchstens so viele 1,25 mm ÷ sin(halber Eckwinkel) von einer scharfen Ecke des
+# genauen Rings entfernt. Gemessen (Zweifler-Fälle, 13.11.): Ecken 20 … 70° und die Tasche in der
+# Insel bis 0,41; eine Nut 6,7 bzw. 7,2 breit (2 R + 2 · Aufmaß + 0,1 bzw. 0,6) 4,4, der Spalt
+# 7,0 zwischen Insel und Wand 2,3 – dort schnitt der genaue Ring 7 … 9 mm in voller Breite.
+GENAU_ECKE_MASS = 1.0
+_KNICK = math.radians(10.0)  # ab so viel Knick zählt eine Stelle des genauen Rings als Ecke
+# … und dort vor der Stirn höchstens so viel ungeschnittenes Rohteil (Anteil der Stirn, nach dem
+# Ring aus dem Raster; _Nachpruefen.material_vorn): Ecken 20° 0,62, 40° 0,43, 60° 0,33; in Nut
+# und Spalt 1,0 (die Stirn ganz im Vollen).
+GENAU_MATERIAL = 0.75
 
 
 @dataclass(frozen=True)
@@ -4176,7 +4187,15 @@ def _genau(ring, genaue, schritt, nachpruefen=None):
     (a) umgekehrt der Ring aus dem Raster überall nahe am genauen liegt – weicht er irgendwo aus,
     steht dort etwas, das nicht zur Kontur gehört –, und (b) der ganze genaue Ring, alle 0,2 mm
     gegen das Netz nachgerechnet, hält. Ein Hindernis, das nur das Raster sah (ein Überhang, ein
-    Stift in der Ecke), lässt (b) scheitern: Dann gilt wie bisher der aus dem Raster."""
+    Stift in der Ecke), lässt (b) scheitern: Dann gilt wie bisher der aus dem Raster.
+
+    (b) fragt nur, ob der Fräser dorthin darf – nicht, wie viel er dort nimmt: Eine Nut, kaum
+    breiter als der Fräser mit Aufmaß, oder ein solcher Spalt zwischen Insel und Wand ließ das
+    Raster stehen; der genaue Ring führe hinein und schnitte in voller Breite (Gegenfälle des
+    Zweiflers: 7 … 9 mm, Eingriff 10 ae). Deshalb gilt er nur, wenn außerdem jede Stelle, die
+    weiter als 1,25 mm vom Ring aus dem Raster liegt, (c) nahe einer scharfen Ecke des genauen
+    Rings liegt (GENAU_ECKE_MASS) und (d) dort vor der Stirn nicht zu viel Material steht
+    (GENAU_MATERIAL)."""
     weit = 2.0 * schritt + 0.25
     for genauer in genaue:
         gx, gy = genauer.proben.x, genauer.proben.y
@@ -4190,6 +4209,11 @@ def _genau(ring, genaue, schritt, nachpruefen=None):
             continue
         if float(abstand.min(axis=0).max()) > weit:
             continue  # (a) der aus dem Raster weicht aus
+        weg = abstand.min(axis=1) > weit
+        if nachpruefen.eckenmass(genauer, gx[weg], gy[weg], weit) > GENAU_ECKE_MASS:
+            continue  # (c) weit weg von einer spitzen Ecke: eine Nut, ein Spalt
+        if nachpruefen.material_vorn(ring, gx[weg], gy[weg]) > GENAU_MATERIAL:
+            continue  # (d) dort stünde zu viel Material vor der Stirn
         if nachpruefen.ring_haelt(genauer):
             return dataclasses.replace(genauer, streng=nachpruefen)  # (b)
     return ring
@@ -4235,10 +4259,57 @@ class _Nachpruefen:
             gut[gut] = rechner.hoehe(x[gut], y[gut], netz) <= self.hoch + GLEICH
         return gut
 
+    @staticmethod
+    def eckenmass(ring, x, y, weit):
+        """Wie weit liegen die Stellen (x, y) höchstens von einer scharfen Ecke des Rings – in
+        `weit` ÷ sin(halber Eckwinkel)? Je Stelle die nächste Ecke in diesem Maß; inf, wenn der
+        Ring keine Ecke hat. 0, wenn keine Stelle."""
+        if not len(x):
+            return 0.0
+        ecken = _scharfe_ecken(ring.segmente)
+        if not ecken:
+            return math.inf
+        ex, ey, sinus = (np.array(v) for v in zip(*ecken, strict=True))
+        d = np.hypot(np.asarray(x)[:, None] - ex[None, :], np.asarray(y)[:, None] - ey[None, :])
+        return float((d * sinus[None, :] / weit).min(axis=1).max())
+
+    def material_vorn(self, ring, x, y):
+        """Der größte Anteil der Stirn über ungeschnittenem Rohteil an den Stellen (x, y), wenn
+        der Ring aus dem Raster (`ring`) schon gefahren ist – er kommt auf der Wand der Tasche vor
+        dem genauen (_ringe_um_inseln). 0, wenn keine Stelle."""
+        if not len(x):
+            return 0.0
+        feld = self.feld
+        frei = feld.frei.copy()
+        try:
+            feld.merke(ring.proben.x, ring.proben.y)
+            return float(feld.ungeschnitten(x, y).max())
+        finally:
+            feld.frei[...] = frei  # an Ort und Stelle: wer das Feld hält, sieht wieder das alte
+
     def ring_haelt(self, ring):
         """Hält der Ring überall – seine Strecken und Bögen alle GENAU_PRUEFEN abgetastet?"""
         pruef = kb._abtasten(ring.segmente, GENAU_PRUEFEN, ring.geschlossen)
         return bool(len(pruef.x)) and bool(self.erlaubt_an(pruef.x, pruef.y).all())
+
+
+def _scharfe_ecken(segmente, knick=_KNICK):
+    """[(x, y, sin(halber Eckwinkel))] der Stellen, an denen ein geschlossener Zug um mehr als
+    `knick` abknickt (Strecken und Bögen stoßen nicht tangential aneinander)."""
+
+    def richtung(s, ende):
+        if s.bogen is None:
+            return math.atan2(s.nach[1] - s.von[1], s.nach[0] - s.von[0])
+        p = s.nach if ende else s.von
+        a = math.atan2(p[1] - s.mitte[1], p[0] - s.mitte[0])
+        return a - math.pi / 2 if s.uhr else a + math.pi / 2
+
+    ecken = []
+    for s, t in zip(segmente, segmente[1:] + segmente[:1], strict=True):
+        dreh = abs((richtung(t, False) - richtung(s, True) + math.pi) % (2 * math.pi) - math.pi)
+        if dreh > knick:
+            ecken.append((s.nach[0], s.nach[1], math.sin((math.pi - dreh) / 2.0)))
+    return ecken
 
 
 def _dicht_erlaubt(pruefer, x, y, schritt=0.1):

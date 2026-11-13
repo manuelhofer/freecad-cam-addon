@@ -1509,9 +1509,12 @@ k_k = ps.messen(
     ebenen_z=[15.0], aufmass=0.3,
 )  # fmt: skip
 pruefe(
-    k_k.einschnitt >= -0.01 and k_k.eilgang_abtrag <= 0.5 and bahn_k.rampen <= 1,
+    k_k.einschnitt >= -0.01
+    and k_k.eilgang_abtrag <= 0.5
+    and bahn_k.rampen <= 1
+    and k_k.voll <= ps.BREIT_WEG,
     f"spitze Ecke: Einschnitt {k_k.einschnitt:.3f}, im Eilgang {k_k.eilgang_abtrag:.1f} mm³, "
-    f"{bahn_k.rampen} Rampen",
+    f"{bahn_k.rampen} Rampen, voll {k_k.voll:.1f} mm",
 )
 rb.GENAU_ECKE = False
 try:
@@ -1532,7 +1535,45 @@ for hindernis in ("brett", "stift"):
         f"spitze Ecke mit {hindernis}: Sollring bis {luecke_h:.2f} mm daneben (der Ring aus dem "
         f"Raster gilt), Einschnitt {k_h.einschnitt:.3f}",
     )
-print(ascii(f"spitze Ecke: Luecke {luecke:.3f} (ohne {luecke_aus:.2f}), Wand {naechste_k:.3f}"))
+
+
+# Eine Nut, kaum breiter als der Fräser mit Aufmaß (2 R + 2 · Aufmaß + 0,1): Das Raster lässt sie
+# stehen; der erste Umbau fuhr den genauen Ring hinein und schnitt dort 8,8 mm in voller Breite,
+# Eingriff 10 ae (Gegenfall des Zweiflers, 13.11.). Hier gilt der Ring aus dem Raster wie in
+# 0.368.0 – kein Vollschnitt, der Eingriff wie ohne GENAU_ECKE (5,8 ae).
+def nut_k(breite):
+    umriss = [(8, 8), (38, 8), (38, 18 - breite / 2), (50, 18 - breite / 2),
+              (50, 18 + breite / 2), (38, 18 + breite / 2), (38, 28), (8, 28)]  # fmt: skip
+    rand = Part.Face(Part.makePolygon([V(x, y, 15) for x, y in umriss + umriss[:1]]))
+    return Part.makeBox(60, 50, 20).cut(rand.extrude(V(0, 0, 6))).removeSplitter()
+
+
+def messen_k(teil):
+    bahn = raeumen_k(teil)
+    k = ps.messen(
+        [ps.Bahnlauf(bahn.punkte, VF, VF * 0.3)], teil, rohteil_k, 20.0, form_k, 0.6, 12.0,
+        ebenen_z=[15.0], aufmass=0.3,
+    )  # fmt: skip
+    return k
+
+
+teil_n = nut_k(2 * 3.0 + 2 * 0.3 + 0.1)
+k_n = messen_k(teil_n)
+rb.GENAU_ECKE = False
+try:
+    k_n_aus = messen_k(teil_n)
+finally:
+    rb.GENAU_ECKE = True
+pruefe(
+    k_n.voll <= ps.BREIT_WEG
+    and k_n.eingriff_max <= k_n_aus.eingriff_max + 0.05
+    and k_n.einschnitt >= -0.01,
+    f"Nut 6,7: voll {k_n.voll:.1f} mm, Eingriff {k_n.eingriff_max:.2f} ae (ohne GENAU_ECKE "
+    f"{k_n_aus.eingriff_max:.2f}), Einschnitt {k_n.einschnitt:.3f}",
+)
+print(ascii(f"spitze Ecke: Luecke {luecke:.3f} (ohne {luecke_aus:.2f}), Wand {naechste_k:.3f}, "
+            f"voll {k_k.voll:.1f}; Nut 6,7: voll {k_n.voll:.1f}, Eingriff {k_n.eingriff_max:.2f} "
+            f"(ohne {k_n_aus.eingriff_max:.2f})"))  # fmt: skip
 
 if fehler:
     raise AssertionError("\n".join(fehler))

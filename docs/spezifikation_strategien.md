@@ -2594,7 +2594,37 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
   sonst fiele der Ring an der eigenen Wand durch). Auch die Wege auf ihn (kurz quer,
   Einschwenken) werden dann dicht nachgerechnet. Ein Hindernis, das mehr als 0,04 mm ins Aufmaß
   ragt (ein Brett über der Ecke, ein Stift), lässt (b) scheitern – dann gilt wie bisher der Ring
-  aus dem Raster (`test_raeumen.py` (k)). Abschaltbar: `raeumen_bahn.GENAU_ECKE`.
+  aus dem Raster (`test_raeumen.py` (k)). Umgekehrt bewusst geduldet: Ein fremdes Hindernis, das
+  bis 0,04 mm (plus die Toleranz des Netzes) ins Aufmaß ragt, erkennt (b) nicht – der Fräser
+  kommt ihm dann bis auf Aufmaß − 0,04 mm nahe (Gegenfall Sims 0,03 mm: 0,27 statt 0,30 mm,
+  ohne Einschnitt). Abschaltbar: `raeumen_bahn.GENAU_ECKE`.
+
+  (b) fragt nur, ob der Fräser dorthin darf, nicht, wie viel er dort nimmt. Der erste Umbau fuhr
+  deshalb in schmale Stellen, die das Raster stehen ließ – eine Nut, kaum breiter als 2 R +
+  2 · Aufmaß, einen solchen Spalt zwischen Insel und Wand – und schnitt dort in voller Breite
+  (Gegenfälle des Zweiflers, Ø 6, ae 0,6: Nut 6,7 breit 8,8 mm voll, Eingriff 5,8 → 10,0 ae;
+  Nut 7,2 9,3 mm, 4,5 → 10,2 ae; Spalt 7,0 im Dreieck 40° 7,4 mm). Deshalb gilt der genaue Ring
+  nur, wenn außerdem jede Stelle, die weiter als 1,25 mm vom Ring aus dem Raster liegt,
+  (c) höchstens 1,25 mm ÷ sin(halber Eckwinkel) von einer scharfen Ecke des genauen Rings liegt
+  (`GENAU_ECKE_MASS` 1,0 – gemessen: Ecken 20 … 70° höchstens 0,41, Nut 4,4, Spalt 2,3) und
+  (d) dort nach dem Ring aus dem Raster höchstens 75 % der Stirn über Ungeschnittenem stehen
+  (`GENAU_MATERIAL` – Ecke 20° 0,62, 40° 0,43, 60° 0,33; Nut und Spalt 1,0). Sonst gilt wie in
+  0.368.0 der Ring aus dem Raster: Nut 6,7 / 7,2 und Spalt 7,0 jetzt wieder voll 0 mm, Eingriff
+  5,8 / 4,5 / 5,4 ae wie in 0.368.0 (`test_raeumen.py` (k) prüft die Nut 6,7). Eine kurze Nut
+  (4 mm) lässt ihn noch zu: 1,5 mm voll, 8,9 ae.
+
+  Was in den Ecken bleibt (Gegenfälle, Dreieck 40 mm, Ø 6, ae 0,6): Die Zeit steigt um 5 … 25 %
+  (e20 0,194 → 0,241, e40 0,537 → 0,616, e60 0,808 → 0,905 min), weil der Ring an der Wand die
+  Ecke jetzt ausräumt (Volumen e40 1989 → 2306 mm³). Die „längere Last über 1,25 ae“
+  (e40 27 → 54 mm, e20 9,6 → 27 mm) ist zum größten Teil eine Eigenheit des Prüfstands: Er wertet
+  eine lange Gerade als ein Stück, die Last an der Ecke an ihrem Ende gilt dann für ihre ganze
+  Länge (am Schenkel 26 mm). Mit Geraden in Stücken ≤ 0,5 mm gemessen ist sie in e20, e40, e60
+  und der Nut 6,5 vorher und nachher gleich lang (17,9 / 37,5 / 55,0 / 34,0 mm); echt mehr wird
+  sie nur in e20 adaptiv (6,5 → 8,4 mm). Echt mehr wird der Eingriff in der Ecke: e20 adaptiv
+  6,9 → 9,4 ae (1,98 mm voll), Nut 6,5 (Ecken 90°) 6,1 → 7,2 ae, und e20 schneidet so gemessen
+  6,2 → 8,2 mm in voller Breite (die schmale Spitze ist eine Nut). Begrenzen ließe sich das nur
+  mit Ringen davor, die der Ecke schrittweise folgen (alle genau statt aus dem Raster) – ein
+  größerer Umbau, nicht gemacht.
   Gemessen mit `messen2.py` an der Jobkopie, 0.368.0 und nachher:
 
   | Räumen T3, dreieckige Tasche | 0.368.0 | nachher |
