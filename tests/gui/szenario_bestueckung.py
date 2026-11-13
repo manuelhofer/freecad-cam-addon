@@ -110,6 +110,16 @@ def schritte(h):
             isinstance(fenster, gui_magazine.MagazinDialog) and fenster.isVisible(),
             "„Magazine …“ geht aus der Bestückung nicht auf",
         )
+        # Speichert die Werkzeugverwaltung (etwa ein neues Magazin), liest die Bestückung neu –
+        # sonst stünde weiter „Die Maschine hat kein Magazin“ da.
+        h.pruefe(
+            panel._werkzeugdialog is gui_werkzeuge.WerkzeugDialog.offen,
+            "die Bestückung hört nicht auf das Speichern der Werkzeugverwaltung",
+        )
+        vorher = panel.bibliothek
+        panel._werkzeugdialog.gespeichert.emit()
+        yield 300
+        h.pruefe(panel.bibliothek is not vorher, "nach dem Speichern nicht neu gelesen")
         fenster.reject()
         yield 300
         if gui_werkzeuge.WerkzeugDialog.offen is not None:

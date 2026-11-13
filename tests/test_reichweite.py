@@ -232,6 +232,25 @@ pruefe(
     and e.hinweise[0].werkzeug == 1,
     f"Hinweis geteilt: {e.hinweise[0].kurz!r} / {e.hinweise[0].mehr!r}",
 )
+# Im Fenster (gui_kollision.hinweise_html): Gibt es zum Werkzeug genau einen Hinweis, steht nur der
+# Satz davor da und der Ratschlag unter der Maus am Verweis. Bei zweien zum selben Werkzeug kennt die
+# Maus nur den Verweis, nicht die Zeile – der Ratschlag stünde unter der falschen (nachgestellt am
+# 2026-11-13: unter „Der Halter … ist für SK40“ stand „Genauer mit …“). Dann bleibt alles in der Zeile.
+from camaddon import gui_kollision as _gk  # noqa: E402
+
+_mehr = {}
+_html = _gk.hinweise_html([e.hinweise[0]], _mehr)
+pruefe(
+    "Genauer mit" not in _html and _mehr == {"werkzeug:1": e.hinweise[0].mehr},
+    f"ein Hinweis zu T1: {_html!r} / {_mehr}",
+)
+_zweiter = rw.Hinweis("Der Halter passt nicht zur Spindel.", werkzeug=1)
+_mehr = {}
+_html = _gk.hinweise_html([e.hinweise[0], _zweiter], _mehr)
+pruefe(
+    "Genauer mit" in _html and _mehr == {} and _html.count('href="werkzeug:1"') == 2,
+    f"zwei Hinweise zu T1: {_html!r} / {_mehr}",
+)
 bibliothek.werkzeuge[0].gesamtlaenge = 0.0
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 geschaetzt = wz.geschaetzte_laenge(bibliothek.werkzeuge[0])

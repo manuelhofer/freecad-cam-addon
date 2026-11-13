@@ -180,6 +180,7 @@ class BestueckungsPanel:
         self.maschine = maschine
         self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
         self.bibliothek = _bibliothek()
+        self._werkzeugdialog = None  # die Werkzeugverwaltung, deren Speichern hier ankommt
         if self.bibliothek is not None:  # die Halter aus dem Magazin dieser Maschine (W-024)
             mg.des_jobs(job, self.bibliothek, assembly)
         self.plaetze = m.revolverplaetze(maschine, kette_modul.lies_kette(assembly))
@@ -426,7 +427,21 @@ class BestueckungsPanel:
         darin ihre Magazine. Gibt das Fenster „Magazine“ zurück."""
         from . import gui_werkzeuge
 
-        return gui_werkzeuge.oeffne().magazine_zeigen()
+        dialog = gui_werkzeuge.oeffne()
+        if dialog is not self._werkzeugdialog:
+            self._werkzeugdialog = dialog
+            dialog.gespeichert.connect(self._werkzeuge_gespeichert)
+        return dialog.magazine_zeigen()
+
+    def _werkzeuge_gespeichert(self):
+        """Die Werkzeugverwaltung hat gespeichert (etwa ein neues Magazin): das Fenster liest die
+        Bibliothek neu – sonst stünde weiter „Die Maschine hat kein Magazin“ da."""
+        if BestueckungsPanel.offen is not self:
+            return
+        self.bibliothek = _bibliothek()
+        if self.bibliothek is not None:
+            mg.des_jobs(self.job, self.bibliothek, self.assembly)
+        self.fuellen()
 
     def nummern_aus_magazin(self):
         """„Nummern aus dem Magazin“ (E4): der Job nummeriert wie das Magazin

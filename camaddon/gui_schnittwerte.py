@@ -719,6 +719,9 @@ class SchnittwertBereich(QtGui.QWidget):
         # Vergleichen lassen sich zwei Einsätze, die für den Werkstoff der Zeile gelten.
         liste = w.einsaetze(self.gewaehlter_werkstoff) if w is not None else []
         vergleichbar = not self._bohrend() and len(liste) >= 2
+        # Beim Bohrer gibt es nichts zu vergleichen (Abtrag je ae und ap): kein grauer Knopf, der
+        # zu einem zweiten Einsatz rät und doch grau bliebe.
+        self.knopf_vergleich.setVisible(not self._bohrend())
         self.knopf_vergleich.setEnabled(vergleichbar)
         # Grau sagt unter der Maus, was fehlt – nicht nur, was der Knopf täte.
         self.knopf_vergleich.setToolTip(

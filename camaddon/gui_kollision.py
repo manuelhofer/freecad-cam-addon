@@ -10,6 +10,7 @@ Kugel zeigt sie in der 3D-Ansicht. Ändert sich Job, Nullpunkt oder
 Werkstückaufnahme, ist das Ergebnis veraltet und verschwindet.
 """
 
+import collections
 import html
 
 import FreeCAD
@@ -57,18 +58,23 @@ def hinweise_html(hinweise, mehr=None):
     """Die Hinweise als HTML, je Satz eine Zeile. Geht es um ein Werkzeug (reichweite.Hinweis
     mit Nummer), folgt der Verweis „T1 öffnen …“ – „werkzeug:1“ (D-11). Hat der Hinweis einen
     Ratschlag dahinter (Hinweis.mehr), steht in der Zeile nur der Satz davor; der Ratschlag kommt
-    nach `mehr` ({Verweis: Text}) für die Maus über dem Verweis."""
+    nach `mehr` ({Verweis: Text}) für die Maus über dem Verweis – aber nur, wenn es zu diesem
+    Werkzeug genau einen Hinweis gibt: Die Maus kennt nur den Verweis, nicht die Zeile; bei zwei
+    Zeilen zu T1 stünde der Ratschlag sonst unter der falschen. Dann bleibt der ganze Satz stehen.
+    """
     zeilen = []
+    je_werkzeug = collections.Counter(getattr(satz, "werkzeug", None) for satz in hinweise)
     for satz in hinweise:
         nummer = getattr(satz, "werkzeug", None)
-        kurz = getattr(satz, "kurz", "") if nummer is not None and mehr is not None else ""
+        einzig = nummer is not None and mehr is not None and je_werkzeug[nummer] == 1
+        kurz = getattr(satz, "kurz", "") if einzig else ""
         zeile = html.escape(kurz or satz, quote=False)
         if nummer is not None:
             text = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=f"T{nummer}"), quote=False)
             ziel = f"werkzeug:{nummer}"
             zeile += f' <a href="{ziel}">{text}</a>'
             if kurz:
-                mehr[ziel] = f"{mehr.get(ziel, '')} {satz.mehr}".strip()
+                mehr[ziel] = satz.mehr
         zeilen.append(zeile)
     return "<br>".join(zeilen)
 

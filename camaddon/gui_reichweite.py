@@ -1159,7 +1159,9 @@ class PruefPanel:
 
     def _zur_operation(self, nummer):
         """Ein Klick auf ein Stück des Zeitbalkens: im Abspieler an den Anfang der Operation."""
-        if self.abspieler is not None:
+        if (
+            self.abspieler is not None and self.abspieler.isEnabled()
+        ):  # nicht, solange gerechnet wird
             self.abspieler.springe_zu_operation(nummer)
 
     def _abtragen(self, station):
@@ -1427,6 +1429,11 @@ class PruefPanel:
         die Achsen kommen, die überschreitende steht an ihrer Grenze. Der Abspieler steht
         danach dort."""
         if self.ergebnis is None or not 0 <= nummer < len(self.ergebnis.ueberschreitungen):
+            return
+        if not self.abspieler.isEnabled():
+            # Solange neu gerechnet wird, gehört die Abfahrt im Fenster noch zur abgelösten
+            # Prüfung: Ihre Achsen kennt die neue Kette nicht (KeyError in verfahren.setze_alle,
+            # nachgestellt am 2026-11-13). Balken und Liste fahren erst wieder, wenn sie fertig ist.
             return
         ueberschreitung = self.ergebnis.ueberschreitungen[nummer]
         station = self.abfahrt.station_von(ueberschreitung) if self.abfahrt else None
