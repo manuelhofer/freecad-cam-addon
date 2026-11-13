@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Offen (Frage 4, 13.11.):* **Zwischenlagen beim 3D-Schruppen** – am Geist 31,6 von 48,9 min, 19 m Weg für
+  11 % des Materials (dünne, breite Scheiben von oben nach unten). Vorschlag mit Bild und Zahlen in
+  `docs/OFFENE_FRAGEN.md`: von unten nach oben mit voller Schneide, neue Lage erst ab 1 mm Stufenbreite.
+  Nichts gebaut, bis Manuel antwortet. Messung: Spezifikation Strategien 13.7.
 - *Korrektur (0.368.1):* **Kein Absturz mehr bei einem dünnen runden Stift in der Tasche:** OpenCascade
   stürzt im Wochen-Build 27.1 (11.11.) beim Versatz kleiner Vollkreise nach innen ab (SIGSEGV, Radius 0,5
   und 1,0, auch wenn das Ergebnis gültig wäre) – Räumen oder Kontur an einer Tasche mit einem Stift Ø 1

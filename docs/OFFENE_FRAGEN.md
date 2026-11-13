@@ -77,3 +77,32 @@ Teilboden an, und dort unten stehen bei dir vielleicht Backen oder Unterlagen. I
 *Was die Antwort ändert:* bei a) und c) hebt die Bahn die Spitze auf die Endtiefe (bei c) abschaltbar).
 Seit 2026-11-13.
 
+## 4. Zwischenlagen beim 3D-Schruppen: von unten nach oben mit voller Schneide statt dünner Scheiben?
+
+![Zwischenlagen heute und Vorschlag, Zahlen vom Geist](bilder/vorschlaege/frage4_zwischenlagen.png)
+
+**Die Frage:** Nach jeder Hauptlage (volle Tiefe) fährt das 3D-Schruppen heute Zwischenlagen alle 1 mm,
+**von oben nach unten** – jede nimmt eine 1 mm dünne Scheibe über die ganze Breite, die an der Schräge
+noch steht (links im Bild). An deinem Geist sind das 69 Zwischenlagen und 19 m Vorschubweg für 11 % des
+Materials: **48,9 min, davon 31,6 min nur Zwischenlagen** (gemessen am 13.11., Ø 12, ap 25, ae 1,5; die
+Hauptlagen allein 17,2 min). An seinen steilen Wänden ist eine 1-mm-Stufe nur 0,2 mm breit.
+
+Mein Vorschlag (Mitte im Bild) nimmt deine Worte vom 12.10. („mit der ganzen Schneide“): die Zwischenlagen
+**von unten nach oben** – jede ein schmaler Streifen an der Wand, so tief wie die ganze Hauptlage, ein
+Ring rundum; die nächste erst dort, wo die Stufe sonst breiter als 1 mm würde. Die Kugel bekommt danach
+höchstens so viel wie heute an einer flachen Stelle. Ein schneller Vorversuch am Geist kam auf 23,7 min,
+lässt aber noch zu viel stehen (9,8 statt 5,3 cm³) – sauber gebaut rechne ich mit **25 bis 30 statt
+48,9 min**.
+
+- **a)** Von unten nach oben mit voller Schneide, neue Lage erst ab 1 mm Stufenbreite – als Haken beim
+  3D-Schruppen, angehakt. *Claudes Vorschlag.*
+- **b)** Bleibt wie heute (alle 1 mm von oben).
+- **c)** Ohne Umbau nur gröber: Zwischenlagen alle 3 mm – am Geist 26,9 min, es bleiben 7,6 statt 5,3 cm³
+  für die Kugel.
+
+*Warum nur Manuel:* Es ändert, wie der Schaftfräser an der Wand belastet wird (lang und schmal statt dünn
+und breit) und was die Kugel danach bekommt – das ist deine Werkstatt-Entscheidung.
+*Was die Antwort ändert:* bei a) baue ich es (mit Gegenprüfung, mehrere Stunden) und messe an Geist, Mulde
+und Kuppel nach; bei c) ändert sich nur die Vorgabe. Bis dahin bleibt alles wie heute.
+Seit 2026-11-13.
+

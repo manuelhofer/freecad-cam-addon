@@ -2750,6 +2750,29 @@ Gegenrechnung in den Ordnern daneben.
     min, Geist 43,5 → 43,2; mit 2–3 Zonen und 1,5 s Hochlauf langsamer als heute.
   - Nebenbefund am Geist: Das Schruppen in den Ebenen A90 C±90 trägt 1 bzw. 0 mm³ ab – 0,9 + 0,4
     min fast reine Luft (offen: solche Operationen nicht anlegen).
+- **Zwischenlagen am Geist gemessen (2026-11-13, Frage 4):** 3D-Schruppen von oben (STL, Ø 12, ap 25,
+  ae 1,5, Aufmaß 0,3; `~/freecad_cam/wip/strategien/geist_luft/messen.py`, je Ringart über einen Haken
+  in `_Lage.ring`, Abtrag im Quader 0,5 mm): 4 Hauptlagen + 69 Zwischenlagen, 48,9 min, Untergrenze 7,3
+  (15 %), Eilgang 60 m, 3000 Halte. Die Hauptlagen fahren 8,2 m für 220 cm³, die Zwischenlagen 19,2 m
+  für 26 cm³ (28 % davon ohne Abtrag). Grund: Sie laufen von oben nach unten, jede nimmt eine 1 mm
+  dünne Scheibe über die ganze Breite, die über der Hauptlage noch steht (oben 41 mm) – mehrere Ringe
+  je Lage. An den steilen Wänden des Geists rückt die Wand je mm Höhe nur 0,2 … 0,9 mm ein.
+
+  | Zwischenlagen | Zeit | Lagen | Weg Zwischenlagen | über dem Aufmaß bleibt (senkrecht gemessen) |
+  | --- | ---: | ---: | ---: | ---: |
+  | 1 mm von oben (heute) | 48,9 min | 4 + 69 | 19,2 m | 5,3 cm³ |
+  | 2 mm | 33,0 min | 4 + 35 | 9,6 m | 6,3 cm³ |
+  | 3 mm | 26,9 min | 4 + 21 | 5,9 m | 7,6 cm³ |
+  | 5 mm | 24,5 min | 4 + 15 | 4,2 m | 9,0 cm³ |
+  | keine | 17,2 min | 4 + 0 | – | 26,4 cm³ |
+  | Vorversuch: 1 mm von unten nach oben | 23,7 min | 4 + 36 | 3,2 m | 9,8 cm³ |
+
+  Der Vorversuch (nur die Reihenfolge in `_lagen` gedreht, `vorige` = Oberkante der Hauptlage) zeigt
+  die Richtung: Jede Zwischenlage ist dann ein schmaler Streifen mit voller Schneide. Er lässt aber zu
+  viel stehen, weil ein Streifen schmaler als eine Zelle an der Wand nicht als Material zählt (die
+  Regel „eine Zelle weniger“ in `_schruppen`; 33 von 69 Lagen fielen aus). Das fertige Programm des
+  Assistenten (mit Schnellvorschub im Freien) braucht für dieselbe Bahn rund 35 min: 29 min Schnitt,
+  442 Abheber, 40 m Eilgang. Nichts gebaut – erst Manuels Antwort auf Frage 4.
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130
