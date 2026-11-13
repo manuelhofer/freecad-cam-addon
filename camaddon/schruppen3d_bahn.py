@@ -67,6 +67,22 @@ GENAU_BIS_RASTER = 0.5  # mm
 # An der genauen Grenze zählt auf einer Zwischenlage als Material, was die Stirn des Rings an der
 # Wand trifft (statt was die des Rings aus dem Raster träfe) – abschaltbar für den Vergleich.
 RAND_ZAEHLT = True
+# Zwischenlagen von unten nach oben (Frage 4, Manuel am 2026-11-13: „a“; am 12.10. lieber „mit der
+# ganzen Schneide“ als dünne Schichten): Jede Zwischenlage fräst nur den schmalen Streifen an der
+# Wand, der über ihr noch steht, mit voller Tiefe bis zur Oberkante der Hauptlage – statt von oben
+# je eine 1 mm dünne Scheibe über die ganze Breite (am Geist 69 Lagen, 19,2 m Vorschub für 11 % des
+# Materials). Vorschlag für neue Operationen; gespeicherte behalten die alte Reihenfolge.
+VON_UNTEN = True
+# So breit darf die Stufe werden (mm, waagrecht, an der genauen Grenze gemessen): Eine Zwischenlage
+# kommt erst dort, wo die Stufe seit der zuletzt gefrästen Lage sonst breiter würde – an steilen
+# Wänden fällt so die Mehrzahl der Lagen weg, an flachen bleibt es bei jeder.
+STUFE = 1.0
+# Örtlich fährt der Ring nur, wo die Stufe mindestens so breit ist (kein Ring für 0,2 mm); was
+# dort stehen bleibt, nimmt eine höhere Lage, sobald es breit genug ist.
+STUFE_ORT = 0.5 * STUFE
+# Ein Ring weiter draußen (die Stufe breiter als ae) fährt nur, wo er mehr als diesen Anteil von ae
+# nimmt – den Rest nimmt der Ring dahinter mit.
+STUFE_AUSSEN = 0.25
 
 
 @dataclass
@@ -102,6 +118,14 @@ class _Lage3D(rb._Lage):
 
     hoehe = None  # (nx, ny): bis wohin das Material je Zelle reicht
     stempel = None  # (Maske, m): die Stirn um eine Zelle größer, für _hoechstes
+    # Eine Zwischenlage von unten (_ringe_streifen): Wo ein Ring fährt, ist schon an der genauen
+    # Grenze entschieden – der Streifen ist oft schmaler als eine Zelle, das Raster sähe ihn nicht.
+    streifen = False
+
+    def _schneidet(self, x, y):
+        if self.streifen:
+            return True
+        return super()._schneidet(x, y)
 
     def _hinab(self, start, hoch):
         knapp = min(hoch, self.lage + self.w.sicherheit)
@@ -227,6 +251,172 @@ def _ringe_zwischen(ablauf, feld, w, D, material, material_links, schritt, toler
         rb._naechster_zuerst(ablauf, ringe, True, f"zwischen {nummer}", nur)
 
 
+# --- Zwischenlagen von unten (VON_UNTEN) ---------------------------------------------------------
+
+
+def _naechste(punkte, frage):
+    """(Abstand, Index) je Stelle in `frage` (n, 2) zum nächsten der `punkte` (m, 2), m > 0."""
+    try:
+        from scipy.spatial import cKDTree
+    except ImportError:
+        cKDTree = None
+    if cKDTree is not None:
+        abstand, index = cKDTree(punkte).query(frage)
+        return np.asarray(abstand, dtype=float), np.asarray(index, dtype=int)
+    abstand = np.empty(len(frage))
+    index = np.empty(len(frage), dtype=int)
+    block = max(1, 2_000_000 // max(len(punkte), 1))
+    for a in range(0, len(frage), block):
+        d2 = ((frage[a : a + block, None, :] - punkte[None, :, :]) ** 2).sum(axis=2)
+        index[a : a + block] = d2.argmin(axis=1)
+        abstand[a : a + block] = np.sqrt(d2.min(axis=1))
+    return abstand, index
+
+
+def _wandlinien(feld, lage, z_unten, grenze):
+    """[(Punkte (m, 2), geschlossen)]: wo die Spitze auf der Lage an die Wand kommt – die Proben der
+    Ringe an der genauen Grenze (ringgrenze, 0,015 mm davor), ohne sie die Höhenlinie der
+    Hüllfläche aus dem Raster, zwischen den Knoten linear (zum Messen der Stufe, nicht zum Fahren:
+    an einer senkrechten Wand bis eine halbe Zelle daneben)."""
+    if grenze is not None:
+        return [
+            (np.column_stack([ring.proben.x, ring.proben.y]), ring.geschlossen)
+            for ring in grenze.ringe
+            if len(ring.proben.x) >= 2
+        ]
+    # Erlaubt wie feld.erlaubt_feld: die Hüllfläche nicht über der Lage, oder nichts über dem Ziel.
+    # Nach unten begrenzt: Wo der Fräser das Teil nicht trifft (KEIN_TREFFER), läge die Linie
+    # sonst am Knoten daneben.
+    f = np.maximum(feld.roh + feld.zugabe - lage, -2.0)
+    f = np.where(feld.roh <= z_unten + GLEICH, np.minimum(f, -GLEICH), f)
+    return [(p, g) for p, g in rb._hoehenlinien(f, feld.xs, feld.ys, 0.0) if len(p) >= 2]
+
+
+class _Treppe:
+    """Von unten nach oben: bis wohin die Spitze seit der letzten Hauptlage an der Wand war (Punkte
+    auf den Wandlinien der gefrästen Lagen, _wandlinien). Die Stufe an einer Stelle der Wand einer
+    höheren Lage ist ihr Abstand zum nächsten dieser Punkte – so breit ist der Streifen, der dort
+    über der Lage noch steht (die Stirn reicht an beiden Stellen gleich weit zur Wand hin)."""
+
+    def __init__(self):
+        self.punkte = np.zeros((0, 2))
+
+    def leer(self):
+        return not len(self.punkte)
+
+    def setze(self, linien):
+        self.punkte = np.zeros((0, 2))
+        self.dazu([p for p, _g in linien])
+
+    def dazu(self, stuecke):
+        stuecke = [np.asarray(p, dtype=float).reshape(-1, 2) for p in stuecke]
+        stuecke = [p for p in stuecke if len(p)]
+        if stuecke:
+            self.punkte = np.vstack([self.punkte, *stuecke])
+
+    def breite(self, punkte):
+        """Je Stelle (m, 2) die Stufe (mm) – inf ohne Punkte."""
+        punkte = np.asarray(punkte, dtype=float).reshape(-1, 2)
+        if self.leer() or not len(punkte):
+            return np.full(len(punkte), np.inf)
+        return _naechste(self.punkte, punkte)[0]
+
+
+def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt):
+    """Je Punkt der Wand (m, 2) die Stufe (mm): der Abstand zur Treppe – höchstens so breit, wie das
+    Raster unter der Stirn Material sieht (`voll`: Knoten (k, 2) über der Lage in Reichweite der
+    Wand), plus eine Zelle (ein Streifen schmaler als sie ist im Raster nicht zu sehen); mindestens,
+    was es eine Zelle weniger weit sieht (`erreichbar`); 0, wo nichts über der Lage steht
+    (`steht`). Die Grenze nach oben: Die Treppe weiß nicht, was andere Operationen davor nahmen
+    (Materialstand) – in der Mulde des Testteils öffnete sich auf −22,2 ein Absatz, den das Räumen
+    schon geräumt hatte, die Treppe maß dort 33 mm."""
+    b = treppe.breite(p)
+    oben = np.full(len(p), schritt)
+    if len(voll):
+        oben = np.maximum(oben, r + schritt - _naechste(voll, p)[0])
+    b = np.minimum(b, oben)
+    if len(erreichbar):
+        b = np.maximum(b, r - 0.5 * schritt - _naechste(erreichbar, p)[0])
+    return np.where(steht[feld.zellen(p[:, 0], p[:, 1])], b, 0.0)
+
+
+def _hauptlinien(feld, lage, z_unten, grenze):
+    """Die Wandlinien einer Hauptlage für die Treppe: die der genauen Grenze, dazu die aus dem
+    Raster, wo keine genaue in der Nähe liegt (die genaue hat Ringe nur, wo der Fräser das Rohteil
+    trifft – fehlte eine Wand, sähe die Lage darüber dort eine viel zu breite Stufe). Nur aus dem
+    Raster läge die Linie an einer senkrechten Wand bis eine halbe Zelle neben der genauen der
+    Lagen darüber – das sähe aus wie eine Stufe (in der Mulde des Testteils ein Ring ums ganze
+    Teil)."""
+    raster = _wandlinien(feld, lage, z_unten, None)
+    if grenze is None:
+        return raster
+    genau = _wandlinien(feld, lage, z_unten, grenze)
+    if not genau:
+        return raster
+    alle = np.vstack([p for p, _g in genau])
+    dazu = []
+    for p, _g in raster:
+        weit = _naechste(alle, p)[0] > 2.0 * feld.schritt
+        if weit.any():
+            dazu.append((p[weit], False))
+    return genau + dazu
+
+
+def _ringe_streifen(ablauf, feld, w, D, wand, breite, fahren, material_links, schritt, toleranz):
+    """Die Ringe einer Zwischenlage von unten: an der Wand (D = 0) nur, wo `fahren` (je Punkt der
+    Wandlinien `wand`, schon verbreitert); ist die Stufe (`breite`, je Punkt) breiter als ae, davor
+    Ringe auf den Höhenlinien von D, je gleich weit bis höchstens 1,1 · ae (wie _ringe_zwischen),
+    jeder nur, wo hinter ihm die Stufe weiter reicht als er (mehr als STUFE_AUSSEN · ae). Je Probe
+    zählt der nächste Punkt der Wand."""
+    ae = w.zeilenabstand
+    alle = np.vstack([p for p, _g in wand])
+    b = np.concatenate(breite)
+    f = np.concatenate(fahren)
+    if not f.any():
+        return
+    endlich = np.isfinite(D)
+    erster = float(b[f].max()) - ae
+    if endlich.any():
+        erster = min(erster, float(D[endlich].max()))
+    if erster <= 0:
+        niveaus = [0.0]
+    else:
+        anzahl = max(1, int(math.ceil(erster / (1.1 * ae) - 1e-9)))
+        niveaus = [erster * (anzahl - k) / anzahl for k in range(anzahl + 1)]
+    breit = max(1, int(round(3.0 / schritt)))
+    for nummer, niveau in enumerate(niveaus):
+        ringe, nur = [], {}
+        if niveau <= 0.0 and feld.grenze is not None:
+            linien = [(None, ring) for ring in feld.grenze.ringe]
+        else:
+            linien = rb._hoehenlinien(D, feld.xs, feld.ys, niveau)
+        for punkte, geschlossen in linien:
+            if punkte is None:
+                ring = geschlossen
+            else:
+                if len(punkte) < 2:
+                    continue
+                laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
+                if geschlossen and laenge < 2 * math.pi * min(ae, 1.0):
+                    continue  # winzig
+                ring = rb._ring_des_feldes(
+                    punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
+                )
+            if ring is None or len(ring.proben.x) < 2:
+                continue
+            _abstand, k = _naechste(alle, np.column_stack([ring.proben.x, ring.proben.y]))
+            noetig = f[k]
+            if niveau > 0.0:
+                noetig = noetig & (b[k] - niveau > STUFE_AUSSEN * ae)
+            if not noetig.any():
+                continue
+            nur[id(ring)] = rb.verbreitert(noetig, breit, ring.geschlossen)
+            ringe.append(ring)
+        # Nicht „eng“: Der Streifen ist schmaler als R − ae, die Mitte des Fräsers liegt weiter als
+        # ae neben dem Material – „eng“ ließe jeden Ring an der Wand aus.
+        rb._naechster_zuerst(ablauf, ringe, False, f"zwischen {nummer}", nur)
+
+
 def _nach_davor(feld, netz, davor, aufmass, toleranz, ziel):
     """(nx, ny) mm: bis wohin das Material reicht, nachdem der größere Fräser `davor` (Form mit
     ebener Stirn) überall so tief fuhr, wie er kann – je Zelle die tiefste Lage seiner ebenen
@@ -249,11 +439,12 @@ def _nach_davor(feld, netz, davor, aufmass, toleranz, ziel):
     return hoehe
 
 
-def _lagen(oben, ziel, zustellung, zwischen):
+def _lagen(oben, ziel, zustellung, zwischen, von_unten=False):
     """([(z, ist_zwischenlage, vorige)], ap der Hauptlagen) – die Hauptlagen von oben bis
     `ziel`, je höchstens `zustellung` und gleich weit, nach jeder die Zwischenlagen darüber bis
-    zur vorigen Hauptlage, von oben nach unten; `vorige`: bis wohin das Material über der Lage
-    höchstens reicht."""
+    zur vorigen Hauptlage, von oben nach unten (`von_unten`: von unten nach oben, dann reicht das
+    Material über jeder bis zur Oberkante der Hauptlage); `vorige`: bis wohin das Material über
+    der Lage höchstens reicht."""
     anzahl = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
     folge = []
     oberkante = oben
@@ -263,23 +454,68 @@ def _lagen(oben, ziel, zustellung, zwischen):
         if zwischen > 0:
             teile = int(math.ceil((oberkante - lage) / zwischen - 1e-9))
             vorige = oberkante
-            for m in range(teile - 1, 0, -1):
-                z = lage + (oberkante - lage) * m / teile
-                folge.append((z, True, vorige))
-                vorige = z
+            if von_unten:
+                for m in range(1, teile):
+                    folge.append((lage + (oberkante - lage) * m / teile, True, oberkante))
+            else:
+                for m in range(teile - 1, 0, -1):
+                    z = lage + (oberkante - lage) * m / teile
+                    folge.append((z, True, vorige))
+                    vorige = z
         oberkante = lage
     return folge, (oben - ziel) / anzahl
 
 
+def _hoehlung(feld, lage, hoehen, z_unten, im_raster):
+    """Öffnet sich auf einer der Höhen `hoehen` (die Zwischenlagen über der Hauptlage `lage`) eine
+    Höhlung – ein Stück des Erlaubten, das nichts vom Erlaubten der Hauptlage enthält?"""
+    from scipy import ndimage
+
+    unten = feld.erlaubt_feld(lage, z_unten) & im_raster
+    for z in hoehen:
+        oben = feld.erlaubt_feld(z, z_unten) & im_raster
+        stuecke, anzahl = ndimage.label(oben)
+        if anzahl and np.setdiff1d(np.arange(1, anzahl + 1), stuecke[unten & oben]).size:
+            return True
+    return False
+
+
+def _von_oben(folge, ab):
+    """Die Zwischenlagen in `folge` ab Stelle `ab` bis zur nächsten Hauptlage wieder von oben nach
+    unten (wie _lagen ohne `von_unten`), an Ort und Stelle."""
+    bis = ab
+    while bis < len(folge) and folge[bis][1]:
+        bis += 1
+    if bis == ab:
+        return
+    vorige = folge[ab][2]  # von unten: die Oberkante des Abschnitts
+    for k, z in enumerate(sorted((folge[i][0] for i in range(ab, bis)), reverse=True)):
+        folge[ab + k] = (z, True, vorige)
+        vorige = z
+
+
 def _schruppen(
-    st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None, stand=None, nur=None
+    st,
+    netz,
+    w,
+    z_unten,
+    variante,
+    r,
+    schritt,
+    zwischen,
+    davor=None,
+    stand=None,
+    nur=None,
+    von_unten=False,
 ):
     """Alle Lagen in der Variante (die der Hauptlagen); gibt (Hauptlagen, Zwischenlagen) mit
     Schnitt zurück. Mit `davor` (Form des größeren Fräsers davor) nur der Rest: jede Lage wie
     eine Zwischenlage, das Material aus _nach_davor. Mit `stand` (Materialstand) ebenso, wenn
     er nicht überall das volle Rohteil zeigt. Mit `nur` (_Nur) zählt es, was rings um die Flächen
     noch steht (`st.drumherum`), und gilt `nur.an`, dort schon als gefräst: nur über den Flächen,
-    jede Lage wie eine Zwischenlage."""
+    jede Lage wie eine Zwischenlage. Mit `von_unten` die Zwischenlagen von unten nach oben, je ein
+    Streifen an der Wand mit voller Tiefe (VON_UNTEN, _ringe_streifen) – nicht im Rest und nicht
+    mit Materialstand (dann wie bisher von oben)."""
     aufmass = max(w.aufmass, 0.0)
     ziel = z_unten + aufmass
     oben = w.oben
@@ -340,12 +576,50 @@ def _schruppen(
     haupt = zwischenlagen = 0
     genau = GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
     nachrechner = rg.Nachrechner(feld, netz, geformt) if genau else None
-    folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen)
+    # Nicht im Rest (davor: dort steht kein Streifen an einer Wand, sondern was der große Fräser in
+    # Ecken und Kehlen ließ) und nicht mit Materialstand: Die Treppe weiß nicht, was Operationen
+    # davor an den Wänden nahmen oder stehen ließen – in der Mulde des Testteils fuhr sonst ein Ring
+    # ums ganze Teil (1,32 statt 1,29 min, 948 statt 158 Halte, Eingriff bis 3,6 ae).
+    von_unten = bool(von_unten) and davor is None and not mit_stand
+    folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen, von_unten)
     stehen_bis = None  # bis hierhin steht Material über einer Zwischenlage, die ausfiel
+    treppe = _Treppe()  # von unten: bis wohin die Spitze an der Wand war
+    waende = {}  # von unten: je Lage (erlaubt, genaue Grenze, Wandlinien) – für den Blick voraus
+
+    def wand_bei(z):
+        """(erlaubt, Grenze oder None, Wandlinien) der Lage z – einmal gerechnet."""
+        schluessel = round(z, 9)
+        if schluessel not in waende:
+            erl = feld.erlaubt_feld(z, z_unten)
+            grenze = None
+            if nachrechner is not None:
+                wo = (rechteck[1] | rechteck[2]) & aufweiten(hoehe > z + MATERIAL, r + schritt)
+                grenze = nachrechner.grenze(z, z_unten, erl, material_links, schritt, wo)
+            waende[schluessel] = (erl, grenze, _wandlinien(feld, z, z_unten, grenze))
+        return waende[schluessel]
+
+    unten = von_unten  # in diesem Abschnitt (bis zur nächsten Hauptlage) von unten
     for nummer, (lage, zwischenlage, vorige) in enumerate(folge):
         if not zwischenlage:
             stehen_bis = None
-        elif stehen_bis is not None:
+            waende.clear()
+            unten = von_unten
+            if von_unten:
+                # Bis an die Wand der Hauptlage ist danach alles frei – auch wenn sie ausfällt.
+                treppe.setze(_hauptlinien(feld, lage, z_unten, wand_bei(lage)[1]))
+                hoehen = []
+                for z, ist, _v in folge[nummer + 1 :]:
+                    if not ist:
+                        break
+                    hoehen.append(z)
+                if treppe.leer() or _hoehlung(feld, lage, hoehen, z_unten, im_raster):
+                    # Öffnet sich über der Hauptlage eine Höhlung, die nicht an ihr Freies grenzt:
+                    # Von unten ginge die erste Lage darin mit voller Tiefe über die Rampe, der
+                    # erste Ring um die Mitte in voller Breite (an der Schale 4,4 ae auf 50 mm). In
+                    # diesem Abschnitt wie bisher von oben, je über die Rampe der dünnen Lage.
+                    unten = False
+                    _von_oben(folge, nummer + 1)
+        elif stehen_bis is not None and not unten:
             # Fiel die Zwischenlage darüber aus, steht ihr Material noch: Die Einfahrt rechnet
             # mit der Höhe davor, nicht mit der ausgefallenen Lage (sonst endet der Eilgang hinab
             # im Material – an der Schale mit 5 mm Rohteil darüber 1,9 mm tief, 217 mm³;
@@ -362,7 +636,15 @@ def _schruppen(
         # Kuppel blieb die Säule Rohteil stehen, in der Schale tauchte die erste Lage darunter
         # senkrecht mit voller Stirn ein.
         ueber_allem = ist_zwischen and not bool((gesperrt & im_raster).any())
-        if ueber_allem and zwischenlage and nummer + 1 < len(folge) and folge[nummer + 1][1]:
+        # Von unten nach oben nimmt die unterste Lage über dem ganzen Teil alles darüber mit (bis
+        # zur Oberkante der Hauptlage, nie tiefer als die Zustellung) – die darüber finden nichts.
+        if (
+            ueber_allem
+            and zwischenlage
+            and not unten
+            and nummer + 1 < len(folge)
+            and folge[nummer + 1][1]
+        ):
             # Ist auch die Zwischenlage darunter noch über dem ganzen Teil, nimmt die das Material
             # mit – eine Lage mit voller Tiefe statt mehrerer dünner (an der Schale mit 5 mm
             # darüber 16 statt 4 min), solange es nicht tiefer wird als die Zustellung.
@@ -375,6 +657,99 @@ def _schruppen(
                 if bool((hoehe > lage + MATERIAL).any()):
                     stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
                 continue
+        streifen = unten and zwischenlage and not ueber_allem and not treppe.leer()
+        if streifen:
+            # Von unten nach oben (VON_UNTEN): nur der Streifen an der Wand, mit voller Tiefe.
+            ueber = hoehe > lage + MATERIAL
+            if not ueber.any():
+                continue
+            erlaubt, grenze, wand = wand_bei(lage)
+            gesperrt = _breiter(~erlaubt)
+            D = grenze.abstand if grenze is not None else feld.abstand_zu(gesperrt & im_raster)
+            # Material steht, wo die Stirn an der Wand etwas trifft, das höher reicht als die
+            # Lage (der Streifen selbst ist oft schmaler als eine Zelle, die Säule dahinter nicht).
+            steht = aufweiten(ueber, r + schritt)
+            # Was das Raster in Reichweite der Wand selbst als Material sieht: Ein Spalt, der sich
+            # erst über der Hauptlage öffnet, hat keine Wand der Hauptlage in sich – die Treppe
+            # mäße zur Wand daneben, und der Spalt bliebe voll. Eine Zelle weniger weit als die
+            # Stirn (wie die Zwischenlage von oben): Der Rand an einer senkrechten Wand zählte sonst
+            # jede Lage (in der Mulde des Testteils ein Ring ums ganze Teil, Eingriff 3,6 ae).
+            erreichbar = np.argwhere(ueber & (-(r - schritt - 0.01) < D) & im_raster)
+            erreichbar = np.column_stack([feld.xs[erreichbar[:, 0]], feld.ys[erreichbar[:, 1]]])
+            voll = np.argwhere(ueber & (-(r - 0.01) < D) & im_raster)
+            voll = np.column_stack([feld.xs[voll[:, 0]], feld.ys[voll[:, 1]]])
+            # Material weiter als R von jeder Wand der Lage – über einer Fläche, die mit dieser
+            # Lage auf einmal frei wird (ein Absatz): Dort fährt kein Streifen; es räumt wie die
+            # Zwischenlage von oben, von außen nach innen (am Geist blieben sonst an beiden Enden
+            # 20 mm über dem Teil stehen).
+            frei_material = ueber & aufweiten(~gesperrt, r - schritt - 0.01) & im_raster
+            if wand and frei_material.any():
+                ij = np.argwhere(frei_material)
+                xy = np.column_stack([feld.xs[ij[:, 0]], feld.ys[ij[:, 1]]])
+                nah = _naechste(np.vstack([p for p, _g in wand]), xy)[0] <= r
+                frei_material[ij[nah, 0], ij[nah, 1]] = False
+            absatz = frei_material.sum() * schritt * schritt >= MINDESTFLAECHE
+
+            def stufe(p, treppe=treppe, erreichbar=erreichbar, voll=voll, steht=steht):
+                return _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt)
+
+            breite, fahren = [], []
+            for p, geschlossen in wand:
+                b = stufe(p)
+                breite.append(b)
+                fahren.append(
+                    rb.verbreitert(b >= STUFE_ORT, max(1, int(round(3.0 / schritt))), geschlossen)
+                    & (b > 0.0)
+                )
+            breitest = max((float(b.max()) for b in breite), default=0.0)
+            if breitest < STUFE_ORT and not absatz:
+                continue
+            # Der Blick voraus: Würde die Stufe bis zur nächsten Lage (oder bis zur Oberkante der
+            # Hauptlage) breiter als STUFE, kommt diese Lage – sonst fällt sie aus.
+            if breitest < STUFE - GLEICH and not absatz:
+                naechste = folge[nummer + 1] if nummer + 1 < len(folge) else None
+                if naechste is not None and naechste[1]:
+                    voraus = wand_bei(naechste[0])[2]
+                else:
+                    voraus = _wandlinien(feld, vorige, z_unten, None)
+                weiter_breit = max((float(stufe(p).max()) for p, _g in voraus), default=0.0)
+                if weiter_breit <= STUFE + GLEICH:
+                    continue
+            # So viel Material je mm Weg wie in der Hauptlage (ae · ap), höchstens der Radius.
+            weiter = min(r, max(ae, ae * ap_haupt / max(vorige - lage, GLEICH)))
+            werte = dataclasses.replace(w, zeilenabstand=weiter)
+            feld.grenze = grenze
+            # Rohteil ist, was über der Lage steht und die Stirn von der Wand aus trifft – für das
+            # Einfahren (ungeschnitten); berührt (für die Läufe) auch die Säule dahinter.
+            feld.rohteil_zellen = ueber & (-(r - 0.01) < D)
+            feld.beruehrt = aufweiten(ueber & aufweiten(erlaubt, r + schritt), r + schritt)
+            feld.eng = feld.beruehrt
+            feld.frei[:] = False
+            ablauf = _Lage3D(
+                st, feld, werte, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben
+            )
+            ablauf.hoehe = hoehe
+            ablauf.stempel = stempel
+            ablauf.streifen = True
+            ablauf.schwelle = _Lage3D(
+                st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben
+            ).schwelle
+            vorher = st.ringe
+            if absatz and np.isfinite(D).any():
+                _ringe_zwischen(
+                    ablauf, feld, werte, D, frei_material, material_links, schritt, glatt, aufweiten
+                )
+            if wand and breitest >= STUFE_ORT:
+                _ringe_streifen(
+                    ablauf, feld, werte, D, wand, breite, fahren, material_links, schritt, glatt
+                )
+            ablauf.reste_fahren()
+            ablauf.heben()
+            hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
+            if st.ringe > vorher:
+                zwischenlagen += 1
+                treppe.dazu([p[f] for (p, _g), f in zip(wand, fahren, strict=True)])
+            continue
         if ueber_allem:
             if not feld.material_setzen(hoehe, hoehe, lage, erlaubt):
                 if zwischenlage and bool((hoehe > lage + MATERIAL).any()):
@@ -483,6 +858,10 @@ def _schruppen(
                 haupt += 1
         elif zwischenlage and bool((hoehe > lage + MATERIAL).any()):
             stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
+        if unten and zwischenlage and st.ringe > vorher and treppe.leer():
+            # Die erste Zwischenlage, die etwas nahm, wo die Hauptlage nichts fand (eine Höhlung):
+            # Bis an ihre Wand war die Spitze.
+            treppe.setze(_hauptlinien(feld, lage, z_unten, feld.grenze))
     feld.rohteil_zellen, feld.beruehrt, feld.eng = rechteck
     feld.grenze = None
     return haupt, zwischenlagen
@@ -628,13 +1007,15 @@ def bereich(form_teil, namen):
     return flaechen, z_unten
 
 
-def variante_rechnen(netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, variante):
+def variante_rechnen(
+    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, variante, von_unten=False
+):
     """Auch im Nebenrechner: alle Lagen in einer Variante – (_Stand, Hauptlagen, Zwischenlagen),
     None, wo es die Variante nicht gibt (_KeinMorph)."""
     st = rb._Stand()
     try:
         haupt, zwischenlagen = _schruppen(
-            st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur
+            st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur, von_unten
         )
     except rb._KeinMorph:
         return None
@@ -655,7 +1036,7 @@ def _varianten_verteilt(argumente, varianten):
         from . import nebenrechner as nr
     except ImportError:
         return {}
-    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur = argumente
+    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, von_unten = argumente
     auftraege, schluessel = {}, []
     try:
         pool = nr.pool()
@@ -683,6 +1064,7 @@ def _varianten_verteilt(argumente, varianten):
                 gemeinsam[1],
                 gemeinsam[2],
                 v,
+                von_unten,
             )
         pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler:
@@ -710,14 +1092,16 @@ def planen(
     stand=None,
     nachbereiten=None,
     nur_ueber=False,
+    von_unten=False,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
     `davor` (Form des größeren Fräsers davor, ebene Stirn) nur der Rest, den er ließ; mit
     `stand` (materialstand, W-012) nur, was die Operationen davor im Job übrig ließen; mit
     `nur_ueber` gilt das Rohteil rings um die Freiformflächen als schon gefräst: nur über ihnen
-    (nicht an einem Teil aus einem STL, nicht im Rest). ValueError mit
-    einem Satz, wenn es nicht geht."""
+    (nicht an einem Teil aus einem STL, nicht im Rest); mit `von_unten` die Zwischenlagen von unten
+    nach oben, je ein Streifen an der Wand mit voller Tiefe (VON_UNTEN; nicht im Rest). ValueError
+    mit einem Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
     w = werte
@@ -743,13 +1127,13 @@ def planen(
         varianten = ("rohteil",)  # jede Lage wie eine Zwischenlage: keine Varianten
     ergebnisse = {}
     wer_davor = []  # wer vorher dort weggenommen hat (für den Satz, wenn nichts zu tun ist)
-    argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur)
+    argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, bool(von_unten))
     verteilt = _varianten_verteilt(argumente, varianten)
     for variante in varianten:
         if variante in verteilt:
             gerechnet = verteilt[variante]
         else:
-            gerechnet = variante_rechnen(*argumente, variante)
+            gerechnet = variante_rechnen(*argumente[:-1], variante, argumente[-1])
         if gerechnet is None:
             continue
         st, haupt, zwischenlagen = gerechnet

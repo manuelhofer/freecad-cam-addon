@@ -8,7 +8,9 @@
 # gesenkt, Grund z 10): nur Zwischenlagen, je über die Rampe, nirgends ins Teil; in der Höhlung
 # bleibt unter der ebenen Stirn mehr stehen (der Bogen unter dem Fräser, 0,7 mm) – bis 2,5.
 # (c) Ohne Freiformfläche ein Satz. (d) Die Operation im Job: „3D-Schruppen T1“, Art
-# „schruppen3d“ mit dem Einsatz „Schruppen“.
+# „schruppen3d“ mit dem Einsatz „Schruppen“. (e) Die Zwischenlagen von unten (VON_UNTEN): Kuppel,
+# nur darüber, Schale, Schale + 5 – kürzer, die Treppe in derselben Grenze, nichts ins Teil, nichts
+# im Eilgang, kein Eintauchen; die Vorschau mit ähnlicher Zeit.
 import math
 import os
 import pathlib
@@ -251,6 +253,77 @@ pruefe(
     f"Kuppel + 5: über der Spitze steht bis {float(qk.h[spitze].max()):.2f} (Spitze 20)",
 )
 
+# --- (e) Zwischenlagen von unten (Frage 4, VON_UNTEN) ---------------------------------------------
+# Je Zwischenlage ein Streifen an der Wand mit voller Tiefe, eine Lage erst, wo die Stufe sonst
+# breiter als STUFE würde: kürzer als von oben, die Treppe auf der Kuppel in derselben Grenze, nichts
+# ins Teil, nichts im Eilgang, nie senkrecht ins Material, keine Rampe (hinein von der freien Seite).
+bahn_u = r3.planen(teil, kugel, werte(20.0), von_unten=True)
+k_u = gemessen(teil, bahn_u, 20.0)
+print(ascii(f"Kuppel von unten: {bahn_u.zeit:.2f} min (von oben {bahn.zeit:.2f}), {bahn_u.lagen} + "
+            f"{bahn_u.zwischenlagen} Lagen – {ps.zeile(k_u)}"))  # fmt: skip
+pruefe(bahn_u.zeit < bahn.zeit - 0.3, f"von unten: {bahn_u.zeit:.2f} statt {bahn.zeit:.2f} min")
+pruefe(k_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"von unten: ins Teil {k_u.einschnitt:.3f}")
+pruefe(k_u.eilgang_abtrag <= 1e-9, f"von unten: im Eilgang {k_u.eilgang_abtrag:.1f} mm³")
+pruefe(k_u.eintauchungen == 0 and k_u.rampen == 0, f"von unten: {ps.zeile(k_u)}")
+pruefe(k_u.eingriff_max < 2.0 and k_u.voll <= ps.BREIT_WEG, f"von unten: {ps.zeile(k_u)}")
+q_u, _soll_u, xs_u, ys_u = im_quader(teil, bahn_u, 20.0)
+senk_u = np.sqrt((xs_u - 30) ** 2 + (ys_u - 30) ** 2 + (q_u.h + 5) ** 2) - 25.0
+print(ascii(f"Kuppel von unten senkrecht: {senk_u[flanke].min():.3f} … {senk_u[kuppel].max():.3f}"))
+pruefe(senk_u[flanke].min() > 0.25, f"von unten: nur {senk_u[flanke].min():.3f} stehen")
+pruefe(senk_u[kuppel].max() < 1.7, f"von unten: Treppe {senk_u[kuppel].max():.3f}")
+pruefe(
+    np.all(np.abs((q_u.h - _soll_u)[platte_frei] - 0.3) < 0.02),
+    "von unten: auf der Platte nicht 0,3",
+)
+# Die Vorschau des Assistenten (gröberes Raster, ohne genaue Grenze) zeigt eine ähnliche Zeit.
+grob_u = r3.planen(teil, kugel, werte(20.0), toleranz=hf.VORSCHAU_TOLERANZ,
+                   schritt=r3.VORSCHAU_SCHRITT, von_unten=True)  # fmt: skip
+print(ascii(f"Kuppel von unten, Vorschau: {grob_u.zeit:.2f} min (fertig {bahn_u.zeit:.2f})"))
+pruefe(abs(grob_u.zeit - bahn_u.zeit) < 0.25 * bahn_u.zeit, f"Vorschau {grob_u.zeit:.2f} min")
+# Nur über der Kuppel: wie oben, von unten.
+nur_u = r3.planen(teil, kugel, werte(20.0), nur_ueber=True, von_unten=True)
+k_nur_u = gemessen(teil, nur_u, 20.0, ringsum_gefraest)
+print(ascii(f"Kuppel, nur darüber, von unten: {nur_u.zeit:.2f} min – {ps.zeile(k_nur_u)}"))
+pruefe(nur_u.zeit < nur.zeit, f"nur darüber von unten: {nur_u.zeit:.2f} statt {nur.zeit:.2f} min")
+pruefe(k_nur_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"nur, von unten: {k_nur_u.einschnitt:.3f}")
+pruefe(k_nur_u.eilgang_abtrag <= 1e-9, f"nur, von unten: Eilgang {k_nur_u.eilgang_abtrag:.1f}")
+# Die Schale (eine Höhlung: die erste Lage über die Rampe, dann je hinein vom Freien in der Mitte)
+# und die Schale mit 5 mm Rohteil darüber (die unterste Lage über dem ganzen Teil nimmt alles
+# darüber mit).
+schale_u = r3.planen(schale, innen, werte(20.0), von_unten=True)
+k_su = gemessen(schale, schale_u, 20.0)
+print(ascii(f"Schale von unten: {schale_u.zeit:.2f} min (von oben {bahn_s.zeit:.2f}), "
+            f"{schale_u.rampen} Rampen – {ps.zeile(k_su)}"))  # fmt: skip
+pruefe(k_su.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Schale von unten: ins Teil {k_su.einschnitt}")
+pruefe(k_su.eilgang_abtrag <= 1e-9, f"Schale von unten: im Eilgang {k_su.eilgang_abtrag:.1f} mm³")
+# Eine Höhlung (über der Hauptlage öffnet sich Erlaubtes ohne Verbindung zu ihrem Freien): Von unten
+# ginge die erste Lage darin mit voller Tiefe über die Rampe, der erste Ring in voller Breite (4,4 ae)
+# – sie bleibt bei der Reihenfolge von oben.
+pruefe(
+    schale_u.rampen == bahn_s.rampen and abs(schale_u.zeit - bahn_s.zeit) < 1e-6,
+    f"Schale von unten: {schale_u.rampen} Rampen, {schale_u.zeit:.2f} min",
+)
+q_su, _s, xs_su, ys_su = im_quader(schale, schale_u, 20.0)
+abst_u = 25.0 - np.sqrt((xs_su - 30) ** 2 + (ys_su - 30) ** 2 + (q_su.h - 35) ** 2)
+mitte_u = np.hypot(xs_su - 30, ys_su - 30) < 16.0
+print(
+    ascii(f"Schale von unten senkrecht: {abst_u[mitte_u].min():.3f} … {abst_u[mitte_u].max():.3f}")
+)
+pruefe(abst_u[mitte_u].min() > 0.25, f"Schale von unten: nur {abst_u[mitte_u].min():.3f}")
+pruefe(abst_u[mitte_u].max() < 2.5, f"Schale von unten: Treppe {abst_u[mitte_u].max():.3f}")
+schale5_u = r3.planen(schale, innen, werte(25.0), von_unten=True)
+k5u = gemessen(schale, schale5_u, 25.0)
+print(ascii(f"Schale + 5 von unten: {schale5_u.zeit:.2f} min – {ps.zeile(k5u)}"))
+pruefe(k5u.eilgang_abtrag <= 1e-9, f"Schale + 5 von unten: im Eilgang {k5u.eilgang_abtrag:.1f}")
+pruefe(k5u.eintauchungen <= 2, f"Schale + 5 von unten: {k5u.eintauchungen}-mal senkrecht")
+pruefe(k5u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Schale + 5 von unten: {k5u.einschnitt:.3f}")
+q5u, _s5, xs5u, ys5u = im_quader(schale, schale5_u, 25.0)
+rand5u = (
+    (np.hypot(xs5u - 30, ys5u - 30) > 27.0) & (xs5u > 1) & (xs5u < 59) & (ys5u > 1) & (ys5u < 59)
+)
+pruefe(float(q5u.h[rand5u].max()) < 21.2, f"Schale + 5 von unten: {float(q5u.h[rand5u].max()):.2f}")
+pruefe(schale5_u.zeit < 6.0, f"Schale + 5 von unten: {schale5_u.zeit:.2f} min")
+
 # --- (c) Ohne Freiformfläche ----------------------------------------------------------------------
 andere = [f"Face{i + 1}" for i in range(len(teil.Faces)) if f"Face{i + 1}" not in kugel]
 try:
@@ -278,6 +351,7 @@ doc.recompute()
 op = r3op.lege_an(job, tc, 25.0, 1.5, 0.3, flaechen=kugel)
 doc.recompute()
 pruefe(op.Label == "3D-Schruppen T1", f"Name {op.Label}")
+pruefe(op.ZwischenlagenVonUnten, "neu angelegt: Zwischenlagen nicht von unten")
 pruefe(op.Lagen == 1 and op.Zwischen >= 7, f"Operation: {op.Lagen} + {op.Zwischen} Lagen")
 pruefe(abs(float(op.FinalDepth) - 10.3) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
 pruefe(js.operationsart(op) == "schruppen3d", f"Art {js.operationsart(op)}")

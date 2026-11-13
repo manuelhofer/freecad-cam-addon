@@ -3601,6 +3601,9 @@ class _Schruppen3D(_Strategie):
             # angehakt führe der Fräser dort sonst ins Volle; der Satz darunter fragt danach
             # (_material_text, Frage 6).
             ("nur_ueber", tr("ba.r3.nur_ueber"), tr("ba.r3.nur_ueber.tooltip"), False),
+            # Angehakt (Frage 4, Manuel am 2026-11-13): je Zwischenlage ein Streifen an der Wand
+            # mit voller Schneide statt einer dünnen Scheibe – abgehakt die alte Reihenfolge.
+            ("von_unten", tr("ba.r3.von_unten"), tr("ba.r3.von_unten.tooltip"), r3b.VON_UNTEN),
         )
 
     def passt(self, form, name):
@@ -3637,6 +3640,7 @@ class _Schruppen3D(_Strategie):
             "eintauchen": werte.get("eintauchen", 0.0),
             "stand": werte.get("materialstand"),
             "nur_ueber": bool(werte.get("nur_ueber", False)),
+            "von_unten": bool(werte.get("von_unten", r3b.VON_UNTEN)),
         }
 
     def vorschau(self, job, werkzeug, werte, flaechen):
@@ -3675,6 +3679,7 @@ class _Schruppen3D(_Strategie):
             werte["gleichlauf"],
             flaechen=flaechen,
             nur_ueber=bool(werte.get("nur_ueber", False)),
+            von_unten=bool(werte.get("von_unten", r3b.VON_UNTEN)),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -3688,6 +3693,7 @@ class _Schruppen3D(_Strategie):
             werte["gleichlauf"],
             flaechen=flaechen,
             nur_ueber=bool(werte.get("nur_ueber", False)),
+            von_unten=bool(werte.get("von_unten", r3b.VON_UNTEN)),
         )
 
     def ist(self, op):
@@ -3701,6 +3707,7 @@ class _Schruppen3D(_Strategie):
             "zwischen": float(op.Zwischenlagen),
             "gleichlauf": bool(op.Gleichlauf),
             "nur_ueber": bool(getattr(op, "NurUeber", False)),
+            "von_unten": bool(getattr(op, "ZwischenlagenVonUnten", False)),
         }
 
 
@@ -3811,7 +3818,8 @@ class _Restschruppen(_Schruppen3D):
 
     def werte_von(self, op):
         werte = dict(super().werte_von(op), davor=float(op.DurchmesserDavor))
-        werte.pop("nur_ueber", None)  # den Haken hat das Restschruppen nicht
+        werte.pop("nur_ueber", None)  # die Haken hat das Restschruppen nicht
+        werte.pop("von_unten", None)
         return werte
 
 

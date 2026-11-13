@@ -279,6 +279,47 @@ eben). Kein OCL.
    21,6 mm³ im Eilgang hinein. Jetzt fällt der Ring nur weg, wenn die Rechnung aufgeht; und der
    Eilgang hinab vor Rampe und Helix endet im 3D-Schruppen über dem, was unter der Stirn wirklich
    noch steht (`_Lage3D._material_oben`).
+   **Zwischenlagen von unten (Frage 4, Manuel am 2026-11-13: „a“; Haken „Zwischenlagen von unten
+   mit voller Schneide“, vorbelegt an; Eigenschaft `ZwischenlagenVonUnten`, beim Laden alter Dateien
+   aus):** Die Zwischenlagen eines Abschnitts laufen von unten nach oben (`_lagen(von_unten)`), und
+   jede fräst nur, was außerhalb ihrer Wand über ihr noch steht – einen schmalen Streifen an der
+   Wand, mit voller Tiefe bis zur Oberkante der Hauptlage (`_ringe_streifen`), Ringabstand nach der
+   Last wie in der Hauptlage (ae · ap). Die Regel:
+   - *Die Stufe genau:* Eine `_Treppe` merkt sich, bis wohin die Spitze seit der Hauptlage an der
+     Wand war (die Punkte der genauen Grenze der Hauptlage und der gefrästen Zwischenlagen; wo die
+     genaue Grenze keine Linie hat, die Höhenlinie der Hüllfläche aus dem Raster, zwischen den
+     Knoten linear). Die Stufe an einem Punkt der genauen Grenze einer Lage ist sein Abstand zum
+     nächsten dieser Punkte – höchstens so breit, wie das Raster in Reichweite der Wand Material
+     sieht, plus eine Zelle; mindestens, was es eine Zelle weniger weit sieht (ein Spalt, der sich
+     erst über der Hauptlage öffnet).
+   - *Eine Lage nur, wo nötig:* Sie kommt, wenn die Stufe irgendwo schon `STUFE` (1,0 mm) breit
+     ist oder bis zur nächsten Lage (der Oberkante) breiter würde (Blick voraus); sonst fällt sie
+     aus. An steilen Wänden fällt so die Mehrzahl weg, an flachen bleibt es bei jeder.
+   - *Ringe nur, wo die Stufe nennenswert ist:* an der Wand, wo sie mindestens `STUFE_ORT`
+     (0,5 mm) breit ist, längs des Rings um 3 mm verbreitert; ist sie breiter als ae, davor Ringe
+     auf den Höhenlinien des Abstands, je nur, wo sie mehr als `STUFE_AUSSEN` · ae nehmen. Was
+     örtlich stehen bleibt, nimmt eine höhere Lage, sobald es dort breit genug ist.
+   - *Ein Absatz:* Material weiter als R von jeder Wand der Lage (eine Fläche, die auf einmal frei
+     wird) räumt wie die Zwischenlage von oben, von außen nach innen (am Geist blieben sonst an
+     beiden Enden 20 mm über dem Teil stehen).
+   - *Einfahren:* von der freien Seite tangential mit voller Tiefe (die Lagen darunter sind frei);
+     die Lage zählt ohne Blick ins Raster als schneidend (`_Lage3D.streifen` – der Streifen ist oft
+     schmaler als eine Zelle); der Eilgang hinab endet über dem höchsten Material unter der Stirn.
+   - *Über dem ganzen Teil:* Die unterste solche Lage nimmt alles darüber mit (bis zur Oberkante,
+     nie tiefer als die Zustellung) – die Zusammenfassung „die darunter nimmt es mit“ entfällt.
+   - *Ausgenommen, mit der Reihenfolge von oben:* der Rest (`davor`: dort steht kein Streifen an
+     einer Wand), der Materialstand (die Treppe weiß nicht, was Operationen davor an den Wänden
+     ließen – in der Mulde des Testteils fuhr sonst ein Ring ums ganze Teil, 1,32 statt 1,29 min,
+     Eingriff 3,6 ae) und ein Abschnitt, in dem sich eine Höhlung öffnet, die nicht an das Freie der
+     Hauptlage grenzt (`_hoehlung`: die erste Lage darin ginge mit voller Tiefe über die Rampe, der
+     erste Ring um die Mitte in voller Breite – an der Schale 4,4 ae auf 50 mm).
+   - *Ohne genaue Grenze* (Vorschau mit 1 mm Raster, oder sie hält auf einer Lage nicht): Die Stufe
+     kommt aus der Höhenlinie der Hüllfläche im Raster, die Ringe an der Wand aus dem Raster (das
+     Gesperrte eine Zelle breiter, sicher). Kuppel: Vorschau 4,27 min, fertig 4,93.
+   Gemessen (Standardfräser, Aufmaß 0,3; Messung in 13.7): Kuppel 4,93 statt 5,40 min, die Treppe
+   senkrecht 0,32 … 1,25 mm wie von oben, nur über der Kuppel 2,73 statt 3,20 min, kein Eintauchen,
+   keine Rampe, nichts im Eilgang (`test_schruppen3d` (e)); Kegelstumpf 65° 10,2 statt 12,8 min;
+   Geist 31,1 statt 48,9 min.
 2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
    (Abtrag). Aufwand mittel. Gebaut (P-2026-10-02-02, 0.66.0) – ohne Abtragsmodell: Was der
    große Fräser (ebene Stirn) stehen ließ, folgt aus seiner Hüllfläche – je Zelle die tiefste
@@ -2833,6 +2874,27 @@ Gegenrechnung in den Ordnern daneben.
   Regel „eine Zelle weniger“ in `_schruppen`; 33 von 69 Lagen fielen aus). Das fertige Programm des
   Assistenten (mit Schnellvorschub im Freien) braucht für dieselbe Bahn rund 35 min: 29 min Schnitt,
   442 Abheber, 40 m Eilgang. Nichts gebaut – erst Manuels Antwort auf Frage 4.
+  **Gebaut (Antwort „a“, Abschnitt 4.2 „Zwischenlagen von unten“), gemessen mit denselben Skripten
+  (`~/freecad_cam/wip/strategien/geist_luft/bau/`: kegel.py, messen.py, mulde.py; alt = Haken aus):**
+
+  | Fall | alt (von oben) | neu (von unten) |
+  | --- | ---: | ---: |
+  | Geist: Zeit, Lagen | 48,9 min, 4 + 69 | 31,1 min, 4 + 46 |
+  | Geist: Weg der Zwischenlagen | 19,2 m | 9,3 m |
+  | Geist: über dem Aufmaß (senkrecht), p90 / p99 | 5,30 cm³, 4,04 / 11,3 mm | 5,62 cm³, 4,12 / 11,4 mm |
+  | Geist: Prüfstand | Eintauchen 7, Einschnitt 0 | Eintauchen 7, Einschnitt 0 |
+  | Kegelstumpf 65°: Zeit, Lagen | 12,76 min, 2 + 26 | 10,20 min, 2 + 14 |
+  | Kegel: Rest senkrecht Mittel / p90 / max | 0,59 / 0,75 / 1,55 mm | 0,73 / 1,06 / 1,15 mm |
+  | Kuppel (test_schruppen3d) | 5,40 min | 4,93 min |
+  | Kuppel, nur darüber | 3,20 min | 2,73 min |
+  | Schale, Schale + 5 mm (Höhlung) | 1,15 / 2,68 min | gleich (von oben) |
+  | Mulde des Testteils (Materialstand) | 1,2945 min | gleich (von oben) |
+
+  Die Stufe bleibt am Kegel unter 1 mm waagrecht (Lagen alle 1,9 mm statt 1 mm), darum p90 1,06
+  statt 0,75. Vor den Ausnahmen gemessen: Geist 29,4 min (5,42 cm³) – der Abschnitt mit einer Höhlung
+  läuft jetzt von oben; Mulde mit „von unten“ 1,32 min, 948 Halte, Eingriff 3,6 ae. Offen: im
+  Abschnitt mit Höhlung nur die Höhlung von oben, den Rest von unten; der Materialstand mit einer
+  Treppe, die ihn kennt.
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130
