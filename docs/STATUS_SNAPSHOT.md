@@ -589,6 +589,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Ecke jetzt ausgeräumt wird; die Treppen des Rings davor bleiben. Spezifikation Strategien 13.6.
   **Manuel prüft:** Testteil → „Räumen T3“ neu rechnen: der letzte Ring liegt in den drei Ecken der Tasche
   an der Wand an.
+  Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
+  Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
 - *In Arbeit (Manuel, 13.11. abends, Antwort auf Frage 4: „a“):* **Zwischenlagen beim 3D-Schruppen von unten
   nach oben mit voller Schneide**, neue Lage erst ab 1 mm Stufenbreite – als Haken beim 3D-Schruppen,
   angehakt. Am Geist kosten die Zwischenlagen heute 31,6 von 48,9 min (19 m Weg für 11 % des Materials);
