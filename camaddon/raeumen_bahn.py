@@ -2723,6 +2723,11 @@ def _loch_im_material(feld, hoehe, oben, ziel):
         return None  # nicht rund – oder mehrere Löcher
     if bool((bereich & ~fehlt & (abstand < radius - feld.schritt)).any()):
         return None
+    # Der Radius: nicht größer als der Abstand zum nächsten Knoten mit Material – aus der Zahl der
+    # Zellen allein fällt er zu groß aus (ein Ø 11,4 zählte als Ø 12).
+    steht = bereich & ~fehlt
+    if steht.any():
+        radius = min(radius, float(abstand[steht].min()))
     return mx, my, radius
 
 
@@ -4258,12 +4263,15 @@ def _ringe_morph_tasche(
         i, j = np.unravel_index(k, D.shape)
     mx, my = float(feld.xs[i]), float(feld.ys[j])
     # Vorgebohrt, und der Fräser passt hinein: Das Loch ist mindestens so groß wie er, und unter
-    # der Stirn steht in seiner Mitte höchstens der Saum, den das Raster am Lochrand lässt (wie
-    # beim Einfahren: ablauf.schwelle).
+    # der Stirn steht in seiner Mitte höchstens der Saum, den das Raster am Lochrand lässt – ein
+    # Ring von einer halben Zelle (Anteil Raster ÷ R), nie mehr als beim Einfahren gilt
+    # (ablauf.schwelle). Die allein wächst mit ae (bei ae 6: 77 % der Stirn): Der Ø 12 tauchte
+    # damit 17 mm senkrecht in ein Loch Ø 11,4, bei ae 6 in eines mit Ø 8 (Gegenprüfung,
+    # nachgestellt am 2026-11-13). Ist das Loch kleiner, bleibt es bei der Helix um das Loch.
     vorgebohrt = (
         loch is not None
         and loch[2] >= r - 0.5 * feld.schritt
-        and float(feld.ungeschnitten([mx], [my])[0]) <= ablauf.schwelle
+        and float(feld.ungeschnitten([mx], [my])[0]) <= min(ablauf.schwelle, feld.schritt / r)
     )
     platz = float(D[i, j]) - 2.0 * feld.schritt
     rh = next((a * r for a in (bb.KERN_ANTEIL, bb.KERN_ANTEIL / 2) if a * r <= platz), None)

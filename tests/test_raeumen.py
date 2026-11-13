@@ -1340,6 +1340,22 @@ pruefe(
     f"Vorbohren, Morph: {k_m.eintauchungen} Eintauchungen, {k_m.rampen} Rampen im Material",
 )
 pruefe(k_m.voll <= 1.0, f"Vorbohren, Morph: {k_m.voll:.1f} mm in voller Breite")
+# Ein fremdes Loch, das kleiner ist als der Fräser (Ø 11,4 unter dem Ø 12): nicht „vorgebohrt“ –
+# kein senkrechtes Eintauchen in den Ring von 0,3 mm, es bleibt bei Helix oder Rampe. Bis 0.366.0
+# tauchte der Fräser dort 17 mm senkrecht ein, ohne dass es gemeldet wurde (die Schwelle für den
+# Saum am Lochrand wuchs mit ae; Gegenprüfung, nachgestellt am 2026-11-13).
+stand_klein = ra.loecher_im_stand(stand_v, [(40.0, 40.0, 15.0)], 11.4, 30.0)
+klein_m = ra.vorschau_fuer_assistent(job_v, form, 25.0, 2.0, 0.3, [boden_v], stand=stand_klein)
+senkrecht = [
+    (round(p.x, 1), round(p.y, 1), round(p.z, 1))
+    for p in klein_m.punkte
+    if p.eintauchen and not p.eilgang and p.z < 29.0 and math.hypot(p.x - 40.0, p.y - 40.0) < 1.0
+]
+pruefe(
+    not senkrecht and (klein_m.rampen >= 1 or klein_m.eintauchen),
+    f"Loch Ø 11,4 unter dem Ø 12: {klein_m.variante}, senkrecht {senkrecht}, "
+    f"{klein_m.rampen} Rampen, ins Volle {klein_m.eintauchen}",
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

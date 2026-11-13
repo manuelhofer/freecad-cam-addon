@@ -1005,7 +1005,10 @@ Gewinde eine (LinuxCNC G33.1), behalten G81 ff. ihre Rückzugsebene. Neue Platzh
 - **Nicht gefasst** (`boegen_fassbar`): Drehmaschine, Messstopp, fein geprüfte Simultanbahnen
   (sechs Stellen), geschwenkte Ebene ohne Schwenkzyklus; in `gefasst` jede Operation mit
   Rundachsen, G91, G18/G19 oder G93; dazu eine Kontur mit Radiuskorrektur (Rohzeilen G41/G42).
-  Nach einem Bohrzyklus gilt der Ort als unbekannt, bis ein Eilgang ihn wieder festlegt.
+  Nach einem Bohrzyklus gilt der Ort als unbekannt, bis ein Eilgang ihn wieder festlegt. Trägt
+  ein Zyklus ein eigenes F (G81 … F2), gilt auch der Vorschub als unbekannt, bis ein Fahrbefehl
+  wieder einen nennt: Die gefassten Sätze tragen dann kein F, wie die G1 ohne F davor (0.366.1;
+  bis dahin bekamen sie das F von vor dem Zyklus – F900 statt F120, in der Gegenprüfung gefunden).
 - **Vorschau:** `gefasst` ist ein Generator – die Vorschau im Fenster rechnet nur ihren Anfang.
 - **Gemessen:** Räumen T1 19 623 → 4 616 Sätze (24 %), 3D-Schlichten T5 3 040 → 1 268 (42 %; seine
   Spirale sinkt, dort nur Geraden), C-Ring: Räumen T3 11 522 → 2 170, Nut T3 10 771 → 2 689, Nut

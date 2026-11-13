@@ -247,7 +247,9 @@ class Achsbalken(QtGui.QWidget):
             maler.setPen(QtGui.QColor(ROT))
             masse = maler.fontMetrics()
             weit = masse.horizontalAdvance(text)
-            links_ueber = v0 < g0 - 1e-9
+            # Über dem Ende, das weiter übersteht – sind beide Grenzen überschritten, gehört die
+            # Zahl (das Größere, _zu_weit) dorthin, nicht immer nach links.
+            links_ueber = (g0 - v0) > (v1 - g1)
             x = stelle(v0) if links_ueber else stelle(v1) - weit
             x = min(max(x, self.NAME), max(self.NAME, self.width() - weit - 2))
             maler.drawText(

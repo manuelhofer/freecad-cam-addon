@@ -206,6 +206,24 @@ pruefe(
     f"der schnellere Vorschub bleibt ein eigener Satz: {frei}",
 )
 pruefe(namen.count("G2") == 1 and ("G2", befehle[-31][1]) in neu, "der Bogen, der schon da war")
+# Nach einem Zyklus mit eigenem F (G81 … F2) folgen G1 ohne F: Welcher Vorschub dann gilt,
+# entscheidet die Steuerung. Die gefassten Sätze tragen darum kein F – bis 0.366.0 bekamen sie das
+# F von vor dem Zyklus (F15 statt F2; an der Fanuc F900 statt F120, nachgestellt am 2026-11-13).
+nach_zyklus = [
+    ("G0", {"X": 30.0, "Y": 0.0, "Z": 5.0}),
+    ("G1", {"Z": 4.0, "F": 15.0}),
+    ("G81", {"X": 30.0, "Y": 0.0, "Z": -5.0, "R": 2.0, "F": 2.0}),
+    ("G80", {}),
+    ("G0", {"X": 10.0, "Y": 0.0, "Z": 5.0}),
+    ("G0", {"Z": 0.0}),
+    *[("G1", {"X": x, "Y": y}) for x, y, _z in kreis(0.0, 0.0, 10.0, 0.0, math.pi / 2)[1:]],
+]
+gefasst_z = list(bf.gefasst(nach_zyklus))
+boegen_z = [w for n, w in gefasst_z if n in ("G2", "G3")]
+pruefe(
+    boegen_z and len(gefasst_z) < len(nach_zyklus) and all("F" not in w for w in boegen_z),
+    f"nach dem Zyklus: {gefasst_z[4:]}",
+)
 letzte = [w for n, w in neu if n == "G1"][-1]
 pruefe(
     abs(letzte["X"] - 114.5) < 1e-9 and abs(letzte["Y"]) < 1e-9 and letzte["F"] == F,

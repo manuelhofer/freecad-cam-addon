@@ -12,6 +12,7 @@ import math
 import os
 import sys
 import tempfile
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -299,6 +300,50 @@ radien = {
     if abs(p.bogen[0] - 70.0) < 1e-6 and abs(p.bogen[1] - 30.0) < 1e-6
 }
 pruefe(10.7 in radien and 11.0 in radien, f"vorgebohrt: Radien {sorted(radien)}")
+
+
+# Die Wand steht gleich neben der Bohrung (eine Tasche, 0,1 mm neben ihr, mit dem Aufmaß vom Räumen
+# davor): Im Kreis der Bohrung ist bis 12 geräumt, der Rand des Fräsers reicht aber bis an sie –
+# kein Eilgang hinab, die Helix beginnt am Rohteil. Bis 0.366.0 sah `oben` nur den Kreis selbst:
+# Eilgang 9 mm tief durch das Wandaufmaß (Gegenprüfung, nachgestellt am 2026-11-13).
+eng = replace(sack, radius=8.5)
+
+
+def an_der_wand(q_, gx_, gy_):
+    q_.h[np.hypot(gx_ - 70.0, gy_ - 30.0) < 8.6] = 12.0
+
+
+wand = bb.planen(werte_fuer(schlichten=False), [eng], stand_mit(an_der_wand))
+knapp, anfang = erster_vorschub(wand)
+pruefe(knapp >= 21.0 - 1e-6 and abs(anfang - 21.0) < 1e-6, f"Wand daneben: Eilgang bis {knapp}")
+
+
+# Ein Körper-Rohteil mit Vorloch R 11,3 unter der Bohrung R 15: Der Materialstand zieht den Rand
+# des Körpers ein, bis R 12 steht dort „nichts“. Der Fräser (Helix 5,4 + R 6 = 11,4) reicht an die
+# Wand des Vorlochs: kein Eilgang hinab. Bis 0.366.0 18,5 mm im Eilgang an ihr entlang.
+def vorloch_113(q_, gx_, gy_):
+    q_.h[np.hypot(gx_ - 70.0, gy_ - 30.0) < 12.0] = -np.inf
+
+
+guss = bb.planen(werte_fuer(schlichten=False), [replace(sack, radius=15.0)], stand_mit(vorloch_113))
+knapp, anfang = erster_vorschub(guss)
+pruefe(knapp >= 21.0 - 1e-6 and abs(anfang - 21.0) < 1e-6, f"Vorloch 11,3: Eilgang bis {knapp}")
+
+
+# Vorloch R 14,7 mit 0,3 mm Bearbeitungsaufmaß unter der Bohrung R 15: Im Kreis steht nichts, sie
+# wird trotzdem gefräst und geschlichtet (bis 0.366.0 fiel sie ohne Meldung weg) – und auch, wenn
+# im Umkreis gar nichts mehr steht, bleibt der Schlichtgang an der Wand.
+def vorloch(radius):
+    def senken(q_, gx_, gy_):
+        q_.h[np.hypot(gx_ - 70.0, gy_ - 30.0) < radius] = -np.inf
+
+    return senken
+
+
+for radius, name in ((15.4, "Vorloch 14,7"), (17.5, "nichts im Umkreis")):
+    fast = bb.planen(werte_fuer(), [replace(sack, radius=15.0)], stand_mit(vorloch(radius)))
+    wandkreis = [p for p in boegen(fast) if abs(math.hypot(p.x - 70.0, p.y - 30.0) - 9.0) < 1e-6]
+    pruefe(fast.bohrungen == 1 and len(wandkreis) >= 4, f"{name}: {fast.bohrungen} Bohrungen")
 print("Materialstand ok")
 
 # --- Gegen die Kontur in denselben Bohrungen ---------------------------------------------------

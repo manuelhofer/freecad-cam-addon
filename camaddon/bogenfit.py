@@ -291,8 +291,14 @@ def gefasst(befehle, toleranz=TOLERANZ, stellen=STELLEN):
         if gross in FAHREN:
             ort = ziel
             f_gilt = f
-        elif any(a in werte for a in ort):
-            ort = {"X": None, "Y": None, "Z": None}  # ein Zyklus: wo er endet, sagt er nicht
+        else:
+            if any(a in werte for a in ort):
+                ort = {"X": None, "Y": None, "Z": None}  # ein Zyklus: wo er endet, sagt er nicht
+            if "F" in werte:
+                # Ein Zyklus mit eigenem F (G81 … F2): Welcher Vorschub danach für ein G1 ohne F
+                # gilt, entscheidet die Steuerung – hier wird keiner hineingeschrieben. Sonst
+                # bekäme der Bogen das F von davor (nachgestellt am 2026-11-13: F900 statt F120).
+                f_gilt = None
     if kette:
         yield from geschlossen()
 

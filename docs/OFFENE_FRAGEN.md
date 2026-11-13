@@ -48,7 +48,8 @@ Alle drei nehmen dasselbe weg, nichts geht ins Teil. Die Ringe sind heute **lang
 Räumen lässt höchstens ae = R zu (25 statt 35), die Quadratringe überlappen sich, um den Zapfen läuft ein
 eigener Kreisring mit 8 Rampen – 24 m Vorschub, wo 16 m reichten. Die Zeilen fahren jede zweite im
 Gegenlauf. (Sie tauchten dazu 20-mal senkrecht ins Material, links und rechts neben dem Zapfen – das ist
-seit 0.365.2 heraus: Jedes Stück neben dem Zapfen beginnt in der Luft.)
+seit 0.365.2 heraus: Jedes Stück neben dem Zapfen beginnt in der Luft; seit 0.366.1 auch, wenn
+das Rohteil über die Fläche hinaussteht.)
 
 Gebaut würden Ringe nur für den Planfräser: ae bis 0,7 D, an jeder Stelle im Bogen eingerollt, immer
 Gleichlauf, zusammenhängend, keine Rampe – was nur über eine Rampe ginge, bleibt dem Ø 12. Wie schnell das

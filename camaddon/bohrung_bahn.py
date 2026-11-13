@@ -362,15 +362,22 @@ def _halbkreis(punkte, von, nach, z, uhr):
 
 def material_oben(b, w, stand, r_helix_aussen):
     """(oben, frei_bis): wo über der Bohrung `b` das Material beginnt – für die Lagen das Höchste
-    in ihrem Kreis, für die Helix das Höchste unter ihr (Kreis mit `r_helix_aussen`, eine Zelle
-    Rand dazu). Ohne Materialstand beides das Rohteil (`w.oben`). Bis 0.363 begann die Helix immer
-    am Rohteil: Am Testteil liegt die Bohrung in der Insel, 11 mm tiefer, und das Räumen war davor
-    schon dort – 262 mm Helix im Vorschub durch die Luft (gemessen 2026-11-12)."""
+    in ihrem Kreis, für die Helix das Höchste unter ihr (Kreis mit `r_helix_aussen`), beide mit
+    zwei Zellen Rand. Ohne Materialstand beides das Rohteil (`w.oben`). Bis 0.363 begann die Helix
+    immer am Rohteil: Am Testteil liegt die Bohrung in der Insel, 11 mm tiefer, und das Räumen war
+    davor schon dort – 262 mm Helix im Vorschub durch die Luft (gemessen 2026-11-12).
+
+    Der Rand: eine Zelle für das Raster, eine für den Rand eines Körper-Rohteils, den der
+    Materialstand einzieht (`_eingezogen`). Mit einer Zelle – und `oben` ganz ohne – fuhr der Fräser
+    im Eilgang 9 mm tief durch das Wandaufmaß einer Tasche 0,1 mm neben der Bohrung und 18,5 mm an
+    der Wand eines Vorlochs entlang; eine Bohrung mit 0,3 mm Aufmaß im Vorloch fiel ganz weg
+    (Gegenprüfung, nachgestellt am 2026-11-13). Lieber einmal eine Helix zu viel."""
     if stand is None:
         return w.oben, w.oben
     mx, my = b.mitte
-    oben = min(w.oben, stand.hoechste_bei(mx, my, b.radius))
-    frei_bis = min(oben, stand.hoechste_bei(mx, my, r_helix_aussen + stand.schritt))
+    rand = 2.0 * stand.schritt
+    oben = min(w.oben, stand.hoechste_bei(mx, my, b.radius + rand))
+    frei_bis = min(oben, stand.hoechste_bei(mx, my, r_helix_aussen + rand))
     return oben, frei_bis
 
 
@@ -390,7 +397,19 @@ def _bohrung(punkte, b, w, r, stand=None):
     r_helix = min(r_aussen, KERN_ANTEIL * r)
     oben, frei_bis = material_oben(b, w, stand, r_helix + r)
     if oben <= z_grund + GLEICH:
-        return 0.0, 0, 0.0, math.inf
+        if not (w.schlichten and stand is not None and b.radius - r > GLEICH):
+            return 0.0, 0, 0.0, math.inf
+        if min(w.oben, b.z_oben) <= z_grund + GLEICH:
+            return 0.0, 0, 0.0, math.inf
+        # Im Kreis der Bohrung steht nichts mehr – die Wand wird trotzdem geschlichten, wie ohne
+        # Materialstand: Sonst fiele die Bohrung still aus dem Programm.
+        punkte.append(bn.Punkt(True, b.mitte[0], b.mitte[1], w.sicher))
+        knapp = min(w.sicher, min(w.oben, b.z_oben) + w.sicherheit)
+        if knapp < w.sicher:
+            punkte.append(bn.Punkt(True, b.mitte[0], b.mitte[1], knapp))
+        laenge = _schlichten(punkte, b, w, r, w.oben, z_grund, uhr)
+        punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, w.sicher))
+        return laenge, 0, 0.0, z_grund
     steigung = max(
         2 * math.pi * r_helix * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
     )
@@ -516,7 +535,7 @@ def planen(werte, liste, stand=None):
             zu_klein.append(b)  # dem Bohrer (oder einem kleineren Fräser) – die anderen trotzdem
             continue
         stueck, n_lagen, n_um, z = _bohrung(punkte, b, w, r, stand)
-        if n_lagen:
+        if stueck > 0:  # auch die, an der nur noch die Wand geschlichtet wird (0 Lagen)
             gefraest += 1
         laenge += stueck
         lagen += n_lagen

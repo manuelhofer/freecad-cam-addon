@@ -578,6 +578,18 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.1):* **Gegenprüfung der Änderungen vom 12.11.** (je Änderung ein Prüfer, je Fund ein
+  Zweifler, der ihn nachstellt). Behoben: Planfräsen – der Halbkreis zwischen zwei Zeilen schwenkte im
+  umgekehrten Raster in einen Zapfen neben dem Zeilenende (alt, seit 01.10.); „aus der Luft“ gilt auch,
+  wenn das Rohteil über die Fläche steht (Manuels Platte mit 6 mm Zugabe: 0 statt 20 Eintauchungen), die
+  Lage beginnt am freien Ende statt mit der Helix an der Wand, die Richtung ohne Eintauchen gewinnt
+  (Spezifikation Strategien 13.7). Bohrung fräsen (gefährlich, seit 0.364.0) – kein Eilgang mehr durch das
+  Wandaufmaß einer Tasche neben der Bohrung oder an der Wand eines Vorlochs entlang (zwei Zellen Rand um
+  Bohrung und Helix); eine Bohrung mit Aufmaß im Vorloch fällt nicht mehr still weg. Räumen – ein Loch,
+  das kleiner ist als der Fräser, gilt nicht mehr als vorgebohrt (Ø 12 tauchte senkrecht in Ø 11,4). Bögen –
+  nach einem Zyklus mit eigenem F bekommt ein gefasster Satz kein F mehr. Fenster – kein Klick auf Achs- und Zeitbalken, solange gerechnet wird (KeyError); beim Bohrer kein
+  Vergleichsknopf; die Bestückung liest nach dem Speichern eines Magazins neu; der Ratschlag unter der Maus
+  nur, wenn es zum Werkzeug einen Hinweis gibt.
 - *Neu (0.366.0):* **Prüffenster zeigt statt zu erzählen:** Am roten Achsbalken steht, wie weit es fehlt
   („220,00 mm zu weit“), ein Klick darauf fährt die Maschine an die Stelle. Die Hinweise unter „Kollision“
   sind je Werkzeug nur noch der Satz „gerechnet mit …“ samt Verweis; der Ratschlag dazu steht unter der Maus.

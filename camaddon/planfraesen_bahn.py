@@ -132,6 +132,7 @@ class _Ebene:
     noch: float = 0.0  # mit Materialstand: wie Planbahn
     weg: float = 0.0
     davor: tuple = ()
+    getaucht: int = 0  # so oft senkrecht ins Material (neben der Zeile davor: der Streifen ae)
 
 
 def ueberlauf_vorschlag(form):
@@ -220,7 +221,13 @@ def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
             ergebnisse = [e for e in ergebnisse if e.lagen]
         if not ergebnisse:
             continue
-        ergebnisse.sort(key=lambda e: e.zeit)
+        # Die schnellere Richtung – aber zuerst die, in der nirgends senkrecht ins Material
+        # getaucht wird (Grundsatz Einfahren; ein Messerkopf taucht nicht). Seit die Stücke neben
+        # einer Insel aus der Luft kommen, gewann sonst an zwei Zapfen die Richtung, in der das
+        # Stück zwischen ihnen bleibt: 12-mal 5 mm senkrecht mit dem Ø 32 für 0,2 min (nachgestellt
+        # am 2026-11-13).
+        # Nicht „nur im Gleichlauf“: Dort beginnt vor einer Wand jede Zeile so, das ist gewählt.
+        ergebnisse.sort(key=lambda e: (e.getaucht > 0 and not w.nur_gleichlauf, e.zeit))
         beste = ergebnisse[0]
         punkte.extend(beste.punkte)
         gefraest += 1
@@ -303,6 +310,7 @@ def _ebene(
     `gesenkt`: `oben` kommt schon aus ihm."""
     punkte = []
     lagen_gesamt = zeilen_gesamt = 0
+    getaucht = []  # wo eine Fahrt senkrecht ins Material taucht (_einfahrt)
     z_min = math.inf
     laenge = 0.0
     ziel = ebene.z + w.aufmass
@@ -496,12 +504,15 @@ def _ebene(
             stand if material is not None else None,
             material[3] if material is not None else 0.0,
         )
-        # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
+        # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang. In der Luft heißt: die
+        # Mitte der Stirn neben dem Rohteil (dort taucht _einfahrt so weit daneben ein, dass der
+        # Fräser frei ist). Bis 0.366.0 zählte, ob die Stirn das Rohteil berührt – steht es 1 mm
+        # über die Fläche, tat sie das am freien Ende um 0,05 mm, und die Lage begann an der Wand
+        # mit der Helix im Material (im Grundfall der Prüfung 1,94 statt 1,82 min).
         erste = int(np.flatnonzero(drin.any(axis=1))[0])
         js = np.flatnonzero(drin[erste])
-        if not im_rohteil[js[0]] and not im_rohteil[js[-1]]:
-            pass
-        elif not im_rohteil[js[-1]]:
+        daneben = (u_stellen < roh_u[0] - GLEICH) | (u_stellen > roh_u[1] + GLEICH)
+        if not daneben[js[0]] and daneben[js[-1]]:
             raster = raster.umgekehrt()
         mit_luecke = np.zeros((len(v_zeilen), anzahl + 2), dtype=bool)
         mit_luecke[:, 1:-1] = raster.drin
@@ -512,7 +523,7 @@ def _ebene(
             fahrten = _zellenfahrten(raster, mit_luecke)
         gefraest = set()  # (x, y) der Stellen, die auf dieser Lage schon gefräst sind
         for raster_fahrt, fahrt in fahrten:
-            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w, gefraest)
+            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w, gefraest, getaucht)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
         vorige = lage
@@ -533,7 +544,17 @@ def _ebene(
         # „keinen Platz für eine Zeile“).
         return ZU_SCHMAL
     return _Ebene(
-        punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
+        punkte,
+        lagen_gesamt,
+        zeilen_gesamt,
+        z_min,
+        laenge,
+        laengs_x,
+        zeit,
+        noch,
+        weg,
+        davor,
+        len(getaucht),
     )
 
 
@@ -654,7 +675,10 @@ def _zellenfahrten(raster, mit_luecke):
             richtung = -richtung
         fahrten.append(fahrt)
         for teil in vb._geteilt(fahrten, r_.zwischen):
-            ergebnis.append((r_, _von_der_luft(r_, teil)))
+            ergebnis.extend((r_, stueck) for stueck in _von_der_luft(r_, teil))
+        # `hier` bleibt das Ende der Fahrt, wie sie vor dem Umdrehen lief (das Ende in der Luft):
+        # Von dort gewählt, liegt die nächste Zelle günstiger als vom wirklichen Ende an der Insel
+        # – an Manuels Platte 23,98 statt 24,14 min, mit 6 mm Zugabe 23,74 statt 23,98 (2026-11-13).
         m_ende = int(fahrt[-1][1])
         j_ende = min(max(ende - 1, 0), len(raster.u_stellen) - 1)
         hier = (float(r_.u_stellen[j_ende]), float(r_.v_zeilen[m_ende]))
@@ -662,28 +686,47 @@ def _zellenfahrten(raster, mit_luecke):
 
 
 def _von_der_luft(r_, fahrt):
-    """Eine Fahrt aus einer einzigen Zeile, die im Rohteil begänne, deren anderes Ende aber in der
-    Luft liegt: andersherum – aus der Luft hinein (Grundsatz Einfahren 1), sonst die Fahrt, wie
-    sie ist. So eine Fahrt entsteht hinter einer Insel oder vor einer Wand, wo es zwischen zwei
-    Zeilen in der Tiefe nicht hinübergeht: Die zweite begann dort senkrecht im Material neben der
-    ersten – an Manuels Platte mit dem Plan 50 zweimal je Lage neben dem Zapfen, 35 von 50 mm der
-    Stirn im Material (gemessen 2026-11-12; ein Messerkopf taucht nicht)."""
-    if any(art != "zeile" for art, _m, _js in fahrt) or len({m for _art, m, _js in fahrt}) != 1:
-        return fahrt
-    m = fahrt[0][1]
-    alle = np.concatenate([np.atleast_1d(js) for _art, _m, js in fahrt])
+    """Die Fahrt als Liste von Fahrten, die aus der Luft kommen, wo es geht (Grundsatz Einfahren 1).
+    Beginnt ihre erste Zeile im Rohteil, liegt deren anderes Ende aber daneben, fährt diese Zeile
+    andersherum – aus der Luft hinein; folgen weitere Zeilen, werden sie eine eigene Fahrt (sie
+    beginnt dort, wo die erste Zeile in der Luft endete). Sonst [fahrt], wie sie ist. So eine Fahrt
+    entsteht hinter einer Insel oder vor einer Wand, wo es zwischen zwei Zeilen in der Tiefe nicht
+    hinübergeht: Die zweite begann dort senkrecht im Material neben der ersten – an Manuels Platte
+    mit dem Plan 50 zweimal je Lage neben dem Zapfen, 35 von 50 mm der Stirn im Material (gemessen
+    2026-11-12; ein Messerkopf taucht nicht)."""
+    art, m, js = fahrt[0]
+    if art != "zeile":
+        return [fahrt]
+    # Die erste Zeile: alle Stücke am Anfang der Fahrt, die in ihr liegen.
+    erste = 1
+    while erste < len(fahrt) and fahrt[erste][0] == "zeile" and fahrt[erste][1] == m:
+        erste += 1
+    alle = np.concatenate([np.atleast_1d(js_) for _art, _m, js_ in fahrt[:erste]])
     beginn, schluss = int(alle[0]), int(alle[-1])
     von, bis = int(alle.min()), int(alle.max())
     if schluss not in (von, bis) or von == bis:
-        return fahrt
+        return [fahrt]
     n = len(r_.u_stellen)
 
     def im_rohteil(stelle):
         return bool(r_.im_rohteil[min(max(stelle - 1, 0), n - 1)])
 
-    if not im_rohteil(beginn) or im_rohteil(schluss):
-        return fahrt
-    return [("zeile", m, vb._von_bis(schluss, von if schluss == bis else bis))]
+    def mitte_daneben(stelle):
+        # Die Mitte der Stirn neben dem Rohteil: Dort beginnt _einfahrt so weit daneben, dass der
+        # ganze Fräser frei ist (_daneben). Ragt das Rohteil über die Fläche hinaus, berührt die
+        # Stirn es am Zeilenende noch – an Manuels Platte mit 6 mm Zugabe rundum blieb darum jedes
+        # Eintauchen neben dem Zapfen (nachgestellt am 2026-11-13).
+        u = float(r_.u_stellen[min(max(stelle - 1, 0), n - 1)])
+        return u < r_.roh_u[0] - GLEICH or u > r_.roh_u[1] + GLEICH
+
+    if not im_rohteil(beginn) or mitte_daneben(beginn) or not mitte_daneben(schluss):
+        return [fahrt]
+    gedreht = [("zeile", m, vb._von_bis(schluss, von if schluss == bis else bis))]
+    # Was nach der ersten Zeile kommt: der Schritt zur nächsten entfällt, sie beginnt für sich.
+    rest = fahrt[erste:]
+    while rest and rest[0][0] != "zeile":
+        rest = rest[1:]
+    return [gedreht, rest] if rest else [gedreht]
 
 
 def _luecken_zu(drin, ganz, schritt_u, laenge):
@@ -815,12 +858,12 @@ class _Raster:
         return (float(u), float(v)) if self.laengs_x else (float(v), float(u))
 
 
-def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None):
+def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None, getaucht=None):
     """Eine Fahrt (vierachs_bahn._fahrten mit Zeile = Zeile quer, Winkelschritt = Stelle
     längs, mit der Lücke an beiden Enden) an die Bahn: hinein über das erste Stück, die Zeilen,
     zwischen ihnen Halbkreis oder Schritt, am Ende hinauf. `gefraest`: die Stellen (x, y), die
-    auf dieser Lage schon gefräst sind – die Fahrt trägt ihre ein. Gibt die Länge im Vorschub
-    zurück."""
+    auf dieser Lage schon gefräst sind – die Fahrt trägt ihre ein. `getaucht`: Liste, an die
+    _einfahrt hängt, wo sie senkrecht ins Material taucht. Gibt die Länge im Vorschub zurück."""
     r_ = raster
     teile = []  # (art, m, js) mit js ohne die Lücke (0 … N − 1)
     for art, m, js in fahrt:
@@ -836,7 +879,7 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None):
     # unter der Stirn nur ihr Streifen ae (am Zapfen begann so die Zeile neben ihm mit 213 mm
     # Rampe, obwohl die Zeile darüber schon gefahren war).
     nachbar = nachbar or _neben_gefraest(r_, m0, int(js0[0]), gefraest)
-    laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w, nachbar)
+    laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w, nachbar, getaucht)
     if w.nur_gleichlauf and len(js0) > 1:
         # Beginnt die Zeile an einer Wand, bliebe dort zwischen ihr und der vorigen die Ecke
         # der Stirn stehen (hin und her nimmt sie der Schritt): an der Wand hin und zurück.
@@ -950,7 +993,7 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
     return laenge
 
 
-def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
+def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False, getaucht=None):
     """Über den Anfang der ersten Zeile im Eilgang, hinab bis knapp über das Material: in der
     Luft senkrecht mit dem Eintauchvorschub auf die Lage; im Rohteil senkrecht bis ans Material
     und dann mit der Helix (_helix_platz), ohne Platz für sie über die Rampe längs der Zeile –
@@ -993,6 +1036,8 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     if knapp < w.sicher:
         punkte.append(bn.Punkt(True, x0, y0, knapp))
     if luft or len(js) < 2 or vorige <= lage + GLEICH or nachbar:
+        if getaucht is not None and not luft and vorige > lage + GLEICH:
+            getaucht.append((x0, y0, lage))  # senkrecht ins Material – zählt bei der Richtung
         punkte.append(bn.Punkt(False, x0, y0, lage, True))
         return 0.0
     helix = _helix_platz(r_, m, u, w)
@@ -1140,7 +1185,12 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer, mit_zug=()):
     laenge = 0.0
     if frei and halb > GLEICH:
         u_mitte = u
-        u_durch = u + richtung * halb
+        # `richtung` zählt in Stellen – im umgekehrten Raster (_ebene: vom Ende in der Luft her)
+        # fallen die u. Ohne das Vorzeichen schwenkte der Halbkreis dort zurück über die Zeilen
+        # statt hinaus: mit dem Ø 50 11,7 mm in einen Zapfen neben dem Zeilenende (nachgestellt am
+        # 2026-11-13, Platte mit Wand links; so seit 2026-10-01).
+        steigend = len(r_.u_stellen) < 2 or float(r_.u_stellen[1]) >= float(r_.u_stellen[0])
+        u_durch = u + richtung * (halb if steigend else -halb)
         v_mitte = (v_von + v_bis) / 2
         mx, my = r_.xy(u_mitte, v_mitte)
         durch = r_.xy(u_durch, v_mitte)

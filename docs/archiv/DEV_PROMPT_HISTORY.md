@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-01 gegenpruefung-der-aenderungen-vom-12-11
+
+### EINGELESEN
+- Manuel, 2026-11-12: „ich hab eigentlich auf ultracode gestellt .. also bitte auch sinnvolle sachen machen“
+  und „bitte arbeite weiter bis morgen früh“.
+- Die am 12.11. gepushten Änderungen (0.364.0 bis 0.366.0) hatten nur meine eigenen Prüfungen gesehen.
+  Workflow „Gegenprüfung“: je Änderung ein Prüfer (Bögen, Bohrung fräsen, Morph im Loch, Planfräsen,
+  Fenster), je Prüfer ein Zweifler, der jeden Fund mit einer Prüfdatei nachstellt
+  (`~/freecad_cam/wip/pruefung_1112/`).
+- Workflow „Zacken und zweite Reihe“: Kandidaten 9, 5, 10 der Rangliste gemessen und gegengerechnet.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`: `_schritt` (Halbkreis im umgekehrten Raster), `_von_der_luft` (Mitte der
+  Stirn neben dem Rohteil; Fahrten über mehrere Zeilen), `_ebene` (Startende, Zähler `getaucht`),
+  `planen` (Richtung ohne Eintauchen zuerst), `_einfahrt`/`_fahrt` (`getaucht`).
+- `camaddon/bohrung_bahn.py`: `material_oben` (zwei Zellen Rand, auch für `oben`), `_bohrung` (nur
+  schlichten, wenn im Kreis nichts mehr steht), `planen` (zählt auch die).
+- `camaddon/raeumen_bahn.py`: `_loch_im_material` (Radius bis zum nächsten Material),
+  `_ringe_morph_tasche` (feste Schwelle für „vorgebohrt“).
+- `camaddon/bogenfit.py`: nach einem Zyklus mit eigenem F kein F in den gefassten Sätzen.
+- `camaddon/gui_reichweite.py`, `gui_kollision.py`, `gui_schnittwerte.py`, `gui_bestueckung.py`: vier
+  Fenster-Funde und die Seite der Zahl am Achsbalken.
+- `tests/test_planfraesen.py`, `test_bohrung.py`, `test_raeumen.py`, `test_bogenfit.py`,
+  `test_reichweite.py`, `tests/gui/szenario_bestueckung.py`.
+- `docs/spezifikation_strategien.md` (13.7), `docs/spezifikation_steuerung.md` (34),
+  `docs/OFFENE_FRAGEN.md` (Frage 2), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.366.1).
+
+### ERGEBNIS
+- Planfräsen: Halbkreis zwischen zwei Zeilen 35,11 statt 23,3 mm von der Zapfenachse (Ø 50, Wand links;
+  der Fehler bestand seit 01.10.). Manuels Platte mit 6 mm Zugabe: 0 statt 20 Eintauchungen, 23,7 statt
+  24,7 min; ohne Zugabe unverändert 23,98. Grundfall der Prüfdatei 1,76 statt 1,94 min (Beginn am freien
+  Ende statt Helix an der Wand). Zwei Zapfen: wieder die Richtung ohne Eintauchen.
+- Bohrung fräsen: kein Eilgang mehr am Wandaufmaß oder an einer Vorlochwand entlang; die Bohrung mit
+  Aufmaß im Vorloch wird gefräst.
+- Räumen: Loch Ø 11,4 unter dem Ø 12 → Helix statt senkrecht.
+- Kandidaten 9, 5, 10: alle „lohnt nicht“ (Zahlen in 13.7), keine Frage an Manuel.
+- Grün: `test_planfraesen`, `test_bohrung`, `test_raeumen`, `test_bogenfit`, `test_reichweite`,
+  `test_postprozessor_nachfahren`, `test_materialstand`, `test_freiwege`, `test_quader`, `test_pruefstand`,
+  `test_testteil`, `test_goldene_bahnen`, `szenario_bestueckung`.
+- Sehen: eine Platte mit Wand an einer Seite und Zapfen planfräsen – die Halbkreise am freien Ende
+  schwenken nach außen, die Lage beginnt am freien Ende neben dem Rohteil.
 ## P-2026-11-12-06 pruefenster-zeigt-statt-erzaehlt
 
 ### EINGELESEN

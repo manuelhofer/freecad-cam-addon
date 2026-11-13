@@ -2519,13 +2519,14 @@ Gegenrechnung in den Ordnern daneben.
 | 25 | Was rund ist, wird gedreht – Hüllkontur vordrehen (CLX550) | gemessen → Frage 3 |
 | 24 | Zwei gleiche Schlichtschnitte, dazwischen misst der Taster | → Frage 1 |
 | 22 | Einfahren durch ein Loch, das das Teil ohnehin hat | gemessen: kein Zeitgewinn, keine Frage |
-| 18 | Werkzeug bleibt drin: Folge über alle Ebenen nach Wechsel-, Schwenk- und Eilgangzeit | offen |
+| 18 | Werkzeug bleibt drin: Folge über alle Ebenen nach Wechsel-, Schwenk- und Eilgangzeit | gemessen: lohnt nicht (≈ 1 %), keine Frage |
 | 17 | Vorschub je Satz nach wirklicher Spandicke | am Testteil gemessen (13.6): klein |
 | 17 | Skelett-Spirale für lange Taschen und Taschen mit Insel | offen (nur Forschung) |
-| 16 | Innenecken entlasten (ausbohren, ausstechen, vorschälen) | offen |
+| 16 | Innenecken entlasten (ausbohren, ausstechen, vorschälen) | Ausbohren gemessen: lohnt nicht, keine Frage |
 | 16 | Hinter der Kante: Ringnut, T-Nut, rückwärts senken mit dem Scheibenfräser | offen – fehlt im Addon |
 | 16 | Rohteil antasten, Planlagen nach Messwert | offen |
-| ≤ 15 | Drehzahl nach wirksamem Ø der Kugel; kurz gespannt zuerst; Tonne an der 5-Achs; Gratkarte; Schneidenkonto; Abschnitt für Abschnitt fertig; dünne Wand gestützt; Ratter-Probeschnitt | offen |
+| 15 | Drehzahl nach wirksamem Ø der Kugel | gemessen: lohnt nicht (die Teile sind steil), keine Frage |
+| ≤ 15 | kurz gespannt zuerst; Tonne an der 5-Achs; Gratkarte; Schneidenkonto; Abschnitt für Abschnitt fertig; dünne Wand gestützt; Ratter-Probeschnitt | offen |
 
 **Gemessen (je Kandidat ein Rechner, danach ein zweiter, der die Zahlen auf anderem Weg nachrechnet):**
 
@@ -2545,6 +2546,52 @@ Gegenrechnung in den Ordnern daneben.
   Bild [planfraesen_zeilen_aus_der_luft.png](bilder/vorschlaege/planfraesen_zeilen_aus_der_luft.png).
   Liegen beide Enden eines Stücks im Rohteil (zwischen zwei Inseln), bleibt es beim Eintauchen
   neben der Zeile davor oder der Helix.
+- **Gegenprüfung des Planfräsens (P-2026-11-13-01, 0.366.1)** – ein zweiter Prüfer hat die Änderung
+  nachgestellt und vier Dinge gefunden, alle behoben:
+  - *Halbkreis im umgekehrten Raster (alt, seit 2026-10-01):* Beginnt die Lage am Ende in der Luft,
+    läuft das Raster umgekehrt; `_schritt` rechnete den Durchgangspunkt des Halbkreises mit der
+    Richtung in Stellen statt in mm – der Bogen schwenkte zurück über die Zeilen statt hinaus. An
+    einer Platte mit Wand links und Zapfen neben dem Zeilenende fuhr der Ø 50 so 11,7 mm in den
+    Zapfen (Achse 23,3 statt 35 mm entfernt). Jetzt 35,11 mm.
+  - *„In der Luft“ heißt: die Mitte der Stirn neben dem Rohteil* – nicht mehr: die Stirn berührt
+    es nicht. Steht das Rohteil über die Fläche (Manuels Platte mit 6 mm Zugabe), berührte die Stirn
+    es am Zeilenende noch, nichts wurde umgedreht: wieder 20 Eintauchungen. Jetzt 0, 23,7 statt
+    24,7 min. Dasselbe Kriterium wählt das Startende der Lage (`_ebene`): Mit 1 mm Zugabe begann
+    sie bisher an der Wand mit der Helix im Material, obwohl das andere Ende frei ist (Grundfall
+    der Prüfdatei: 1,76 statt 1,94 min).
+  - *Fahrten über mehrere Zeilen:* Beginnt die erste Zeile im Material und endet neben dem Rohteil,
+    fährt sie für sich aus der Luft, der Rest beginnt als eigene Fahrt am freien Ende.
+  - *Die Richtungswahl zählt das Eintauchen:* Zuerst die Richtung, in der nirgends senkrecht ins
+    Material getaucht wird, dann die schnellere (nicht bei „nur im Gleichlauf“). An zwei Zapfen
+    nebeneinander gewann sonst die Richtung, in der das Stück zwischen ihnen bleibt – 12-mal 5 mm
+    senkrecht mit dem Ø 32 für 0,2 min.
+  Manuels Platte ohne Zugabe: unverändert 23,98 min (Scheibe 25).
+- **Gegenprüfung „Bohrung fräsen beginnt am Material“ (0.364.0 → 0.366.1):** Der Rand um Bohrung
+  und Helix war zu knapp (eine Zelle, für `oben` keine): Eilgang 9 mm tief durch das Wandaufmaß
+  einer Tasche 0,1 mm neben der Bohrung, 18,5 mm an der Wand eines Vorlochs im Körper-Rohteil
+  entlang (der Materialstand zieht dessen Rand ein), und eine Bohrung mit 0,3 mm Aufmaß im Vorloch
+  fiel ohne Meldung weg. Jetzt zwei Zellen Rand für beide Höhen (`bohrung_bahn.material_oben`);
+  steht im Kreis der Bohrung nichts mehr, wird die Wand trotzdem geschlichtet. Am Testteil
+  unverändert (die Bohrung liegt frei in der Insel).
+- **Gegenprüfung „Vorbohren trifft die Mitte“ (0.365.1 → 0.366.1):** „Vorgebohrt“ hing an der
+  Schwelle des Einfahrens, die mit ae wächst (bei ae 6: 77 % der Stirn) – der Ø 12 tauchte
+  senkrecht in ein Loch Ø 11,4, bei ae 6 in eines mit Ø 8. Jetzt: der Lochradius aus dem Abstand
+  zum nächsten Knoten mit Material, und unter der Stirn höchstens ein Ring von einer halben Zelle
+  (Anteil Raster ÷ R). Sonst die Helix um das Loch.
+- **Drei weitere Kandidaten gemessen und gegengerechnet, alle „lohnt nicht“ – keine Frage:**
+  - *Werkzeug bleibt drin (Folge über alle Ebenen):* Der Schwenkteil ist schon nach Werkzeug
+    sortiert (1 Wechsel). Am Geist 9 → 1 Wechsel, dafür 6 → 11 Schwenks: 73 s von 116 min (1,1 %)
+    bei 10 s Wechselzeit – und nur, wenn die Maschine ein M6 mit dem Werkzeug, das schon steckt,
+    überspringt (das Programm schreibt vor jeder Operation „T M6“).
+  - *Ecken ausbohren (dreieckige Tasche, T3):* Die Bremsen kosten heute 0,03 min (20 tief: 0,05) –
+    mehr ist nicht zu holen. Ein Ø 3 in den Spitzen ändert nichts (29 gebremste Sätze vorher und
+    nachher, sie liegen um die Mitte); bremsfrei nur mit Ø 6 in den Spitzen und Ø 11,4 in der
+    R-6-Ecke: 0,73 statt 0,27 min. Standzeit und Maß in der Ecke sind nicht gemessen.
+  - *Drehzahl nach wirksamem Ø der Kugel:* Mulde (Neigung im Median 57°) und Geist (79°) schneiden
+    fast überall schon mit vollem Ø. Obergrenze mit eigener Drehzahl je Satz: Mulde 1,35 → 1,25
+    min, Geist 43,5 → 43,2; mit 2–3 Zonen und 1,5 s Hochlauf langsamer als heute.
+  - Nebenbefund am Geist: Das Schruppen in den Ebenen A90 C±90 trägt 1 bzw. 0 mm³ ab – 0,9 + 0,4
+    min fast reine Luft (offen: solche Operationen nicht anlegen).
 - **Vorgedreht (Ring Ø 65 aus Ø 70):** „Rundum schruppen“ heute 12,9 min (vf 859, ohne Eilgang),
   mit plan gedrehter Stirn 9,8 min, dazu längs Ø 65,6 gedreht 6,9 min; bei vf 360: 30,7 → 23,3 →
   15,8 min. Die 0,7 mm Planzugabe kosten heute 3,8 km Vorschub vor dem Teil und rund 130

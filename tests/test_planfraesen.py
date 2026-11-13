@@ -154,7 +154,9 @@ in_lage = [p for p in vorschub if abs(p.z - 20.0) < 1e-6]
 # Längs: vor dem Absatz (x = 10) hält die Stirn mit R 6 an, über das Ende (60) läuft die Mitte
 # um den Überlauf 0,6 Ø = 7,2 hinaus – und nicht weiter als das Rohteil (61) plus R.
 ueberlauf = pb.UEBERLAUF_ANTEIL * 2 * R
-x_links, x_rechts = min(p.x for p in in_lage), max(p.x for p in in_lage)
+# (Ohne den Punkt, an dem die Lage neben dem Rohteil eintaucht – der liegt noch weiter draußen.)
+x_links = min(p.x for p in in_lage)
+x_rechts = max(p.x for p in in_lage if not p.eintauchen)
 pruefe(
     x_links >= 10.0 + R - 1e-6
     and x_links < 10.0 + R + 0.5
@@ -175,26 +177,43 @@ pruefe(
     and abs(max(p.y for p in in_lage) - letzte_y) < 1e-6,
     f"y {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
-# Die Helix ins Material (statt der Rampe, P-2026-10-16-25): Bögen hinab um eine Mitte; die
-# übrigen Bögen sind die Halbkreise am freien Ende.
+
+
+# Hinein aus der Luft: Das Ende der Zeilen bei x 67 liegt neben dem Rohteil (bis 61) – dort beginnt
+# die Lage, keine Helix. Bis 0.366.0 begann sie an der Wand mit der Helix im Material, weil die
+# Stirn das Rohteil am freien Ende noch um 0,05 mm berührte (1,94 statt 1,76 min). Die Helix
+# (statt der Rampe, P-2026-10-16-25) kommt, wo beide Enden im Material liegen: dasselbe Teil mit
+# dem Rohteil bis x 81 – Bögen hinab um eine Mitte. Die übrigen Bögen sind die Halbkreise am
+# freien Ende.
+def helix_der(b):
+    """(Mitten, Sätze) der Helix einer Bahn: Bögen, die hinab führen, und alle um ihre Mitten."""
+    mitten = {
+        (round(q_.bogen[0], 6), round(q_.bogen[1], 6))
+        for p_, q_ in zip(b.punkte, b.punkte[1:], strict=False)
+        if not q_.eilgang and q_.bogen is not None and q_.z < p_.z - 1e-9
+    }
+    saetze = [
+        p_
+        for p_ in b.punkte
+        if not p_.eilgang
+        and p_.bogen is not None
+        and (round(p_.bogen[0], 6), round(p_.bogen[1], 6)) in mitten
+    ]
+    return mitten, saetze
+
+
 paare = list(zip(bahn.punkte, bahn.punkte[1:], strict=False))
-helix_mitten = {
-    (round(b.bogen[0], 6), round(b.bogen[1], 6))
-    for a, b in paare
-    if not b.eilgang and b.bogen is not None and b.z < a.z - 1e-9
-}
-helix = [
-    p
-    for p in vorschub
-    if p.bogen is not None and (round(p.bogen[0], 6), round(p.bogen[1], 6)) in helix_mitten
-]
+helix_mitten, helix = helix_der(bahn)
 boegen = [p for p in vorschub if p.bogen is not None and p not in helix]
-pruefe(len(helix_mitten) == 1, f"Helix: {len(helix_mitten)} Mitten")
+pruefe(not helix_mitten, f"aus der Luft, trotzdem Helix: {len(helix_mitten)} Mitten")
+im_material = pb.planen(netz, replace(werte, rohteil=(-1.0, 81.0, -1.0, 41.0)), [flaeche])
+mitten_m, helix_m = helix_der(im_material)
+pruefe(len(mitten_m) == 1, f"Helix: {len(mitten_m)} Mitten")
 pruefe(
-    helix
-    and all(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) <= 0.9 * R + 1e-6 for p in helix)
-    and all(erste_y - 1e-6 <= m[1] <= letzte_y + 1e-6 for m in helix_mitten),
-    f"Helix: {sorted(helix_mitten)}",
+    helix_m
+    and all(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) <= 0.9 * R + 1e-6 for p in helix_m)
+    and all(erste_y - 1e-6 <= m[1] <= letzte_y + 1e-6 for m in mitten_m),
+    f"Helix: {sorted(mitten_m)}",
 )
 rampe = [
     (a, b)
@@ -231,13 +250,16 @@ pruefe(
 )
 knick = [p for p in vorschub if abs(p.x - (61.0 - R)) < 1e-6]
 pruefe(len(knick) >= anzahl_zeilen // 2, f"der Punkt vor dem Austritt fehlt: {len(knick)}")
-# Hinein: die Lage beginnt in der Luft vor der Wand (x = 16) senkrecht; wo es im Material
-# anfängt, mit der Helix (oben).
+# Hinein: Die Lage beginnt am freien Ende, so weit neben dem Rohteil (61 + R), dass der ganze
+# Fräser frei ist – dort senkrecht hinab und seitlich hinein.
 eintauchen = [p for p in vorschub if p.eintauchen]
-pruefe(len(eintauchen) >= 1, f"Eintauchen: {len(eintauchen)}")
+pruefe(
+    len(eintauchen) >= 1 and all(p.x >= 61.0 + R - 1e-6 for p in eintauchen),
+    f"Eintauchen: {[(round(p.x, 2), round(p.y, 2)) for p in eintauchen]}",
+)
 start = bahn.punkte[0]
 pruefe(
-    start.eilgang and abs(start.z - 31.0) < 1e-9 and abs(start.x - x_links) < 1e-6, f"Start {start}"
+    start.eilgang and abs(start.z - 31.0) < 1e-9 and start.x >= 61.0 + R - 1e-6, f"Start {start}"
 )
 pruefe(bahn.punkte[-1].eilgang and abs(bahn.punkte[-1].z - 31.0) < 1e-9, "Ende nicht oben")
 pruefe(bahn.laenge > anzahl_zeilen * 50.0, f"Länge {bahn.laenge}")
@@ -584,6 +606,93 @@ pruefe(
     f"Ø 50: {len(ueber_dem_rohteil)}-mal senkrecht über dem Rohteil hinab: {ueber_dem_rohteil[:4]}",
 )
 pruefe(gross.zeit < 24.5, f"Ø 50 auf der Platte: {gross.zeit:.2f} min (ohne Eintauchen 24,0)")
+
+
+def naechste_am_zapfen(bahn, zx, zy, unter):
+    """Der kleinste Abstand der Fräserachse von der Achse des Zapfens bei (zx, zy), auf allen
+    Vorschubsätzen unter `unter` – Bögen als Bögen abgetastet."""
+    nah = math.inf
+    for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if nach.eilgang or min(von.z, nach.z) > unter - 1e-6:
+            continue
+        if nach.bogen is None:
+            orte = [
+                (von.x + t * (nach.x - von.x), von.y + t * (nach.y - von.y))
+                for t in np.linspace(0.0, 1.0, 41)
+            ]
+        else:
+            mx, my, uhr = nach.bogen
+            a0 = math.atan2(von.y - my, von.x - mx)
+            a1 = math.atan2(nach.y - my, nach.x - mx)
+            if uhr and a1 > a0:
+                a1 -= 2 * math.pi
+            if not uhr and a1 < a0:
+                a1 += 2 * math.pi
+            radius = math.hypot(von.x - mx, von.y - my)
+            orte = [
+                (mx + radius * math.cos(a), my + radius * math.sin(a))
+                for a in np.linspace(a0, a1, 61)
+            ]
+        nah = min(nah, min(math.hypot(x - zx, y - zy) for x, y in orte))
+    return nah
+
+
+def senkrecht_im_rohteil(bahn, roh, radius):
+    """Die Stellen, an denen die Bahn senkrecht hinab fährt und die Stirn dabei über dem Rohteil
+    (x0, x1, y0, y1) steht."""
+    return [
+        (round(p.x, 1), round(p.y, 1), round(p.z, 1))
+        for p in bahn.punkte
+        if p.eintauchen
+        and roh[0] - radius + 0.5 < p.x < roh[1] + radius - 0.5
+        and roh[2] - radius + 0.5 < p.y < roh[3] + radius - 0.5
+    ]
+
+
+# Ragt das Rohteil rundum 6 mm über die Fläche, berührt die Stirn es am Zeilenende noch – die
+# Stücke neben dem Zapfen kommen trotzdem aus der Luft: Die Mitte liegt dort neben dem Rohteil, die
+# Einfahrt beginnt so weit daneben, dass der Fräser frei ist (_daneben). Bis 0.366.0 blieb mit
+# dieser Zugabe jedes Eintauchen (2 je Lage, 71 % der Stirn im Material; nachgestellt 2026-11-13).
+roh_gross = (-106.0, 106.0, -106.0, 106.0)
+gross6 = pb.planen(
+    hf.netze_je_hoehe(manuel, ebenen_manuel), replace(werte_gross, rohteil=roh_gross), ebenen_manuel
+)
+stellen = senkrecht_im_rohteil(gross6, roh_gross, 25.0)
+pruefe(not stellen, f"Ø 50, Rohteil +6: {len(stellen)}-mal senkrecht im Rohteil: {stellen[:4]}")
+
+# Eine Wand am unteren Ende der Zeilen, Luft am oberen: Das Raster läuft dann umgekehrt (vom Ende
+# in der Luft her). Der Halbkreis zwischen zwei Zeilen schwenkt trotzdem hinaus – bis 0.366.0
+# schwenkte er dort zurück über die Zeilen und mit dem Ø 50 11,7 mm in einen Zapfen neben dem
+# Zeilenende (die Richtung zählte in Stellen, gerechnet wurde in mm; so seit 2026-10-01).
+wandteil = Part.makeBox(200, 200, 30, FreeCAD.Vector(0, 0, -30))
+wandteil = wandteil.fuse(Part.makeBox(10, 200, 4, FreeCAD.Vector(0, 0, 0)))
+wandteil = wandteil.fuse(Part.makeCylinder(10, 4, FreeCAD.Vector(140, 130, 0))).removeSplitter()
+ebenen_wand = [e for e in hf.ebenen_oben(wandteil) if abs(e.z) < 1e-6]
+werte_wand = pb.Planwerte(
+    ff.scheibe(25.0), 2.0, 35.0, 0.0, 4.0, 9.0, (0.0, 200.0, 0.0, 200.0),
+    vorschub=955.0, eintauchen=286.0, laengs=True,
+)  # fmt: skip
+wand_bahn = pb.planen(hf.netze_je_hoehe(wandteil, ebenen_wand), werte_wand, ebenen_wand)
+nah = naechste_am_zapfen(wand_bahn, 140.0, 130.0, 4.0)
+pruefe(nah >= 35.0 - 0.05, f"Wand links, Zapfen: Achse {nah:.2f} mm vom Zapfen (nötig 35)")
+print(f"Wand links, Zapfen bei (140, 130): Achse dem Zapfen am nächsten {nah:.2f} mm")
+
+# Zwei Zapfen nebeneinander, Richtung frei: Längs x bleibt das Stück zwischen ihnen (beide Enden im
+# Rohteil, dort wird senkrecht getaucht), längs y nicht. Gewählt wird die Richtung ohne Eintauchen,
+# auch wenn die andere 0,2 min schneller ist (bis 0.366.0: 12-mal 5 mm senkrecht mit dem Ø 32).
+zwei = Part.makeBox(200, 200, 30, FreeCAD.Vector(-100, -100, -30))
+for zx in (-45.0, 45.0):
+    zwei = zwei.fuse(Part.makeCylinder(12, 20, FreeCAD.Vector(zx, 20, 0)))
+zwei = zwei.removeSplitter()
+ebenen_zwei = [e for e in hf.ebenen_oben(zwei) if abs(e.z) < 1e-6]
+roh_zwei = (-100.0, 100.0, -100.0, 100.0)
+werte_zwei = pb.Planwerte(
+    ff.scheibe(16.0), 5.0, 24.0, 0.0, 20.0, 25.0, roh_zwei, vorschub=955.0, eintauchen=286.0
+)  # fmt: skip
+zwei_bahn = pb.planen(hf.netze_je_hoehe(zwei, ebenen_zwei), werte_zwei, ebenen_zwei)
+stellen = senkrecht_im_rohteil(zwei_bahn, roh_zwei, 16.0)
+pruefe(not stellen, f"zwei Zapfen: {len(stellen)}-mal senkrecht im Rohteil: {stellen[:4]}")
+print(f"zwei Zapfen, Ø 32: {zwei_bahn.zeit:.2f} min, längs x {zwei_bahn.richtungen}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))
