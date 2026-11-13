@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-05 freiwege-eilgang-hinab-zwei-zellen-rand
+
+### EINGELESEN
+- Workflow „Sicherheit der Bahngeneratoren“ (Kontur, Nut, 3D-Schruppen, 3D-Schlichten, Freiwege) auf dem
+  eingefrorenen Stand 0.366.3 (`~/freecad_cam/wip/wt_pruef`); am Nutzungslimit liefen vier von acht Agenten
+  durch: Freiwege gesucht und nachgestellt, Kontur und 3D-Schruppen nur gesucht.
+- Drei bestätigte Freiwege-Funde mit erprobter Korrektur in einer Kopie
+  (`~/freecad_cam/wip/pruefung_1113/freiwegez/`).
+- Voller Lauf aller Prüfdateien ohne Oberfläche auf 0.366.4 (`pruefhelfer/voll_lauf.sh`).
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_tiefer_im_eilgang` und `_tiefste_spitze` – zwei Zellen Rand statt einer halben;
+  `zeit_im_freien(…, job=None)` setzt das Fertigteil wie `fuer_operation`.
+- `camaddon/gui_bearbeitung.py`, `camaddon/bearbeitung_vorschau.py`: geben den Job mit.
+- `tests/test_freiwege.py`: Eilgang hinab an der Wand mit dünnem Aufmaß; frei bleibt er tief.
+- `tests/golden/freiform_simultan_nc.json`, `kuppel_simultan_gesamt_nc.json`, `simultan_folge.json`: neu
+  (Bögen-Fassen seit 0.364.0: 45 143 → 42 670 bzw. 4 217 → 3 793 Sätze, Bahnpunkte unverändert).
+- `docs/STATUS_SNAPSHOT.md` (B-029 bis B-032 offen), `package.xml` (0.366.5).
+
+### ERGEBNIS
+- Rundmaterial Ø 60, Fräser R 5 am Mantel: 0 von 200 Lagen mit Eilgang im Material (vorher 110, bis
+  37,4 mm³); Wand mit Aufmaß 0,05 bis 0,30: 0 von 50 je Aufmaß (vorher bis 20 von 50).
+- Voller Lauf: 143 von 147 grün; die vier Simultan-Prüfdateien nach neuen Referenzen grün.
+- Testteil durch den ganzen Weg: 13,63 min (Räumen T1 9,82, T3 0,37, Kontur 0,64, 3D-Schruppen 0,78, Bohrung
+  fräsen 0,24, Restmaterial 0,25, 3D-Schlichten 1,52).
+- Grün: `test_freiwege`, `test_testteil`, `test_goldene_bahnen`, `test_raeumen`, `test_schruppen3d`,
+  `test_simultan_nc`, `test_simultan_gesamt`, `test_simultan_folge`, `test_simultan_export_referenz`.
+- Offen: B-029 bis B-032 nachstellen und beheben; Nut und 3D-Schlichten prüfen lassen.
 ## P-2026-11-13-04 pruefstand-breite-mit-fase-und-kugel
 
 ### EINGELESEN

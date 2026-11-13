@@ -36,7 +36,7 @@ def raeumen(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaech
     bahn = ra.vorschau_fuer_assistent(
         job, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter
     )
-    return bahn, _frei(form, bahn, zeit)
+    return bahn, _frei(form, bahn, zeit, job)
 
 
 def raeumen_genau(dokument, job_name, form, zustellung, zeilenabstand, aufmass, flaechen, weiter):
@@ -78,7 +78,7 @@ def strategie(dokument, job_name, modul, argumente, weiter, zeit):
     job = _job(dokument, job_name)
     vorschau = importlib.import_module("camaddon." + modul).vorschau
     bahn = vorschau(job, job.Model.Group, *argumente, **weiter)
-    return bahn, _frei(argumente[0], bahn, zeit)
+    return bahn, _frei(argumente[0], bahn, zeit, job)
 
 
 def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit):
@@ -91,7 +91,7 @@ def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit
     bahn = schlichten3d.vorschau(job, job.Model.Group, *argumente, **weiter)
     if not getattr(bahn, "hinterschnitt", False):  # unter dem Rand kippt die Bahn selbst
         bahn.wegkippen = wk.bedarf_fuer_bahn(job, werkzeug, bahn, argumente[0])
-    return bahn, _frei(argumente[0], bahn, zeit)
+    return bahn, _frei(argumente[0], bahn, zeit, job)
 
 
 def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme):
@@ -115,7 +115,7 @@ def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme):
     return haupt, ecke
 
 
-def _frei(form, bahn, zeit):
+def _frei(form, bahn, zeit, job=None):
     """freiwege.zeit_im_freien für die Bahn – None ohne `zeit` (Vorschub, Eintauchen,
     Freivorschub, Materialstand: der des Assistenten, wie gui_bearbeitung._zeit_im_freien; das
     Restschruppen rechnet seine Bahn ohne ihn)."""
@@ -125,6 +125,6 @@ def _frei(form, bahn, zeit):
     vorgebohrt = getattr(bahn, "vorbohren", None)
     if vorgebohrt is not None and vorgebohrt.ohne_punkte:  # der Weg ohne Vorbohren (W-039)
         vorgebohrt.ohne_frei = fw.zeit_im_freien(
-            form, stand, vorgebohrt.ohne_punkte, vorschub, eintauchen, freivorschub
+            form, stand, vorgebohrt.ohne_punkte, vorschub, eintauchen, freivorschub, job
         )
-    return fw.zeit_im_freien(form, stand, bahn.punkte, vorschub, eintauchen, freivorschub)
+    return fw.zeit_im_freien(form, stand, bahn.punkte, vorschub, eintauchen, freivorschub, job)

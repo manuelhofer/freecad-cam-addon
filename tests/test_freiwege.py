@@ -323,6 +323,31 @@ fern = mit_fertigteil(lambda x: x >= 50.0, lambda x: x >= 50.0, 10.0)
 zug = [P(True, 43.2, -10.0, 0.0), P(False, 43.2, 110.0, 0.0), P(True, 43.2, 110.0, 15.0)]
 neu_f, weg_f = fw.schneller(zug, ff.scheibe(6.0), fern, 1000.0)
 pruefe(weg_f > 100.0, f"0,8 mm neben der fertigen Wand: nur {weg_f:.0f} mm schnell")
+# 3. Vor dem Eintauchen im Eilgang hinab (_tiefer_im_eilgang): nicht an einer Wand entlang, an der
+# noch ein Aufmaß steht, das schmaler ist als das Raster – der Fräser (R 5) mit dem Rand genau an
+# der fertigen Wand. Bis 0.366.4 ging der Eilgang bei einem Aufmaß unter 0,25 mm 18 mm tief
+# hindurch (Rand: Radius + eine halbe Zelle; jetzt zwei Zellen).
+for wand_x, aufmass in ((50.0, 0.15), (50.2, 0.1), (50.37, 0.2)):
+    wand = mit_fertigteil(
+        lambda x, w_=wand_x, a_=aufmass: x > w_ - a_, lambda x, w_=wand_x: x >= w_, 20.0
+    )
+    hinab = [
+        P(True, wand_x - 5.0, 50.0, 30.0),
+        P(True, wand_x - 5.0, 50.0, 25.0),
+        P(False, wand_x - 5.0, 50.0, 0.0, True),
+        P(False, wand_x - 5.0, 80.0, 0.0),
+    ]
+    neu_h, _weg = fw.schneller(hinab, ff.scheibe(5.0), wand, 1000.0)
+    tief = [round(p.z, 1) for p in neu_h if p.eilgang and p.z < 20.0 - 1e-6]
+    pruefe(not tief, f"Wand {wand_x}, Aufmaß {aufmass}: Eilgang hinab bis {tief}")
+# Frei (keine Wand in der Nähe) bleibt der Eilgang bis knapp über den Boden.
+frei_q = mit_fertigteil(lambda x: x >= 80.0, lambda x: x >= 80.0, 20.0)
+hinab = [P(True, 30.0, 50.0, 30.0), P(True, 30.0, 50.0, 25.0), P(False, 30.0, 50.0, 0.0, True)]
+neu_h, _weg = fw.schneller(hinab + [P(False, 30.0, 80.0, 0.0)], ff.scheibe(5.0), frei_q, 1000.0)
+pruefe(
+    min(p.z for p in neu_h if p.eilgang) <= fw.LINK_LUFT + 1e-6,
+    f"frei: Eilgang nur bis {min(p.z for p in neu_h if p.eilgang)}",
+)
 print("Fertigteil ok")
 
 if fehler:

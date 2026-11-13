@@ -523,7 +523,12 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     Spannmittel, hülfe langsames Hinabfahren nicht (Manuel, 2026-10-18: „was hilft da langsames
     fahren“) – wie tief jeder Fräser neben dem Rohteil fährt, sagt das Einrichtblatt
     (spannung.neben_dem_rohteil)."""
-    weite = radius + 0.5 * float(quader.x[1] - quader.x[0])
+    # Zwei Zellen Rand: eine für das Raster, eine für den Rand eines Körper-Rohteils, den der
+    # Materialstand einzieht (wie bohrung_bahn.material_oben). Mit einer halben fuhr der Eilgang
+    # am Mantel von Rundmaterial hinab durchs Material (Ø 60: in 110 von 200 Lagen, bis 37 mm³)
+    # und an einer Wand durch ein Aufmaß unter 0,25 mm (Sicherheitsprüfung, nachgestellt am
+    # 2026-11-13; so seit 2026-10-04 bzw. -18).
+    weite = radius + 2.0 * float(quader.x[1] - quader.x[0])
     if i + 2 >= len(punkte):
         return
     oben, ein = punkte[i + 1], punkte[i + 2]
@@ -572,7 +577,7 @@ def _tiefste_spitze(q, stelle, form):
     halbe Zelle nichts)."""
     halb = 0.5 * float(q.x[1] - q.x[0])
     radius = float(form.radius)
-    weite = radius + halb
+    weite = radius + 4.0 * halb  # zwei Zellen: Raster und eingezogener Rand (_tiefer_im_eilgang)
     x, y = stelle
     i0, i1 = np.searchsorted(q.x, x - weite), np.searchsorted(q.x, x + weite, side="right")
     j0, j1 = np.searchsorted(q.y, y - weite), np.searchsorted(q.y, y + weite, side="right")
@@ -644,7 +649,7 @@ def _unten_bleiben(punkte, i, quader, weite):
     punkte[i + 1 : j + 1] = ersatz
 
 
-def zeit_im_freien(form, stand, punkte, vorschub, eintauchen, freivorschub):
+def zeit_im_freien(form, stand, punkte, vorschub, eintauchen, freivorschub, job=None):
     """Die Zeit (min) der Bahn `punkte` mit dem Freivorschub im Freien – wie die Operation fährt
     (schneller), im Materialstand `stand` (materialstand) vor ihr; ohne ihn oder ohne Form die
     Zeit wie bisher. Für die Vorschau des Assistenten „Bearbeitung“, auch im Nebenrechner."""
@@ -653,6 +658,10 @@ def zeit_im_freien(form, stand, punkte, vorschub, eintauchen, freivorschub):
     if not punkte or stand is None or form is None:
         return bn.zeit(punkte or [], vorschub, eintauchen)
     quader = mst._kopie(stand).quader
+    if job is not None:
+        # Wie fuer_operation: ohne das Fertigteil zeigte die Vorschau an einer fertigen Wand bis
+        # zum Fünffachen der Zeit der Operation (nachgestellt am 2026-11-13).
+        quader.soll = fertigteil_hoehen(job, quader)
     neu, _weg = schneller(punkte, form, quader, vorschub, freivorschub)
     return bn.zeit(neu, vorschub, eintauchen)
 

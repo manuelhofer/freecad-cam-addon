@@ -578,6 +578,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.5):* **Freiwege, Eilgang vor dem Eintauchen (gefährlich, seit 04.10./18.10.):** Der
+  Eilgang hinab sah Material nur bis Radius + eine halbe Zelle – am Mantel von Rundmaterial (Körper-Rohteil,
+  Rand eingezogen) fuhr er in 110 von 200 Lagen durchs Material (bis 37 mm³), an einer Wand durch ein Aufmaß
+  unter 0,25 mm. Jetzt zwei Zellen Rand. Die Vorschauzeit des Assistenten rechnet das Fertigteil mit wie die
+  Operation (zeigte an fertigen Wänden bis zum Fünffachen). Gefunden von der Sicherheitsprüfung der
+  Bahngeneratoren; vier weitere Meldungen stehen als B-029 bis B-032 offen. Voller Lauf der Prüfdateien auf
+  0.366.4: 143 von 147 grün, die vier roten (Simultan-Referenzen) waren die Folge des Bögen-Fassens –
+  Referenzen neu, Bahnpunkte unverändert. Testteil nachgemessen: 13,63 min (13,47 vor der
+  Freiwege-Korrektur – die Züge am Wandaufmaß fahren wieder im Arbeitsvorschub).
 - *Korrektur (0.366.4):* **Prüfstand misst die Breite im Eingriff richtig, auch mit Fase und Kugel:** Die
   Tiefe des Schnitts ist jetzt „vom höchsten Material, das fiel, bis zum tiefsten neuen Grund“ statt des
   größten Absenkens einer Zelle – der Plan 50 kam auf kurzen Stücken auf 2,4 ae und „volle Breite“, wo er
@@ -2718,7 +2727,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Zurzeit kein offener Bug. B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
+Offen: B-029 bis B-032 (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57. **Offen (gefunden 2026-11-06 mit `~/freecad_cam/wip/pruefhelfer/nc_pruefen.py` über die NC-Ausgaben des
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
 B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fuhr es Y 27 →
@@ -2729,7 +2738,24 @@ gewollte Wandfahrt, `planfraesen_bahn._wandfahrt`: kein Fehler.)
 B-028 Bahn unter dem Rand (3D-Schlichten, Teil „tief“): Ihre schnellen Wege waren nur gegen das Teil
 geprüft, die erste Anfahrt ging mit 10 m/min in den Keil, den das Räumen stehen lässt. Behoben in 0.349.2
 (`flanke_frei.kugelwege_pruefen`): Der Weg endet vor dem Material, der Rest taucht ein; ist das Material
-nicht zu lesen, geht unter dem Rand kein Weg schnell. Nächste freie Nummer B-029.
+nicht zu lesen, geht unter dem Rand kein Weg schnell.
+
+**Offen – von der Sicherheitsprüfung am 2026-11-13 gemeldet, je mit Prüfdatei, noch nicht von einem
+Zweiten nachgestellt** (die Zweifler brachen am Nutzungslimit ab; Prüfdateien unter
+`~/freecad_cam/wip/pruefung_1113/`):
+
+- B-029 **3D-Schruppen, Rohteil steht über dem Teil (gemeldet: gefährlich):** Zwischenlagen über der
+  höchsten Hüllfläche fallen aus (`schruppen3d_bahn._schruppen`, `np.isfinite(D).any()`); die erste
+  Lage darunter fährt in der Schale mit 5 mm Überstand im Eilgang 1,9 mm ins Volle (217 mm³) und
+  taucht senkrecht ein. Über einer Kuppel bleibt dieselbe Säule Rohteil ohne Meldung stehen.
+- B-030 **Kontur, Schlichtzug im Eilgang ins Rohteil (gemeldet: gefährlich):** Das „geräumte Band“
+  gilt auch, wenn die Schruppversätze nie gefahren sind (Nut 12,2 breit mit Ø 12; Insel 7 mm vor der
+  Wand) – G0 bis 8 mm ins Rohteil, dann die volle Tiefe auf einmal (`kontur_bahn._ein_zug`, `_lauf`).
+- B-031 **Kontur 0,07 mm in einer anderen fertigen Wand:** `WAND_SPIEL` gilt auch an geraden Wänden.
+- B-032 **Kontur, Wand mit gestufter Unterkante:** der Teil über dem Absatz fällt still weg
+  (`kontur_bahn._wand` nimmt nur die Kanten bei ZMin).
+
+Nicht geprüft (Prüfer am Limit abgebrochen): Nut, 3D-Schlichten/Bleistift. Nächste freie Nummer B-033.
 
 ## Offene Tasks
 
