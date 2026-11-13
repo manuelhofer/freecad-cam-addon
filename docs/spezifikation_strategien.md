@@ -254,6 +254,16 @@ eben). Kein OCL.
    `szenario_schlichten3d`). Offen: sind ebene Flächen mitgewählt, räumt danach das
    Räumen ihren Boden noch einmal ganz (es weiß nicht, was schon weg ist); die
    Zwischenlagen mit der Kugel (Restschruppen, Punkt 2).
+   **Rohteil über dem Teil (P-2026-11-13-06, B-029):** Eine Zwischenlage über dem ganzen Teil hat
+   nichts Gesperrtes, ihre Ringe (sie folgen dem Gesperrten) gab es nicht – sie fiel aus. Mit 5 mm
+   Rohteil über der Schale endete der Eilgang zur ersten Lage darunter 1,9 mm im Material
+   (217 mm³), dann 2 mm senkrecht mit voller Stirn; über einer Kuppel blieb die Säule bis zur
+   Oberkante des Rohteils stehen. Jetzt: Die unterste Lage über dem ganzen Teil fährt als Klotz im
+   Freien (Ringe vom Rand des Materials, `material_setzen`), mit allem darüber in einem Zug,
+   solange es nicht tiefer wird als die Zustellung; fällt eine Zwischenlage aus, rechnet die
+   Einfahrt der nächsten mit der Höhe davor (`stehen_bis`). Schale + 5 mm: 5,1 min statt 1,4 (die
+   18 cm³ darüber werden jetzt wirklich abgetragen), 0 mm³ im Eilgang; Kuppel + 5 mm: über der
+   Spitze bleibt höchstens eine Stufe (1 mm) statt 5,3 mm.
 2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
    (Abtrag). Aufwand mittel. Gebaut (P-2026-10-02-02, 0.66.0) – ohne Abtragsmodell: Was der
    große Fräser (ebene Stirn) stehen ließ, folgt aus seiner Hüllfläche – je Zelle die tiefste

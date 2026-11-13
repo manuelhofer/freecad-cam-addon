@@ -523,12 +523,6 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     Spannmittel, hülfe langsames Hinabfahren nicht (Manuel, 2026-10-18: „was hilft da langsames
     fahren“) – wie tief jeder Fräser neben dem Rohteil fährt, sagt das Einrichtblatt
     (spannung.neben_dem_rohteil)."""
-    # Zwei Zellen Rand: eine für das Raster, eine für den Rand eines Körper-Rohteils, den der
-    # Materialstand einzieht (wie bohrung_bahn.material_oben). Mit einer halben fuhr der Eilgang
-    # am Mantel von Rundmaterial hinab durchs Material (Ø 60: in 110 von 200 Lagen, bis 37 mm³)
-    # und an einer Wand durch ein Aufmaß unter 0,25 mm (Sicherheitsprüfung, nachgestellt am
-    # 2026-11-13; so seit 2026-10-04 bzw. -18).
-    weite = radius + 2.0 * float(quader.x[1] - quader.x[0])
     if i + 2 >= len(punkte):
         return
     oben, ein = punkte[i + 1], punkte[i + 2]
@@ -537,9 +531,33 @@ def _tiefer_im_eilgang(punkte, i, quader, radius):
     if math.hypot(ein.x - oben.x, ein.y - oben.y) > GLEICH or ein.z >= oben.z - GLEICH:
         return
     stelle = (oben.x, oben.y, oben.z)
+    weite = radius + _rand(quader, stelle, radius)
     ziel = max(_hoechstes(quader, stelle, stelle, weite) + LINK_LUFT, ein.z)
     if ziel < oben.z - GLEICH:
         punkte.insert(i + 2, bn.Punkt(True, oben.x, oben.y, ziel))
+
+
+def _rand(q, stelle, radius):
+    """So weit über den Radius hinaus zählt Material unter der Stirn beim Eilgang hinab: eine
+    Zelle – zwischen zwei Knoten kann die Kante des Materials bis dahin näher liegen (ein Aufmaß
+    an der Wand, schmaler als das Raster) –, zwei, wo im Umkreis Knoten ohne Höhe stehen: Dort
+    ist der Rand eines Körper-Rohteils, und den zieht der Materialstand um einen Knoten ein
+    (`materialstand._eingezogen`). Mit einer halben Zelle fuhr der Eilgang am Mantel von
+    Rundmaterial hinab durchs Material (Ø 60: in 110 von 200 Lagen, bis 37 mm³) und an einer Wand
+    durch ein Aufmaß unter 0,25 mm (Sicherheitsprüfung, nachgestellt am 2026-11-13; so seit
+    2026-10-04 bzw. -18). Zwei Zellen überall kosteten am Testteil 0,44 min (das Räumen taucht
+    0,3 mm neben seinen Wänden ein)."""
+    zelle = float(q.x[1] - q.x[0])
+    weit = radius + 2.0 * zelle
+    x, y = stelle[0], stelle[1]
+    i0, i1 = np.searchsorted(q.x, x - weit), np.searchsorted(q.x, x + weit, side="right")
+    j0, j1 = np.searchsorted(q.y, y - weit), np.searchsorted(q.y, y + weit, side="right")
+    if i1 <= i0 or j1 <= j0:
+        return zelle
+    gx, gy = np.meshgrid(q.x[i0:i1], q.y[j0:j1], indexing="ij")
+    nah = np.hypot(gx - x, gy - y) <= weit
+    ohne_hoehe = ~np.isfinite(q.h[i0:i1, j0:j1][nah])
+    return 2.0 * zelle if bool(ohne_hoehe.any()) else zelle
 
 
 def _eilgang_nicht_hinein(punkte, i, quader, form):
@@ -577,8 +595,8 @@ def _tiefste_spitze(q, stelle, form):
     halbe Zelle nichts)."""
     halb = 0.5 * float(q.x[1] - q.x[0])
     radius = float(form.radius)
-    weite = radius + 4.0 * halb  # zwei Zellen: Raster und eingezogener Rand (_tiefer_im_eilgang)
     x, y = stelle
+    weite = radius + _rand(q, stelle, radius)  # eine Zelle, am Rand eines Körper-Rohteils zwei
     i0, i1 = np.searchsorted(q.x, x - weite), np.searchsorted(q.x, x + weite, side="right")
     j0, j1 = np.searchsorted(q.y, y - weite), np.searchsorted(q.y, y + weite, side="right")
     if i1 <= i0 or j1 <= j0:

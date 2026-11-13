@@ -304,13 +304,46 @@ def _schruppen(
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen)
-    for lage, zwischenlage, vorige in folge:
+    stehen_bis = None  # bis hierhin steht Material über einer Zwischenlage, die ausfiel
+    for nummer, (lage, zwischenlage, vorige) in enumerate(folge):
+        if not zwischenlage:
+            stehen_bis = None
+        elif stehen_bis is not None:
+            # Fiel die Zwischenlage darüber aus, steht ihr Material noch: Die Einfahrt rechnet
+            # mit der Höhe davor, nicht mit der ausgefallenen Lage (sonst endet der Eilgang hinab
+            # im Material – an der Schale mit 5 mm Rohteil darüber 1,9 mm tief, 217 mm³;
+            # Sicherheitsprüfung, nachgestellt am 2026-11-13).
+            vorige = max(vorige, stehen_bis)
         erlaubt = feld.erlaubt_feld(lage, z_unten)
         gesperrt = _breiter(~erlaubt)
         werte = w
         # Der Rest (davor, Materialstand, nur über den Flächen): nur, wo Material steht.
         ist_zwischen = zwischenlage or davor is not None or mit_stand
-        if ist_zwischen:
+        # Eine Lage über dem ganzen Teil (nichts gesperrt): Das Rohteil steht über dem Teil. Sie
+        # fährt wie ein Klotz im Freien – Ringe vom Rand des Materials her (wie `vom_material`).
+        # Bis 0.366.5 fiel sie aus (die Ringe der Zwischenlage folgen dem Gesperrten): Über einer
+        # Kuppel blieb die Säule Rohteil stehen, in der Schale tauchte die erste Lage darunter
+        # senkrecht mit voller Stirn ein.
+        ueber_allem = ist_zwischen and not bool((gesperrt & im_raster).any())
+        if ueber_allem and zwischenlage and nummer + 1 < len(folge) and folge[nummer + 1][1]:
+            # Ist auch die Zwischenlage darunter noch über dem ganzen Teil, nimmt die das Material
+            # mit – eine Lage mit voller Tiefe statt mehrerer dünner (an der Schale mit 5 mm
+            # darüber 16 statt 4 min), solange es nicht tiefer wird als die Zustellung.
+            tiefer = folge[nummer + 1][0]
+            hoch = float(hoehe[np.isfinite(hoehe)].max()) if np.isfinite(hoehe).any() else lage
+            frei_darunter = not bool(
+                (_breiter(~feld.erlaubt_feld(tiefer, z_unten)) & im_raster).any()
+            )
+            if frei_darunter and hoch - tiefer <= zustellung + GLEICH:
+                if bool((hoehe > lage + MATERIAL).any()):
+                    stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
+                continue
+        if ueber_allem:
+            if not feld.material_setzen(hoehe, hoehe, lage, erlaubt):
+                if zwischenlage and bool((hoehe > lage + MATERIAL).any()):
+                    stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
+                continue
+        elif ist_zwischen:
             # Die Ringe nur für das, was über der Lage steht und der Fräser hier erreicht – eine
             # Zelle weniger weit als die Stirn vom Freien, damit der Rand am Gesperrten (den der
             # Ring bei D = 0 nicht nimmt) nicht jede Lage zählt. Für das Einfahren zählt alles
@@ -318,6 +351,8 @@ def _schruppen(
             ueber = hoehe > lage + MATERIAL
             material = ueber & aufweiten(~gesperrt, r - schritt - 0.01)
             if material.sum() * schritt * schritt < MINDESTFLAECHE:
+                if zwischenlage and bool(ueber.any()):
+                    stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
                 continue
             # So viel Material je mm Weg wie in der Hauptlage (ae · ap), höchstens der Radius.
             weiter = min(r, max(ae, ae * ap_haupt / max(vorige - lage, GLEICH)))
@@ -338,7 +373,7 @@ def _schruppen(
         ablauf = _Lage3D(st, feld, werte, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben)
         ablauf.hoehe = hoehe
         ablauf.stempel = stempel
-        if vom_material and not ist_zwischen:
+        if (vom_material and not ist_zwischen) or ueber_allem:
             ablauf.stand_hoehe = hoehe
         if ist_zwischen:
             # Einfahren wie in der Hauptlage: unter der Stirn höchstens so viel Material wie im
@@ -348,7 +383,9 @@ def _schruppen(
             ).schwelle
         D = feld.abstand_zu(gesperrt & im_raster)
         vorher = st.ringe
-        if ist_zwischen:
+        if ueber_allem:
+            rb._ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, glatt)
+        elif ist_zwischen:
             if np.isfinite(D).any():
                 _ringe_zwischen(
                     ablauf, feld, werte, D, material, material_links, schritt, glatt, aufweiten
@@ -371,10 +408,13 @@ def _schruppen(
             feld.ganzes_rohteil()
         hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
         if st.ringe > vorher:
+            stehen_bis = None
             if zwischenlage:
                 zwischenlagen += 1
             else:
                 haupt += 1
+        elif zwischenlage and bool((hoehe > lage + MATERIAL).any()):
+            stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
     feld.rohteil_zellen, feld.beruehrt, feld.eng = rechteck
     return haupt, zwischenlagen
 

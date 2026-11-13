@@ -223,6 +223,33 @@ mitte = r < 16.0
 print(ascii(f"Schale senkrecht: {abstand[mitte].min():.3f} … {abstand[mitte].max():.3f}"))
 pruefe(abstand[mitte].min() > 0.25, f"Schale: nur {abstand[mitte].min():.3f} stehen")
 pruefe(abstand[mitte].max() < 2.5, f"Schale: Treppe {abstand[mitte].max():.3f}")
+# Das Rohteil steht 5 mm über dem Teil: Die Lagen über dem ganzen Teil (nichts gesperrt) fahren mit –
+# als eine Lage, Ringe vom Rand her. Bis 0.366.5 fielen sie aus: Der Eilgang zur ersten Lage darunter
+# endete 1,9 mm im Material (217 mm³), dann ging es senkrecht mit voller Stirn hinein, und über einer
+# Kuppel blieb die Säule Rohteil stehen (Sicherheitsprüfung, nachgestellt am 2026-11-13).
+bahn_s5 = r3.planen(schale, innen, werte(25.0))
+k5 = gemessen(schale, bahn_s5, 25.0)
+print(ascii(f"Schale, Rohteil 5 darüber: {bahn_s5.zeit:.2f} min – {ps.zeile(k5)}"))
+pruefe(k5.eilgang_abtrag <= 1e-9, f"Schale + 5: im Eilgang {k5.eilgang_abtrag:.1f} mm³")
+# Zwei Einfahrten streifen beim Hinabfahren die Kante der Stufe darüber (je 0,1 mm³ – so auch
+# schon mit 1 mm Rohteil darüber); mit voller Stirn ins Volle (225 mm³) taucht keine mehr.
+pruefe(k5.eintauchungen <= 2, f"Schale + 5: {k5.eintauchungen}-mal senkrecht ins Material")
+pruefe(k5.voll <= ps.BREIT_WEG, f"Schale + 5: {k5.voll:.0f} mm in voller Breite")
+pruefe(k5.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Schale + 5: ins Teil {k5.einschnitt:.3f}")
+q5, _soll5, xs5, ys5 = im_quader(schale, bahn_s5, 25.0)
+rand5 = (np.hypot(xs5 - 30, ys5 - 30) > 27.0) & (xs5 > 1) & (xs5 < 59) & (ys5 > 1) & (ys5 < 59)
+pruefe(
+    float(q5.h[rand5].max()) < 21.2,
+    f"Schale + 5: über dem Rand steht noch bis {float(q5.h[rand5].max()):.2f} (Teil 20)",
+)
+pruefe(bahn_s5.zeit < 6.0, f"Schale + 5: {bahn_s5.zeit:.2f} min (eine Lage für die 5 mm: etwa 5)")
+bahn5 = r3.planen(teil, kugel, werte(25.0))
+qk, _sollk, xk, yk = im_quader(teil, bahn5, 25.0)
+spitze = np.hypot(xk - 30, yk - 30) < 4.0
+pruefe(
+    float(qk.h[spitze].max()) < 21.5,
+    f"Kuppel + 5: über der Spitze steht bis {float(qk.h[spitze].max()):.2f} (Spitze 20)",
+)
 
 # --- (c) Ohne Freiformfläche ----------------------------------------------------------------------
 andere = [f"Face{i + 1}" for i in range(len(teil.Faces)) if f"Face{i + 1}" not in kugel]
