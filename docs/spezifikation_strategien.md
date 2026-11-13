@@ -2566,6 +2566,24 @@ Gegenrechnung in den Ordnern daneben.
     nebeneinander gewann sonst die Richtung, in der das Stück zwischen ihnen bleibt – 12-mal 5 mm
     senkrecht mit dem Ø 32 für 0,2 min.
   Manuels Platte ohne Zugabe: unverändert 23,98 min (Scheibe 25).
+- **Planfräser an Manuels Platte – drei Wege gemessen und gegengerechnet (2026-11-13, Frage 2):**
+  Die 23,7 min der Zeilen zerlegt: Schnitt 14,4 + 1,7 (halber Vorschub beim Austritt), **Luft hinter
+  dem Rohteil im halben Vorschub 3,5**, Halbkreise in der Luft im Vorschub 1,5, Überlauf vorn 0,6,
+  Eintauchen in der Luft 0,4, Eilgang 1,3. Prototypen (nur in `~/freecad_cam/wip/strategien/plan_ringe/`):
+  - *Zeilen nur im Gleichlauf, abwechselnd von beiden Seiten, Abheben über der Kante, sechs Zeilen:*
+    15,4 min, mit Wechsel und Ø 12 für den Rest 17,2 – keine Regel verletzt, alle Zeilen Gleichlauf.
+  - *Ringe von außen (drei Ringe, R-3-Einrollbogen, Ecken mit 2,5 mm Überlauf):* 14,7 / 15,8 min; in
+    der Kerbe um den Zapfen 0,6 m Gegenlauf (ganz im Gleichlauf 15,4 / 16,4). Nur für diese Platte.
+  - *Spirale (Morph Quadrat → Kreis um den Zapfen):* 20,8 / 21,7 min – 17 % des Wegs Luft auf dem
+    Kreis um den Zapfen.
+  *Gleich gebaut (P-2026-11-13-03, 0.366.3), weil es nur Luft war:* Der halbe Vorschub gilt bis die
+  Mitte an der Kante des Rohteils steht; der Überlauf dahinter und der Halbkreis zur nächsten Zeile
+  (wenn der ganze Fräser neben dem Rohteil steht) fahren mit `planfraesen_bahn.SCHNELL` = 3 × F.
+  Platte mit dem Plan 50: 23,7 → 20,1 min; mit dem Ø 12 (Prüfstand) 35,2 → 33,2; Absatz 2,15 → 1,80.
+  Der Prüfstand zählt nach, dass im Schnellvorschub nichts abgetragen wird.
+  Nebenbefund für den Prüfstand: Auf Bogensehnen von 0,5 mm misst er mit der 45°-Fase des Plan 50 die
+  Tiefe zu klein und die „Breite im Eingriff“ zu groß (2,4 statt 1,7 ae; „voll“ an Stellen mit 0,96 ae) –
+  offen.
 - **Gegenprüfung „Bohrung fräsen beginnt am Material“ (0.364.0 → 0.366.1):** Der Rand um Bohrung
   und Helix war zu knapp (eine Zelle, für `oben` keine): Eilgang 9 mm tief durch das Wandaufmaß
   einer Tasche 0,1 mm neben der Bohrung, 18,5 mm an der Wand eines Vorlochs im Körper-Rohteil

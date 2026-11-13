@@ -54,6 +54,10 @@ UEBERLAUF_ANTEIL = 0.6  # vom Fräser-Ø: so weit läuft die Mitte längs über 
 SEITE_ANTEIL = 0.2  # vom Fräser-Ø: so weit ragt der ebene Teil der Stirn seitlich über den Rand
 WANDZEILE_NAH = 0.05  # mm – liegt eine Zeile so nah an der Zeile an der Wand, fährt sie allein
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
+# × Vorschub: so schnell durchs Freie hinter dem Rohteil – der Überlauf am Zeilenende und der
+# Halbkreis zur nächsten Zeile, wenn der ganze Fräser neben dem Rohteil steht (G1, wie
+# raeumen_bahn.RUECKWEG). Der Prüfstand zählt nach, dass dabei nichts abgetragen wird.
+SCHNELL = 3.0
 SCHRITT = hf.SCHRITT  # mm – Raster längs der Zeilen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 GLEICH = vb.GLEICH
@@ -897,7 +901,7 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None, getaucht=None)
         if art == "zeile":
             laenge += _zeile(punkte, r_, m, js, lage, w, nummer == 0)
             continue
-        laenge += _schritt(punkte, r_, m, js, lage, teile, nummer, mit_zug)
+        laenge += _schritt(punkte, r_, m, js, lage, teile, nummer, mit_zug, w)
     art, m, js = teile[-1]
     if plan:
         laenge += _wandzug(punkte, r_, plan, lage)
@@ -1148,15 +1152,28 @@ def _zeile(punkte, r_, m, js, lage, w, erste):
         punkt = bn.Punkt(False, x, y, lage)
         laenge += bn.weg(punkte[-1], punkt)
         punkte.append(punkt)
-    x, y = r_.xy(u_b, v)
     anteil = 1.0 if ganz_drin else w.austritt
+    # Langsam nur, solange noch geschnitten wird: Steht die Mitte an der Kante des Rohteils, hat
+    # die Stirn alles in ihrer Bahn überstrichen – der Überlauf dahinter ist Luft. Bis 0.366.2
+    # fuhr er ganz im halben Vorschub: an Manuels Platte mit dem Plan 50 3,5 von 23,7 min
+    # (zerlegt und gegengerechnet am 2026-11-13).
+    aus = r_.roh_u[1] if vorwaerts else r_.roh_u[0]
+    hier = kante if zwischen else u_a
+    dahinter = (hier < aus < u_b - GLEICH) if vorwaerts else (u_b + GLEICH < aus < hier)
+    if not ganz_drin and dahinter:
+        x, y = r_.xy(aus, v)
+        punkt = bn.Punkt(False, x, y, lage, anteil=anteil)
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+        anteil = SCHNELL  # dahinter Luft: kein Arbeitsvorschub (Manuel, 2026-10-04: „gib Gas“)
+    x, y = r_.xy(u_b, v)
     punkt = bn.Punkt(False, x, y, lage, anteil=anteil)
     laenge += bn.weg(punkte[-1], punkt)
     punkte.append(punkt)
     return laenge
 
 
-def _schritt(punkte, r_, m, j, lage, teile, nummer, mit_zug=()):
+def _schritt(punkte, r_, m, j, lage, teile, nummer, mit_zug=(), w=None):
     """Von Zeile m zur nächsten an der Stelle j: ein Halbkreis in Fahrtrichtung hinaus, wenn
     beide Zeilen dort und auf dem Bogen frei sind – sonst gerade quer, vor einer Wand erst
     noch an ihr entlang zur vorigen Zeile und zurück (_wandfahrt). Gibt die Länge
@@ -1196,7 +1213,13 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer, mit_zug=()):
         durch = r_.xy(u_durch, v_mitte)
         von = (punkte[-1].x, punkte[-1].y)
         uhr = bn.im_uhrzeigersinn(von, (x1, y1), durch)
-        punkt = bn.Punkt(False, x1, y1, lage, bogen=(mx, my, uhr))
+        # Steht der ganze Fräser dabei neben dem Rohteil (der Bogen schwenkt hinaus), ist der
+        # Halbkreis Luft: schnell. An Manuels Platte waren es 1,5 von 23,7 min im Arbeitsvorschub.
+        r_voll = float(w.form.radius) if w is not None else math.inf
+        neben = u - r_voll >= r_.roh_u[1] + GLEICH or u + r_voll <= r_.roh_u[0] - GLEICH
+        hinaus = (u_durch > u) == (u > r_.roh_u[1])
+        anteil = SCHNELL if neben and hinaus else 1.0
+        punkt = bn.Punkt(False, x1, y1, lage, bogen=(mx, my, uhr), anteil=anteil)
     else:
         if _wand(r_, m, j, richtung) and richtung not in mit_zug:
             laenge += _wandfahrt(punkte, r_, m, j, lage, teile, nummer)

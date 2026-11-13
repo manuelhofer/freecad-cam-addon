@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-03 planfraesen-ohne-luft-im-arbeitsvorschub
+
+### EINGELESEN
+- Offene Frage 2 („Planfräser in Ringen von außen“) – bisher ohne gemessene Zahl für die Ringe.
+- Workflow „Planfräser-Ringe messen“: drei Prototypen an Manuels Platte (Ringe von außen, Spirale,
+  entschlackte Zeilen), je mit einem Gegenrechner auf eigenem Weg; Ordner
+  `~/freecad_cam/wip/strategien/plan_ringe/` (zahlen.md, bild.png, gegen/).
+- Zerlegung der 23,7 min der Zeilen: 3,5 min Luft hinter dem Rohteil im halben Vorschub
+  (`planfraesen_bahn._zeile`: `anteil = w.austritt` bis zum Zeilenende), 1,5 min Halbkreise in der Luft.
+- Gedächtnis „Unnötiges ohne Rückfrage weg“ (Luftfräsen, langsame Freiwege); „Strategiewahl erst besprechen“.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`: `SCHNELL`; `_zeile` – halber Vorschub nur bis die Mitte an der Kante des
+  Rohteils steht, dahinter `SCHNELL`; `_schritt` – der Halbkreis mit `SCHNELL`, wenn der ganze Fräser neben
+  dem Rohteil steht.
+- `tests/test_planfraesen.py`, `tests/test_pruefstand.py` (Platte: Räumen und Planfräsen gleichauf),
+  `tests/bestmarken_26.json` (neu geschrieben: nur schneller).
+- `docs/OFFENE_FRAGEN.md` (Frage 2 neu, mit Tabelle), `docs/bilder/vorschlaege/frage2_zeilen_gleichlauf_beide_seiten.png`,
+  `frage2_ringe_gemessen.png`, `docs/spezifikation_strategien.md` (13.7), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.366.3).
+
+### ERGEBNIS
+- Manuels Platte, Plan 50 (Form T2, zehn Lagen): 23,67 → 20,08 min, 2,9 m des Vorschubwegs jetzt schnell.
+  Prüfstand mit dem Ø 12: Platte 35,2 → 33,2 min, Absatz 2,15 → 1,80, Zapfen 3,29 → 2,86, Tasche oben
+  5,41 → 5,01; im Schnellvorschub wird nichts abgetragen.
+- Frage 2 trägt jetzt gemessene Zahlen: Zeilen im Gleichlauf von beiden Seiten 15,4 (zusammen 17,2), Ringe
+  14,7 (15,8), Spirale 20,8 (21,7), heute 20,1 (21,6).
+- Die Bestmarken „tasche/raeumen“ (1,51 → 1,18) und „…+kontur“ waren seit dem 17.10. nicht nachgeführt.
+- Grün: `test_planfraesen`, `test_pruefstand`, `test_goldene_bahnen`, `test_testteil`, `test_materialstand`,
+  `test_quader`, `test_freiwege`, `szenario_planen`.
+- Sehen: eine Fläche planfräsen und abspielen – hinter dem Rohteil und im Bogen zur nächsten Zeile fährt der
+  Fräser schnell, langsam nur beim Austritt.
 ## P-2026-11-13-02 freiwege-fertigteil-ist-hindernis
 
 ### EINGELESEN

@@ -29,40 +29,51 @@ gemessen am 12.11.) und das Messen (nicht gemessen).
 Schruppen vorschlägt. Später möglich: Messen in zwei Höhen (oben und knapp über dem Boden), damit eine Wand
 gerade wird. Seit 2026-11-12.
 
-## 2. Soll der Planfräser eigene Ringe von außen bekommen – ae 35, eingerollt, ohne Rampe?
+## 2. Wie soll der Planfräser die große Fläche abtragen – Zeilen nur im Gleichlauf von beiden Seiten, oder Ringe von außen?
 
-**Die Frage:** Deine Platte (200 × 200, 20 mm ab bis auf die Oberseite, Zapfen Ø 20), am 12.11. im Prüfstand
-gerechnet und auf zweitem Weg nachgerechnet. Bild:
-[frage2_planfraeser_ringe_platte.png](bilder/vorschlaege/frage2_planfraeser_ringe_platte.png).
+**Die Frage:** Deine Platte (200 × 200, 20 mm ab bis auf die Oberseite, Zapfen Ø 20), Plan 50, ae 35, ap 2,
+zehn Lagen. Am 13.11. drei Wege als Prototyp gebaut, im Prüfstand gemessen und je von einem zweiten Rechner
+auf eigenem Weg nachgerechnet (die Zeiten stimmen auf 1 %). „Zusammen“ heißt: mit 10 s Wechsel und dem Ø 12
+für den Rest am Zapfen.
 
-- alles mit dem Ø 12 (Räumen): **33,4 min**
-- Plan 50 in Zeilen (ae 35, ap 2, zehn Lagen) 24,6 min + Wechsel 10 s + Ø 12 für den Rest am Zapfen 1,4 min =
-  **26,1 min** – seit 0.365.2 ohne das Eintauchen neben dem Zapfen 23,7 min, zusammen rund **25,2 min** (der
-  Rest für den Ø 12 dabei nicht neu gemessen; Bild:
-  [planfraesen_zeilen_aus_der_luft.png](bilder/vorschlaege/planfraesen_zeilen_aus_der_luft.png))
-- Plan 50 in Ringen vom Rand, mit dem Räumen, wie es heute ist: 27,3 min + Wechsel + Ø 12 Rest 0,8 min =
-  **28,3 min**
-- Untergrenze des Plan 50 mit ae 35: 11,9 min
+| Weg | Plan 50 allein | zusammen |
+| --- | ---: | ---: |
+| heute: Zeilen hin und her | 20,1 min | 21,6 min |
+| **a)** Zeilen, alle im Gleichlauf, abwechselnd von beiden Seiten | 15,4 min | **17,2 min** |
+| **b)** Ringe von außen, eingerollt | 14,7 min | **15,8 min** |
+| Spirale in einem Zug | 20,8 min | 21,7 min |
+| Untergrenze (nie aus dem Eingriff) | 11,9 min | |
 
-Alle drei nehmen dasselbe weg, nichts geht ins Teil. Die Ringe sind heute **langsamer** als die Zeilen: Das
-Räumen lässt höchstens ae = R zu (25 statt 35), die Quadratringe überlappen sich, um den Zapfen läuft ein
-eigener Kreisring mit 8 Rampen – 24 m Vorschub, wo 16 m reichten. Die Zeilen fahren jede zweite im
-Gegenlauf. (Sie tauchten dazu 20-mal senkrecht ins Material, links und rechts neben dem Zapfen – das ist
-seit 0.365.2 heraus: Jedes Stück neben dem Zapfen beginnt in der Luft; seit 0.366.1 auch, wenn
-das Rohteil über die Fläche hinaussteht.)
+Bilder: [frage2_zeilen_gleichlauf_beide_seiten.png](bilder/vorschlaege/frage2_zeilen_gleichlauf_beide_seiten.png)
+(links die Zeilen, wie sie bis 0.366.2 fuhren – 23,7 min; seit 0.366.3 fahren Überlauf und Halbkreis hinter dem
+Rohteil nicht mehr im Arbeitsvorschub, das sind die 20,1 min oben) und
+[frage2_ringe_gemessen.png](bilder/vorschlaege/frage2_ringe_gemessen.png).
 
-Gebaut würden Ringe nur für den Planfräser: ae bis 0,7 D, an jeder Stelle im Bogen eingerollt, immer
-Gleichlauf, zusammenhängend, keine Rampe – was nur über eine Rampe ginge, bleibt dem Ø 12. Wie schnell das
-wird, ist **nicht gemessen**; die Untergrenze sinkt von 16,6 auf 11,9 min.
+- **Weg a):** sechs Zeilen zu höchstens 35 mm statt sieben zu 30. Jede kommt aus der Luft und hebt ab, sobald
+  die Mitte über der Kante steht – kein Überlauf, kein Halbkreis. Die südlichen Zeilen laufen nach Westen,
+  die nördlichen nach Osten, immer abwechselnd: Jede endet dort, wo die nächste beginnt, und alle fahren im
+  Gleichlauf (heute jede zweite im Gegenlauf). Die Zeile am Zapfen kommt zuletzt, von beiden Seiten bis
+  0,7 mm vor ihn. Gilt für jedes Teil.
+- **Weg b):** drei Ringe im Uhrzeigersinn vom Rand nach innen, jeder im Bogen eingerollt, ohne Abheben. Noch
+  1,4 min schneller – aber der Prototyp passt nur auf diese Platte (der Zapfen steht günstig am Rand), und um
+  den Zapfen fährt er 0,6 m im Gegenlauf mit fast der ganzen Stirn (38 von 50 mm im Eingriff); ganz im
+  Gleichlauf sind es 16,4 min. Für beliebige Teile müsste das erst gebaut werden; ob es dort trägt, ist nicht
+  gemessen.
 
-- **a)** Bauen, als Haken beim Planfräsen „in Ringen von außen“, angehakt – bleibt nur drin, wenn es an deiner
-  Platte gemessen unter den 23,7 min der Zeilen liegt. *Claudes Vorschlag.*
-- **b)** Nein, Zeilen und der Ø 12 für den Rest reichen.
+- **1)** Weg a), als Haken beim Planfräsen („nur im Gleichlauf, von beiden Seiten“), angehakt – „hin und
+  her“ bleibt wählbar. Bringt 4,4 der 5,8 min und gilt überall. *Claudes Vorschlag.*
+- **2)** Erst Weg a), danach die Ringe als weiteren Weg, zwischen denen das Addon nach Zeit wählt.
+- **3)** Gleich die Ringe, die Zeilen bleiben hin und her.
+- **4)** Bleibt wie heute.
 
-*Warum nur Manuel:* Es geht darum, wie dein Messerkopf fahren soll – in Ringen mit 0,7 D umlaufen statt in
-Zeilen hin und her –, und es ändert, was das Addon für ihn vorschlägt. Am Zapfen bleiben die Ringe nur 0,7 mm
-frei; das geht mit 45°-Platten, mit 90°-Platten nicht – welche du fährst, weiß nur die Werkstatt.
-*Was die Antwort ändert:* bei a) baue und messe ich die Ringe, bei b) bleibt es bei den Zeilen. Seit 2026-11-12.
+Dazu, weil es nur die Werkstatt weiß: Der halbe Vorschub beim Austritt aus dem Rohteil gilt heute in jeder
+Lage. In Weg a) nur in der letzten (die Kanten darüber werden ohnehin noch weggefräst) – das sind 0,9 der
+4,4 min. Soll er in jeder Lage bleiben?
+
+*Warum nur Manuel:* Es geht darum, wie dein Messerkopf fahren soll, und es ändert, was das Addon für ihn
+vorschlägt. Am Zapfen bleiben beide Wege 0,7 mm frei; das geht mit 45°-Platten, mit 90°-Platten nicht – welche
+du fährst, weiß nur die Werkstatt.
+*Was die Antwort ändert:* was gebaut wird. Seit 2026-11-12, mit Messung seit 2026-11-13.
 
 ## 3. Soll das Addon dir die Drehkontur geben und dann nur noch fräsen, was nicht rund ist?
 

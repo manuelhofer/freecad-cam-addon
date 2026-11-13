@@ -312,9 +312,13 @@ pruefe(
     abs(raeumt.zeit - schnellste_die_haelt(raeumt)) < 1e-9,
     "Platte: Räumen nimmt die langsamere Variante",
 )
+# Räumen und Planfräsen liegen an der Platte gleichauf, seit der Überlauf hinter dem Rohteil und
+# der Halbkreis in der Luft nicht mehr im Arbeitsvorschub fahren (0.366.3: Planfräsen 33,2 statt
+# 35,2 min, Räumen 33,4) – keines darf dem anderen davonlaufen.
 pruefe(
-    gemessen["platte/raeumen"].zeit < gemessen["platte/planfraesen"].zeit,
-    "Platte: Räumen ist nicht die schnellste",
+    gemessen["platte/raeumen"].zeit < gemessen["platte/planfraesen"].zeit * 1.03,
+    f"Platte: Räumen {gemessen['platte/raeumen'].zeit:.2f} min, Planfräsen "
+    f"{gemessen['platte/planfraesen'].zeit:.2f}",
 )
 taschenwand = waende_bei(teil, -20.0)
 zapfenwand = waende_bei(teil, 0.0)

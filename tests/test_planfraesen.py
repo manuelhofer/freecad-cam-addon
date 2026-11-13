@@ -234,11 +234,18 @@ pruefe(
     ),
     "Bogenradius ist nicht der halbe Zeilenabstand",
 )
-# Beim Austritt ab x = 61 − R = 55 bis zum Ende der halbe Vorschub.
+# Beim Austritt ab x = 61 − R = 55 der halbe Vorschub – bis die Mitte an der Kante des Rohteils
+# steht (x 61): Dahinter ist nichts mehr zu schneiden, der Überlauf fährt wieder voll (bis 0.366.2
+# im halben Vorschub bis zum Zeilenende).
 langsam = [p for p in vorschub if p.anteil < 1.0]
 pruefe(
-    len(langsam) >= anzahl_zeilen // 2 and all(abs(p.x - x_rechts) < 1e-6 for p in langsam),
+    len(langsam) >= anzahl_zeilen // 2 and all(abs(p.x - 61.0) < 1e-6 for p in langsam),
     f"Austritt: {len(langsam)} Sätze, x {sorted({round(p.x, 3) for p in langsam})}",
+)
+am_ende = [p for p in vorschub if abs(p.x - x_rechts) < 1e-6 and abs(p.z - 20.0) < 1e-6]
+pruefe(
+    am_ende and all(p.anteil >= 1.0 for p in am_ende if p.bogen is None),
+    "der Überlauf hinter dem Rohteil fährt noch langsam",
 )
 # Vor der Wand fährt der Fräser an ihr entlang: zur vorigen Zeile zurück, über die ganze
 # Fläche (y 0 bis 40 und darüber hinaus) – so bleibt in den Zwischenräumen und Ecken an der

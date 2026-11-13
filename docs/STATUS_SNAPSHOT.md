@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.3):* **Planfräsen ohne Luft im Arbeitsvorschub:** Hinter dem Rohteil fuhr der Überlauf
+  im halben Vorschub und der Halbkreis zur nächsten Zeile im vollen – beides Luft. Jetzt langsam nur, bis die
+  Mitte an der Kante steht, dahinter und im Halbkreis neben dem Rohteil mit 3 × F. Manuels Platte mit dem
+  Plan 50: 23,7 → 20,1 min. **Frage 2 mit Messung:** Zeilen nur im Gleichlauf von beiden Seiten 17,2 min,
+  Ringe von außen 15,8 min, heute 21,6 (je mit Wechsel und Ø 12; gegengerechnet).
 - *Korrektur (0.366.2):* **Freiwege (gefährlich, seit 0.348.2):** Seit das Fertigteil für den Freivorschub
   nicht mehr als Material zählt, blieb ein Weg „unten“ auch quer durch eine fertige Rippe, und der
   Schlichtzug an einer Wand mit 0,3 mm Aufmaß lief ganz im Freivorschub, wenn kein Rasterknoten im Aufmaß
