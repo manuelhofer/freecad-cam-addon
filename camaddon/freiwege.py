@@ -56,8 +56,12 @@ VERTEILT_AB = 2000
 STUECKE_JE_ARBEITER = 2  # wer früher fertig ist, nimmt das nächste
 
 
-def _frei(q, a, b, weite):
-    """Steht im Umkreis `weite` um den Weg a → b (die Spitze) nichts über der Spitze?"""
+def _frei(q, a, b, weite, fertig_zaehlt=False):
+    """Steht im Umkreis `weite` (Radius + RAND) um den Weg a → b (die Spitze) nichts über der
+    Spitze? Für die Frage „Freivorschub?“ zählt das Fertigteil (`q.soll`) nicht als Material –
+    außer dort, wo der Fräser bis auf eine Zelle an eine fertige Wand herankommt. Mit
+    `fertig_zaehlt` zählt es ganz: für einen neuen Weg, der nirgends anstoßen darf
+    (_unten_bleiben)."""
     z = min(a[2], b[2])
     x0, x1 = min(a[0], b[0]) - weite, max(a[0], b[0]) + weite
     y0, y1 = min(a[1], b[1]) - weite, max(a[1], b[1]) + weite
@@ -67,13 +71,16 @@ def _frei(q, a, b, weite):
         return True  # neben dem Rohteil
     h = q.h[i0:i1, j0:j1]
     hoch = h > z + GLEICH
+    fertig = None
     soll = getattr(q, "soll", None)
-    if soll is not None:
+    if soll is not None and not fertig_zaehlt:
         # Nur, was über dem Fertigteil steht: Eine fertige Wand daneben ist kein Material, vor dem
         # der Fräser langsam fahren muss (Manuel, 2026-11-06, am Testteil: „noch relativ viel in
         # der Luft“ – am Rand geräumter Böden fuhr er die Wand entlang im Arbeitsvorschub).
-        hoch &= h > soll[i0:i1, j0:j1] + GLEICH
-    if not hoch.any():
+        roh = h > soll[i0:i1, j0:j1] + GLEICH
+        fertig = hoch & ~roh
+        hoch = hoch & roh
+    if not hoch.any() and (fertig is None or not fertig.any()):
         return True
     gx, gy = np.meshgrid(q.x[i0:i1], q.y[j0:j1], indexing="ij")
     dx, dy = b[0] - a[0], b[1] - a[1]
@@ -83,7 +90,17 @@ def _frei(q, a, b, weite):
     else:
         t = np.zeros_like(gx)
     abstand = np.hypot(gx - (a[0] + t * dx), gy - (a[1] + t * dy))
-    return not bool((hoch & (abstand <= weite)).any())
+    if bool((hoch & (abstand <= weite)).any()):
+        return False
+    if fertig is not None and fertig.any():
+        # Eine fertige Wand, an die der Fräser bis auf eine Zelle herankommt: Ein Aufmaß, das
+        # schmaler ist als das Raster, steht zwischen zwei Knoten und ist nicht zu sehen – dort
+        # sind Stand und Fertigteil an jedem Knoten gleich. Bis 0.366.1 lief so der Schlichtzug an
+        # einer Wand mit 0,3 mm Aufmaß ganz im Freivorschub, wenn kein Knoten im Aufmaß lag
+        # (nachgestellt am 2026-11-13: Wand bei x 50, Raster 0,5 – 120 mm mit dem Zehnfachen).
+        nah = max(weite - RAND, 0.0) + float(q.x[1] - q.x[0])
+        return not bool((fertig & (abstand <= nah)).any())
+    return True
 
 
 def _sehnen(von, nach):
@@ -607,7 +624,10 @@ def _unten_bleiben(punkte, i, quader, weite):
         return
     a, b = punkte[i], punkte[j]
     von, nach = (a.x, a.y, a.z), (b.x, b.y, a.z)
-    if _frei(quader, von, nach, weite):
+    # Mit dem Fertigteil als Hindernis: Bis 0.366.1 zählte eine fertige Rippe hier nicht (die
+    # Frage war die des Freivorschubs) – der Weg ging in der Tiefe quer durch sie hindurch
+    # (Gegenprüfung, nachgestellt am 2026-11-13; so seit 0.348.2).
+    if _frei(quader, von, nach, weite, fertig_zaehlt=True):
         ersatz = [bn.Punkt(False, b.x, b.y, a.z)]
         if b.z < a.z - GLEICH:
             ersatz.append(b)  # tiefer war Luft: im Eilgang dorthin, wie die Strategie es wollte

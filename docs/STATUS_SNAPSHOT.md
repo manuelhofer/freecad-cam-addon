@@ -578,6 +578,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.2):* **Freiwege (gefährlich, seit 0.348.2):** Seit das Fertigteil für den Freivorschub
+  nicht mehr als Material zählt, blieb ein Weg „unten“ auch quer durch eine fertige Rippe, und der
+  Schlichtzug an einer Wand mit 0,3 mm Aufmaß lief ganz im Freivorschub, wenn kein Rasterknoten im Aufmaß
+  lag. Jetzt: Für einen neuen Weg zählt das Fertigteil ganz; für den Freivorschub zählt eine fertige Wand,
+  an die der Fräser bis auf eine Zelle herankommt (`freiwege._frei`). In der Gegenprüfung gefunden.
 - *Korrektur (0.366.1):* **Gegenprüfung der Änderungen vom 12.11.** (je Änderung ein Prüfer, je Fund ein
   Zweifler, der ihn nachstellt). Behoben: Planfräsen – der Halbkreis zwischen zwei Zeilen schwenkte im
   umgekehrten Raster in einen Zapfen neben dem Zeilenende (alt, seit 01.10.); „aus der Luft“ gilt auch,

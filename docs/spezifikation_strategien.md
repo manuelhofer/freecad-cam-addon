@@ -2620,6 +2620,14 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   (der fährt auf vielen Steuerungen keine Gerade) –, die letzten 2 mm vor dem nächsten Material
   langsam (das Bremsen davor macht die Vorausschau der Steuerung). Eilgänge, Eintauchen und
   Rampen bleiben; ein Bogen nur ganz.
+- **Das Fertigteil (P-2026-11-06-16, berichtigt P-2026-11-13-02):** Mit `quader.soll` zählt für
+  den Freivorschub nur, was über dem Fertigteil steht – eine fertige Wand daneben ist kein
+  Material. Zwei Grenzen dazu, beide in der Gegenprüfung vom 13.11. gefunden: (1) Kommt der Fräser
+  bis auf eine Zelle des Rasters an eine fertige Wand heran (Abstand ≤ R + Raster), zählt sie doch
+  – ein Aufmaß, das schmaler ist als das Raster, steht zwischen zwei Knoten und ist nicht zu sehen
+  (Wand bei x 50, Raster 0,5, Aufmaß 0,3: der Schlichtzug lief 120 mm im Freivorschub). (2) Für
+  einen neuen Weg (unten bleiben) zählt das Fertigteil immer ganz als Hindernis – sonst ging er in
+  der Tiefe quer durch eine fertige Rippe.
 - Der Freivorschub: der kleinste Höchstvorschub der Linearachsen der Maschine des Jobs (die
   gemerkte, aus dem Maschinen-Speicher – ohne die Datei zu öffnen); ohne Maschine oder Wert
   10 m/min. Eine neue Linearachse bekommt beim Anlegen 10 m/min, solange keiner eingetragen ist

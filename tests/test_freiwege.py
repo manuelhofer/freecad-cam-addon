@@ -262,6 +262,69 @@ wandfahrt = [
 ]
 pruefe(len(fw._ohne_rueckweg(wandfahrt)) == 4, "die Wandfahrt ist weg")
 
+# --- Das Fertigteil: kein Material für den Freivorschub, aber ein Hindernis --------------------
+# Mit `quader.soll` (so ruft fuer_operation) zählt eine fertige Wand nicht als Material, vor dem
+# langsam gefahren wird. Zwei Folgen davon, in der Gegenprüfung am 2026-11-13 gefunden:
+import numpy as np  # noqa: E402
+
+
+def mit_fertigteil(steht, fertig, oben):
+    """Quader 0 … 100 × 0 … 100, Boden z 0: `steht(x)` noch Material bis `oben`, `fertig(x)` das
+    Fertigteil bis `oben`."""
+    q_ = rm.Quader(0.0, 100.0, 0.0, 100.0, -20.0, oben, 0.5)
+    xx = q_.x[:, None] + 0 * q_.y[None, :]
+    q_.h = np.where(steht(xx), oben, 0.0)
+    q_.soll = np.where(fertig(xx), oben, 0.0)
+    return q_
+
+
+# 1. Eine fertige Rippe (x 48 … 52, Oberkante z 4) zwischen zwei Schnitten auf z 2: Das Abheben
+# dazwischen bleibt – bis 0.366.1 blieb der Weg „unten“ und ging quer durch die Rippe.
+rippe = mit_fertigteil(lambda x: (x >= 48) & (x <= 52), lambda x: (x >= 48) & (x <= 52), 4.0)
+ueber = [
+    P(False, 10.0, 50.0, 2.0),
+    P(False, 20.0, 50.0, 2.0),
+    P(True, 20.0, 50.0, 25.0),
+    P(True, 80.0, 50.0, 25.0),
+    P(False, 80.0, 50.0, 2.0, True),
+    P(False, 90.0, 50.0, 2.0),
+]
+neu_r, _weg = fw.schneller(ueber, ff.scheibe(6.0), rippe, 1000.0)
+durch = [
+    (round(a.x, 1), round(b.x, 1), round(min(a.z, b.z), 1))
+    for a, b in zip(neu_r, neu_r[1:], strict=False)
+    if min(a.x, b.x) < 58.0 and max(a.x, b.x) > 42.0 and min(a.z, b.z) < 4.0 - 1e-6
+]
+pruefe(not durch, f"quer durch die fertige Rippe: {durch}")
+pruefe(
+    max(p.z for p in neu_r) <= 4.0 + fw.LINK_LUFT + 1e-6,
+    f"über die Rippe nur so hoch wie nötig: {max(p.z for p in neu_r)}",
+)
+# 2. Der Schlichtzug an einer Wand (x 50), an der noch 0,3 mm Aufmaß stehen: Zwischen den Knoten
+# des Rasters (49,5 und 50,0) ist das Aufmaß nicht zu sehen – der Zug bleibt trotzdem im
+# Arbeitsvorschub (bis 0.366.1 ganz im Freivorschub). Die Enden in der Luft fahren schnell.
+for wand_x in (50.0, 50.2, 50.4):
+    wand = mit_fertigteil(lambda x, w_=wand_x: x > w_ - 0.3, lambda x, w_=wand_x: x >= w_, 10.0)
+    zug = [
+        P(True, wand_x - 6.0, -10.0, 15.0),
+        P(True, wand_x - 6.0, -10.0, 0.0),
+        P(False, wand_x - 6.0, 110.0, 0.0),
+        P(True, wand_x - 6.0, 110.0, 15.0),
+    ]
+    neu_w, _weg = fw.schneller(zug, ff.scheibe(6.0), wand, 1000.0)
+    schnell_an_der_wand = [
+        (round(a.y, 1), round(b.y, 1))
+        for a, b in zip(neu_w, neu_w[1:], strict=False)
+        if not b.eilgang and b.anteil > 1.0 and max(a.y, b.y) > 0.0 and min(a.y, b.y) < 100.0
+    ]
+    pruefe(not schnell_an_der_wand, f"Wand bei {wand_x}: schnell am Aufmaß {schnell_an_der_wand}")
+# Liegt die fertige Wand weiter weg als eine Zelle vom Fräser, zählt sie nicht: schnell.
+fern = mit_fertigteil(lambda x: x >= 50.0, lambda x: x >= 50.0, 10.0)
+zug = [P(True, 43.2, -10.0, 0.0), P(False, 43.2, 110.0, 0.0), P(True, 43.2, 110.0, 15.0)]
+neu_f, weg_f = fw.schneller(zug, ff.scheibe(6.0), fern, 1000.0)
+pruefe(weg_f > 100.0, f"0,8 mm neben der fertigen Wand: nur {weg_f:.0f} mm schnell")
+print("Fertigteil ok")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

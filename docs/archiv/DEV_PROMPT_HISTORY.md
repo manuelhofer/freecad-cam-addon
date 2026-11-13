@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-02 freiwege-fertigteil-ist-hindernis
+
+### EINGELESEN
+- Gegenprüfung (P-2026-11-13-01), Urteil des Zweiflers zum Planfräsen: `freiwege._unten_bleiben` verbindet
+  seit P-2026-11-06-16 (0.348.2) in der Tiefe durch eine fertige Rippe – `_frei` blendet das Fertigteil
+  aus (gedacht für die Frage „Freivorschub?“) und wird auch für die Frage „darf ich unten bleiben?“ benutzt.
+- Selbst nachgestellt und weitergedacht: Dasselbe Ausblenden lässt einen Schlichtzug an einer Wand mit
+  0,3 mm Aufmaß als „frei“ gelten, wenn kein Knoten des Rasters (0,5) im Aufmaß liegt – Stand und
+  Fertigteil sind dann an jedem Knoten gleich.
+- Spezifikation Strategien, Abschnitt 14 (Freiwege); Manuel, 2026-11-06 („noch relativ viel in der Luft“).
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_frei(…, fertig_zaehlt=False)` – eine fertige Wand zählt, wo der Fräser bis auf
+  eine Zelle an sie herankommt; `_unten_bleiben` fragt mit `fertig_zaehlt=True`.
+- `tests/test_freiwege.py`: fertige Rippe zwischen zwei Schnitten; Schlichtzug am Aufmaß bei drei Lagen
+  der Wand im Raster; 0,8 mm neben der fertigen Wand bleibt es schnell.
+- `docs/spezifikation_strategien.md` (Freiwege), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.366.2).
+
+### ERGEBNIS
+- Rippe (x 48 … 52, Oberkante 4), Schnitte auf z 2 beiderseits: der Weg geht mit 2 mm Luft über die Rippe
+  (z 6) statt auf z 2 hindurch.
+- Schlichtzug an der Wand bei x 50 / 50,2 / 50,4 mit 0,3 mm Aufmaß: im Arbeitsvorschub (vorher bei 50,0
+  und 50,4 ganz im Zehnfachen), nur die Enden in der Luft schnell.
+- Grün: `test_freiwege`, `test_testteil`, `test_goldene_bahnen`, `test_kontur`, `test_nut`, `test_raeumen`.
+- Nicht gemessen: wie viel Zeit das am Testteil kostet (Züge direkt an fertigen Wänden fahren wieder im
+  Arbeitsvorschub).
 ## P-2026-11-13-01 gegenpruefung-der-aenderungen-vom-12-11
 
 ### EINGELESEN
