@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-15 kein-absturz-kleiner-vollkreis
+
+### EINGELESEN
+- Befund des Bauers im Workflow „Taschenwand“: `rb.planen` endet mit SIGSEGV, wenn in der dreieckigen
+  Tasche ein runder Stift Ø 1 steht (auch auf 0.368.0).
+- `kontur_bahn._versatz`, `_versaetze`, `tauchfraesen.stellen` – die drei Stellen mit `makeOffset2D`.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_versatz_draehte` – ein Vollkreis aus einer Kante wird gerechnet (Radius ±
+  Versatz), alles andere geht wie bisher an `Part.Wire.makeOffset2D`.
+- `camaddon/tauchfraesen.py`: ein runder Boden, in den der Fräser nicht passt, wird nicht versetzt.
+- `tests/test_raeumen.py`: Tasche mit Stift Ø 1 (Ø 6, Ringe) und der Kreisversatz selbst.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.368.1).
+
+### ERGEBNIS
+- Eingegrenzt mit einer Aufrufspur (FreeCADs eigener Signalfänger verdeckt den Python-Stapel): der Absturz
+  liegt in `Wire.makeOffset2D`. Je Fall in eigenem Prozess gemessen (Wochen-Build 27.1 vom 11.11.):
+  Vollkreis Radius 0,5 und 1,0 nach innen – SIGSEGV bei jedem Versatz (0,2 / 0,5 / 0,6 / 3,3); Radius 1,5 bis
+  3,2 mit Versatz 3,3 – saubere Ausnahme; zwei Halbkreise, Quadrat, Langloch – saubere Ausnahme; nach außen
+  – in Ordnung. Im kleinen Versuch fängt FreeCAD das Signal als Ausnahme, im Räumen endet der Prozess.
+- Tasche mit Stift Ø 1 / Ø 2 / Ø 0,6: 6 Ringe, 0,51 min, kein Einschnitt, nichts im Eilgang.
+- Grün: `test_raeumen`, `test_kontur`, `test_kontur_korrektur`, `test_tauchfraesen`, `test_bohrung`,
+  `test_fase`, `test_testteil`, `test_goldene_bahnen` (nichts bewegt), `test_pruefstand` (keine Bestmarke
+  bewegt).
 ## P-2026-11-13-14 freiform-referenzen-und-regel
 
 ### EINGELESEN

@@ -57,6 +57,14 @@ def stellen(boden, radius, aufmass=0.0, schritt=None):
     import FreeCAD
 
     schritt = schritt or SCHRITT_ANTEIL * 2 * radius
+    # Ein runder Boden aus einer Kante, in den der Fräser nicht passt: gar nicht erst versetzen –
+    # OpenCascade stürzt beim Versatz kleiner Vollkreise nach innen ab (kontur_bahn._versatz_draehte).
+    import Part
+
+    kanten = boden.OuterWire.Edges
+    rund = len(kanten) == 1 and isinstance(kanten[0].Curve, Part.Circle)
+    if rund and kanten[0].Curve.Radius <= radius + aufmass + 1e-6:
+        return []
     try:
         innen = boden.makeOffset2D(-(radius + aufmass), join=0)
     except Exception:  # Part.OCCError: zu eng für den Fräser

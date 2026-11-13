@@ -578,6 +578,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.368.1):* **Kein Absturz mehr bei einem dünnen runden Stift in der Tasche:** OpenCascade
+  stürzt im Wochen-Build 27.1 (11.11.) beim Versatz kleiner Vollkreise nach innen ab (SIGSEGV, Radius 0,5
+  und 1,0, auch wenn das Ergebnis gültig wäre) – Räumen oder Kontur an einer Tasche mit einem Stift Ø 1
+  riss FreeCAD mit. Vollkreise rechnet `kontur_bahn._versatz_draehte` jetzt selbst; das Tauchfräsen fragt
+  einen runden Boden, in den der Fräser nicht passt, gar nicht erst an. Gefunden von einem Unteragenten
+  beim Gegenprüfen, nachgestellt in `test_raeumen.py`.
 - *Neu (0.368.0):* **3D-Schruppen: der Ring an der Wand ist rund statt gezackt** (`camaddon/ringgrenze.py`):
   Die Grenze kommt aus der Hüllfläche selbst statt aus den Zellen des Rasters. Mulde des Testteils
   (3D-Schruppen T1): Wandring 0,34 … 0,36 mm vor dem Teil statt 0,64 … 1,19 (Aufmaß 0,3), 78 statt 332

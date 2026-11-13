@@ -730,11 +730,11 @@ def _versaetze(kontur, d, toleranz, schritt, material_rechts=True):
     ergebnis = [erste]
     for vorzeichen in (1.0, -1.0):
         try:
-            gerechnet = draht.makeOffset2D(vorzeichen * d, 0, False, False, False)
+            gerechnet = _versatz_draehte(draht, vorzeichen * d, False)
         except Exception:  # OCC: „offset result has no wires“
             continue
         schleifen = []
-        for teil in gerechnet.Wires:
+        for teil in gerechnet:
             segmente = _segmente(teil, toleranz)
             if segmente:
                 schleifen.append((segmente, _abtasten(segmente, schritt, True)))
@@ -819,6 +819,25 @@ def _normale_bei(kontur, proben, i):
     return _einheit(p.x - naechster.x, p.y - naechster.y)
 
 
+def _versatz_draehte(draht, wert, offen):
+    """Die Drähte des Versatzes von `draht` (in z = 0) um `wert` (positiv: nach außen) – wie
+    Part.Wire.makeOffset2D, das auch seine Ausnahmen wirft. Ein Vollkreis aus einer Kante wird
+    gerechnet statt versetzt: OpenCascade stürzt beim Versatz kleiner Vollkreise nach innen ab
+    (SIGSEGV in BRepOffsetAPI_MakeOffset, Wochen-Build 27.1 vom 11.11.: Radius 0,5 und 1,0 mit
+    jedem Versatz nach innen, auch 0,5 − 0,2; ab Radius 1,5 eine saubere Ausnahme) – eine Tasche
+    mit einem runden Stift Ø 1 riss FreeCAD beim Räumen mit (gefunden am 2026-11-13)."""
+    import Part
+
+    kanten = draht.Edges
+    if len(kanten) == 1 and draht.isClosed() and isinstance(kanten[0].Curve, Part.Circle):
+        kreis = kanten[0].Curve
+        radius = kreis.Radius + wert
+        if radius <= 1e-6:
+            return []  # nach innen verschwunden
+        return [Part.Wire([Part.makeCircle(radius, kreis.Center, kreis.Axis)])]
+    return draht.makeOffset2D(wert, 0, False, offen, False).Wires
+
+
 def _versatz(kontur, d, toleranz, schritt, material_rechts=True):
     """(Segmente, Proben) des Versatzes um `d` auf der freien Seite der Kontur, in Fahrtrichtung
     (Material rechts, `material_rechts` False: links); None, wenn es ihn nicht gibt (zu groß für
@@ -835,10 +854,10 @@ def _versatz(kontur, d, toleranz, schritt, material_rechts=True):
             kandidaten.append([_parallel(einzeln, vorzeichen * d)])
             continue
         try:
-            ergebnis = draht.makeOffset2D(vorzeichen * d, 0, False, not kontur.geschlossen, False)
+            draehte = _versatz_draehte(draht, vorzeichen * d, not kontur.geschlossen)
         except Exception:  # OCC: „offset result has no wires“
             continue
-        for teil in ergebnis.Wires:
+        for teil in draehte:
             segmente = _segmente(teil, toleranz)
             if segmente:
                 kandidaten.append(segmente)

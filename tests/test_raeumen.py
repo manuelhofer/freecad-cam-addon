@@ -888,6 +888,44 @@ last_duenn, _lang = rb.last(bahn_duenn, werte_duenn)
 pruefe(last_duenn <= bn.LAST_KURZ * rb.LAST_SPIEL, f"dünne Lage: Last bis {last_duenn:.2f} ae")
 print(f"duenne Lage: {bahn_duenn.zeit:.2f} min, Last bis {last_duenn:.2f}")
 
+# --- Ein dünner runder Stift in der Tasche: kein Absturz ----------------------------------------
+# Dreieckige Tasche (40°-Ecke) mit einem Stift Ø 1: Der Versatz seines Vollkreises nach innen ließ
+# OpenCascade abstürzen (SIGSEGV in BRepOffsetAPI_MakeOffset, Wochen-Build 27.1 vom 11.11.) – das
+# Räumen riss FreeCAD mit. kontur_bahn._versatz_draehte rechnet Vollkreise jetzt selbst.
+ecke_a = np.array([10.0, 10.0])
+ecke_c = ecke_a + 30.0 * np.array([math.cos(math.radians(40)), math.sin(math.radians(40))])
+dreieck = [V(10, 10, 15), V(45, 10, 15), V(ecke_c[0], ecke_c[1], 15), V(10, 10, 15)]
+teil_st = Part.makeBox(60, 50, 20).cut(Part.Face(Part.makePolygon(dreieck)).extrude(V(0, 0, 5)))
+stift_m = ecke_a + 8.6 * np.array([math.cos(math.radians(20)), math.sin(math.radians(20))])
+teil_st = teil_st.fuse(Part.makeCylinder(0.5, 5, V(stift_m[0], stift_m[1], 15))).removeSplitter()
+rohteil_st = (0.0, 60.0, 0.0, 50.0)
+form_st = ff.scheibe(3.0)  # Ø 6 – der Standardfräser passt nicht in die Tasche
+werte_st = rb.Raeumwerte(
+    form_st, 5.0, 0.6, 0.3, 20.0, 25.0, rohteil_st, variante=rb.RINGE, schneidenlaenge=13.0,
+    eintauchwinkel=3.0, vorschub=540.0, eintauchen=160.0,
+)  # fmt: skip
+bahn_st = raeumen(teil_st, 15.0, werte_st)
+k_st = ps.messen(
+    [ps.Bahnlauf(bahn_st.punkte, 540.0, 160.0)], teil_st, rohteil_st, 20.0, form_st, 0.6, 5.0,
+    ebenen_z=[15.0], aufmass=0.3,
+)  # fmt: skip
+print(f"Tasche mit Stift Ø 1: {bahn_st.ringe} Ringe, {bahn_st.zeit:.2f} min, {ps.zeile(k_st)}")
+pruefe(bahn_st.ringe > 0, f"Stift Ø 1: {bahn_st.ringe} Ringe")
+pruefe(k_st.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Stift Ø 1: ins Teil {k_st.einschnitt:.3f}")
+pruefe(k_st.eilgang_abtrag <= 1e-9, f"Stift Ø 1: im Eilgang {k_st.eilgang_abtrag:.2f} mm³")
+for radius_k, versatz_k, erwartet in ((0.5, -0.2, 0.3), (0.5, -3.3, None), (1.0, 2.0, 3.0)):
+    kreis_k = Part.Wire([Part.makeCircle(radius_k, V(3, 4, 0))])
+    draehte_k = kb._versatz_draehte(kreis_k, versatz_k, False)
+    if erwartet is None:
+        pruefe(draehte_k == [], f"Kreis {radius_k} um {versatz_k}: {len(draehte_k)} Drähte")
+    else:
+        kurve_k = draehte_k[0].Edges[0].Curve
+        pruefe(
+            len(draehte_k) == 1 and abs(kurve_k.Radius - erwartet) < 1e-9
+            and kurve_k.Center.distanceToPoint(V(3, 4, 0)) < 1e-9,
+            f"Kreis {radius_k} um {versatz_k}: Radius {kurve_k.Radius}",
+        )  # fmt: skip
+
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])
 for werte_falsch, ebenen_falsch, text in (
