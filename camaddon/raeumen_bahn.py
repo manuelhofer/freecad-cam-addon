@@ -1358,6 +1358,13 @@ class _Lage:
                     punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
                     laenge += kb._helix_hinab(punkte, p0, helix, knapp, oben_hier, self.lage, w)
                 else:
+                    # Weiß die Lage, wo das Material längs der Rampe endet (3D-Schruppen als Rest
+                    # oder mit Materialstand), beginnt die Rampe dort statt an der vorigen Lage –
+                    # im Tal zwischen zwei Kuppeln rampte der Restfräser sonst 3 mm in der Luft.
+                    ab = self._rampe_ab(x, y)
+                    if ab < oben_hier - GLEICH:
+                        oben_hier = ab
+                        knapp = min(knapp, ab + w.sicherheit)
                     punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
                     punkte.append(bn.Punkt(False, p0[0], p0[1], oben_hier, True))
                     self.st.rampen += 1
@@ -1772,6 +1779,11 @@ class _Lage:
             oben = self.feld.hoechstes(self.stand_hoehe, start[0], start[1], self.lage)
             return min(hoch, max(knapp, oben + self.w.sicherheit))
         return min(hoch, max(knapp, self._material_oben() + self.w.sicherheit))
+
+    def _rampe_ab(self, x, y):
+        """Ab welcher Höhe die Rampe längs der Stellen (x, y) im Material sein kann: die vorige
+        Lage (_Lage3D weiß es genauer)."""
+        return self.vorige
 
     def _material_oben(self, ort=None):
         """Bis wohin das Material über der Spitze reichen kann: die vorige Lage – über der
@@ -4010,8 +4022,12 @@ def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
             if len(punkte) < 2:
                 continue
             laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
-            if geschlossen and laenge < 2 * math.pi * ae:
-                continue  # winzig: der Ring davor deckt es ab
+            # Winzig: Der Ring davor (ae weiter außen) deckt es ab – solange seine Stirn bis in
+            # die Mitte reicht (Umfang ÷ 2π + ae ≤ R). Bis 0.367.4 galt nur „unter 2π · ae“: Mit
+            # ae über dem halben Radius blieb in der Mitte ein Zapfen stehen (Ø 12, ae 5,6: 3,8 mm
+            # im Quadrat – die Lage darunter fuhr im Eilgang hinein).
+            if geschlossen and laenge < 2 * math.pi * min(ae, max(r - ae, 0.0)):
+                continue
             i, j = feld.zellen(punkte[:, 0], punkte[:, 1])
             nur_rand = not feld.vom_material and bool(
                 (np.abs(G[i, j] - (feld.tiefe[i, j] + r)) <= schritt).all()

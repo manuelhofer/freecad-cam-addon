@@ -264,6 +264,21 @@ eben). Kein OCL.
    Einfahrt der nächsten mit der Höhe davor (`stehen_bis`). Schale + 5 mm: 5,1 min statt 1,4 (die
    18 cm³ darüber werden jetzt wirklich abgetragen), 0 mm³ im Eilgang; Kuppel + 5 mm: über der
    Spitze bleibt höchstens eine Stufe (1 mm) statt 5,3 mm.
+   **Die Schicht mit breiteren Ringen (0.368.0):** Sie ist dünner als die Hauptlage – ihre Ringe
+   liegen so weit auseinander, dass je mm Weg so viel Material fällt wie dort (ae · ap der
+   Hauptlage ÷ Dicke), höchstens 0,8 · Radius (wie in den Zwischenlagen darunter). Mit ae blieb es
+   bei 6 Ringen und 470 mm Weg für 2,4 mm über einer Kuppel von 20 × 16 mm; in der Folge
+   Schruppen + Simultanschlichten (`test_simultan_folge.py`) fiel die schnellste Variante wegen
+   32 % Luft im Schruppen weg (80 s statt der früheren 49 s, in denen die Schicht stehen blieb).
+   Jetzt 218 mm in 3 Ringen, die Folge 56,8 s; Schale + 5 mm 2,7 statt 5,1 min, 0 mm³ im Eilgang.
+   Dabei gefunden und behoben, im Räum-Kern (`_ringe_vom_rohteil`): Ein geschlossener Ring kürzer
+   als 2π · ae fiel als „winzig“ weg, weil der Ring davor ihn abdeckt – das stimmt nur, solange
+   dessen Stirn bis in die Mitte reicht (Umfang ÷ 2π + ae ≤ R). Mit ae über dem halben Radius
+   blieb in der Mitte ein Zapfen stehen: beim Räumen eines Quadrats 40 × 40 mit Ø 12 und ae 4,5
+   ein Rest 6 mm hoch (nachgestellt in `test_raeumen.py`), an der Schale fuhr die Lage darunter
+   21,6 mm³ im Eilgang hinein. Jetzt fällt der Ring nur weg, wenn die Rechnung aufgeht; und der
+   Eilgang hinab vor Rampe und Helix endet im 3D-Schruppen über dem, was unter der Stirn wirklich
+   noch steht (`_Lage3D._material_oben`).
 2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
    (Abtrag). Aufwand mittel. Gebaut (P-2026-10-02-02, 0.66.0) – ohne Abtragsmodell: Was der
    große Fräser (ebene Stirn) stehen ließ, folgt aus seiner Hüllfläche – je Zelle die tiefste
@@ -2536,12 +2551,38 @@ Satz) und die Breite im Eingriff je 0,5 mm Weg (Volumen ÷ Weg ÷ Tiefe, über 5
   | Eingriff (Mindesttiefe 0,5 statt 1 mm, die Zwischenlagen sind 0,97 mm) | 7,9 ae, 28 mm über 1,25 ae | 8,3 ae, 30 mm über 1,25 ae |
   | Rechenzeit | 1,5 s | 3,3 s |
 
-  Der Ring in der Mulde ist jetzt ein Kreis (Bild bei Manuel:
-  `~/freecad_cam/wip/strategien/zacken/bild2_vorher_nachher3.png`). Mit der üblichen
+  Der Ring in der Mulde ist jetzt ein Kreis (Bild:
+  `docs/bilder/vorschlaege/zacken_mulde_vorher_nachher.png`). Mit der üblichen
   Mindesttiefe 1 mm zeigt der Prüfstand nachher „Eingriff bis 0,0 ae“ – kein Fenster erreicht
   1 mm Tiefe; mit 0,5 mm gemessen ist der Eingriff wie vorher. Kein Satz kommt näher als das
   Aufmaß. An der Kuppel aus `test_schruppen3d.py`: 5,40 min, senkrecht 0,324 … 1,367 mm über der
   Fläche, Rechenzeit 2,7 s.
+  **Beim Übernehmen nachgearbeitet (0.368.0, 2026-11-13):**
+  - *Nur im Raster der fertigen Bahn* (`GENAU_BIS_RASTER` 0,5 mm): Im Raster der Vorschau (1 mm)
+    hielt die genaue Grenze auf keiner Lage (Gegenprüfer: 19 von 19 zurück) und kostete nur
+    Rechenzeit (0,5 → 2,0 s und 0,6 → 4,3 s).
+  - *Über dem ganzen Teil keine Grenze:* Eine Lage, auf der nichts gesperrt ist (B-029), hat
+    keine – sie rechnet wie bisher.
+  - *Der Rand an der Wand zählt als Material* (`RAND_ZAEHLT`): Auf einer Zwischenlage galt als
+    Material, was die Stirn des Rings **aus dem Raster** träfe. Der Ring an der genauen Grenze
+    reicht 0,3 … 0,8 mm weiter – er fiel aus, wo nur noch dieser Rand stand. Jetzt zählt, was
+    seine Stirn trifft (Abstand zur genauen Grenze, wieder eine Zelle weniger). Gemessen an zwei
+    Kuppeln R 12 mit 5,2 mm Tal (`test_restschruppen.py`), Ø 12 dann Rest mit Ø 6, Rohteil über
+    dem Teil mit Aufmaß nach beiden Bahnen:
+
+    | | Ø 12 | danach steht | Rest Ø 6 | danach steht | größter Rest im Tal |
+    | --- | ---: | ---: | ---: | ---: | ---: |
+    | Raster (bis 0.367.4) | 4,14 min | 1073 mm³ | 0,26 min | 944 mm³ | 2,91 mm |
+    | genaue Grenze | 4,10 min | 735 mm³ | 0,31 min | 644 mm³ | 3,15 mm |
+    | genaue Grenze, Rand zählt | 4,30 min | 661 mm³ | 0,45 min | 553 mm³ | 2,21 mm |
+
+    An der Mulde des Testteils ändert es nichts (1,2925 min, Wandring 0,34 … 0,36 mm – dieselben
+    Zahlen wie in der Tabelle oben, auf dem zusammengeführten Stand nachgemessen).
+  - *Die Rampe beginnt am Material:* Weiß die Lage, wo das Material längs der Rampe endet
+    (3D-Schruppen als Rest oder mit Materialstand, `_Lage3D._rampe_ab`), beginnt die Rampe dort
+    statt an der vorigen Lage – im Tal rampte der Ø 6 sonst 3 mm in der Luft (0,68 → 0,45 min).
+    Ohne Materialstand ist beides dasselbe.
+
   **Noch offen:** Das Räumen der dreieckigen Tasche mit T3 ist unverändert (181 Sätze, 132 Ecken,
   Wandabstand 0,72 … 1,19 mm). Der Baustein ist in `raeumen_bahn` vorbereitet (`_Feld.grenze`,
   `_erlaubt_bei`), im Räumen aber nicht eingeschaltet und dort nicht erprobt; ein Feld mit

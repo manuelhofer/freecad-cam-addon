@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-13 schruppen3d-runde-ringe
+
+### EINGELESEN
+- Der Zacken-Umbau der Unteragenten (Zweig `zacken2`, Commits a19bec77 und b498b948; gebaut, dann von
+  einem Gegenprüfer nachgemessen: „übernehmen“, mit der Nacharbeit „in der Vorschau abschalten“).
+- `schruppen3d_bahn._schruppen`, `_ringe_zwischen`, `_Lage3D`; `raeumen_bahn._lauf`,
+  `_ringe_vom_rohteil`; `ringgrenze.Nachrechner`.
+- `tests/test_restschruppen.py`, `tests/test_simultan_folge.py` (die Referenz der Folge).
+
+### DATEIEN
+- `camaddon/ringgrenze.py` (neu, aus dem Zweig), `camaddon/raeumen_bahn.py`,
+  `camaddon/schruppen3d_bahn.py`: der Ring an der Wand aus der genauen Grenze. Nacharbeit:
+  `GENAU_BIS_RASTER` (nur im Raster der fertigen Bahn), keine Grenze über dem ganzen Teil (B-029 und der
+  Umbau trafen sich dort: Abbruch „material nicht belegt“), `RAND_ZAEHLT` (auf einer Zwischenlage zählt
+  als Material, was die Stirn des genauen Rings trifft), `_Lage3D._rampe_ab` (die Rampe beginnt am
+  wirklichen Material), `_Lage3D._material_oben` (Eilgang hinab endet über stehendem Rest).
+- `camaddon/schruppen3d_bahn.py`: die Schicht über dem ganzen Teil mit breiteren Ringen (ae · ap der
+  Hauptlage ÷ Dicke, höchstens 0,8 · Radius).
+- `camaddon/raeumen_bahn.py`, `_ringe_vom_rohteil`: ein „winziger“ Ring fällt nur weg, wenn die Stirn
+  des Rings davor bis in die Mitte reicht (Umfang ÷ 2π + ae ≤ R).
+- `tests/test_raeumen.py` (Quadrat 40 × 40 mit ae 4,5), `tests/test_restschruppen.py` (jede Bahn mit
+  ihrem Fräser), `tests/golden/simultan_folge.json`, `tests/golden/kuppel_simultan*.json`.
+- `docs/spezifikation_strategien.md` (4.2 und 13.6), `docs/STATUS_SNAPSHOT.md`,
+  `docs/bilder/vorschlaege/zacken_mulde_vorher_nachher.png`, `package.xml` (0.368.0).
+
+### ERGEBNIS
+- Mulde des Testteils (3D-Schruppen T1), auf dem zusammengeführten Stand nachgemessen: Wandring
+  0,34 … 0,36 mm vor dem Teil statt 0,64 … 1,19, 78 statt 332 Ecken ab 15°, 1,29 statt 1,33 min.
+- Zwei Kuppeln mit Tal (Ø 12, dann Rest Ø 6): nach beiden Bahnen stehen 553 statt 944 mm³, größter Rest
+  im Tal 2,21 statt 2,91 mm; Ø 12 4,30 statt 4,14 min, Rest 0,45 statt 0,26 min (er nimmt jetzt auch die
+  zwei Zwickel am Boden, die das Raster nicht sah).
+- **Unbemerkt seit 0.366.6:** Die Folge Schruppen + Simultanschlichten war langsamer geworden (80 statt
+  49 s). Die 49 s stammten aus dem Fehler B-029 (die Schicht über der Kuppel blieb stehen); seit seiner
+  Korrektur fuhr sie in 6 Ringen mit ae, 32 % des Vorschubwegs in der Luft – die Variante mit 3 mm
+  Zwischenlagen fiel deshalb weg. `test_simultan_folge` war nach 0.366.6 nicht mitgelaufen. Jetzt
+  56,8 s, Referenz neu.
+- **Alter Fehler im Räum-Kern, dabei gefunden:** Mit ae über dem halben Radius blieb in der Mitte ein
+  Zapfen stehen (Räumen, Quadrat 40 × 40, Ø 12, ae 4,5: 6 mm hoch; mit den breiteren Ringen an der
+  Schale fuhr die Lage darunter 21,6 mm³ im Eilgang hinein – von `test_schruppen3d` gezeigt, bevor es
+  hinausging). Behoben, Prüfung dazu.
+- Schale + 5 mm Rohteil darüber: 2,7 statt 5,1 min, 0 mm³ im Eilgang.
+- Ebenso die Simultan-Kuppel (`test_simultan_planung`, `test_simultan_gesamt`): Bahn unverändert, Zeit
+  83,1 s (Schicht blieb stehen) → 113,6 s (0.366.6 bis 0.367.4) → 94,4 s; Referenzen neu.
+- Manuels Testteil durch den ganzen Weg (`szenario_mess_testteil`): 13,76 min (vorher 13,75), nichts im
+  Teil; „3D-Schruppen T1“ im Job 0,80 min.
+- Grün: `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_restschruppen`, `test_materialstand`,
+  `test_goldene_bahnen` (nichts bewegt), `test_testteil`, `test_raeumen`, `test_pruefstand` (keine
+  Bestmarke bewegt), `test_simultan_folge`, `test_schwenken`, `test_nut_offen`, `test_n_eck`.
 ## P-2026-11-13-12 kontur-luft-nur-wo-geschruppt
 
 ### EINGELESEN

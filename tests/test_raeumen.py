@@ -8,6 +8,7 @@
 # Kontur; Gleichlauf (M3: im Uhrzeigersinn auf der Oberseite) und Gegenlauf; Fehler mit
 # einem Satz; dann die CAM-Operation im Job: angelegt, gerechnet, geändert, gespeichert und
 # geladen.
+import dataclasses
 import math
 import os
 import sys
@@ -442,8 +443,6 @@ print("Tasche ok")
 # Die Morph-Spirale in der Tasche (morph_tasche, P-2026-10-24-18 – aus, bis Manuel sie will): eine
 # Helix je Lage um die Mitte, dann nach außen bis an die Wand; nichts bleibt stehen, nichts ins
 # Teil. In einer lang gestreckten Tasche (ein L) gibt es sie nicht – dort die Ringe.
-import dataclasses  # noqa: E402
-
 werte_mt = dataclasses.replace(werte_fuer(rohteil_c, 21.0, variante="morph"), morph_tasche=True)
 bahn_mt = raeumen(teil_c, 5.0, werte_mt)
 pruefe(bahn_mt.variante == "morph", f"Morph-Tasche: {bahn_mt.variante} {bahn_mt.zeiten}")
@@ -683,6 +682,19 @@ pruefe(
 for satz in ps.urteile(k_g, sicher_nur=True):
     pruefe(False, f"Streifen: {satz}")
 print(f"Streifen: {bahn_g.ringe} Ringe, {bahn_g.zeit:.2f} min, Luft {k_g.luftanteil * 100:.0f} %")
+
+# Ein Quadrat 40 × 40 mit ae 4,5 (über dem halben Radius): Der kleinste Ring in der Mitte fällt
+# nur weg, wenn die Stirn des Rings davor bis in die Mitte reicht. Bis 0.367.4 fiel er immer weg,
+# wenn er kürzer als 2π · ae war – in der Mitte blieb ein Zapfen stehen.
+teil_q = Part.makeBox(40, 40, 20)
+rohteil_q = (0.0, 40.0, 0.0, 40.0)
+werte_q = dataclasses.replace(werte_fuer(rohteil_q, 26.0, variante="rohteil"), zeilenabstand=4.5)
+bahn_q = raeumen(teil_q, 20.0, werte_q)
+rest, einschnitt = simuliert(bahn_q, teil_q, rohteil_q, 26.0, 20.0, 0.3)
+print(f"Quadrat, ae 4,5: {bahn_q.ringe} Ringe, {bahn_q.zeit:.2f} min, Rest {rest:.2f}")
+pruefe(
+    rest <= 0.05 and einschnitt >= -0.05, f"Quadrat ae 4,5: Rest {rest}, Einschnitt {einschnitt}"
+)
 
 # --- (h) Die schnellste Variante, die die Last hält – mit FreeCADs Adaptiv-Kern (T5) -----------
 # Manuel, 2026-10-02: „das was schneller ist ... gewinnt .. wenn man volle Tiefe fräst muss der

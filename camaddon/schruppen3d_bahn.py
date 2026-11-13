@@ -60,6 +60,13 @@ GLEICH = rb.GLEICH
 # Der Ring an der Wand aus der genauen Grenze (ringgrenze, Spezifikation Strategien 13.6) statt
 # aus den Zellen – abschaltbar für den Vergleich.
 GENAUE_GRENZE = True
+# Nur im Raster der fertigen Bahn: Im gröberen der Vorschau (1 mm) hält die genaue Grenze auf
+# keiner Lage (gemessen vom Gegenprüfer, 2026-11-13: 19 von 19 Lagen zurück) – sie kostete dort nur
+# Rechenzeit (0,5 → 2,0 s und 0,6 → 4,3 s).
+GENAU_BIS_RASTER = 0.5  # mm
+# An der genauen Grenze zählt auf einer Zwischenlage als Material, was die Stirn des Rings an der
+# Wand trifft (statt was die des Rings aus dem Raster träfe) – abschaltbar für den Vergleich.
+RAND_ZAEHLT = True
 
 
 @dataclass
@@ -100,6 +107,22 @@ class _Lage3D(rb._Lage):
         knapp = min(hoch, self.lage + self.w.sicherheit)
         oben = _hoechstes(self.feld, self.hoehe, self.stempel, start[0], start[1])
         return min(hoch, max(knapp, oben + self.w.sicherheit))
+
+    def _material_oben(self, ort=None):
+        """Wie im Räumen – dazu, was unter der Stirn über `ort` wirklich noch höher steht (ein
+        Rest, den die Lage darüber nicht nahm): Der Eilgang hinab endet auch vor Rampe und Helix
+        darüber."""
+        oben = super()._material_oben(ort)
+        if ort is not None and self.hoehe is not None:
+            oben = max(oben, _hoechstes(self.feld, self.hoehe, self.stempel, ort[0], ort[1]))
+        return oben
+
+    def _rampe_ab(self, x, y):
+        """Das höchste Material unter der Stirn längs der Rampe – höchstens die vorige Lage."""
+        hoch = self.lage
+        for a, b in zip(x, y, strict=False):
+            hoch = max(hoch, _hoechstes(self.feld, self.hoehe, self.stempel, a, b))
+        return min(self.vorige, hoch)
 
 
 def _scheibe(radius, schritt):
@@ -315,7 +338,8 @@ def _schruppen(
     gerade = kb.GERADE_ANTEIL * r
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
-    nachrechner = rg.Nachrechner(feld, netz, geformt) if GENAUE_GRENZE else None
+    genau = GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
+    nachrechner = rg.Nachrechner(feld, netz, geformt) if genau else None
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen)
     stehen_bis = None  # bis hierhin steht Material über einer Zwischenlage, die ausfiel
     for nummer, (lage, zwischenlage, vorige) in enumerate(folge):
@@ -356,6 +380,16 @@ def _schruppen(
                 if zwischenlage and bool((hoehe > lage + MATERIAL).any()):
                     stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
                 continue
+            # Die Schicht ist dünner als die Hauptlage: die Ringe so weit auseinander, dass je mm
+            # Weg so viel Material fällt wie dort (ae · ap), höchstens der Radius – wie in den
+            # Zwischenlagen darunter. Mit ae blieb es bei 6 Ringen (470 mm Weg) für 2,4 mm über
+            # einer Kuppel von 20 × 16 mm.
+            dick = float(hoehe[np.isfinite(hoehe)].max()) - lage
+            # Nicht ganz der Radius: Der letzte Ring muss die Mitte sicher decken, auch wenn die
+            # Höhenlinie dort zu klein für einen Ring ist.
+            breit = max(ae, min(0.8 * r, r - 2.0 * schritt))
+            weiter = min(breit, max(ae, ae * ap_haupt / max(dick, GLEICH)))
+            werte = dataclasses.replace(w, zeilenabstand=weiter)
         elif ist_zwischen:
             # Die Ringe nur für das, was über der Lage steht und der Fräser hier erreicht – eine
             # Zelle weniger weit als die Stirn vom Freien, damit der Rand am Gesperrten (den der
@@ -398,7 +432,7 @@ def _schruppen(
         # Wand folgt ihr statt den Zellen, die Ringe davor ihrem Abstand. Hält sie nicht (ein Ring
         # träfe beim Nachrechnen das Teil), bleibt es auf dieser Lage beim Raster.
         feld.grenze = None
-        if nachrechner is not None:
+        if nachrechner is not None and not ueber_allem:  # über dem ganzen Teil: keine Grenze
             # Nur die Linien, an denen ein Ring fahren kann: wo die Stirn das Rohteil trifft – auf
             # einer Zwischenlage nur nahe dem Material, das sie nimmt (die anderen Ringe fallen in
             # _ringe_zwischen ohnehin weg; am Testteil die halbe Rechenzeit).
@@ -408,11 +442,17 @@ def _schruppen(
             feld.grenze = nachrechner.grenze(lage, z_unten, erlaubt, material_links, schritt, wo)
         if feld.grenze is not None:
             D = feld.grenze.abstand
+            if ist_zwischen and RAND_ZAEHLT:
+                # Der Ring an der genauen Grenze reicht weiter an die Wand als der aus dem Raster:
+                # Material ist, was seine Stirn trifft (wieder eine Zelle weniger) – sonst fiele
+                # er aus, wo nur der Rand an der Wand steht (im Tal zwischen zwei Kuppeln blieben
+                # 0,7 mm mehr stehen als aus dem Raster).
+                material = ueber & (-(r - schritt - 0.01) < D)
         else:
             D = feld.abstand_zu(gesperrt & im_raster)
         vorher = st.ringe
         if ueber_allem:
-            rb._ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, glatt)
+            rb._ringe_vom_rohteil(ablauf, feld, werte, r, D, material_links, schritt, glatt)
         elif ist_zwischen:
             if np.isfinite(D).any():
                 _ringe_zwischen(

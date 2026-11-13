@@ -105,13 +105,30 @@ print(ascii(f"Im Tal über dem Teil: nach Ø 12 {vorher:.2f} mm ({v_vorher:.0f} 
             f"{nachher:.2f} mm ({v_nachher:.0f} mm³)"))  # fmt: skip
 pruefe(vorher > 3.0 and nachher < vorher - 1.5, f"im Tal: {vorher:.2f} → {nachher:.2f}")
 pruefe(v_nachher < 0.5 * v_vorher, f"im Tal: {v_vorher:.0f} → {v_nachher:.0f} mm³")
+# Jede Bahn mit ihrem Fräser: erst Ø 12 allein, dann der Rest im Rohteil, das Ø 12 hinterließ
+# (bis 0.367.4 lief hier auch die Bahn des Ø 12 mit der Form des Ø 6 – ein Eilgang des Rests
+# traf dann Material, das in Wahrheit weg ist).
 k = ps.messen(
-    [ps.Bahnlauf(gross.punkte, 902.0, 270.0), ps.Bahnlauf(rest.punkte, 902.0, 270.0)],
-    teil, (0, 66, 0, 40), OBEN, klein_form, 0.75, 12.0,
+    [ps.Bahnlauf(gross.punkte, 902.0, 270.0)], teil, (0, 66, 0, 40), OBEN, gross_form, 1.5, 25.0
+)
+print(ascii(ps.zeile(k)))
+pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Ø 12 ins Teil: {k.einschnitt:.3f}")
+pruefe(k.eilgang_abtrag <= 1e-9, f"Ø 12 im Eilgang {k.eilgang_abtrag:.1f} mm³")
+
+
+def nach_gross(quader):
+    for von, nach in zip(gross.punkte, gross.punkte[1:], strict=False):
+        stuecke = ps._stuecke(von, nach)
+        quader.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], gross_form)
+
+
+k = ps.messen(
+    [ps.Bahnlauf(rest.punkte, 902.0, 270.0)],
+    teil, (0, 66, 0, 40), OBEN, klein_form, 0.75, 12.0, start=nach_gross,
 )  # fmt: skip
 print(ascii(ps.zeile(k)))
 pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"ins Teil: {k.einschnitt:.3f}")
-pruefe(k.eilgang_abtrag <= 1e-9, f"im Eilgang {k.eilgang_abtrag:.1f} mm³")
+pruefe(k.eilgang_abtrag <= 1e-9, f"im Eilgang {k.eilgang_abtrag:.2f} mm³")
 
 # --- Ohne Lücke kein Rest ----------------------------------------------------------------------
 allein = teil_mit((33.0,))

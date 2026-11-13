@@ -578,6 +578,22 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Neu (0.368.0):* **3D-Schruppen: der Ring an der Wand ist rund statt gezackt** (`camaddon/ringgrenze.py`):
+  Die Grenze kommt aus der Hüllfläche selbst statt aus den Zellen des Rasters. Mulde des Testteils
+  (3D-Schruppen T1): Wandring 0,34 … 0,36 mm vor dem Teil statt 0,64 … 1,19 (Aufmaß 0,3), 78 statt 332
+  Ecken ab 15°, 295 statt 447 Sätze, 1,29 statt 1,33 min; Bild
+  `docs/bilder/vorschlaege/zacken_mulde_vorher_nachher.png`. Gebaut und gegengeprüft von Unteragenten,
+  beim Übernehmen nachgearbeitet: nur im Raster der fertigen Bahn (Vorschau wie bisher), auf einer
+  Zwischenlage zählt der Rand an der Wand als Material (zwei Kuppeln: 661 statt 1073 mm³ bleiben stehen),
+  die Rampe beginnt am wirklichen Material statt an der vorigen Lage (Restschruppen im Tal 0,45 statt
+  0,68 min). **Dazu drei Korrekturen:** (1) Die Schicht Rohteil über dem ganzen Teil (B-029) fährt mit
+  breiteren Ringen – Schale + 5 mm 2,7 statt 5,1 min; die Folge Schruppen + Simultanschlichten war seit
+  0.366.6 unbemerkt langsamer (80 statt 49 s, weil die schnellste Variante wegen 32 % Luft wegfiel), jetzt
+  56,8 s. (2) **Räumen ließ mit ae über dem halben Radius einen Zapfen in der Mitte stehen** (Ø 12, ae 4,5,
+  Quadrat 40 × 40: 6 mm hoch) – der kleinste Ring fiel als „winzig“ weg; alter Fehler im Kern, behoben,
+  Prüfung in `test_raeumen.py`. (3) `test_restschruppen.py` rechnete die Bahn des Ø 12 mit der Form des
+  Ø 6 nach – jetzt jede Bahn mit ihrem Fräser. Spezifikation Strategien 4.2 und 13.6.
+  **Manuel prüft:** Testteil → „3D-Schruppen T1“ neu rechnen: In der Mulde runde Ringe statt Treppen.
 - *Korrektur (0.367.4):* **Kontur: hinter einer Insel kein Eilgang ins Rohteil (B-030, Rest):** „Luft“ gilt
   im Band der Schruppversätze nur noch, wo sie auch gefahren sind (gemessen zur gefahrenen Bahn). Damit
   sind alle Meldungen der Sicherheitsprüfung behoben bis auf B-033 (Frage 3). Voller Lauf aller 188
