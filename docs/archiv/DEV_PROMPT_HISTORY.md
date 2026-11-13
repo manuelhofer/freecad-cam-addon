@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-18 kleine-taschen-raeumen
+
+### EINGELESEN
+- B-035 (Fund des Zweiflers, nachgemessen mit `~/freecad_cam/wip/strategien/kleine_tasche/klein.py`):
+  quadratische Taschen 6,7 … 9,0 mm lehnt das Räumen mit Ø 6 ab („passt nicht hinein“), erst 9,5 mm geht.
+- `raeumen_bahn._flaeche` (Lagenschleife), `_Lage.ring`, `_schneidet`, `_Nachpruefen` aus 0.369.0.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`: `_kleine_tasche` – findet eine Lage in einer Tasche keinen Ring, fährt der
+  genaue Ring aus der Kontur, wenn er nachgerechnet hält; `_schneidet(…, streng)` – ein streng
+  nachgerechneter Ring zählt auch, wo das Raster nichts Erlaubtes sieht.
+- `tests/test_raeumen.py`: Tasche 8 × 8 mit Ø 6 (ein Ring, eine Rampe, kein Rest), 6,5 × 6,5 bleibt Fehler.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.369.1).
+
+### ERGEBNIS
+- Taschen 6,7 / 7,0 / 7,5 / 8,0 / 8,5 / 9,0 mm (mit und ohne Eckenradius 3,3): je ein Ring mit Rampe
+  rundum, 0,40 / 0,28 / 0,26 / 0,25 / 0,25 / 0,26 min, Rest 0, Einschnitt 0, kein Eintauchen, kein
+  Vollschnitt im Sinn des Prüfstands (die Rampe zählt dort nicht). Ab 9,5 mm unverändert (Ringe aus dem
+  Raster).
+- Wie bei „Bohrung fräsen“ gibt es keine Mindestgröße über „der Fräser passt“ hinaus: Bei 6,7 mm ist der
+  Ring 0,1 mm groß, die Rampe rundum fast ein Bohren.
+- Grün: `test_raeumen`, `test_kontur`, `test_testteil`, `test_goldene_bahnen` (nichts bewegt),
+  `test_pruefstand` (keine Bestmarke bewegt), `test_materialstand`; `szenario_fraeser_passt`,
+  `szenario_bearbeitung`, `szenario_beta_tasche`.
 ## P-2026-11-13-16 raeumen-genauer-ring-spitze-ecke
 
 ### EINGELESEN

@@ -1101,7 +1101,7 @@ class _Lage:
             drin = _luecken_zu(drin, self.feld.im_raster(x, y), proben, ring.geschlossen, weit)
         if not drin.any():
             return 0
-        if not self._schneidet(x[drin], y[drin]):
+        if not self._schneidet(x[drin], y[drin], ring.streng is not None):
             return 0  # der ganze Ring führe durch die Luft (T1b)
         laeufe = []  # [(Stellen, Austritt hinten)]
         if ring.geschlossen and drin.all():
@@ -1146,7 +1146,7 @@ class _Lage:
         self.st.ringe += 1
         return 1
 
-    def _schneidet(self, x, y):
+    def _schneidet(self, x, y, streng=False):
         """Trifft die Stirn an den Stellen (x, y) irgendwo noch Rohteil, das auf dieser Lage weg
         kann und das die Ringe davor nicht schon genommen haben? Die Ringe vom Rand her laufen,
         bis die Mitte des Fräsers die Mitte des Materials erreicht – die letzten (R ÷ ae, beim
@@ -1159,7 +1159,11 @@ class _Lage:
             # einen Rand, schmaler als eine Zelle – eine Zelle weniger gerechnet, fiele er als
             # „Luft“ aus, und an der Wand bliebe bis 0,9 mm statt des Aufmaßes.
             self._abtragbar = feld.aufweiten(self.erlaubt, max(self.r - 0.01, 0.0))
-        roh = feld.rohteil_zellen & ~feld.frei & self._abtragbar
+        roh = feld.rohteil_zellen & ~feld.frei
+        if not streng:
+            # Ein streng nachgerechneter Ring (_Nachpruefen) steht, wo er darf – auch wo das Raster
+            # nichts Erlaubtes sieht (eine Tasche, kaum breiter als der Fräser, _kleine_tasche).
+            roh &= self._abtragbar
         if not roh.any():
             return False
         return bool(feld.aufweiten(roh, self.r - 0.01)[feld.zellen(x, y)].any())
@@ -2650,6 +2654,8 @@ def _flaeche(
             _ringe_stiche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
         else:
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, False, genaue)
+        if tasche is not None and st.ringe == ringe_vorher and GENAU_ECKE:
+            _kleine_tasche(ablauf, genaue)
         ablauf.reste_fahren()
         ablauf.heben()
         if anteil < 1.0:
@@ -2669,6 +2675,21 @@ def _flaeche(
         st.flaechen += 1
     elif tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
         st.ausgelassen.append(ebene.name)  # Material, aber kein Ring: der Fräser passt nicht
+
+
+def _kleine_tasche(ablauf, genaue):
+    """Eine Tasche, in der das Raster keinen Ring findet: Unter etwa Fräser + 3 mm bleibt zwischen
+    den gesperrten Knoten (0,5 mm, das Gesperrte eine Zelle breiter) kein erlaubter – eine
+    quadratische Tasche räumte der Ø 6 (braucht mit Aufmaß 6,6 mm) erst ab 9,5 mm, 6,7 … 9,0 mm
+    hießen „der Fräser passt nicht hinein“ (B-035). Dann der genaue Ring aus ihrer Kontur
+    (inselringe), wenn er überall nachgerechnet hält (_Nachpruefen): mit der Rampe rundum hinab,
+    dann einmal herum – die Stirn deckt dabei die Mitte."""
+    pruefer = ablauf.nachpruefen
+    if pruefer is None:
+        return
+    for genauer in genaue:
+        if genauer.tasche and pruefer.ring_haelt(genauer):
+            ablauf.ring(dataclasses.replace(genauer, streng=pruefer), kennung="kleine tasche")
 
 
 def _zusammen(maske, saat):

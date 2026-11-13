@@ -913,6 +913,44 @@ print(f"Tasche mit Stift Ø 1: {bahn_st.ringe} Ringe, {bahn_st.zeit:.2f} min, {p
 pruefe(bahn_st.ringe > 0, f"Stift Ø 1: {bahn_st.ringe} Ringe")
 pruefe(k_st.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Stift Ø 1: ins Teil {k_st.einschnitt:.3f}")
 pruefe(k_st.eilgang_abtrag <= 1e-9, f"Stift Ø 1: im Eilgang {k_st.eilgang_abtrag:.2f} mm³")
+
+
+# --- Eine Tasche, kaum größer als der Fräser (B-035) --------------------------------------------
+# Quadratische Tasche 8 × 8, 6 tief, Ø 6 (braucht mit Aufmaß 6,6): Im Raster bleibt kein erlaubter
+# Knoten – bis 0.369.0 hieß das „der Fräser passt nicht hinein“ (erst ab 9,5 mm ging es). Jetzt der
+# genaue Ring aus der Kontur, nachgerechnet, mit der Rampe rundum. 6,5 × 6,5 passt wirklich nicht.
+def kleine_tasche(seite):
+    ecke = 20 - seite / 2
+    return Part.makeBox(40, 40, 20).cut(Part.makeBox(seite, seite, 6, V(ecke, ecke, 14)))
+
+
+rohteil_kt = (0.0, 40.0, 0.0, 40.0)
+werte_kt = dataclasses.replace(werte_st, rohteil=rohteil_kt, zustellung=12.0)
+teil_kt = kleine_tasche(8.0)
+bahn_kt = raeumen(teil_kt, 14.0, werte_kt)
+k_kt = ps.messen(
+    [ps.Bahnlauf(bahn_kt.punkte, 540.0, 160.0)], teil_kt, rohteil_kt, 20.0, form_st, 0.6, 12.0,
+    ebenen_z=[14.0], aufmass=0.3,
+)  # fmt: skip
+print(f"Tasche 8 × 8 mit Ø 6: {bahn_kt.ringe} Ringe, {bahn_kt.rampen} Rampen, {ps.zeile(k_kt)}")
+pruefe(
+    bahn_kt.ringe == 1 and bahn_kt.rampen == 1 and k_kt.rest <= 0.05,
+    f"Tasche 8 × 8: {bahn_kt.ringe} Ringe, {bahn_kt.rampen} Rampen, Rest {k_kt.rest:.2f}",
+)
+pruefe(
+    k_kt.einschnitt > -ps.EINSCHNITT_ZULAESSIG
+    and k_kt.eilgang_abtrag <= 1e-9
+    and k_kt.eintauchungen == 0,
+    f"Tasche 8 × 8: Einschnitt {k_kt.einschnitt:.3f}, im Eilgang {k_kt.eilgang_abtrag:.2f}, "
+    f"{k_kt.eintauchungen}-mal eingetaucht",
+)
+try:
+    raeumen(kleine_tasche(6.5), 14.0, werte_kt)
+except ValueError as grund:
+    pruefe("passt nicht" in str(grund), f"Tasche 6,5 × 6,5: {grund}")
+else:
+    pruefe(False, "Tasche 6,5 × 6,5: eine Bahn, obwohl der Fräser nicht passt")
+
 for radius_k, versatz_k, erwartet in ((0.5, -0.2, 0.3), (0.5, -3.3, None), (1.0, 2.0, 3.0)):
     kreis_k = Part.Wire([Part.makeCircle(radius_k, V(3, 4, 0))])
     draehte_k = kb._versatz_draehte(kreis_k, versatz_k, False)
