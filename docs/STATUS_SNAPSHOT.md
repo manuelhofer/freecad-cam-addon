@@ -594,6 +594,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Prüfung in `test_raeumen.py`. (3) `test_restschruppen.py` rechnete die Bahn des Ø 12 mit der Form des
   Ø 6 nach – jetzt jede Bahn mit ihrem Fräser. Spezifikation Strategien 4.2 und 13.6.
   **Manuel prüft:** Testteil → „3D-Schruppen T1“ neu rechnen: In der Mulde runde Ringe statt Treppen.
+  Voller Lauf aller 147 Prüfdateien auf 0.368.0 grün (13.11. nachmittags); die Freiform-Referenzen des
+  Simultanschlichtens (laufen nur von Hand) nachgezogen: 317,9 statt 321,1 s, Rest 0,014 statt 0,017 mm.
 - *Korrektur (0.367.4):* **Kontur: hinter einer Insel kein Eilgang ins Rohteil (B-030, Rest):** „Luft“ gilt
   im Band der Schruppversätze nur noch, wo sie auch gefahren sind (gemessen zur gefahrenen Bahn). Damit
   sind alle Meldungen der Sicherheitsprüfung behoben bis auf B-033 (Frage 3). Voller Lauf aller 188
