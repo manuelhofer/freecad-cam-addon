@@ -578,6 +578,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   statt sie im Hauptprozess neu zu rechnen – am Teil „tief“ stand das Fenster dabei 2,1 s. Die
   Vorschau der Flanke fährt dafür so hoch wie die Operation (SafeHeightOffset des Jobs). Voller Lauf
   danach grün (134/134 Prüfungen, 144/144 Szenarien).
+- *Korrektur (0.366.7):* **Kontur in einer Nut, kaum breiter als der Fräser (B-030, gefährlich):** Der
+  Schlichtzug nahm das Band der Schruppversätze als geräumt, auch wenn keiner fahren konnte – Eilgang 8 mm
+  tief ins Rohteil, dann 10 mm in voller Breite. Jetzt zählt nur, was gefahren ist; die Nut fährt als Rampe
+  längs hinab. Der Fall „hinter einer Insel“ bleibt offen (B-030), ebenso B-031 und B-032.
 - *Korrektur (0.366.6):* **3D-Schruppen, wenn das Rohteil über dem Teil steht (B-029, gefährlich):** Lagen
   über dem ganzen Teil fielen aus – der Eilgang zur ersten Lage darunter endete 1,9 mm im Material, dann
   ging es senkrecht mit voller Stirn hinein; über einer Kuppel blieb die Säule Rohteil stehen. Jetzt fährt
@@ -2754,15 +2758,17 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
 
 - B-029 3D-Schruppen, Rohteil steht über dem Teil: **behoben in P-2026-11-13-06 (0.366.6)**, selbst
   nachgestellt.
-- B-030 **Kontur, Schlichtzug im Eilgang ins Rohteil (gefährlich – selbst nachgestellt am 13.11., noch
-  offen):** Das „geräumte Band“
-  gilt auch, wenn die Schruppversätze nie gefahren sind (Nut 12,2 breit mit Ø 12; Insel 7 mm vor der
-  Wand) – G0 bis 8 mm ins Rohteil, dann die volle Tiefe auf einmal (`kontur_bahn._ein_zug`, `_lauf`).
+- B-030 **Kontur, Schlichtzug im Eilgang ins Rohteil (gefährlich):** *Die enge Nut ist behoben
+  (P-2026-11-13-07, 0.366.7):* Als geräumt gilt nur noch das Band der Schruppversätze, die auf der
+  tiefsten Lage gefahren sind – die Nut 12,2 breit (Ø 12) fährt als Rampe längs hinab, 0 mm³ im Eilgang.
+  **Noch offen:** Stücke des Schlichtzugs hinter einer Insel dicht vor der Wand (7 mm Spalt), wo die
+  Schruppversätze nur streckenweise fuhren – dort nimmt die Einfahrt noch Luft an (G0 auf z 7 über 14 mm
+  Rohteil; in der Operation fängt `freiwege` den Eilgang ab). Dafür müsste „geräumt“ je Stelle gelten.
 - B-031 **Kontur 0,06 mm in einer anderen fertigen Wand (selbst nachgestellt):** `WAND_SPIEL` gilt auch an geraden Wänden.
 - B-032 **Kontur, Wand mit gestufter Unterkante (selbst nachgestellt):** der Teil über dem Absatz fällt still weg
   (`kontur_bahn._wand` nimmt nur die Kanten bei ZMin).
 
-Zu B-030, für den nächsten Schritt: Die Ursache ist, dass `_ein_zug` das Band aus den Schruppversätzen
+Zu B-030, wie es dazu kam: Die Ursache ist, dass `_ein_zug` das Band aus den Schruppversätzen
 nimmt, die es geometrisch gibt (`geraeumt`), nicht aus denen, die gefahren sind; `_lauf.luft_bei` nennt
 danach alles im Band Luft. Der enge geschlossene Fall (Tasche 12,2 breit) fährt richtig als Wendel – der
 offene (zwei Wände einer Nut) und Stücke hinter einer Insel nicht. Richtig wäre: Luft nur, wo ein Versatz

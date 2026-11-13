@@ -1343,9 +1343,16 @@ def _kontur(
     vorige = oben
     einmal = False  # der innerste Versatz ist schon ganz gefahren, in einer Lage bis aufs Ziel
     schleifen = [schleife for schleife in (schrupp, *weitere) if schleife]
+    # Welche Schruppversätze auf der tiefsten Lage wirklich gefahren sind (id ihrer Proben): Nur
+    # die räumen das Band, in dem das Schlichten danach Luft annimmt. Bis 0.366.6 galt jeder
+    # Versatz, den es geometrisch gibt – in einer Nut 12,2 breit (Ø 12) fährt keiner, der
+    # Schlichtzug ging trotzdem im Eilgang 8 mm tief ins Rohteil und nahm dann 10 mm in voller
+    # Breite (B-030, Sicherheitsprüfung, nachgestellt am 2026-11-13).
+    geschruppt = set()
     for lage in lagen:
         lage = float(lage)
         gefahren = False
+        geschruppt = set()
         for schleife in schleifen:  # je Schleife von außen zur Wand
             # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
             geraeumt = (math.inf, 0.0)
@@ -1375,6 +1382,7 @@ def _kontur(
                     maske,
                 ):
                     gefahren = True
+                    geschruppt.add(id(proben))
                     geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
                     innerster = schleife is schrupp and proben is schrupp[0][2]
                     if innerster and (maske is None or maske.all()):
@@ -1396,9 +1404,14 @@ def _kontur(
                 huelle, mit_stand,
             )  # fmt: skip
     for zug in ([schlicht] if schlicht is not None else []) + schlichte_weitere:
+        if len(
+            lagen
+        ):  # ohne Schruppen davor (nichts mehr zu schruppen) bleibt das Band, wie es war
+            band = [b for b in _schleife_zu(zug, schrupp, weitere) if id(b[2]) in geschruppt]
+        else:
+            band = _schleife_zu(zug, schrupp, weitere)
         _ein_zug(
-            st, k, w, r, r_ein, gerade, schritt, zug, _schleife_zu(zug, schrupp, weitere),
-            oben_schlichten, ziel, huelle, mit_stand,
+            st, k, w, r, r_ein, gerade, schritt, zug, band, oben_schlichten, ziel, huelle, mit_stand,
         )  # fmt: skip
     if mit_stand is not None and st.bahnen == bahnen_vorher:
         st.konturen -= 1  # hier war nichts mehr zu tun

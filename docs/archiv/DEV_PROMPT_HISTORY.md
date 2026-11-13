@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-07 kontur-enge-nut-kein-eilgang-ins-rohteil
+
+### EINGELESEN
+- B-030 aus der Sicherheitsprüfung, selbst nachgestellt (`~/freecad_cam/wip/pruefung_1113/kontur/
+  test_kontur_f1_eilgang.py`): Nut 12,2 × 10 durch einen Block, beide Wände gewählt, Ø 12 – G0 von z 20 auf
+  z 7 im Rohteil (716 bzw. 187 mm³ im Eilgang), dann die Nut 10 mm tief in voller Breite in einem Zug.
+- `kontur_bahn._kontur`, `_ein_zug`, `_schleife_zu`: `geraeumt` aus den Schruppversätzen, die es geometrisch
+  gibt.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`: `_kontur` merkt, welche Schruppversätze auf der tiefsten Lage gefahren sind
+  (`geschruppt`); der Schlichtzug bekommt nur die als geräumtes Band.
+- `tests/test_kontur.py`: die enge Nut, Rohteil gleich dem Teil und 5 mm größer.
+- `docs/STATUS_SNAPSHOT.md` (B-030: Nut behoben, „hinter einer Insel“ offen), `package.xml` (0.366.7).
+
+### ERGEBNIS
+- Enge Nut: 0 mm³ im Eilgang, kein senkrechtes Eintauchen; hinab als Rampe längs der Nut (5°), in Lagen.
+- Unverändert: alle Fälle in `test_kontur`, `test_kontur_korrektur`, `test_testteil`, `test_goldene_bahnen`,
+  `test_materialstand`, `test_pruefstand` (keine Bestmarke bewegt) – alle grün.
+- Offen: B-030 hinter einer Insel (140,9 mm³ im Eilgang im Bahnmodell), B-031, B-032; Nut und 3D-Schlichten
+  sind von der Sicherheitsprüfung noch nicht angesehen; der Zacken-Umbau im Kern ist nicht gebaut.
 ## P-2026-11-13-06 schruppen3d-rohteil-ueber-dem-teil
 
 ### EINGELESEN

@@ -522,6 +522,39 @@ try:
 except ValueError:
     pass  # gar keine Bahn: auch richtig
 
+# --- Eine Nut, kaum breiter als der Fräser: kein Eilgang ins Rohteil (B-030) -----------------------
+# Nut 12,2 breit und 10 tief längs durch den Block, beide Wände gewählt, Ø 12: Die Schruppversätze
+# kommen an der Gegenwand nicht vorbei und fahren nicht. Bis 0.366.6 galt ihr Band trotzdem als
+# geräumt – der Schlichtzug fuhr im Eilgang 8 mm tief ins Rohteil und nahm 10 mm in voller Breite.
+# Jetzt zählt nur, was gefahren ist: Es geht als Rampe längs der Nut hinab.
+nut_eng = Part.makeBox(60, 40, 15).cut(Part.makeBox(60, 12.2, 10, FreeCAD.Vector(0, 13.9, 5)))
+nut_eng = nut_eng.removeSplitter()
+waende_eng = [
+    f"Face{i + 1}"
+    for i, f in enumerate(nut_eng.Faces)
+    if kb.ist_wand(f) and abs(f.normalAt(0, 0).y) > 0.9 and 13.8 < f.CenterOfMass.y < 26.2
+]
+for roh_eng in ((0.0, 60.0, 0.0, 40.0), (-5.0, 65.0, -5.0, 45.0)):
+    werte_eng = kb.Konturwerte(
+        form=form, zustellung=2.0, zeilenabstand=1.5, aufmass=0.3, schlichten=True, oben=15.0,
+        sicher=20.0, rohteil=roh_eng,
+    )  # fmt: skip
+    w_eng = kb.waende(nut_eng, waende_eng)
+    netz_eng, fern_eng = hf.netze_ohne(
+        nut_eng, [kb.ohne_flaechen(nut_eng, w_eng), [w_.name for w_ in w_eng]]
+    )
+    bahn_eng = kb.planen(netz_eng, werte_eng, kb.konturen(nut_eng, waende_eng), netz_fern=fern_eng)
+    k_eng = ps.messen(
+        [ps.Bahnlauf(bahn_eng.punkte, 1000.0, 300.0)], nut_eng, roh_eng, 15.0, form, 1.5, 2.0,
+        raster=0.25,
+    )  # fmt: skip
+    pruefe(
+        k_eng.eilgang_abtrag <= 1e-9 and k_eng.eintauchungen == 0,
+        f"enge Nut, Rohteil {roh_eng}: im Eilgang {k_eng.eilgang_abtrag:.1f} mm³, "
+        f"{k_eng.eintauchungen}-mal senkrecht ins Material",
+    )
+    pruefe(k_eng.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"enge Nut: ins Teil {k_eng.einschnitt}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
