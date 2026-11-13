@@ -103,7 +103,8 @@ def schritte(h):
     job = panel.job
     if panel.mit_plan.isChecked():
         panel.mit_plan.setChecked(False)
-    yield from h.warte_auf(lambda: panel._wendel is not None, 60000)
+    # 240 s: Im vollen Lauf (drei Szenarien zugleich) reichte eine Minute nicht.
+    yield from h.warte_auf(lambda: panel._wendel is not None, 240000)
     w = panel._wendel
     h.pruefe(
         w is not None and abs(abs(w.steigung) - 60) < 0.5 and w.gaenge == 1,

@@ -82,9 +82,13 @@ def schritte(h):
     h.pruefe(panel.mit_schruppen.isChecked() and panel.mit_schlichten.isChecked(), "Haken aus")
     h.pruefe(panel.vorschlichten.isVisible(), "kein Haken „Vorschlichten“")
     yield from h.warte_auf(
-        lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 90000
+        lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 240000
     )
-    yield from h.warte_auf(lambda: panel._rest_auftrag is None, 120000)
+    # Auf den Satz selbst warten: Unter Last (voller Lauf, drei Szenarien zugleich) war der Auftrag
+    # für den Rest noch gar nicht gestartet – „kein Auftrag“ hieß dann fälschlich „fertig“.
+    yield from h.warte_auf(
+        lambda: panel._rest_auftrag is None and bool(panel.rest_schlichten.text()), 240000
+    )
     rest = panel.rest_schlichten.text()
     print("Rest:", rest)
     h.pruefe(
