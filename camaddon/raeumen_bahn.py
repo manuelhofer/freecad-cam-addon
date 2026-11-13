@@ -186,6 +186,13 @@ GENAU_PRUEFEN = 0.2  # mm – so dicht (wie ringgrenze.PRUEFEN)
 # Insel bis 0,41; eine Nut 6,7 bzw. 7,2 breit (2 R + 2 · Aufmaß + 0,1 bzw. 0,6) 4,4, der Spalt
 # 7,0 zwischen Insel und Wand 2,3 – dort schnitt der genaue Ring 7 … 9 mm in voller Breite.
 GENAU_ECKE_MASS = 1.0
+# Als Ecke zählt dabei nur eine Ecke der Tasche: Der Ring knickt dort in seinem Umlaufsinn, der
+# Eckwinkel ist höchstens 100°, und die nächste solche Ecke liegt weiter weg als 0,35 · Radius.
+# Das Ende einer Nut, kaum breiter als der Fräser, sind zwei Knicke dicht beieinander – sie zählen
+# nicht: Bis dahin gab eine kurze Nut (6,9 breit, 3,5 lang) den genauen Ring frei, er schnitt
+# 2,6 mm in voller Breite, drei solche Nuten 7,75 mm (Zweifler, zweite Runde, 13.11.).
+GENAU_ECKWINKEL = math.radians(100.0)
+GENAU_ECKE_ALLEIN = 0.35  # × Radius
 _KNICK = math.radians(10.0)  # ab so viel Knick zählt eine Stelle des genauen Rings als Ecke
 # … und dort vor der Stirn höchstens so viel ungeschnittenes Rohteil (Anteil der Stirn, nach dem
 # Ring aus dem Raster; _Nachpruefen.material_vorn): Ecken 20° 0,62, 40° 0,43, 60° 0,33; in Nut
@@ -4259,14 +4266,17 @@ class _Nachpruefen:
             gut[gut] = rechner.hoehe(x[gut], y[gut], netz) <= self.hoch + GLEICH
         return gut
 
-    @staticmethod
-    def eckenmass(ring, x, y, weit):
+    def eckenmass(self, ring, x, y, weit):
         """Wie weit liegen die Stellen (x, y) höchstens von einer scharfen Ecke des Rings – in
         `weit` ÷ sin(halber Eckwinkel)? Je Stelle die nächste Ecke in diesem Maß; inf, wenn der
         Ring keine Ecke hat. 0, wenn keine Stelle."""
         if not len(x):
             return 0.0
-        ecken = _scharfe_ecken(ring.segmente)
+        ecken = _scharfe_ecken(
+            ring.segmente,
+            spitzer_als=GENAU_ECKWINKEL,
+            allein=GENAU_ECKE_ALLEIN * float(self.form.radius),
+        )
         if not ecken:
             return math.inf
         ex, ey, sinus = (np.array(v) for v in zip(*ecken, strict=True))
@@ -4293,9 +4303,11 @@ class _Nachpruefen:
         return bool(len(pruef.x)) and bool(self.erlaubt_an(pruef.x, pruef.y).all())
 
 
-def _scharfe_ecken(segmente, knick=_KNICK):
+def _scharfe_ecken(segmente, knick=_KNICK, spitzer_als=None, allein=None):
     """[(x, y, sin(halber Eckwinkel))] der Stellen, an denen ein geschlossener Zug um mehr als
-    `knick` abknickt (Strecken und Bögen stoßen nicht tangential aneinander)."""
+    `knick` abknickt (Strecken und Bögen stoßen nicht tangential aneinander). Mit `spitzer_als`
+    (rad) nur die Ecken, an denen er in seinem Umlaufsinn knickt und der Eckwinkel kleiner ist;
+    mit `allein` (mm) davon nur die, in deren Umkreis kein weiterer Knick im Umlaufsinn liegt."""
 
     def richtung(s, ende):
         if s.bogen is None:
@@ -4304,11 +4316,31 @@ def _scharfe_ecken(segmente, knick=_KNICK):
         a = math.atan2(p[1] - s.mitte[1], p[0] - s.mitte[0])
         return a - math.pi / 2 if s.uhr else a + math.pi / 2
 
-    ecken = []
+    # Der Umlaufsinn: das Vorzeichen der Fläche des Vielecks durch die Anfänge der Stücke.
+    flaeche = sum(
+        s.von[0] * t.von[1] - t.von[0] * s.von[1]
+        for s, t in zip(segmente, segmente[1:] + segmente[:1], strict=True)
+    )
+    ecken, im_sinn = [], []
     for s, t in zip(segmente, segmente[1:] + segmente[:1], strict=True):
-        dreh = abs((richtung(t, False) - richtung(s, True) + math.pi) % (2 * math.pi) - math.pi)
-        if dreh > knick:
-            ecken.append((s.nach[0], s.nach[1], math.sin((math.pi - dreh) / 2.0)))
+        mit_sinn = (richtung(t, False) - richtung(s, True) + math.pi) % (2 * math.pi) - math.pi
+        dreh = abs(mit_sinn)
+        if dreh <= knick:
+            continue
+        if spitzer_als is not None:
+            if mit_sinn * flaeche <= 0:
+                continue  # ein einspringender Knick
+            im_sinn.append(s.nach)
+            if math.pi - dreh > spitzer_als:
+                continue  # eine stumpfe Ecke
+        ecken.append((s.nach[0], s.nach[1], math.sin((math.pi - dreh) / 2.0)))
+    if allein is not None:
+        # Zwei Knicke dicht beieinander: das Ende einer schmalen Stelle, keine Ecke der Tasche.
+        ecken = [
+            e
+            for e in ecken
+            if sum(math.hypot(e[0] - p[0], e[1] - p[1]) <= allein for p in im_sinn) <= 1
+        ]
     return ecken
 
 
