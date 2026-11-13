@@ -2821,7 +2821,12 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – gestellt als Frage 3 in
   OFFENE_FRAGEN.md.
 
-Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben. Nächste freie Nummer B-034.
+Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben.
+
+- B-034 **Absturz (SIGSEGV) beim Räumen/der Kontur an einer Tasche mit rundem Stift bis Ø 2:** OpenCascade
+  stürzt beim Versatz kleiner Vollkreise nach innen ab – im Wochen-Build 27.1 und im stabilen 1.1.4
+  (nachgestellt: Kreis Radius 0,5 und 1,0, `makeOffset2D`). **Behoben in
+  P-2026-11-13-15 (0.368.1)** – Vollkreise rechnet das Addon selbst. Nächste freie Nummer B-035.
 
 ## Offene Tasks
 
