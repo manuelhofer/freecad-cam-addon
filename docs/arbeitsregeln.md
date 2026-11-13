@@ -177,6 +177,18 @@ ein ASCII-Entwurf des Dialogs reicht.
     ein Szenario zu einem nur nebenbei angepassten Teil meist auch nicht.
     Am 2026-10-03 früh waren es für einen Patch ein Messlauf, vier Prüfläufe
     und zwei Szenarien – das war Manuels Anlass, es anzusprechen.
+  - **Am Bahn-Kern geändert: die Referenzprüfungen gehören zur „einen Prüfdatei“.** Wer
+    `raeumen_bahn.py`, `schruppen3d_bahn.py`, `materialstand.py` oder `freiwege.py` ändert, lässt
+    neben der Prüfdatei zum Teil auch `test_testteil`, `test_goldene_bahnen`, `test_pruefstand`,
+    `test_simultan_planung` und `test_simultan_folge` laufen (zusammen etwa fünf Minuten) – an
+    ihnen hängen Bahnen, die die eigene Prüfdatei nicht sieht. Zweimal blieb sonst eine
+    Verschlechterung liegen: im Oktober acht rote Prüfdateien fünf Tage lang (P-2026-10-23-13),
+    am 2026-11-13 die Folge Schruppen + Simultanschlichten mit 80 statt 49 s einen halben Tag
+    (P-2026-11-13-13). **Vor dem Neuschreiben einer Referenz die Zeit im Diff ansehen:** Die
+    Schalter (`GOLDENE_BAHNEN_SCHREIBEN`, `FOLGE_GOLDEN_SCHREIBEN`) überspringen die Zeitprüfung –
+    wer blind schreibt, macht die Verschlechterung zur Referenz. Die Freiform-Varianten
+    (`SIMULTAN_TEST_FORM=freiform`, je 4 bis 8 min, 12 GB) laufen nur von Hand; nach größeren
+    Änderungen am 3D-Schlichten oder Simultan einmal nachziehen.
   - **Jeder Lauf mit Speicherdeckel** (Manuels Rechner, Linux mit systemd):
     `systemd-run --user --scope -q -p MemoryMax=16G -p MemorySwapMax=0 freecadcmd …`
     – so auch Szenarien und eigene Versuchsskripte. Wächst ein Lauf aus dem

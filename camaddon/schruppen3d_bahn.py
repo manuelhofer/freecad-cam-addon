@@ -381,8 +381,8 @@ def _schruppen(
                     stehen_bis = vorige if stehen_bis is None else max(stehen_bis, vorige)
                 continue
             # Die Schicht ist dünner als die Hauptlage: die Ringe so weit auseinander, dass je mm
-            # Weg so viel Material fällt wie dort (ae · ap), höchstens der Radius – wie in den
-            # Zwischenlagen darunter. Mit ae blieb es bei 6 Ringen (470 mm Weg) für 2,4 mm über
+            # Weg so viel Material fällt wie dort (ae · ap), höchstens 0,8 · Radius – wie in den
+            # Zwischenlagen darunter (dort bis zum Radius). Mit ae blieb es bei 6 Ringen (470 mm Weg) für 2,4 mm über
             # einer Kuppel von 20 × 16 mm.
             dick = float(hoehe[np.isfinite(hoehe)].max()) - lage
             # Nicht ganz der Radius: Der letzte Ring muss die Mitte sicher decken, auch wenn die

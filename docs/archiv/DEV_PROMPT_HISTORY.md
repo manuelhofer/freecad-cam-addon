@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-13-14 freiform-referenzen-und-regel
+
+### EINGELESEN
+- `tests/test_simultan_planung.py`, `tests/test_simultan_gesamt.py` mit `SIMULTAN_TEST_FORM=freiform`
+  (laufen nur von Hand; Referenzen vom 2026-10-25), `tests/test_simultan_nc.py`.
+- `docs/arbeitsregeln.md`, Abschnitt 5.
+
+### DATEIEN
+- `tests/golden/freiform_simultan.json`, `freiform_simultan_gesamt.json`, `freiform_simultan_gesamt_nc.json`:
+  neu geschrieben.
+- `docs/arbeitsregeln.md`: Wer am Bahn-Kern ändert, lässt die Referenzprüfungen mitlaufen; vor dem
+  Neuschreiben einer Referenz die Zeit im Diff ansehen (die Schreib-Schalter überspringen die Zeitprüfung).
+- `camaddon/schruppen3d_bahn.py`: nur ein Kommentar (0,8 · Radius).
+
+### ERGEBNIS
+- Freiformbeispiel, Simultanschlichten: die Bahn hatte sich seit dem 25.10. bewegt (die Prüfung lief
+  nicht mit). Alt gegen neu: 321,1 → 317,9 s, Rest 0,0169 → 0,0141 mm, 41 485 → 41 322 Punkte, Einschnitt
+  0,0013 mm, nichts im Eilgang abgetragen, nichts ungedeckt; „gesamt“: 321,4 → 318,1 s. Rechenzeit
+  143 → 175 s (dabei liefen andere Rechnungen mit).
+- `test_simultan_nc` grün ohne Änderung. Für die Freiform-Varianten braucht der Lauf 12 GB (mit 6 GB
+  vom Kernel beendet).
 ## P-2026-11-13-13 schruppen3d-runde-ringe
 
 ### EINGELESEN
