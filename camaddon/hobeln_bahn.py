@@ -505,9 +505,10 @@ def planen(nut, werte):
         ]
         x0, y0, r0 = reihe[0]
         a0 = winkel_bei(r0)
-        # Über dem Anfang, die Spindel schon in Richtung; im Eilgang hinab bis über die Nut, in
-        # die gefräste Nut im Eintauchvorschub bis auf den Rest.
-        setze((True, x0, y0, w.sicher, False), None)
+        # Über dem Anfang dreht die Spindel in Richtung – oben, nicht erst in der Nut (dort stieße
+        # die Klinge beim Drehen an die Wände); im Eilgang hinab bis über die Nut, in die gefräste
+        # Nut im Eintauchvorschub bis auf den Rest.
+        setze((True, x0, y0, w.sicher, False), a0)
         setze((True, x0, y0, hoch, False), None)
         setze((False, x0, y0, z_start, True), a0)
         z = z_start

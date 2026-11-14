@@ -153,6 +153,8 @@ def befehle(punkte, vorschub, eintauchen=None, kommentar=None):
     if not punkte:
         return ergebnis
     start = punkte[0]
+    if start.notiz:  # auch am ersten Punkt (beim Hobeln: die Spindel dreht oben in Richtung)
+        ergebnis.append(Path.Command(f"({start.notiz})"))
     ergebnis.append(Path.Command("G0", {"Z": float(start.z)}))
     ergebnis.append(Path.Command("G0", {"X": float(start.x), "Y": float(start.y)}))
     vorher = start

@@ -144,6 +144,11 @@ class Steuerung:
     korrektur_links: str = ""
     korrektur_rechts: str = ""
     korrektur_aus: str = ""
+    # Ein stehendes Werkzeug (Dichtnut hobeln, hobeln_bahn): je Satz der Winkel der Spindel –
+    # `spindel_winkel_vor` sind Zeilen vor dem Satz, `spindel_winkel_satz` hängt am Satz; {w} der
+    # Winkel 0 … 360 (Grad, drei Stellen). Leer beides: die Steuerung kann es nicht (Hinweis).
+    spindel_winkel_vor: str = ""
+    spindel_winkel_satz: str = ""
     taster: str = ""
     taster_ein: str = ""
     taster_aus: str = ""
@@ -426,6 +431,8 @@ BEFEHLSFELDER = (
     "korrektur_links",
     "korrektur_rechts",
     "korrektur_aus",
+    "spindel_winkel_vor",
+    "spindel_winkel_satz",
     "taster",
     "taster_ein",
     "taster_aus",
@@ -1096,6 +1103,26 @@ _WOODWOP = {
 }
 STEUERUNGEN["woodwop"] = Steuerung("woodwop", "Homag woodWOP (MPR)", **_WOODWOP)
 STEUERUNGEN["woodwop_weeke"] = Steuerung("woodwop_weeke", "Weeke woodWOP (MPR)", **_WOODWOP)
+# Der Spindelwinkel je Satz beim Hobeln (Spezifikation Strategien 13.10, Recherche vom 14.11.):
+# Siemens – SPOS im Bewegungssatz, „DC“ der kürzeste Weg (Programmierhandbuch 03/2013, 7.4: der
+# nächste Satz erst, wenn die Position steht); Heidenhain – Zyklus 13 ORIENTIERUNG mit M19
+# (TNC-640-Zyklenhandbuch); LinuxCNC und Haas – M19 R (orientieren, Winkel in Grad). Fanuc, Mazak
+# und Mach orientieren je Maschine anders (Parameter, Makro): Dort trägt man es unter „Befehle“ ein,
+# bis dahin sagt das Programm es (pp.hinweis.spindel_winkel). GRBL kennt keine Spindelorientierung.
+_HH_ORIENTIEREN = "CYCL DEF 13.0 ORIENTIERUNG\nCYCL DEF 13.1 WINKEL {w}\nL M19"
+_SPINDEL_WINKEL = {
+    "siemens": ("", " SPOS=DC({w})"),
+    "linuxcnc": ("M19 R{w}", ""),
+    "haas": ("M19 R{w}", ""),
+    "heidenhain": (_HH_ORIENTIEREN, ""),
+    "heidenhain_tnc640": (_HH_ORIENTIEREN, ""),
+}
+for _kennung, (_vor, _satz) in _SPINDEL_WINKEL.items():
+    STEUERUNGEN[_kennung] = dataclasses.replace(
+        STEUERUNGEN[_kennung], spindel_winkel_vor=_vor, spindel_winkel_satz=_satz
+    )
+SPINDEL_NOTIZ = "SPINDEL "  # der Kommentar mit dem Winkel vor einem Satz (hobeln_bahn.SPINDEL)
+
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
 # Am Job, gemerkt von „Programm schreiben“ (gui_programm), gelesen auch vom Einrichtblatt:
 EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # die Kennung der Steuerung
@@ -1281,6 +1308,14 @@ def feld_text(feld):
         "korrektur_links": (tr("pp.feld.korrektur_links"), tr("pp.feld.korrektur.tooltip")),
         "korrektur_rechts": (tr("pp.feld.korrektur_rechts"), tr("pp.feld.korrektur.tooltip")),
         "korrektur_aus": (tr("pp.feld.korrektur_aus"), tr("pp.feld.korrektur.tooltip")),
+        "spindel_winkel_vor": (
+            tr("pp.feld.spindel_winkel_vor"),
+            tr("pp.feld.spindel_winkel_vor.tooltip"),
+        ),
+        "spindel_winkel_satz": (
+            tr("pp.feld.spindel_winkel_satz"),
+            tr("pp.feld.spindel_winkel_satz.tooltip"),
+        ),
         "taster": (tr("pp.feld.taster"), tr("pp.feld.taster.tooltip")),
         "taster_ein": (tr("pp.feld.taster_ein"), tr("pp.feld.taster_ein.tooltip")),
         "taster_aus": (tr("pp.feld.taster_aus"), tr("pp.feld.taster_aus.tooltip")),
@@ -2136,6 +2171,7 @@ def programm(
             zeilen.append("G17")
             ebene = "G17"
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
+        spindel_winkel = None  # beim Hobeln: der Winkel der stehenden Spindel für den nächsten Satz
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
@@ -2155,6 +2191,16 @@ def programm(
                     text_ = text_[: -len("G93")] + "mm/min"
                 if text_.startswith(ROHZEILE):  # Radiuskorrektur ein/aus (_mit_korrektur)
                     zeilen.extend(_zeilen(text_[len(ROHZEILE) :]))
+                    continue
+                if text_.startswith(SPINDEL_NOTIZ):  # Hobeln: der Winkel kommt in den Satz
+                    try:
+                        spindel_winkel = float(text_[len(SPINDEL_NOTIZ) :]) % 360.0
+                    except ValueError:
+                        spindel_winkel = None
+                    if not (s.spindel_winkel_vor or s.spindel_winkel_satz):
+                        hinweis = tr("pp.hinweis.spindel_winkel", steuerung=s.name)
+                        if hinweis not in hinweise:
+                            hinweise.append(hinweis)
                     continue
                 notiz(text_)
                 if text_.startswith(ms.MESSEN + " "):
@@ -2429,6 +2475,13 @@ def programm(
                         )
                     )
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert, stellen)))
+            if spindel_winkel is not None and bewegung:
+                w_text = _zahl(spindel_winkel, 3)
+                if s.spindel_winkel_vor:
+                    zeilen.extend(_zeilen(_fuellen(s.spindel_winkel_vor, w=w_text)))
+                if s.spindel_winkel_satz:
+                    woerter.append(_fuellen(s.spindel_winkel_satz, w=w_text).strip())
+                spindel_winkel = None
             zeile = " ".join(woerter)
             if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:
                 continue  # derselbe Eilgang noch einmal (absolut): nichts zu fahren

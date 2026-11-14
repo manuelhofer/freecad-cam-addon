@@ -192,6 +192,64 @@ pruefe(not hb.alle_hobelnuten(absatz.removeSplitter()), "ein Absatz gilt als Nut
 tasche = Part.makeBox(100, 80, 10, V(-50, -40, 0)).cut(Part.makeBox(40, 30, 3, V(-20, -15, 7)))
 pruefe(not hb.alle_hobelnuten(tasche), "eine Tasche gilt als Nut")
 
+
+# --- Die Operation im Job und das Programm (Schritte 4 und 5) -----------------------------------
+# Die Spindel steht (kein M3); vor jedem Satz der Winkel – Siemens SPOS=DC im Satz, Heidenhain
+# Zyklus 13 mit M19, LinuxCNC M19 R; GRBL kann es nicht und sagt das.
+import Path.Main.Job as PathJob  # noqa: E402
+
+from camaddon import hobeln as hop  # noqa: E402
+from camaddon import postprozessor as pp  # noqa: E402
+from camaddon import uebergabe_werkzeuge as ue  # noqa: E402
+from camaddon import werkzeuge as wz  # noqa: E402
+
+profil_ordner = os.environ.get("FREECAD_USER_HOME", "")
+if not profil_ordner or not FreeCAD.getUserAppDataDir().startswith(profil_ordner):
+    raise AssertionError("Kein Testprofil – die Werkzeugverwaltung würde überschrieben.")
+stoss = wz.Werkzeug(nummer=9, art=wz.STOSSWERKZEUG, name="Hobel 2,6", schneidenbreite=2.6,
+                    klingenlaenge=2.0, spindelwinkel=30.0, stechtiefe=4.0)  # fmt: skip
+bibliothek = wz.Bibliothek([stoss])
+bibliothek.speichern()
+ue.uebergeben(bibliothek)
+doc = FreeCAD.newDocument("Hobeln")
+doc.UndoMode = 1
+objekt = doc.addObject("Part::Feature", "Deckel")
+objekt.Shape = teil
+doc.recompute()
+job = PathJob.Create("Job", [objekt])
+doc.recompute()
+tc = hop.controller(doc, job, stoss)
+op = hop.lege_an(job, tc)
+doc.recompute()
+pruefe(hop.ist_hobeln(op) and op.Nuten == 1, f"Operation: {op.Label}, {op.Nuten} Nuten")
+pruefe(str(tc.SpindleDir) == "None" and float(tc.SpindleSpeed) == 0.0, "die Spindel dreht")
+pruefe(abs(float(op.FinalDepth) - 8.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
+notizen = [b.Name for b in op.Path.Commands if b.Name.startswith("(SPINDEL ")]
+pruefe(len(notizen) > 100, f"nur {len(notizen)} Spindelwinkel")
+programme = {}
+for kennung in ("siemens", "heidenhain", "linuxcnc", "grbl"):
+    programme[kennung] = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), None, "Hobeln")
+    zeilen = programme[kennung].zeilen
+    pruefe(not any("SPINDEL" in z for z in zeilen), f"{kennung}: Notiz im Programm")
+    pruefe(not any({"M3", "M03", "M4", "M04"} & set(z.split()) for z in zeilen), f"{kennung}: M3")
+si = programme["siemens"].zeilen
+spos = [z for z in si if "SPOS=DC(" in z]
+pruefe(len(spos) > 100 and all(z.split()[0] in ("G0", "G1") for z in spos), f"Siemens: {spos[:3]}")
+hh = programme["heidenhain"].zeilen
+pruefe(sum("CYCL DEF 13.1 WINKEL " in z for z in hh) > 100, "Heidenhain: kein Zyklus 13")
+pruefe(sum("M19 R" in z for z in programme["linuxcnc"].zeilen) > 100, "LinuxCNC: kein M19 R")
+hinweise = " ".join(programme["grbl"].hinweise)
+pruefe("orientieren" in hinweise, f"GRBL ohne Hinweis: {hinweise[:200]}")
+print(ascii(f"Programm: Siemens {len(si)} Zeilen, {spos[0] if spos else ''}"))
+# Die Spindel dreht über der Nut in Richtung, nicht erst beim Eintauchen in die gefräste Nut.
+erster = next(i for i, z in enumerate(si) if "SPOS=DC(" in z)
+unten = next(
+    i
+    for i, z in enumerate(si)
+    if "Z" in z and z.startswith("G") and float(z.split("Z")[1].split()[0]) < 10.5
+)
+pruefe(si[erster].startswith("G0") and erster < unten, f"erster Winkel: {si[erster]}, {si[unten]}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
