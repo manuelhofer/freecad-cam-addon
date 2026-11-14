@@ -99,6 +99,18 @@ view stays with the part. So are your machines from the list
 <li>You come here from the assistant <b>Machining (milling)</b> when you choose a lathe in
 its step 1 (“Continue in the 4-axis assistant →”): with the part, the clicked face and this
 machine, preselected.</li>
+<li>On a <b>5-axis table/table mill</b> (A or B tilts the rotary table C) the first entry is
+<b>“C, A −90° – tube in the chuck on the rotary table, tool from above”</b>: the tube stands upright
+in a three-jaw chuck in the middle of C, the bar is longer by the clamping length and the gap. The
+program moves up above tube and chuck, over the C axis, tilts A to −90 and keeps it there, then C
+turns and the tool comes from above; afterwards it tilts back the same way. <b>Set the origin after
+tilting</b>: A at −90, C at 0, on the C axis, at the front face of the part – that way the program
+does not depend on the height of the chuck. The program header and the setup sheet say so too; if
+the job also runs untilted (the front face from above), the tilted setup gets the next origin
+(G55). FreeCAD shows the path in the job correctly around the part, but it only becomes a machine
+program with the add-on's <a href="programm.html">Write program</a> – FreeCAD's own post processors
+do not know about the tilt, and a comment at the start of the path says so. A in its home position
+(the tube lying on the table) comes last.</li>
 <li>A machine <b>without a rotary axis</b> for the bar (a 3-axis mill) is shown
 greyed out: “… – no rotary axis for the bar”.</li>
 <li><b>Without a machine</b> you assign the letter to the bar yourself:

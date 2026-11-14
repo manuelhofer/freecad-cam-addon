@@ -1731,6 +1731,7 @@
     "vo.eigenschaft.werkzeugrichtung": "Woher das Werkzeug radial kommt, wenn die Rundachse auf 0 steht – in den Achsen des Jobs.",
     "vo.eigenschaft.drehsinn": "+1: Ein positiver Wert der Rundachse dreht das Teil rechtshändig um die Stangenachse – so zeigt FreeCAD die Bahn. −1: andersherum.",
     "vo.eigenschaft.schwenk": "In geschwenkter Lage: die Rundachsen, die fest stehen, während die Stange dreht (etwa „A90“, gezählt wie das Gelenk) – kommt mit der Stangenachse.",
+    "vo.pfad.geschwenkt": "nur über Programm schreiben des CAM-Addons: Diese Bahn gilt in geschwenkter Lage ({schwenk}), mit dem Nullpunkt nach dem Schwenken – so, wie sie hier steht, fährt sie ins Teil.",
     "vo.eigenschaft.quer_auf_null": "Am Anfang die Achse quer zur Stange auf 0 fahren (bei C das Y), damit das Werkzeug auf der Mitte steht. Aus, wenn die Maschine keine solche Achse hat.",
     "vo.eigenschaft.zustellung": "Zustellung je Lage (ap), radial.",
     "vo.eigenschaft.steigung": "Vorschub je Umdrehung der Spirale, längs (ae) – höchstens der Fräserdurchmesser.",

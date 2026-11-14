@@ -108,6 +108,7 @@ class RundumEntgraten(PathOp.ObjectOp):
 
             hinweis = tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
+        self.commandlist.extend(vo.kommentar_vorn(obj))  # in geschwenkter Lage
         self.commandlist.extend(
             vb.befehle(
                 bahn,

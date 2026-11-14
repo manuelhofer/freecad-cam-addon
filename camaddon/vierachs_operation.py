@@ -168,6 +168,7 @@ class RundumSchruppen(PathOp.ObjectOp):
 
             hinweis = tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
+        self.commandlist.extend(kommentar_vorn(obj))
         self.commandlist.extend(
             vb.befehle(
                 bahn,
@@ -799,6 +800,28 @@ def schwenk(op):
     """{Buchstabe: Stellung wie das Gelenk} der Rundachsen, die in geschwenkter Lage fest stehen,
     solange die Operation dreht („C, A auf 90°“, vierachs_achsen.geschwenkt) – leer sonst."""
     return dict(va.schwenk_aus_text(getattr(op, SCHWENKSTELLUNG, "")))
+
+
+KOMMENTAR_GESCHWENKT = (
+    "(CAM-Addon:"  # so beginnt pfad_kommentar – das Programm des Addons lässt ihn aus
+)
+
+
+def kommentar_vorn(op):
+    """[Path.Command] vorn in die Bahn einer 4-Achs-Operation: in geschwenkter Lage der Kommentar
+    pfad_kommentar, sonst nichts. Die Bahn liegt im Job (C dreht um Z, so zeigt FreeCAD sie
+    richtig) – ein Maschinenprogramm wird sie erst mit dem Schwenken und dem Nullpunkt danach
+    (schwenken.schwenkung_der_operation). FreeCADs eigene Postprozessoren kennen das nicht: Bei A0
+    steht das Rohr senkrecht, der Fräser Ø 8 fuhr bei Y32 im Eilgang 75 mm am Mantel hinunter
+    (Zweifler 2026-11-14). Der Kommentar steht dort im Programm ganz vorn."""
+    return [Path.Command(pfad_kommentar(op))] if schwenk(op) else []
+
+
+def pfad_kommentar(op):
+    """Der Kommentar vorn in der Bahn einer Operation in geschwenkter Lage (Path.Command-Name):
+    nur über „Programm schreiben“ des Addons ein Maschinenprogramm."""
+    text = _ascii(tr("vo.pfad.geschwenkt", schwenk=schwenk_anzeige(op)))
+    return f"{KOMMENTAR_GESCHWENKT} {text})"
 
 
 def schwenk_anzeige(op):

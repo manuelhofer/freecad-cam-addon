@@ -3097,6 +3097,9 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 befehle, fest = [], None
                 hinweis = tr("pp.hinweis.schwenk_ohne_maschine", schwenk=vo.schwenk_anzeige(op))
             else:
+                # Der Kommentar „nur über Programm schreiben“ (vo.pfad_kommentar) ist für FreeCADs
+                # eigene Postprozessoren – hier wird die Bahn eins.
+                befehle = [b for b in befehle if not b.Name.startswith(vo.KOMMENTAR_GESCHWENKT)]
                 befehle = sw.befehle_ohne_zyklus(befehle, fest)
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):

@@ -164,6 +164,7 @@ class RundumSchlichten(PathOp.ObjectOp):
 
             hinweis = tr("vb.rest_viel", rest=weg_text(bahn.rest_ueber))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
+        self.commandlist.extend(vo.kommentar_vorn(obj))  # in geschwenkter Lage
         self.commandlist.extend(
             vb.befehle(
                 bahn,

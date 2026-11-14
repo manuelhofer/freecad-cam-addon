@@ -35,6 +35,7 @@ from camaddon import restmaterial as rm
 from camaddon import schwenken as sw
 from camaddon import spannung, sprache
 from camaddon import vierachs_achsen as va
+from camaddon import vierachs_operation as vo
 from camaddon import vierachs_plan as vplan
 from camaddon import vierachs_planbahn as vp
 from camaddon import vierachs_rohteil as vr
@@ -124,6 +125,11 @@ befehle = list(op.Path.Commands)
 achsen_der_bahn = {k for b in befehle for k in b.Parameters}
 pruefe(op.Schwenkstellung == "A90" and op.Werkzeugrichtung == V(0, 1, 0), "Operation")
 pruefe("C" in achsen_der_bahn and "A" not in achsen_der_bahn, f"Bahn: {achsen_der_bahn}")
+# Vorn in der Bahn: Nur über „Programm schreiben“ des Addons ist sie ein Maschinenprogramm.
+pruefe(
+    any(b.Name.startswith(vo.KOMMENTAR_GESCHWENKT) for b in befehle[:3]),
+    f"Bahn ohne Kommentar vorn: {[b.Name for b in befehle[:3]]}",
+)
 
 p = rw.Pruefung(asm, ma)
 nullpunkt = rw.nullpunkt(job, p)
@@ -263,6 +269,7 @@ for kennung, schwenken, zurueck, c_wort in (
     pruefe(sum(z.startswith(schwenken) for z in zeilen) == 1, f"{kennung}: A mehrmals")
     pruefe(zurueck in zeilen[erste_c:], f"{kennung}: am Ende nicht zurück")
     pruefe(not programm.hinweise, f"{kennung}: {programm.hinweise}")
+    pruefe(not any("CAM-Addon:" in z for z in zeilen), f"{kennung}: Kommentar der Bahn im Programm")
     # Im Kopf: G54 wird nach dem Schwenken eingerichtet (A wie die Steuerung zählt).
     kopf = [z for z in zeilen if re.search(r"G54: .*A [−-]90 und C 0 schwenken", z)]
     pruefe(kopf, f"{kennung}: Kopf ohne Nullpunkt nach dem Schwenken")

@@ -107,6 +107,18 @@ Rundachse die Stange dreht – Drehmaschinen, 4- und 5-Achs-Fräsen: „„…�
 <li>Aus dem Assistenten <b>Bearbeitung (Fräsen)</b> kommst du hierher, wenn du in seinem
 Schritt 1 eine Drehmaschine wählst („Weiter im 4-Achs-Assistenten →“): mit dem Teil, der
 angeklickten Fläche und dieser Maschine, vorgewählt.</li>
+<li>An einer <b>5-Achs-Fräse Tisch/Tisch</b> (A oder B schwenkt den Rundtisch C) steht zuerst
+<b>„C, A −90° – Rohr im Futter auf dem Rundtisch, Werkzeug von oben“</b>: Das Rohr steht senkrecht im
+Dreibackenfutter mitten auf C, die Stange ist um Spannlänge und Lücke länger. Das Programm fährt
+hoch über Rohr und Futter, über die Achse von C, schwenkt A fest auf −90, dann dreht C, und das
+Werkzeug kommt von oben; danach schwenkt es genauso zurück. <b>Den Nullpunkt richtest du nach dem
+Schwenken ein</b>: A auf −90, C auf 0, auf der Achse von C, an der Stirn des Teils – so hängt das
+Programm nicht an der Höhe des Futters. Das steht auch im Kopf des Programms und im Einrichtblatt;
+fährt der Job auch ungeschwenkt (die Stirn von oben), bekommt die geschwenkte Lage den nächsten
+Nullpunkt (G55). Die Bahn im Job zeigt FreeCAD richtig um das Teil, ein Maschinenprogramm wird sie
+aber nur mit <a href="programm.html">Programm schreiben</a> des Addons – FreeCADs eigene
+Postprozessoren kennen das Schwenken nicht, ein Kommentar vorn in der Bahn sagt das. A in
+Grundstellung (das Rohr liegend auf dem Tisch) steht zuletzt.</li>
 <li>Eine Maschine <b>ohne Rundachse</b> für die Stange (eine 3-Achs-Fräse)
 steht grau da: „… – keine Rundachse für die Stange“.</li>
 <li><b>Ohne Maschine</b> weist du der Stange den Buchstaben selbst zu:

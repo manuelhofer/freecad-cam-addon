@@ -1731,6 +1731,7 @@
     "vo.eigenschaft.werkzeugrichtung": "Where the tool comes from radially while the rotary axis is at 0 – in the job's axes.",
     "vo.eigenschaft.drehsinn": "+1: a positive value of the rotary axis turns the part right-handed about the bar axis – that is how FreeCAD shows the path. −1: the other way.",
     "vo.eigenschaft.schwenk": "Swivelled setup: the rotary axes that stay fixed while the bar turns (e.g. “A90”, counted like the joint) – set with the bar axis.",
+    "vo.pfad.geschwenkt": "only via Write program of the CAM Addon: this path is for the swivelled setup ({schwenk}), with the origin set after swivelling – as it stands here, it runs into the part.",
     "vo.eigenschaft.quer_auf_null": "At the start, move the axis across the bar to 0 (Y with C) so the tool is on centre. Off if the machine has no such axis.",
     "vo.eigenschaft.zustellung": "Step-down per layer (ap), radial.",
     "vo.eigenschaft.steigung": "Feed per revolution of the spiral, along the bar (ae) – at most the cutter diameter.",
