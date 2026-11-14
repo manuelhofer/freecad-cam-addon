@@ -613,6 +613,22 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.374.0):* **Kurvennut im Mantel – eine Nut mit beliebigem Verlauf auf Rohr oder Welle, 4-Achs
+  auf der Drehmaschine mit C** (Manuel, 2026-11-15, nach einem Bild aus dem Discord: ein Rohr mit einer
+  gewundenen, durchgehenden Nut – „mit einer fräser … wenn die nur 12 ist .. ein 12 fräser mittig fertrig
+  .. udn wenn man nen 8 fräser nimmt muss er das ja als kontur fahren können“; zur Auswahl: „die kante
+  aussagekräftiger“). Im 4-Achs-Assistenten genügt ein Klick auf die **Randkante** der Nut (oder eine ihrer
+  Wände): Alle Wände kommen dazu (am Testteil 201 Streifen), „Plan indexiert“ schlägt sie als Nut auf dem
+  Mantel vor. Die Bahn: die Mittellinie aus dem Rand der Nut in der Abwicklung; in voller Breite mit der
+  Rampe hinab, vorwärts und rückwärts durch die ganze Nut (die Rundachse dreht); ist der Fräser so breit
+  wie die Nut, ist sie damit fertig. Ist er kleiner, danach die Kontur in voller Tiefe an beiden Wänden im
+  Gleichlauf – parallel versetzt (längs und mit der Querachse Y), so liegt die Flanke über die ganze Tiefe
+  an der Wand. Durchgehende Nuten 0,5 mm unter die Innenwand. Testteil Rohr Ø 60/50 × 120, Nut 12 breit
+  über 200°: Ø 12 6 Fahrten, Ø 8 7 Fahrten, je etwa 1,2 min; „Auf der Maschine prüfen“: alle Achsen in den
+  Grenzen, nichts berührt sich, am Ende 0,00 mm Rest, nirgends ins Teil. Bild
+  `docs/bilder/vorschlaege/kurvennut_bahn.png`, Prüfung `tests/test_vierachs_kurvennut.py`.
+  Noch nicht: Nuten mit Grund (nicht durch) und schräg zur Achse stehenden Wänden ausführlich geprüft; ein
+  Szenario im Repo (das Erkundungs-Szenario liegt bei Manuel unter `~/freecad_cam/wip/strategien/kurvennut/`).
 - *Neu (0.373.0):* **„Weiter bearbeiten“: zwei gleiche Schlichtschnitte mit Messen dazwischen, und
   Leerfahrten** (Manuels Antwort auf Frage 1: „a – aber es muss auch die möglichkeit geben das man
   leerfahrten eingeben kann“). Im Fenster „Womit weiter?“ zwei Haken beim Schlichten: **„In zwei gleichen

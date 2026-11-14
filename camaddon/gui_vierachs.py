@@ -489,10 +489,13 @@ class _NurFlaechen:
                 FreeCADGui.Selection.removeSelectionGate()
             return True
         weg = unterelement.split(".") if unterelement else []
-        if not weg or not weg[-1].startswith("Face"):
-            return False
         job = self.panel.job
         name = getattr(objekt, "Name", "")
+        # In Schritt 2 auch eine Kante: der Rand einer Nut im Mantel bringt die ganze Nut
+        # (flaeche_angeklickt, vierachs_planbahn.kurvennut_an_kante).
+        kante = bool(weg) and weg[-1].startswith("Edge") and self.panel.seite == 2
+        if not weg or not (weg[-1].startswith("Face") or kante):
+            return False
         if self.panel.seite == 2 and job is not None:  # nur das Teil im Job (V4)
             klon = vr.modell(job).Name
             return name == klon or klon in weg
@@ -2540,12 +2543,44 @@ class VierachsPanel:
         wieder leer – die Farben zeigen, was gewählt ist."""
         if self.geschlossen or self.seite != 2 or self.job is None:
             return
+        letztes = unterelement.split(".")[-1] if unterelement else ""
+        if letztes.startswith("Edge"):
+            # Der Rand einer Nut im Mantel: die ganze Nut dazu – oder wieder heraus.
+            FreeCADGui.Selection.clearSelection()
+            self._kurvennut_umschalten(kante=letztes)
+            return
         teil, flaeche = _entlang(self.doc, self.doc.getObject(objekt), unterelement)
         klon = vr.modell(self.job)
         if teil is None or flaeche is None or vr.original(teil) is not vr.original(klon):
             return
         FreeCADGui.Selection.clearSelection()
-        self.flaeche_umschalten(flaeche)
+        if not self._kurvennut_umschalten(flaeche=flaeche):
+            self.flaeche_umschalten(flaeche)
+
+    def _kurvennut_umschalten(self, kante=None, flaeche=None):
+        """Gehört die Kante oder Fläche zu einer Nut im Mantel mit beliebigem Verlauf
+        (vierachs_planbahn.Kurvennut), kommen alle ihre Wände dazu – sind sie schon alle gewählt,
+        heraus. Gibt zurück, ob es eine solche Nut war."""
+        achse = self.achse()
+        form = vr.modell(self.job).Shape
+        laengs, radial = achse.laengs, va.radial(achse)
+        try:
+            if kante is not None:
+                nut = vp.kurvennut_an_kante(form, laengs, radial, kante)
+            else:
+                nuten = vp.kurvennuten(form, laengs, radial, [flaeche])
+                nut = nuten[0] if nuten else None
+        except Exception as fehler:  # noqa: BLE001 – dann eben nur die Fläche
+            FreeCAD.Console.PrintLog(f"4-Achs: Kurvennut nicht erkannt: {fehler}\n")
+            nut = None
+        if nut is None:
+            return False
+        if set(nut.namen) <= set(self.gewaehlte):
+            self.gewaehlte = [n for n in self.gewaehlte if n not in nut.namen]
+        else:
+            self.gewaehlte += [n for n in nut.namen if n not in self.gewaehlte]
+        self._flaechen_geaendert()
+        return True
 
     def flaeche_umschalten(self, name):
         """Nimmt die Fläche `name` („Face3“) dazu – oder heraus, wenn sie schon gewählt ist."""

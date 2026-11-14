@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-01 kurvennut-im-mantel
+
+### EINGELESEN
+- Manuel, 2026-11-15, ein Bild aus dem Discord (drmacro: „Is there a way to cut this on a 4 axis machine
+  with current capabilities?“ – ein Rohr mit einer gewundenen, durchgehenden Nut): „das ist ein rohr und da
+  ist eine nut eingearbeitet mitten drinnen bau ein testteil ... das ähnlich ausschaut und schau ob wir das
+  hinbekommen bitte .. hat vorrang ..“; „4 achs und halt mit clx .. klar“; „mit kleineren fräsern so das er
+  vorwerts und rückwerts wirklich die nut abfahren muss und mit einer fräser fröse heist wenn die nur 12 ist
+  .. ein 12 fräser mittig fertrig .. udn wenn man nen 8 fräser nimmt muss er das ja als kontur fahren
+  können“; „ich würde eher sagen das zum auswählen die kante aussagekräftiger wäre oder ?“.
+- `vierachs_planbahn.mantelnuten`, `_mantelnut_punkte`, `planen`; `gui_vierachs` (Auswahl in Schritt 2).
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `Kurvennut`, `kurvennuten` (Wände wie eine Nutwand, zusammenhängend ab
+  der gewählten; der äußere Rand; Mittellinie in der Abwicklung, `_mittellinie`), `kurvennut_an_kante`,
+  `_kurve_versetzt`, `_kurvennut_punkte`; `mantelnuten` gibt sie mit, `planen` fährt sie.
+- `camaddon/gui_vierachs.py`: In Schritt 2 lässt sich auch eine Kante anklicken; Kante oder Wand einer
+  Kurvennut nimmt alle Wände dazu (oder heraus) – `_kurvennut_umschalten`.
+- `tests/test_vierachs_kurvennut.py` (neu), `docs/STATUS_SNAPSHOT.md`,
+  `docs/bilder/vorschlaege/kurvennut_bahn.png`, `package.xml` (0.374.0).
+
+### ERGEBNIS
+- Testteil (Rohr Ø 60/50 × 120, Nut 12 breit über 200°, mit dem Fräser selbst geschnitten – 205 Flächen):
+  erkannt aus allen Flächen und aus einer einzelnen Wand; Mittellinie bis 0,008 mm neben der Nut; Breite
+  11,99. Ø 12: mittig, ohne Y, vor und zurück, durch die Wand, nimmt nichts vom fertigen Teil. Ø 8: danach
+  die Kontur an beiden Wänden, Flanke an der Wand (Abstand 0,000 mm, 0,001 mm³ ins Teil), Gleichlauf.
+- Im Assistenten (Erkundungs-Szenario, Beispiel-Drehmaschine mit C und Y): Klick auf die Randkante → 201
+  Flächen gewählt, „Plan indexiert“ an; angelegt „Plan indexiert T1“ bzw. „T2“, C 0 … 270°; „Auf der
+  Maschine prüfen“: Achsen in den Grenzen, nichts berührt sich, am Ende 0,00 mm Rest, nirgends ins Teil.
+- Gebaut zuerst mit Claude Fable (Erkennung, Bahn, Prüfdatei), fertig gemacht mit Claude Opus.
+- Grün: `test_vierachs_kurvennut`, `test_vierachs_plan`, `test_sprache`, `test_hobeln`;
+  `szenario_vierachs_mantelnut` (unverändert).
 ## P-2026-11-14-10 dichtnut-hobeln-vorgaben
 
 ### EINGELESEN

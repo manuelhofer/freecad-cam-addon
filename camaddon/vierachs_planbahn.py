@@ -100,6 +100,12 @@ VORSCHAU_TOLERANZ = 0.05  # mm – für die Vorschau im Assistenten
 SEHNE = 0.005  # mm – so weit weicht eine Sehne höchstens vom Bogen der Nut ab
 NUT_AE_ANTEIL = 0.25  # × D: höchstens dieses ae für die Bögen in der Nut
 NUT_LUFT = 0.01  # mm – so weit bleibt der Fräser in der Nut von den Enden und Wänden weg
+DURCH_TIEFER = 0.5  # mm – so weit fährt die Spitze in einer durchgehenden Kurvennut unter die Wand
+KURVE_WAND = 0.3  # so viel darf die Normale einer Nutwand längs des Strahls von der Achse zeigen
+KURVE_RAND = 0.25  # mm – so dicht wird der Rand der Kurvennut abgetastet
+KURVE_SCHRITT = 0.5  # mm – so dicht liegen die Stellen ihrer Mittellinie
+KURVE_GLATT = 1.0  # mm – über so viel Rand wird seine Richtung gemittelt
+KURVE_BREITE_GLEICH = 0.3  # mm – so gleich muss die Kurvennut überall breit sein
 # Der Weg über einer ebenen Fläche (Planwerte.weg): Zeilen hin und her – oder Stiche von der
 # offenen Seite (das 3-Achs-Räumen im Rahmen der Fläche) im Gleich- oder Gegenlauf.
 WEG_ZEILEN = "zeilen"
@@ -573,7 +579,380 @@ def mantelnuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
                 math.degrees(phi_m + f_bis),
             )
         )
+    return ergebnis + kurvennuten(form, laengs, radial, namen, toleranz)
+
+
+@dataclass(frozen=True)
+class Kurvennut:
+    """Eine Nut im Mantel mit beliebigem Verlauf (Manuel, 2026-11-15, nach einem Bild aus dem
+    Discord: ein Rohr, mitten drin eine gewundene, durchgehende Nut – „mit einer fräser fröse
+    heist wenn die nur 12 ist .. ein 12 fräser mittig fertrig .. udn wenn man nen 8 fräser nimmt
+    muss er das ja als kontur fahren können“). In der Abwicklung ein Band gleicher Breite längs
+    einer Mittellinie, die Enden rund; die Wände stehen parallel zur Achse des Fräsers, der sie
+    auf der Mittellinie schnitte. `mitte`: ((a, φ Grad), …) von einem Ende zum anderen, φ
+    fortlaufend. `radius`: so tief fährt die Spitze – der Grund, bei einer durchgehenden Nut
+    DURCH_TIEFER unter der Innenwand."""
+
+    name: str
+    namen: tuple  # alle Wandflächen der Nut
+    radius: float
+    r_aussen: float  # dort öffnet sich die Nut
+    halb: float  # die halbe Breite
+    mitte: tuple
+    durch: bool
+    a_von: float
+    a_bis: float
+    phi_von: float
+    phi_bis: float
+
+    @property
+    def breite(self):
+        return 2.0 * self.halb
+
+
+def _rand_aussen(flaechen, l_, u_, v_, toleranz):
+    """(Kanten am größten Radius der Flächen, dieser Radius, der kleinste Radius): die Kanten, an
+    denen sich die Nut nach außen öffnet."""
+    kanten, radien = [], []
+    for _nummer, flaeche in flaechen:
+        for kante in flaeche.Edges:
+            q = np.array([[p.x, p.y, p.z] for p in kante.discretize(Deflection=toleranz)])
+            r = np.hypot(q @ u_, q @ v_)
+            kanten.append((kante, float(r.min()), float(r.max())))
+            radien.extend((float(r.min()), float(r.max())))
+    if not radien:
+        return [], 0.0, 0.0
+    r_aussen, r_innen = max(radien), min(radien)
+    eng = max(2 * toleranz, 0.02)
+    aussen = [k for k, r0, r1 in kanten if r0 > r_aussen - eng]
+    return aussen, r_aussen, r_innen
+
+
+def _mittellinie(a, s):
+    """(Mittellinie (N, 2) in (a, s), halbe Breite, Schwankung der Breite) aus dem geschlossenen
+    Rand der Nut in der Abwicklung (a längs, s rundum in mm) – None, wenn es kein Band mit zwei
+    Enden ist. Jede Stelle des Rands um die halbe Breite nach innen: An den Seiten wandert sie
+    mit (die Mittellinie), an den runden Enden bleibt sie stehen (ihr Mittelpunkt)."""
+    n = len(a)
+    if n < 12:
+        return None
+    p = np.column_stack([a, s])
+    nach = np.roll(p, -1, axis=0)
+    flaeche = 0.5 * float(np.sum(p[:, 0] * nach[:, 1] - nach[:, 0] * p[:, 1]))
+    # Die Richtung des Rands über KURVE_GLATT mm gemittelt: Ein Rand aus vielen kurzen Bögen
+    # (die Nut mit dem Fräser selbst geschnitten, Schritt für Schritt) hat an jeder Naht einen
+    # Knick – die Stelle innen spränge dort.
+    schritt_ = float(np.median(np.linalg.norm(nach - p, axis=1)))
+    weit = max(1, int(round(KURVE_GLATT / max(schritt_, 1e-9))))
+    t_ = np.roll(p, -weit, axis=0) - np.roll(p, weit, axis=0)
+    t_ /= np.maximum(np.linalg.norm(t_, axis=1, keepdims=True), 1e-12)
+    innen = np.column_stack([-t_[:, 1], t_[:, 0]]) * (1.0 if flaeche > 0 else -1.0)
+    # Die Breite je Stelle: der Strahl nach innen bis zum Rand gegenüber.
+    d = nach - p  # (n, 2) Stücke des Rands
+    breiten = np.full(n, np.inf)
+    for i in range(n):
+        o, r_ = p[i], innen[i]
+        nenner = r_[0] * d[:, 1] - r_[1] * d[:, 0]
+        with np.errstate(divide="ignore", invalid="ignore"):
+            w0 = p - o
+            t_i = (w0[:, 0] * d[:, 1] - w0[:, 1] * d[:, 0]) / nenner
+            u_i = (w0[:, 0] * r_[1] - w0[:, 1] * r_[0]) / nenner
+        gut = np.isfinite(t_i) & (t_i > 1e-3) & (u_i >= -1e-9) & (u_i <= 1.0 + 1e-9)
+        gut[i] = gut[i - 1] = False
+        if gut.any():
+            breiten[i] = float(t_i[gut].min())
+    endlich = np.isfinite(breiten)
+    if endlich.sum() < n // 2:
+        return None
+    halb = float(np.median(breiten[endlich])) / 2.0
+    mitten = p + halb * innen
+    schritt_rand = np.linalg.norm(nach - p, axis=1)
+    schritt_mitte = np.linalg.norm(np.roll(mitten, -1, axis=0) - mitten, axis=1)
+    wandert = schritt_mitte > 0.3 * np.maximum(schritt_rand, 1e-9)
+    # Einzelne Ausreißer an den Nähten glätten: die Mehrheit im Fenster zählt.
+    fenster = 2 * weit + 1
+    anteil = np.convolve(
+        np.concatenate([wandert[-weit:], wandert, wandert[:weit]]), np.ones(fenster), "valid"
+    )
+    wandert = anteil > fenster / 2.0
+    if wandert.all() or not wandert.any():
+        return None  # kein Ende: ein Ring rundum – oder nur ein Loch
+    start = int(np.argmin(wandert))  # eine Stelle an einem Ende
+    reihe = np.roll(np.arange(n), -start)
+    laeufe, lauf = [], []
+    for i in reihe:
+        if wandert[i]:
+            lauf.append(i)
+        elif lauf:
+            laeufe.append(lauf)
+            lauf = []
+    if lauf:
+        laeufe.append(lauf)
+    laeufe.sort(key=len, reverse=True)
+    if len(laeufe) < 2 or len(laeufe[1]) < 0.5 * len(laeufe[0]):
+        return None  # nicht zwei Seiten
+    seite = np.array(laeufe[0])
+    linie = mitten[seite]
+    schwankung = float(np.ptp(breiten[seite][np.isfinite(breiten[seite])]))
+    # Bis in die Mittelpunkte der Enden: die stehenden Stellen davor und danach.
+    davor = [i for i in reihe[: list(reihe).index(seite[0])] if not wandert[i]][-8:]
+    danach_ab = list(reihe).index(seite[-1]) + 1
+    danach = [i for i in reihe[danach_ab : danach_ab + 8] if not wandert[i]]
+    if davor:
+        linie = np.vstack([mitten[davor].mean(axis=0), linie])
+    if danach:
+        linie = np.vstack([linie, mitten[danach].mean(axis=0)])
+    # Gleichmäßig alle KURVE_SCHRITT mm, leicht geglättet (der Rand ist ein Linienzug).
+    weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(linie, axis=0), axis=1))])
+    behalten = np.concatenate([[True], np.diff(weg) > 1e-9])
+    linie, weg = linie[behalten], weg[behalten]
+    if weg[-1] < 2 * halb:
+        return None
+    stellen = np.linspace(0.0, weg[-1], max(2, int(math.ceil(weg[-1] / KURVE_SCHRITT)) + 1))
+    glatt = np.column_stack([np.interp(stellen, weg, linie[:, k]) for k in (0, 1)])
+    if len(glatt) > 4:
+        kern = np.array([0.25, 0.5, 0.25])
+        innen_ = np.column_stack([np.convolve(glatt[:, k], kern, mode="valid") for k in (0, 1)])
+        glatt = np.vstack([glatt[:1], innen_, glatt[-1:]])
+    return glatt, halb, schwankung
+
+
+_KURVENNUTEN = {}  # (hashCode, Flächen, Achsen) → (Form, [Kurvennut])
+
+
+def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
+    """[Kurvennut] – aus den Flächen `namen` die Wände von Nuten im Mantel mit beliebigem Verlauf:
+    Flächen, deren Normale quer zum Strahl von der Achse steht (Wände, auch die runden Enden),
+    außen ein geschlossener Rand, in der Abwicklung ein Band gleicher Breite mit zwei Enden.
+    Unabhängig von der Art der Flächen (eine Freiformwand oder viele Zylinderstreifen)."""
+    import FreeCAD
+    import Part
+
+    from . import vierachs_flaechen as vf
+
+    schluessel = (form.hashCode(), tuple(sorted(namen)), tuple(laengs), tuple(radial))
+    gemerkt = _KURVENNUTEN.get(schluessel)
+    if gemerkt is not None and gemerkt[0].isSame(form):
+        return gemerkt[1]
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    # Alle Flächen des Teils, die wie eine Nutwand stehen – ein Klick auf eine bringt die ganze
+    # Nut mit (am Testteil aus dem Fräserschnitt 201 Streifen: niemand klickt die einzeln).
+    wandartig = {}
+    for nummer, flaeche in enumerate(form.Faces):
+        try:
+            u0, u1, v0, v1 = flaeche.ParameterRange
+            p = np.array(tuple(flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)), dtype=float)
+            n = np.array(tuple(flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2)), dtype=float)
+        except Exception:  # noqa: BLE001 – OCC: entartete Fläche
+            continue
+        strahl = p - l_ * (p @ l_)
+        lang = float(np.linalg.norm(strahl))
+        if lang < 1e-6 or abs(float(n @ strahl)) / lang > KURVE_WAND:
+            continue  # zeigt nach außen oder innen: ein Grund, eine ebene Fläche, der Mantel
+        wandartig[nummer] = flaeche
+    gewaehlt = {nr for nr in vf.nummern(namen) if nr in wandartig}
+    an_kante = {}
+    for nummer, flaeche in wandartig.items():
+        for kante in flaeche.Edges:
+            an_kante.setdefault(kante.hashCode(), []).append(nummer)
+    nachbarn = {nummer: set() for nummer in wandartig}
+    for nummern_ in an_kante.values():
+        for nr in nummern_:
+            nachbarn[nr].update(nummern_)
+    gruppen, gesehen = [], set()
+    for start in sorted(gewaehlt):
+        if start in gesehen:
+            continue
+        gruppe, offen = set(), [start]
+        while offen:
+            nr = offen.pop()
+            if nr in gruppe:
+                continue
+            gruppe.add(nr)
+            offen.extend(nachbarn[nr] - gruppe)
+        gesehen |= gruppe
+        gruppen.append(sorted(gruppe))
+    ergebnis = []
+    ketten = []  # [(Kette, Wände der Gruppe, r_aussen, r_innen)]
+    for gruppe in gruppen:
+        waende = [(nr, wandartig[nr]) for nr in gruppe]
+        aussen, r_aussen, r_innen = _rand_aussen(waende, l_, u_, v_, toleranz)
+        ketten.extend(
+            (k, waende, r_aussen, r_innen) for k in (Part.sortEdges(aussen) if aussen else ())
+        )
+    for kette, waende, r_aussen, r_innen in ketten:
+        draht = Part.Wire(kette)
+        if not draht.isClosed():
+            continue
+        anzahl = max(48, int(draht.Length / KURVE_RAND))
+        q_ = np.array([[pt.x, pt.y, pt.z] for pt in draht.discretize(Number=anzahl)], dtype=float)
+        if np.linalg.norm(q_[0] - q_[-1]) < 1e-6:
+            q_ = q_[:-1]
+        a = q_ @ l_
+        phi = np.unwrap(np.arctan2(q_ @ v_, q_ @ u_))
+        if abs(phi[-1] - phi[0]) > math.pi:
+            continue  # der Rand läuft um die Achse: keine Nut mit zwei Enden
+        linie = _mittellinie(a, r_aussen * phi)
+        if linie is None:
+            continue
+        mitte, halb, schwankung = linie
+        if schwankung > KURVE_BREITE_GLEICH:
+            continue  # nicht überall gleich breit: kein Fräser fährt sie mittig
+        # Die Wände dieser Nut: die mit einer Kante in diesem Rand.
+        namen_ = []
+        for nummer, flaeche in waende:
+            if any(any(k.isSame(e) for e in kette) for k in flaeche.Edges):
+                namen_.append(f"Face{nummer + 1}")
+        if not namen_:
+            continue
+        # Durchgehend? Unter der Innenwand, mitten in der Nut, ist kein Material.
+        a_m, s_m = mitte[len(mitte) // 2]
+        f_m = s_m / r_aussen
+        r_probe = r_innen - 0.3
+        stelle = l_ * a_m + (u_ * math.cos(f_m) + v_ * math.sin(f_m)) * r_probe
+        durch = r_probe <= 0 or not form.isInside(FreeCAD.Vector(*stelle), 1e-4, True)
+        grad = np.degrees(mitte[:, 1] / r_aussen)
+        rand_a = halb
+        rand_f = math.degrees(halb / r_aussen)
+        ergebnis.append(
+            Kurvennut(
+                namen_[0],
+                tuple(namen_),
+                r_innen - (DURCH_TIEFER if durch else 0.0),
+                r_aussen,
+                halb,
+                tuple((float(x), float(f)) for x, f in zip(mitte[:, 0], grad, strict=True)),
+                durch,
+                float(mitte[:, 0].min()) - rand_a,
+                float(mitte[:, 0].max()) + rand_a,
+                float(grad.min()) - rand_f,
+                float(grad.max()) + rand_f,
+            )
+        )
+    _KURVENNUTEN[schluessel] = (form, ergebnis)
+    while len(_KURVENNUTEN) > 8:
+        del _KURVENNUTEN[next(iter(_KURVENNUTEN))]
     return ergebnis
+
+
+def kurvennut_an_kante(form, laengs, radial, kante):
+    """Die Kurvennut, an deren Rand die Kante `kante` („Edge12“) liegt – oder None. Die Kante am
+    Rand sagt mehr als ein Wandstreifen (Manuel, 2026-11-15: „zum auswählen die kante
+    aussagekräftiger“): Ein Klick auf sie bringt die ganze Nut."""
+    import Part
+
+    try:
+        gesucht = form.Edges[int(kante[4:]) - 1]
+    except (ValueError, IndexError):
+        return None
+    alle = form.Faces
+    namen = []
+    for nachbar in form.ancestorsOfType(gesucht, Part.Face):
+        for nummer, flaeche in enumerate(alle):
+            if flaeche.isSame(nachbar):
+                namen.append(f"Face{nummer + 1}")
+                break
+    for nut in kurvennuten(form, laengs, radial, namen):
+        if set(nut.namen) & set(namen):
+            return nut
+    return None
+
+
+def _kurve_versetzt(nut, d):
+    """Die Mittellinie um `d` nach links (in Fahrtrichtung, in der Abwicklung a → rechts, s →
+    oben) versetzt: [(a, φ Grad, q)] – der Fräser bleibt dabei parallel zu der Achse, mit der
+    die Nut auf der Mittellinie geschnitten wäre: längs um d · n_a, quer (q, die Querachse) um
+    d · n_s; die Rundachse steht wie auf der Mittellinie. So liegt seine Flanke über die ganze
+    Tiefe an der Wand (um den Winkel gedreht stünde sie nur an einem Radius an)."""
+    m = np.array(nut.mitte, dtype=float)
+    a, s = m[:, 0], np.radians(m[:, 1]) * nut.r_aussen
+    ta, ts = np.gradient(a), np.gradient(s)
+    lang = np.maximum(np.hypot(ta, ts), 1e-12)
+    na, ns = -ts / lang, ta / lang
+    return [(float(a[i] + d * na[i]), float(m[i, 1]), float(d * ns[i])) for i in range(len(m))]
+
+
+def _kurvennut_punkte(nut, w, oben, sicher):
+    """([vierachs_bahn.Punkt], Lagen, Fahrten) – die Kurvennut: Die Rundachse dreht, der Fräser
+    folgt der Mittellinie. In der Mitte in voller Breite hinab – wie die Nut auf dem Mantel: am
+    Eintauchwinkel je Lage die Rampe hin und eben zurück, ist die Nut dafür zu kurz, im Zickzack
+    –, vorwärts und rückwärts durch die ganze Nut. Ist der Fräser so breit wie die Nut, ist sie
+    damit fertig. Ist er kleiner, danach die Kontur: in voller Tiefe an der einen Wand entlang,
+    um das Ende, an der anderen zurück (im Gleichlauf), höchstens ae je Runde, bis an die Wände.
+    ValueError mit einem Satz, wenn der Fräser nicht hineinpasst."""
+    from . import nut_bahn as nb
+
+    radius = float(w.form.radius)
+    breit_text = einheiten.text(nut.breite, einheiten.LAENGE)
+    if 2 * radius > nut.breite + 2 * NUT_LUFT + bh_gleich():
+        fraeser = einheiten.text(2 * radius, einheiten.LAENGE)
+        raise ValueError(tr("vp.fehler.mantel_breit", fraeser=fraeser, breite=breit_text))
+    mitte = _kurve_versetzt(nut, 0.0)
+    m = np.array(nut.mitte, dtype=float)
+    schritte = np.hypot(np.diff(m[:, 0]), np.radians(np.diff(m[:, 1])) * nut.r_aussen)
+    weg = np.concatenate([[0.0], np.cumsum(schritte)])
+    laenge = float(weg[-1])
+    z_ende = nut.radius + (0.0 if nut.durch else w.aufmass)
+    ap = w.zustellung if w.zustellung > vb.GLEICH else 2 * radius
+    ap = min(ap, nb.VOLLNUT_AP * 2 * radius)
+    steil = laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1)))
+    stufe = max(min(steil, ap / 2), nb.MIN_RAMPE)
+    k = min(max(w.zeilenabstand, vb.GLEICH) / (2 * radius), 0.5)
+    anteil = 2 * math.sqrt(k * (1 - k))
+    a0, f0, _q = mitte[0]
+    punkte = [
+        vb.Punkt(True, a0, sicher, f0),
+        vb.Punkt(True, a0, oben + w.sicherheit, f0),
+        vb.Punkt(False, a0, oben, f0, True),  # bis ans Material, in der Luft
+    ]
+
+    def fahrt(z_von, z_bis, vorwaerts):
+        """Einmal durch die Nut, die Höhe längs des Wegs von z_von nach z_bis."""
+        reihe = range(1, len(mitte)) if vorwaerts else range(len(mitte) - 2, -1, -1)
+        for i in reihe:
+            anteil_weg = weg[i] / laenge if vorwaerts else 1.0 - weg[i] / laenge
+            z = z_von + (z_bis - z_von) * anteil_weg
+            punkte.append(vb.Punkt(False, mitte[i][0], z, mitte[i][1], anteil=anteil))
+
+    z, vorn, fahrten = oben, True, 0  # vorn: der Fräser steht am Anfang der Mittellinie
+    if steil >= ap - vb.GLEICH:
+        while z > z_ende + vb.GLEICH:
+            neu = max(z - ap, z_ende)
+            fahrt(z, neu, vorn)  # die Rampe hinab
+            fahrt(neu, neu, not vorn)  # eben zurück: nimmt den Keil
+            z = neu
+            fahrten += 2
+    else:
+        while z > z_ende + vb.GLEICH:
+            neu = max(z - stufe, z_ende)
+            fahrt(z, neu, vorn)
+            z, vorn = neu, not vorn
+            fahrten += 1
+        fahrt(z_ende, z_ende, vorn)  # unten einmal eben hinüber
+        vorn = not vorn
+        fahrten += 1
+    # Die Kontur: Runden um die Mittellinie bis an die Wände.
+    frei = max(nut.halb - radius - NUT_LUFT, 0.0)
+    if frei > vb.GLEICH:
+        anzahl = max(1, int(math.ceil(frei / max(w.zeilenabstand, vb.GLEICH) - 1e-9)))
+        for nummer in range(1, anzahl + 1):
+            d = frei * nummer / anzahl
+            links, rechts = _kurve_versetzt(nut, d), _kurve_versetzt(nut, -d)
+            # Im Gleichlauf (M3): die Wand rechts der Fahrt. Von außen gesehen (a nach rechts)
+            # zeigt +φ nach unten – links der Mittellinie vorwärts liegt die Wand dann rechts.
+            hin, her = (links, rechts) if w.gleichlauf else (rechts, links)
+            # Steht der Fräser am Ende der Mittellinie, beginnt die Runde dort.
+            runde = hin + list(reversed(her)) if vorn else list(reversed(her)) + hin
+            runde.append(runde[0])
+            for a, f, q in runde:
+                punkte.append(vb.Punkt(False, a, z_ende, f, q=q))
+            fahrten += 1
+        ende = mitte[0] if vorn else mitte[-1]  # zurück in die Mitte, dann hinaus
+        punkte.append(vb.Punkt(False, ende[0], z_ende, ende[1]))
+    letzter = punkte[-1]
+    punkte.append(vb.Punkt(True, letzter.a, sicher, letzter.phi))
+    lagen = max(1, int(math.ceil((oben - z_ende) / ap - 1e-9)))
+    return punkte, lagen, fahrten
 
 
 def _mantelnut_punkte(nut, w, oben, sicher):
@@ -991,13 +1370,16 @@ def planen(
         oben = _mantel_ueber(w, nut, radius)
         if oben <= nut.radius + w.aufmass + vb.GLEICH:
             continue  # steht nichts mehr drüber
-        stueck, lagen, fahrten = _mantelnut_punkte(nut, w, oben, sicher)
+        if isinstance(nut, Kurvennut):
+            stueck, lagen, fahrten = _kurvennut_punkte(nut, w, min(oben, nut.r_aussen), sicher)
+        else:
+            stueck, lagen, fahrten = _mantelnut_punkte(nut, w, oben, sicher)
         punkte.extend(stueck)
         flaechen_gefraest += 1
         mantel_gefraest += 1
         lagen_gesamt += lagen
         zeilen_gesamt += fahrten
-        r_min = min(r_min, nut.radius + w.aufmass)
+        r_min = min(r_min, nut.radius + (0.0 if getattr(nut, "durch", False) else w.aufmass))
     for ebene in sorted(flaechen, key=lambda e: e.phi):
         if w.stirnseite and form_teil is not None and abs(ebene.steigung) < GERADE:
             from . import vierachs_stirnkombi as vsk
