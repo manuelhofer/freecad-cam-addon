@@ -64,6 +64,10 @@ EIGENSCHAFT_SPANNLAENGE = "CamAddonSpannlaenge"
 # Die Abstechbreite – am Job, weil die Lücke hinter dem Teil auch größer sein kann (der
 # Fräser braucht Platz, V3f): So rechnet einstellung() sie zurück; ausgeblendet.
 EIGENSCHAFT_ABSTECHBREITE = "CamAddonAbstechbreite"
+# In geschwenkter Lage (vierachs_achsen.geschwenkt, „C, A auf 90°“): die festen Rundachsen wie
+# „A90“ – die Stange steht dann im Dreibackenfutter auf dem Rundtisch (spannung.tischfutter);
+# ausgeblendet. Fehlt sie oder ist sie leer: die Stange steckt im Futter der Maschine.
+EIGENSCHAFT_SCHWENK = "CamAddonSchwenk"
 
 MIN_AUFMASS = 1.0  # mm am Radius, mindestens, beim Vorschlag für den Stangen-Ø
 STUFE_MM = 5.0  # Stangen-Ø in 5-mm-Schritten …
@@ -521,6 +525,7 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
         job.Stock = neu
     _merke(job, EIGENSCHAFT_SPANNLAENGE, stange.spannlaenge, tr("va.eigenschaft.spannlaenge"))
     _merke(job, EIGENSCHAFT_ABSTECHBREITE, stange.abstechbreite, tr("va.eigenschaft.abstechbreite"))
+    _merke_schwenk(job, achse)
     dokument.recompute()
     return job
 
@@ -770,6 +775,37 @@ def spannlaenge_fuer_bahn(job):
 def spannlaenge(job):
     """Wie tief die Stange eines Jobs aus dem Assistenten im Futter steckt (mm), sonst 0."""
     return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, 0.0) or 0.0)
+
+
+def schwenk_text(job):
+    """Die festen Rundachsen, mit denen die Stange des Jobs geschwenkt steht („A90“) – leer, wenn
+    sie im Futter der Maschine steckt (EIGENSCHAFT_SCHWENK)."""
+    return str(getattr(job, EIGENSCHAFT_SCHWENK, "") or "")
+
+
+def schwenk_als_text(schwenk):
+    """((Buchstabe, Stellung), …) als Text: (("A", 90.0),) → „A90“; leer: ""."""
+    return " ".join(f"{b}{float(w):g}" for b, w in (schwenk or ()))
+
+
+def im_tischfutter(job):
+    """Steht die Stange des Jobs im Dreibackenfutter auf dem Rundtisch – in geschwenkter Lage
+    („C, A auf 90°“)?"""
+    return bool(schwenk_text(job)) and ist_stange(job)
+
+
+def _merke_schwenk(job, achse):
+    """Merkt am Job die feste Schwenkstellung der Stangenachse `achse` (vierachs_achsen) – nur,
+    wenn es eine gibt oder schon eine gemerkt war."""
+    text = schwenk_als_text(getattr(achse, "schwenk", ()))
+    if EIGENSCHAFT_SCHWENK not in job.PropertiesList:
+        if not text:
+            return
+        text_ = tr("va.eigenschaft.schwenk")
+        job.addProperty("App::PropertyString", EIGENSCHAFT_SCHWENK, "CAM-Addon", text_)
+        job.setEditorMode(EIGENSCHAFT_SCHWENK, 2)  # ausgeblendet – das Addon nutzt sie
+    if getattr(job, EIGENSCHAFT_SCHWENK) != text:
+        setattr(job, EIGENSCHAFT_SCHWENK, text)
 
 
 def _merke(job, eigenschaft, wert, text):

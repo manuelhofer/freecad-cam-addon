@@ -42,6 +42,12 @@ class Stangenachse:
     maschine: str = ""  # die Maschine, von der sie kommt; leer: zugewiesen
     drehsinn: int = 1  # +1: ein positiver Wert dreht das Teil rechtshändig um `laengs`
     quer: bool = True  # hat die Maschine eine Linearachse quer zur Stange (bei C das Y)?
+    # In geschwenkter Lage (geschwenkt()): die Rundachsen, die fest stehen, solange die Stange
+    # dreht – ((Buchstabe, Stellung wie das Gelenk), …), etwa (("A", 90.0),) –, und woher das
+    # Werkzeug dann kommt (in den Achsen des Jobs). Leer bzw. None: Grundstellung, radial().
+    schwenk: tuple = ()
+    von: object = None
+    anzeige: str = ""  # die feste Stellung, wie die Steuerung sie zeigt: „A −90°“ (Liste, Bericht)
 
 
 def zugewiesen(buchstabe):
@@ -81,7 +87,133 @@ def von_maschine(assembly, maschine, kette=None):
         ergebnis.append(
             Stangenachse(buchstabe, laengs, maschine.Label, drehsinn, not quer or quer in linear)
         )
+    geschwenkt_ = geschwenkt(pruefung, maschine, ergebnis, linear, rollen)
+    if not geschwenkt_:
+        return ergebnis
+    # Vorn die geschwenkte Lage; die Achse, die dafür fest steht, als Stangenachse zuletzt – das
+    # Rohr auf dem Tisch liegend mit A drehen ist kein Weg (Manuel, 2026-11-15: „wenn man so etwas
+    # auf einem tisch bearbeitetet spand man das meistens am mantel in ein drei backenfutter
+    # senkrcht zum tisch“).
+    fest = {b for a in geschwenkt_ for b, _w in a.schwenk}
+    return (
+        geschwenkt_
+        + [a for a in ergebnis if a.buchstabe not in fest]
+        + [a for a in ergebnis if a.buchstabe in fest]
+    )
+
+
+SCHWENK = 90.0  # Grad: so weit schwenkt die äußere Rundachse, damit der Rundtisch quer liegt
+UNBEGRENZT = 1e6  # mm – so weit „reicht“ eine Linearachse ohne Grenze
+
+
+def geschwenkt(pruefung, maschine, achsen, linear, rollen):
+    """[Stangenachse] in geschwenkter Lage – „C, A auf 90°“ an einer Tisch/Tisch (Manuel,
+    2026-11-15): Das Rohr steht im Dreibackenfutter mittig auf dem Rundtisch; für den Mantel
+    schwenkt die Rundachse, die den Rundtisch trägt (A bzw. B), fest auf ±SCHWENK – dann liegt der
+    Rundtisch quer zum Werkzeug, er dreht das Rohr, und das Werkzeug kommt von oben.
+
+    Nur, wo es ohne Schwenken nicht geht: Die innere Rundachse im Tisch (die die Werkstückaufnahme
+    trägt) liegt in Grundstellung längs des Werkzeugs, geschwenkt quer dazu. Von +SCHWENK und
+    −SCHWENK die in den Grenzen der äußeren Achse, und von beiden die, in deren Richtung der Kopf
+    von der äußeren Achse aus weiter kommt (dorthin ragt das Rohr; an der Beispiel-Tisch/Tisch
+    A +90: das Rohr nach vorn, 250 statt 200 mm). `achsen`: die Stangenachsen in Grundstellung
+    (von_maschine), `linear`: die Buchstaben der Linearachsen, `rollen`: maschine.rollen."""
+    aufnahme = pruefung.werkstueckaufnahme
+    werkzeug = next(iter(pruefung.werkzeugaufnahmen), None)
+    if aufnahme is None or werkzeug is None or werkzeug.Lcs is None:
+        return []
+    drehend = [
+        a
+        for a in pruefung.verfahren.pfad(pruefung._glied(aufnahme))
+        if a.art != LINEAR and rollen.get(a.gelenk) == m.TISCH and pruefung.programmbuchstabe(a)
+    ]
+    if len(drehend) < 2:
+        return []
+    innen = drehend[-1]
+    stange = next((a for a in achsen if a.buchstabe == pruefung.programmbuchstabe(innen)), None)
+    lage_werkzeug = m.globale_platzierung(werkzeug.Lcs)
+    z_werkzeug = lage_werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))  # von der Spitze weg
+    if stange is None or abs(abs(innen.richtung.dot(z_werkzeug)) - 1.0) > GERADE:
+        return []  # schon in Grundstellung quer zum Werkzeug: Schwenken braucht es nicht
+    in_job = m.globale_platzierung(aufnahme.Lcs).Rotation.inverted()
+    ergebnis = []
+    for aussen in drehend[:-1]:
+        kandidaten = []
+        for winkel in (SCHWENK, -SCHWENK):
+            if pruefung.verfahren.begrenzt(aussen, winkel) != winkel:  # über die Grenze
+                continue
+            # Ein positiver Wert dreht um die Plus-Richtung des Gelenks – ab seiner Stellung jetzt.
+            weiter = winkel - pruefung.verfahren.stellung(aussen)
+            drehung = FreeCAD.Rotation(vf.plusrichtung(aussen), weiter)
+            c_welt = drehung.multVec(innen.richtung)
+            if abs(c_welt.dot(z_werkzeug)) > GERADE:
+                continue
+            # Wohin die Stange ragt: vom Futter weg, wie `laengs` (in der Aufnahme +Z).
+            ragt = drehung.multVec(in_job.inverted().multVec(stange.laengs))
+            raum = _reichweite(pruefung, maschine, rollen, ragt) + (
+                lage_werkzeug.Base - aussen.ursprung
+            ).dot(ragt)
+            von = gerade(in_job.multVec(drehung.inverted().multVec(z_werkzeug)))
+            kandidaten.append((raum, winkel, von, ragt))
+        if not kandidaten:
+            continue
+        _raum, winkel, von, ragt = max(kandidaten, key=lambda k: k[0])
+        quer = achsbuchstabe(gerade(ragt.cross(z_werkzeug)))
+        buchstabe = pruefung.programmbuchstabe(aussen)
+        im_programm = vf.programm_vorzeichen(aussen, pruefung.kette) * winkel  # DIN 66217
+        anzeige = f"{buchstabe} {'−' if im_programm < 0 else ''}{abs(im_programm):g}°"
+        ergebnis.append(
+            Stangenachse(
+                stange.buchstabe,
+                FreeCAD.Vector(stange.laengs),
+                maschine.Label,
+                stange.drehsinn,
+                not quer or quer in linear,
+                ((buchstabe, winkel),),
+                von,
+                anzeige,
+            )
+        )
     return ergebnis
+
+
+def _reichweite(pruefung, maschine, rollen, richtung):
+    """So weit (mm) fahren die Linearachsen das Werkzeug gegenüber dem Werkstück in `richtung`
+    (Welt) aus ihrer Stellung – eine Achse im Tisch fährt das Werkstück, also andersherum."""
+    summe = 0.0
+    verfahren = pruefung.verfahren
+    for achse in pruefung.kette.achsen:
+        if achse.art != LINEAR:
+            continue
+        plus = vf.plusrichtung(achse) * (-1.0 if rollen.get(achse.gelenk) == m.TISCH else 1.0)
+        anteil = plus.dot(richtung)
+        if abs(anteil) < GERADE:
+            continue
+        unten, oben = verfahren.grenzen(achse)
+        jetzt = verfahren.stellung(achse)
+        if anteil > 0:
+            weg = UNBEGRENZT if oben is None else oben - jetzt
+        else:
+            weg = UNBEGRENZT if unten is None else jetzt - unten
+        summe += max(weg, 0.0) * abs(anteil)
+    return summe
+
+
+def schwenk_text(achse_oder_schwenk):
+    """Die feste Schwenkstellung als Text, wie sie an der Operation steht: „A90“, „A-90 B0“ –
+    leer in Grundstellung. Nimmt eine Stangenachse oder ihr `schwenk`."""
+    return vr.schwenk_als_text(getattr(achse_oder_schwenk, "schwenk", achse_oder_schwenk))
+
+
+def schwenk_aus_text(text):
+    """Umkehrung von schwenk_text: „A90“ → (("A", 90.0),); leer oder unlesbar: ()."""
+    ergebnis = []
+    for wort in str(text or "").split():
+        try:
+            ergebnis.append((wort[0].upper(), float(wort[1:])))
+        except (ValueError, IndexError):
+            return ()
+    return tuple(ergebnis)
 
 
 @dataclass(frozen=True)
@@ -143,7 +275,10 @@ def maschinen(zuerst=None):
 def radial(achse):
     """Woher das Werkzeug kommt, wenn die Rundachse auf 0 steht – in den Achsen des Jobs,
     quer zur Stange: bei A und B von oben (+Z), bei C aus +X (vierachs_rohteil.ACHSEN).
-    Liegt die Stange genau so, nimmt es die nächste Achse des Jobs."""
+    Liegt die Stange genau so, nimmt es die nächste Achse des Jobs. In geschwenkter Lage
+    (Stangenachse.von): von dort."""
+    if getattr(achse, "von", None) is not None:
+        return gerade(achse.von)
     laengs = FreeCAD.Vector(achse.laengs)
     for kandidat in (
         vr.ACHSEN[achse.buchstabe][1],

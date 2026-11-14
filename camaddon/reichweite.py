@@ -324,6 +324,10 @@ def vorschlag_nullpunkt(job, pruefung=None):
     if auf is not None:  # auf dem Tisch eingerichtet (W-042)
         return FreeCAD.Vector(*sm.nullpunkt_vorschlag(auf, form.BoundBox))
     stange = _stange_laengs_z(rohteil)
+    if stange is not None and vr.im_tischfutter(job):
+        # Geschwenkt („C, A auf 90°“): Die Stange steht mit ihrem Ende auf dem Dreibackenfutter
+        # mitten auf dem Rundtisch, die Backen fassen die Spannlänge (spannung.tischfutter).
+        return FreeCAD.Vector(-stange.x, -stange.y, -stange.z + spannung.tischfutter_hoehe(job))
     if stange is not None:
         hoeher = spannung.futter_hoehe(job)
         return FreeCAD.Vector(-stange.x, -stange.y, -(stange.z + vr.spannlaenge(job)) + hoeher)
@@ -1023,16 +1027,17 @@ class Pruefung:
         soll = FreeCAD.Vector(richtung)
         return soll.Length > 0 and z.dot(soll) / soll.Length > 1 - (1 - QUER) / 2
 
-    def kommt_aus(self, nummer, richtung, einspannung=None):
+    def kommt_aus(self, nummer, richtung, einspannung=None, rund=None):
         """(Aufnahme, kommt das Werkzeug `nummer` aus `richtung`?) – wie der Hinweis „nicht
         radial“ beim Prüfen, für den 4-Achs-Assistenten, bevor es eine Bahn gibt (W-002
         Stufe E5). `richtung` in den Achsen des Jobs, `einspannung` mit der Lage aus dem
-        Halter. (None, None), wenn es für die Nummer keinen Platz gibt."""
+        Halter, `rund`: feste Rundachsen in geschwenkter Lage ({"A": 90.0}). (None, None), wenn
+        es für die Nummer keinen Platz gibt."""
         aufnahme = self.werkzeugaufnahme(nummer)
         if aufnahme is None:
             return None, None
         _linear, drehachsen = self.achsen_fuer(aufnahme)
-        grundstellung = self._dreh_wege(aufnahme, drehachsen, {})
+        grundstellung = self._dreh_wege(aufnahme, drehachsen, rund or {})
         return aufnahme, self._werkzeug_aus(aufnahme, grundstellung, richtung, einspannung)
 
     def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege, einspannung=None):
@@ -1252,6 +1257,13 @@ class Pruefung:
             # 5 Achsen simultan (Kugelfräser angestellt, Flanke): die Rundachsen je Punkt.
             return so.befehle(op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs))
         if ebene is None:
+            # In geschwenkter Lage („C, A auf 90°“): erst die festen Rundachsen, X, Y, Z wie die
+            # Maschine sie mit ihnen fährt (ohne TCPM), C dreht (sw.schwenkung_der_operation).
+            schwenkung = sw.schwenkung_der_operation(
+                op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+            )
+            if schwenkung is not None:
+                return sw.befehle_ohne_zyklus(befehle, schwenkung)
             # An der Stirnseite der Drehmaschine: Y, so weit es reicht, sonst hilft C (stirnseite).
             from . import stirnseite as st
 
@@ -1314,6 +1326,11 @@ class Pruefung:
             return
         grundstellung = self._dreh_wege(aufnahme, drehachsen, {})
         radial = getattr(op, "Werkzeugrichtung", None) if _ist_rundum(op) else None
+        if radial is not None:
+            from .vierachs_operation import schwenk
+
+            # In geschwenkter Lage kommt das Werkzeug mit den festen Rundachsen radial.
+            grundstellung = self._dreh_wege(aufnahme, drehachsen, schwenk(op))
         if self._z_verkehrt(aufnahme, grundstellung):
             sammler.hinweis(tr("rw.z_verkehrt", aufnahme=m.name_von(aufnahme)))
         elif radial is not None:

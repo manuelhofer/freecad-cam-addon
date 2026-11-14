@@ -916,6 +916,38 @@ def schwenkhoehe(rohteil_form, abbildung_bei, rund, rand=SCHWENK_RAND):
     return hoechste + rand
 
 
+def schwenkung_der_operation(op, maschine, job=None):
+    """Die Schwenkung einer 4-Achs-Operation in geschwenkter Lage („C, A auf 90°“,
+    vierachs_achsen.geschwenkt) – None ohne feste Rundachsen. Wie eine Ebene ohne Schwenkzyklus,
+    nur ohne eigene Ebene: Die Bahn bleibt im Job (so zeigt FreeCAD sie richtig um das Teil – C
+    dreht um Z des Jobs), die festen Rundachsen (vierachs_operation.schwenk) kommen vor der Bahn,
+    X, Y, Z durch die Abbildung Job → Programm ohne TCPM mit ihnen (Maschine.abbildung); C dreht
+    dann wie an der Drehmaschine. Davor fährt das Werkzeug auf die Höhe, über der sich Stange und
+    Futter frei schwenken (schwenkhoehe). Ohne `maschine` (sw.Maschine) keine Abbildung: Dann
+    geht die Operation nicht ins Programm – die Lage hängt an der Kinematik der Maschine."""
+    from . import spannung
+    from . import vierachs_operation as vo
+
+    fest = vo.schwenk(op) if vo.ist_rundum(op) else {}
+    if not fest:
+        return None
+    abbildung = maschine.abbildung(fest) if maschine is not None else None
+    hoehe = None
+    if abbildung is not None:
+        if job is None:
+            from . import stirnseite as st
+
+            job = st.job_von(op)
+        rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
+        if rohteil is not None and not rohteil.isNull():
+            import Part
+
+            futter = spannung.tischfutter(job)
+            form = rohteil if futter is None else Part.makeCompound([rohteil, futter])
+            hoehe = schwenkhoehe(form, maschine.abbildung, fest)
+    return Schwenkung(FreeCAD.Placement(), dict(fest), abbildung, hoehe=hoehe)
+
+
 def passende_rundachsen(maschine, lage, rund):
     """Die Rundachsen für die Ebene `lage` an `maschine` (sw.Maschine): `rund` (am Job gemerkt),
     wenn sie diese Achsen hat und das Werkzeug damit in der Normalen steht – sonst neu gelöst,

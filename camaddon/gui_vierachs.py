@@ -186,6 +186,9 @@ def achstext(achse):
     Maschine steht darüber in ihrer eigenen Liste."""
     if not achse.maschine and gleich(achse.laengs, vr.ACHSEN[achse.buchstabe][0]):
         return _achstexte()[achse.buchstabe]
+    if achse.schwenk:  # „C, A auf −90° – Rohr im Futter auf dem Rundtisch“
+        schwenk = achse.anzeige or va.schwenk_text(achse)
+        return tr("va.achse.geschwenkt", buchstabe=achse.buchstabe, schwenk=schwenk)
     richtung = va.achsbuchstabe(achse.laengs)
     if not richtung:
         return tr("va.achse.der_maschine_schraeg", buchstabe=achse.buchstabe)
@@ -328,9 +331,12 @@ def job_von(operation):
 
 
 def _gleiche_achse(a, b):
-    """Rechnen zwei Stangenachsen gleich (Buchstabe, Richtung, Drehsinn, Querachse)?"""
-    return (a.buchstabe, a.drehsinn, a.quer) == (b.buchstabe, b.drehsinn, b.quer) and gleich(
-        a.laengs, b.laengs
+    """Rechnen zwei Stangenachsen gleich (Buchstabe, Richtung, Drehsinn, Querachse, feste
+    Rundachsen)?"""
+    return (
+        (a.buchstabe, a.drehsinn, a.quer) == (b.buchstabe, b.drehsinn, b.quer)
+        and gleich(a.laengs, b.laengs)
+        and va.schwenk_text(a) == va.schwenk_text(b)
     )
 
 
@@ -356,12 +362,16 @@ def gleich(a, b):
 
 
 def achse_der_operation(operation):
-    """Die Stangenachse (vierachs_achsen.Stangenachse), mit der die Operation rechnet."""
+    """Die Stangenachse (vierachs_achsen.Stangenachse), mit der die Operation rechnet – in
+    geschwenkter Lage mit ihren festen Rundachsen und der Werkzeugrichtung."""
+    schwenk = tuple(vo.schwenk(operation).items())
     return va.Stangenachse(
         str(operation.Rundachse),
         FreeCAD.Vector(operation.Stangenachse),
         drehsinn=int(operation.Drehsinn),
         quer=bool(operation.QuerAufNull),
+        schwenk=schwenk,
+        von=FreeCAD.Vector(operation.Werkzeugrichtung) if schwenk else None,
     )
 
 
@@ -2278,7 +2288,7 @@ class VierachsPanel:
                 tr(
                     "va.maschine.kann",
                     linear=", ".join(eintrag.linear) or "–",
-                    rund=", ".join(a.buchstabe for a in eintrag.achsen) or "–",
+                    rund=", ".join(dict.fromkeys(a.buchstabe for a in eintrag.achsen)) or "–",
                     plaetze=eintrag.plaetze,
                 )
             )
@@ -5578,13 +5588,14 @@ class VierachsPanel:
         name = mg.genannt(werkzeug, self._magazin())
         if nummer is None:
             return html.escape(tr("va.lage.alle_belegt", werkzeug=name, maschine=eintrag.name))
-        aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung)
+        fest = dict(self.achse().schwenk)  # in geschwenkter Lage mit den festen Rundachsen
+        aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung, fest)
         if aufnahme is None:
             return html.escape(tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name))
         if radial:
             return ""
         # Steht die Aufnahme selbst radial (Sternrevolver), hilft ein gerader Halter.
-        _aufnahme, gerade = pruefung.kommt_aus(nummer, richtung)
+        _aufnahme, gerade = pruefung.kommt_aus(nummer, richtung, rund=fest)
         werte = {
             "werkzeug": name,
             "aufnahme": m.name_von(aufnahme),

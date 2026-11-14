@@ -1235,6 +1235,10 @@ class Abschnitt:
     masse: dict = field(default_factory=dict)
     # Die Nullpunkte des Jobs (CAM: Fixtures; bei einer Ebene die des Grundjobs) – „G54“ …
     nullpunkte: tuple = ()
+    # In geschwenkter Lage („C, A auf 90°“): die Schwenkung (schwenken.schwenkung_der_operation) –
+    # die Befehle stehen schon im Programm ohne TCPM, mit den festen Rundachsen davor. Danach
+    # schwenkt das Programm zurück, wenn es ohne sie weitergeht.
+    fest: object = None
 
 
 @dataclass
@@ -1688,7 +1692,10 @@ def _rund_umdrehen(abschnitt, info):
     DIN 66217 andersherum)."""
     if abschnitt.drehsinn:
         buchstabe = _c_umdrehen(abschnitt, info)
-        return {buchstabe} if buchstabe else set()
+        # In geschwenkter Lage zählen die festen Rundachsen wie an der Maschine (wie 3+2 ohne
+        # Zyklus): A der Tisch/Tisch gegen das Gelenk.
+        fest = set(getattr(abschnitt.fest, "rund", {}) or {}) & set(info.umgekehrt)
+        return ({buchstabe} if buchstabe else set()) | fest
     if info.rundachsen:
         return set(info.umgekehrt)
     schwenkung = abschnitt.schwenkung
@@ -1931,8 +1938,13 @@ def programm(
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
     nullpunkt_aktiv = None  # der Nullpunkt, den das Programm zuletzt angewählt hat
+    fest_stand = None  # die Schwenkung in geschwenkter Lage, in der die Maschine gerade steht
     for nummer_ab, abschnitt in enumerate(abschnitte):
         stellen = abschnitt.koordinatenstellen
+        if fest_stand is not None and getattr(abschnitt.fest, "rund", None) != fest_stand.rund:
+            # Weiter ohne die geschwenkte Lage: hoch über Stange und Futter, die Rundachsen auf 0.
+            zeilen.extend(_schwenken_aus(s, fest_stand, False, False, info))
+            fest_stand = None
         # Jede Bearbeitung ein vollständiger Einstieg hinter ihrer Marke (D-4): Wechselpunkt,
         # Werkzeug, Spindel, Kühlung und Ebene neu – auch mit demselben Werkzeug wie davor.
         einstieg = bool(
@@ -2510,6 +2522,8 @@ def programm(
                 zeilen.extend(_zeilen(s.durchmesser_ein))
         if kuehlung:
             zeilen.append(s.kuehlung_aus)
+        if abschnitt.fest is not None:
+            fest_stand = abschnitt.fest
     if spindel_an is not None:
         zeilen.extend(_spindel_aus(s, spindel_an))
     zurueck = None
@@ -2524,6 +2538,9 @@ def programm(
     if geschwenkt is not None:
         oben = werkzeug is not None and _wechselpunkt_oben(s, info)
         zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben, info))
+    if fest_stand is not None:  # aus der geschwenkten Lage zurück auf 0
+        oben = werkzeug is not None and _wechselpunkt_oben(s, info)
+        zeilen.extend(_schwenken_aus(s, fest_stand, False, oben, info))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     for zeile in _zeilen(s.ende):
@@ -3065,6 +3082,16 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
             # bringen; weder Rundachsen noch einen zusätzlichen Z-Schwenkanlauf erfinden.
             befehle = sw.befehle_ohne_zyklus(befehle, schwenkung, schon_oben=True)
             schwenkung = None
+        fest = None
+        if not geschwenkt and vo.ist_rundum(op) and vo.schwenk(op):
+            # In geschwenkter Lage („C, A auf 90°“): Die Sätze hängen an der Kinematik der
+            # Maschine (Programm ohne TCPM) – ohne Maschine nicht ins Programm.
+            fest = sw.schwenkung_der_operation(op, fuer_op, job) if fuer_op is not None else None
+            if fest is None or fest.abbildung is None:
+                befehle, fest = [], None
+                hinweis = tr("pp.hinweis.schwenk_ohne_maschine", schwenk=vo.schwenk_anzeige(op))
+            else:
+                befehle = sw.befehle_ohne_zyklus(befehle, fest)
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
             befehle, hinweis = _simultan(op, fuer_op)
@@ -3132,6 +3159,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 koordinatenstellen=6 if float(getattr(op, "BahnGrathoehe", 0.0)) > 0 else STELLEN,
                 masse=einspannung[2],
                 nullpunkte=nullpunkte,
+                fest=fest,
             )
         )
     return ergebnis

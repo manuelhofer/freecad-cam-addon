@@ -716,6 +716,9 @@ class Daten:
     teil_stl: object = (
         None  # (Punkte, Dreiecke, Fläche je Dreieck), wenn das Teil aus einem STL ist
     )
+    # So heißt `schraubstock` in den Befunden – leer: „der Schraubstock“; das Dreibackenfutter auf
+    # dem Rundtisch in geschwenkter Lage (spannung.tischfutter) heißt so.
+    spannmittel_name: str = ""
 
     def zum_senden(self):
         from . import nebenrechner as nr
@@ -824,6 +827,7 @@ def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
         werkzeuge,
         _beladen_daten(abfahrt.pruefung, job, bibliothek),
         teil_stl,
+        tr("kb.tischfutter") if spannung.tischfutter(job) is not None else "",
     )
 
 
@@ -1489,7 +1493,7 @@ class _Welt:
         self.schraubstock = None
         if daten.schraubstock is not None:
             self.schraubstock = Koerper(
-                tr("kb.schraubstock"),
+                daten.spannmittel_name or tr("kb.schraubstock"),
                 SCHRAUBSTOCK,
                 daten.schraubstock,
                 self.werkstueck_glied,

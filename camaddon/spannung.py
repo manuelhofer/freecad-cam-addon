@@ -125,6 +125,9 @@ def schraubstock(job):
 
     if ne.ist_n_eck(job):
         return ne.backen(job)
+    futter = tischfutter(job)
+    if futter is not None:  # die Stange in geschwenkter Lage, im Futter auf dem Rundtisch
+        return futter
     from . import spannmittel as sm
 
     if sm.aufspannung(job) is not None:  # aus der Sammlung, auf dem Tisch eingerichtet (W-042)
@@ -143,6 +146,35 @@ def schraubstock(job):
         for y in (box.YMin - BACKE, box.YMax)
     ]
     return Part.makeCompound(backen)
+
+
+def tischfutter(job):
+    """Das Dreibackenfutter auf dem Rundtisch, in dem die Stange in geschwenkter Lage steht („C, A
+    auf 90°“, vierachs_rohteil.im_tischfutter) – als Körper im Job wie _futter: darunter der Körper
+    (futter_masse), seine Oberseite am hinteren Ende der Stange, darauf die drei Backen, so hoch wie
+    die Spannlänge. None, wenn die Stange nicht so steht."""
+    from . import reichweite as rw
+    from . import vierachs_rohteil as vr
+
+    grund = rw.grundjob_von(job)
+    stock = getattr(grund, "Stock", None)
+    kreis = rund(stock)
+    if kreis is None or not vr.im_tischfutter(grund):
+        return None
+    return _futter(kreis, float(stock.Placement.Base.z), vr.spannlaenge(grund))
+
+
+def tischfutter_hoehe(job):
+    """So hoch über dem Rundtisch beginnt die Stange in geschwenkter Lage (mm): die Höhe des
+    Futters (futter_masse) – 0, wenn sie nicht im Futter auf dem Rundtisch steht."""
+    from . import reichweite as rw
+    from . import vierachs_rohteil as vr
+
+    grund = rw.grundjob_von(job)
+    kreis = rund(getattr(grund, "Stock", None))
+    if kreis is None or not vr.im_tischfutter(grund):
+        return 0.0
+    return futter_masse(kreis[2])[1]
 
 
 def _futter(kreis, z, tiefe):

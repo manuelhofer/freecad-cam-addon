@@ -780,6 +780,31 @@ def setze_achse(obj, achse, quer_auf_null=None):
     for name, wert in werte.items():
         if getattr(obj, name) != wert:
             setattr(obj, name, wert)
+    # In geschwenkter Lage („C, A auf 90°“): die Rundachsen, die fest stehen – nur an Operationen,
+    # die so rechnen; an allen anderen gibt es die Eigenschaft nicht (sie bleiben, wie sie waren).
+    text = va.schwenk_text(achse)
+    if text and SCHWENKSTELLUNG not in obj.PropertiesList:
+        obj.addProperty(
+            "App::PropertyString", SCHWENKSTELLUNG, GRUPPE, tr("vo.eigenschaft.schwenk")
+        )
+        obj.setEditorMode(SCHWENKSTELLUNG, 1)  # nur lesen: sie kommt mit der Stangenachse
+    if SCHWENKSTELLUNG in obj.PropertiesList and getattr(obj, SCHWENKSTELLUNG) != text:
+        setattr(obj, SCHWENKSTELLUNG, text)
+
+
+SCHWENKSTELLUNG = "Schwenkstellung"  # die festen Rundachsen in geschwenkter Lage („A90“)
+
+
+def schwenk(op):
+    """{Buchstabe: Stellung wie das Gelenk} der Rundachsen, die in geschwenkter Lage fest stehen,
+    solange die Operation dreht („C, A auf 90°“, vierachs_achsen.geschwenkt) – leer sonst."""
+    return dict(va.schwenk_aus_text(getattr(op, SCHWENKSTELLUNG, "")))
+
+
+def schwenk_anzeige(op):
+    """Die festen Rundachsen der Operation als Text, wie sie an ihr stehen („A90“, wie das
+    Gelenk gezählt) – für Hinweise; leer in Grundstellung."""
+    return str(getattr(op, SCHWENKSTELLUNG, "") or "")
 
 
 def _vorgeschlagener_name(name):

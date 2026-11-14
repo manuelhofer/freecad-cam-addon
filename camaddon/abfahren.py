@@ -324,6 +324,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     from . import maschinenzugang as mz
     from . import schwenken as sw
     from . import simultan_operation as so
+    from . import vierachs_operation as vo
 
     if nullpunkt_des_jobs is None:
         nullpunkt_des_jobs = rw.nullpunkt(job, pruefung)
@@ -484,7 +485,9 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         ohne_vorschub = False
         # In einer Ebene beginnt die Operation dort, wo die davor endete: hoch auf die
         # Schwenkhöhe, schwenken – das fährt die Maschine mit, und die Kollision prüft es.
-        start = vorher[:2] if geschwenkt and vorher is not None else None
+        # Ebenso in geschwenkter Lage („C, A auf 90°“, vierachs_operation.schwenk).
+        schwenkt = geschwenkt or bool(vo.schwenk(op))
+        start = vorher[:2] if schwenkt and vorher is not None else None
         # Ein Eilgang, für die Kollision in Schritte geteilt (eine Rundachse in 1°), fährt die
         # Maschine in einem Zug: einmal anfahren, einmal bremsen – nicht an jedem Schritt (das
         # Zurückschwenken nach dem Wegkippen dauerte so 15,8 statt 1,7 s).
