@@ -3168,6 +3168,46 @@ dann messsen ... dann vertigschlichten ... und dann nochmal vertig schlichten ..
   „Leerfahrt nach jedem Schnitt“ aus. Alles einstellbar, auch das Ende.
 - Prüfung `tests/test_gangfolge.py`; im Fenster `tests/gui/szenario_beta_schritte.py`, Schritt 4c.
 
+### 13.10 Dichtnut hobeln – Recherche (2026-11-14, noch nicht gebaut)
+
+Manuel, 2026-11-14: „eine nut in einem deckel die mit einem "stech" oder "scharb" werkzeug sozusagen
+rausgekratzt wird … da man dadurch unten am grund auch ne dichtfläche hinbekommen würde und nicht wie
+beim fräse querrillen in de nut hat“. Vier Recherchen (Verfahren, Steuerungen, Markt, Bestand im Addon),
+zusammengeführt; die ganzen Ergebnisse mit Belegstand je Aussage liegen bei Manuel in
+`~/freecad_cam/wip/strategien/schaben_vorschlag.md` und `schaben_recherche.json`. Gelesen heißt: in der
+Quelle selbst gelesen.
+
+- **Namen:** Hobeln / „Speed-Forming“ (Horn, System Supermini 105: höchstens 0,3 mm je Hub, Hub bis
+  60 m/min, Nuten 2–3 mm breit, bis 20 mm tief; mit Zyklus auch bogenförmig – gelesen, Horn „World of
+  Tools“ 1/22); Interpolationsdrehen für runde Nuten (Spindel lagegeregelt synchron zur Kreisbahn, 0,1 bis
+  0,15 mm je Umdrehung, danach ein bis zwei Kreise ohne Zustellung – gelesen, MAPAL Technologie-Report
+  01, mit Beispielprogramm für eine 840D: M70, SP=… im G2-Satz); Planstechen mit Stechplatte im Bohrkopf
+  (gelesen, Production Machining „A New Face Grooving Technique for Mills“). „Schaben“ meint in der
+  Fachsprache das Tuschierschaben.
+- **Der Grund stimmt:** Riefen in Bearbeitungsrichtung dichten auch bei rauer Fläche, Fräsriefen quer zum
+  O-Ring nur mit gerundetem Profil (gelesen, ERIKS O-Ring-Handbuch); Nutgrund axial-statisch Ra ≤ 1,6,
+  Rz ≤ 6,3 (gelesen, Trelleborg). Ob Hobeln diese Werte erreicht, ist nicht belegt.
+- **Steuerungen:** Siemens Tangentialsteuerung TANG/TANGON/TLIFT/TANGOF/TANGDEL führt eine Rundachse der
+  Bahntangente nach (gelesen, Funktionshandbuch Sonderfunktionen); auf der 840D powerline (NCU 572/573)
+  eine **Option** (gelesen, Ausgabe 11/2006); nicht mit gedrehtem Koordinatensystem (kein ROT, kein
+  CYCLE800). Ob die Hauptspindel im Achsbetrieb Folgeachse sein darf, ist offen. Heidenhain: Zyklus 291
+  (Option 96) nur für Kreise, keine tangentiale Nachführung gefunden; die Steuerung kann Vorschub bei
+  stehender Spindel sperren. Fanuc: Normalenrichtungssteuerung G41.1/G42.1 (mit der Spindel unbelegt).
+  Ohne Option: Der Postprozessor rechnet den Spindelwinkel je Satz selbst.
+- **Markt:** Kein gefundenes CAM zieht ein stehendes Werkzeug tangential längs einer nicht runden
+  Planflächennut (Negativbefund der Suche, kein Beweis).
+- **Im Addon fehlt** alles für ein stehendes Werkzeug: ein Spindelwinkel je Punkt (`bahn.Punkt`), die
+  Fähigkeit „Spindel als Achse“ in der Maschine, die Sätze je Steuerung, eine Prüfung „Klinge gegen
+  Nutwände“ (Vorbild `ringnut_bahn.pruefen`), die Werkzeugart. Da ist: die Nut-Erkennung (`nut_bahn`,
+  auch ringförmig), Messstopp und – seit 0.373.0 – Leerfahrten.
+- **Stufen** (jede für sich nützlich): 1 runde Nut mit Planstech-Bohrkopf (keine neuen Befehle); 2 runde
+  Nut als Interpolationsdrehen (Siemens, Heidenhain); 3 beliebige Nut tangential gehobelt (Siemens mit TANG
+  oder Winkel je Satz) – vorher mit dem Fräser geschruppt, Grund und Flanken in Umläufen.
+- **Nicht belegt:** die Belastung der stehenden Spindel (keine Herstellerangabe), Schnittdaten in Kurven,
+  der kleinste fahrbare Radius (Überlegung: Eindringen der Innenflanke ≈ L² ÷ 2R).
+- Offen bei Manuel: Verlauf, Maschine, Werkzeug (Frage 1 in `OFFENE_FRAGEN.md`, Bild
+  `docs/bilder/vorschlaege/dichtnut_drei_wege.png`).
+
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 
 Manuel (2026-10-04): „wenn es frei ist und da kein Material ist … muss ich nicht langsam fahren,

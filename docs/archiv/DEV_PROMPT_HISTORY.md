@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-09 dichtnut-hobeln-recherche
+
+### EINGELESEN
+- Manuels Wunsch vom 2026-11-14 (P-2026-11-14-06, Frage 4).
+- Workflow mit vier Recherchen (Verfahren und Werkzeuge, Steuerungen, CAM-Markt, Bestand im Addon) und
+  einer Zusammenführung; nur gelesen, nichts nach außen geschrieben. Ergebnisse bei Manuel:
+  `~/freecad_cam/wip/strategien/schaben_vorschlag.md`, `schaben_recherche.json`.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (13.10), `docs/OFFENE_FRAGEN.md` (Frage 1),
+  `docs/bilder/vorschlaege/dichtnut_drei_wege.png`, `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Das Verfahren gibt es: Hobeln („Speed-Forming“, Horn), bei runden Nuten Interpolationsdrehen (MAPAL, mit
+  Beispielprogramm für die 840D) oder Planstechen im Bohrkopf. Manuels Grund ist belegt (ERIKS, Trelleborg).
+- Für eine beliebig verlaufende Nut: Siemens Tangentialsteuerung (TANG …), auf der 840D powerline eine
+  Option; Heidenhain nur Kreise (Zyklus 291). Kein gefundenes CAM hat dafür eine Strategie.
+- Nicht belegt: Belastung der stehenden Spindel, Schnittdaten in Kurven, ob die Spindel Folgeachse sein darf.
+- Nichts gebaut: Was gebaut wird, hängt an Verlauf, Maschine und Werkzeug – Frage 1.
 ## P-2026-11-14-08 zwei-schnitte-leerfahrt
 
 ### EINGELESEN
