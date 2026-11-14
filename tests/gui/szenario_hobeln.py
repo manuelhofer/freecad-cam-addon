@@ -7,7 +7,8 @@
 # angehakt (Strategiewahl nur von Hand) – der Haken von Hand. „Anlegen“: Das Räumen lässt am Grund
 # der Nut 0,2 stehen (nur dort), die Kontur der Wände endet 0,2 über dem Grund, die Bohrungen gehen
 # durch, das Hobeln kommt zuletzt. Programm Siemens: SPOS je Satz, beim Hobeln keine Spindel an.
-# Bilder: 1_angebot (der Knopf), 2_hobeln (der Block), 3_vorschau (die Bahn im Teil),
+# Ohne „Schlichten danach“ ist der Block rot (Aufmaß an den Wänden) mit dem Verweis, der es anhakt.
+# Bilder: 1_angebot (der Knopf), 2_hobeln (der Block), 3_vorschau (die Bahn im Teil), 2b_waende,
 # 4_uebersicht, 5_angelegt.
 # ZEITLIMIT: 900
 import os
@@ -153,6 +154,27 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
     h.bild("3_vorschau")
+
+    # Ohne „Schlichten danach“ haben die Wände das Aufmaß des Räumens (0,3): Die Klinge 3,5 passt
+    # nicht dazwischen (3,6 − 0,6) – rot, mit dem Verweis, der es wieder anhakt.
+    panel.schlichten_danach.haken.setChecked(False)
+    yield 1500
+    yield from h.warte_auf(fertig_gerechnet, 300000)
+    yield 1500
+    rot = block.hinweis.text()
+    print("HOBELN ohne Schlichten", repr(rot), flush=True)
+    h.pruefe("Aufmaß" in rot and "anhaken:schlichtendanach" in rot, f"rot: {rot!r}")
+    rest = (panel._zusatz(panel.raeumen, form) or {}).get("boden_rest")
+    h.pruefe(not rest, f"Rest am Grund, obwohl nicht gehobelt wird: {rest}")
+    panel.seite_zeigen(beta.abschnitt(block) + beta.ERSTER_ABSCHNITT)
+    yield 800
+    h.bild("2b_waende", panel.form)
+    block._hinweis_verweis("anhaken:schlichtendanach")
+    yield 1500
+    yield from h.warte_auf(fertig_gerechnet, 300000)
+    yield 1500
+    h.pruefe(panel.schlichten_danach.aktiv(), "der Verweis hakt „Schlichten danach“ nicht an")
+    h.pruefe(not block.hinweis.text(), f"noch rot: {block.hinweis.text()!r}")
 
     panel.seite_zeigen(beta.UEBERSICHT)
     yield 1500
