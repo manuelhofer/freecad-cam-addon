@@ -2099,6 +2099,10 @@ class BetaPanel(BearbeitungPanel):
         from . import messstopp as ms
 
         neu = [o for o in self.job.Operations.Group if o.Name not in davor_namen]
+        if folge.get("nur_bohrungen"):
+            # Bei den Löchern: nur „Bohrung fräsen“ mit Schlichtzug – Bohren, Senken, Gewinde noch
+            # einmal wären Luft (gangfolge.schruppt_mit).
+            neu = [o for o in neu if gf.schruppt_mit(o)]
 
         def stopp_anlegen(davor, danach):
             if not folge.get("messstopp"):
@@ -2405,7 +2409,8 @@ class WeiterFrage(QtGui.QDialog):
         self.aufmass.setToolTip(tr("beta.weiter.aufmass.tooltip"))
         self.aufmass.setMaximumWidth(80)
         zeile.addWidget(self.aufmass)
-        zeile.addWidget(QtGui.QLabel(einheiten.einheit(einheiten.LAENGE)))
+        self.aufmass_einheit = QtGui.QLabel(einheiten.einheit(einheiten.LAENGE))
+        zeile.addWidget(self.aufmass_einheit)
         zeile.addStretch()
         aufbau.addLayout(zeile)
         # Der Satz dazu steht im Tooltip der Zeile (wenig Text im Fenster – mit den Haken darunter
@@ -2415,10 +2420,16 @@ class WeiterFrage(QtGui.QDialog):
         # „aber es muss auch die möglichkeit geben das man leerfahrten eingeben kann“; gangfolge).
         # Angehakt, sobald davor höchstens ZWEI_AB stehen: Dann steht im Feld das Ende (0), der
         # erste Schnitt nimmt die Hälfte.
+        # Bei den Löchern dasselbe für „Bohrung fräsen“: Davor steht das Aufmaß ihrer Helix, das
+        # Ende ist 0 (Manuel, 2026-11-14: „alles als option“). Wer den Haken selbst setzt, behält
+        # ihn beim Wechsel des Schritts (_zwei_von_hand).
+        self._job = job
         self._davor = gang_davor(job)
+        self._zwei_von_hand = False
         self.zwei = QtGui.QCheckBox(tr("beta.weiter.zwei"))
         self.zwei.setToolTip(tr("beta.weiter.zwei.tooltip"))
-        self.zwei.setChecked(0.0 < self._davor <= ZWEI_AB + 1e-9)
+        self.zwei.setChecked(0.0 < self._davor_hier() <= ZWEI_AB + 1e-9)
+        self.zwei.clicked.connect(self._zwei_geklickt)
         aufbau.addWidget(self.zwei)
         self.zwei_text = _grau()
         self.zwei_text.setContentsMargins(22, 0, 0, 0)
@@ -2436,20 +2447,45 @@ class WeiterFrage(QtGui.QDialog):
         self.messstopp.setChecked(bool(list(job.Operations.Group)))
         aufbau.addWidget(self.messstopp)
         self._messen_bauen(aufbau, job)
+        # Noch einmal, jetzt mit dem Messstopp: Mit zwei Schnitten steht er zwischen ihnen – bis
+        # 0.379 hieß er „davor“, bis man den Schritt wechselte.
+        self._aufmass_zeigen()
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(tr("beta.weiter.los"))
         knoepfe.accepted.connect(self.accept)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
 
+    def _davor_hier(self):
+        """Was vor dem gewählten Schritt an der Wand steht (mm): bei den Löchern das Aufmaß, das
+        die Helix von „Bohrung fräsen“ lässt, sonst was der letzte Gang ließ (gang_davor)."""
+        if self.abschnitt() == LOECHER:
+            from . import bohrung as bo
+
+            return bo.AUFMASS
+        return self._davor
+
+    def _ende(self):
+        """Das Aufmaß nach dem zweiten Schnitt: bei den Löchern 0 (kein Feld), sonst das Feld."""
+        return 0.0 if self.abschnitt() == LOECHER else self.aufmass_wert()
+
+    def _zwei_geklickt(self, *_):
+        self._zwei_von_hand = True
+
     def _aufmass_zeigen(self, *_):
         an = self.abschnitt() in (SCHRUPPEN, SCHLICHTEN)
         self.aufmass.setVisible(an)
         self.aufmass_beschriftung.setVisible(an)
-        schlichten = self.abschnitt() == SCHLICHTEN
-        self.zwei.setVisible(schlichten and self._davor > 0)
-        self.leerfahrt.setVisible(schlichten)
-        ende = self.aufmass_wert()
+        self.aufmass_einheit.setVisible(an)  # sonst stand bei den Löchern ein „mm“ allein da
+        moeglich = self.abschnitt() in (SCHLICHTEN, LOECHER)
+        davor = self._davor_hier()
+        if not self._zwei_von_hand:  # die Vorgabe des Schritts: an, wenn höchstens ZWEI_AB steht
+            self.zwei.blockSignals(True)
+            self.zwei.setChecked(0.0 < davor <= ZWEI_AB + 1e-9)
+            self.zwei.blockSignals(False)
+        self.zwei.setVisible(moeglich and davor > 0)
+        self.leerfahrt.setVisible(moeglich)
+        ende = self._ende()
         zeigen = self.zwei_wert() and ende is not None
         if zeigen:
             from . import gangfolge as gf
@@ -2457,8 +2493,7 @@ class WeiterFrage(QtGui.QDialog):
             self.zwei_text.setText(
                 tr(
                     "beta.weiter.zwei.aufmass",
-                    halb=groesse_zeigen(gf.halbes_aufmass(self._davor, ende), einheiten.LAENGE, 3)
-                    or "0",
+                    halb=groesse_zeigen(gf.halbes_aufmass(davor, ende), einheiten.LAENGE, 3) or "0",
                     ende=groesse_zeigen(ende, einheiten.LAENGE, 3) or "0",
                 )
             )
@@ -2467,18 +2502,21 @@ class WeiterFrage(QtGui.QDialog):
             self.messstopp.setText(
                 tr("beta.weiter.messstopp.zwischen") if zeigen else tr("beta.weiter.messstopp")
             )
+        if hasattr(self, "messen_text"):
+            self._merkmal_setzen()
+            self._messen_zeigen()
         self.adjustSize()
 
     def zwei_wert(self):
-        """In zwei gleichen Schnitten? Nur beim Schlichten, und nur, wenn davor mehr steht als
-        das Ende im Feld."""
-        if self.abschnitt() != SCHLICHTEN or not self.zwei.isChecked():
+        """In zwei gleichen Schnitten? Beim Schlichten und bei den Löchern, und nur, wenn davor
+        mehr steht als das Ende."""
+        if self.abschnitt() not in (SCHLICHTEN, LOECHER) or not self.zwei.isChecked():
             return False
-        ende = self.aufmass_wert()
-        return ende is not None and self._davor > ende + 1e-9
+        ende = self._ende()
+        return ende is not None and self._davor_hier() > ende + 1e-9
 
     def leerfahrt_wert(self):
-        return self.abschnitt() == SCHLICHTEN and self.leerfahrt.isChecked()
+        return self.abschnitt() in (SCHLICHTEN, LOECHER) and self.leerfahrt.isChecked()
 
     def aufmass_wert(self):
         """Das Aufmaß dieses Gangs (mm) – None, wenn der Schritt keins hat oder das Feld leer ist."""
@@ -2496,9 +2534,10 @@ class WeiterFrage(QtGui.QDialog):
         from . import gui_programm as gp
         from . import postprozessor as pp
 
-        self.merkmal = messmerkmal(job)
+        self._merkmal_job = self.merkmal = messmerkmal(job)
         self._kennung = gp.steuerung_des_jobs(job)
         s = pp.steuerung(self._kennung, gp.gespeicherte_aenderungen(self._kennung))
+        self._steuerung = s
         self._zyklus = bool(self.merkmal is not None and getattr(s, f"messen_{self.merkmal.art}"))
         self.messen_text = _grau()
         self.messen_text.setWordWrap(True)
@@ -2526,14 +2565,34 @@ class WeiterFrage(QtGui.QDialog):
         aufbau.addWidget(self.korrigieren)
         self._steuerung_name = s.name
         self.messstopp.toggled.connect(self._messen_zeigen)
+        self._merkmal_setzen()
         self._messen_zeigen()
+
+    def _merkmal_setzen(self):
+        """Was am Messstopp gemessen wird: mit zwei Schnitten bei den Löchern die Bohrung nach dem
+        ersten (Ø um das halbe Aufmaß kleiner, Messzyklus Bohrung), sonst das Merkmal der Flächen
+        am Job (messmerkmal). Ändert es sich, auch ob die Steuerung dafür einen Zyklus hat."""
+        merkmal = self._merkmal_job
+        if self.abschnitt() == LOECHER and self.zwei_wert():
+            from . import gangfolge as gf
+
+            halb = gf.halbes_aufmass(self._davor_hier(), 0.0)
+            merkmal = bohrung_messmerkmal(self._job, halb)
+        if merkmal == self.merkmal:
+            return
+        self.merkmal = merkmal
+        art = getattr(merkmal, "art", None)
+        self._zyklus = bool(art is not None and getattr(self._steuerung, f"messen_{art}"))
 
     def _messen_zeigen(self, *_):
         an = self.messstopp.isChecked()
         mit_zyklus = an and self._zyklus
         self.taster.setVisible(mit_zyklus)
         self.taster_beschriftung.setVisible(mit_zyklus)
-        self.korrigieren.setVisible(mit_zyklus and bool(self.taster.text().strip()))
+        # Bei den Löchern nicht: „Bohrung fräsen“ fährt ohne Radiuskorrektur (die Bahn der Mitte).
+        self.korrigieren.setVisible(
+            mit_zyklus and bool(self.taster.text().strip()) and self.abschnitt() != LOECHER
+        )
         if not an:
             self.messen_text.setText("")
         elif self.merkmal is None:
@@ -2548,7 +2607,7 @@ class WeiterFrage(QtGui.QDialog):
             )
         elif self.taster.text().strip():
             werte = {"was": _merkmal_text(self.merkmal), "t": self.taster.text().strip()}
-            if self.korrigieren.isChecked():
+            if self.korrigieren.isChecked() and self.abschnitt() != LOECHER:
                 self.messen_text.setText(tr("beta.weiter.messen.mit_korrektur", **werte))
             else:
                 self.messen_text.setText(tr("beta.weiter.messen.mit", **werte))
@@ -2560,9 +2619,11 @@ class WeiterFrage(QtGui.QDialog):
         self.adjustSize()
 
     def korrigieren_wert(self):
-        """Soll der Messzyklus den Schlichtfräser korrigieren? (nur mit Taster und Zyklus)"""
+        """Soll der Messzyklus den Schlichtfräser korrigieren? (nur mit Taster und Zyklus, nicht
+        bei den Löchern)"""
         return bool(
-            self.messstopp.isChecked()
+            self.abschnitt() != LOECHER
+            and self.messstopp.isChecked()
             and self._zyklus
             and self.taster.text().strip()
             and self.korrigieren.isChecked()
@@ -2661,9 +2722,10 @@ def _vorschlag_zeile(v, namen=None):
 
 def messmerkmal(job, davor=None):
     """Was ein Taster am Messstopp messen würde (messen.merkmal, Plan C3b): das Merkmal der am Job
-    gemerkten Flächen, mit dem Aufmaß der Operation `davor` (ohne: die letzte mit Werkzeug) – None,
-    wenn sie keins ergeben."""
-    from . import messen
+    gemerkten Flächen – nach „Bohrung fräsen“ ihrer Bohrung (der Ø) –, um das, was die Operation
+    `davor` (ohne: die letzte mit Werkzeug) an der Wand lässt (gangfolge.messmerkmal) – None, wenn
+    sie keins ergeben."""
+    from . import gangfolge as gf
 
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
     if not flaechen:
@@ -2672,13 +2734,25 @@ def messmerkmal(job, davor=None):
         ops = list(job.Operations.Group)
         davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
     try:
-        m = messen.merkmal(vr.modell(job).Shape, flaechen)
-    except Exception:  # Part.OCCError: ein Name passt nicht mehr zum Modell
+        form = vr.modell(job).Shape
+    except Exception:  # noqa: BLE001 – kein Modell am Job
         return None
-    if m is None:
+    return gf.messmerkmal(form, flaechen, davor)
+
+
+def bohrung_messmerkmal(job, rest):
+    """Was ein Taster an der Bohrung misst, die „Löcher“ fräst: die eine Bohrung unter den am Job
+    gemerkten Flächen, um `rest` (mm je Seite) kleiner – None, wenn es nicht genau eine ist."""
+    from . import bohrung_bahn as bb
+    from . import messen
+
+    try:
+        form = vr.modell(job).Shape
+        namen_ = [n for n in getattr(job, EIGENSCHAFT_FLAECHEN, []) if bb.ist_bohrung(form, n)]
+        m = messen.merkmal(form, namen_) if namen_ else None
+    except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht mehr zum Modell
         return None
-    aufmass = getattr(davor, "Aufmass", 0.0)
-    return messen.soll(m, float(getattr(aufmass, "Value", aufmass) or 0.0))
+    return None if m is None else messen.soll(m, max(float(rest), 0.0))
 
 
 def _merkmal_text(m):
@@ -2709,12 +2783,19 @@ def _hat_loecher(job):
 
 def gang_davor(job):
     """So viel ließ der letzte Gang im Job stehen (mm): die letzte Operation mit Werkzeug – ihr
-    Schlichtrest, ihr Aufmaß am Boden oder ihr Aufmaß (leerfahrt.gang_aufmass); 0 ohne Angabe."""
+    Schlichtrest, ihr Aufmaß am Boden oder ihr Aufmaß (leerfahrt.gang_aufmass); 0 ohne Angabe.
+    „Bohrung fräsen“ (und ihre Leerfahrt) zählt nicht: Ihr Gang ist der der Bohrung (Abschnitt
+    „Löcher“, gemessen am Ø), nicht der der Wände – seit sie ihren Schlichtrest kennt, stünde nach
+    den Löchern sonst 0 da, und „zwei gleiche Schnitte“ fehlte beim Schlichten."""
+    from . import bohrung as bo
     from . import leerfahrt as lf
     from . import messstopp as ms
 
     for op in reversed(list(job.Operations.Group)):
         if getattr(op, "ToolController", None) is None or ms.ist_messstopp(op):
+            continue
+        quelle = getattr(op, "Quelle", None) if lf.ist_leerfahrt(op) else op
+        if bo.ist_bohrungsfraesen(quelle):
             continue
         aufmass = lf.gang_aufmass(op)
         if aufmass is None:
@@ -2750,12 +2831,17 @@ def weiter_bearbeiten(
     – dafür schlichten die Strategien mit Radiuskorrektur (Haken „korrektur“). `zwei`: in zwei
     gleichen Schnitten – der Assistent legt den ersten mit dem halben Aufmaß an, „Anlegen“ hängt
     den Messstopp und denselben Schnitt auf `aufmass` an (gangfolge.folge); `leerfahrt`: nach
-    jedem Schnitt derselbe noch einmal."""
+    jedem Schnitt derselbe noch einmal. Bei den Löchern gilt beides für „Bohrung fräsen“ mit
+    Schlichtzug: Der erste Schnitt ist ihr Schlichtzug mit dem halben Aufmaß ihrer Helix, der
+    zweite der Schlichtzug auf Maß (gangfolge.teilen) – ohne Feld fürs Aufmaß, das Ende ist 0."""
     from . import gangfolge as gf
 
+    loecher = ab == LOECHER
     davor = gang_davor(job)
     ende = aufmass
-    if zwei and aufmass is not None and davor > aufmass + 1e-9:
+    if loecher:
+        ende, aufmass = 0.0, None  # das Feld „aufmass“ der Bohrung ist das ihrer Helix
+    elif zwei and aufmass is not None and davor > aufmass + 1e-9:
         aufmass = gf.halbes_aufmass(davor, ende)
     else:
         zwei = False
@@ -2778,6 +2864,7 @@ def weiter_bearbeiten(
             "ende": ende if zwei else None,
             "leerfahrt": bool(leerfahrt),
             "messstopp": bool(messstopp and zwei),
+            "nur_bohrungen": loecher,  # nicht Bohrer, Senker, Gewinde: nur der Schlichtzug
         }
     if panel._beta_korrigieren:
         for block in panel.bloecke:

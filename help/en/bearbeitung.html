@@ -74,6 +74,14 @@ carries on at the job with the next step – the same faces, the setup fixed, wi
 before it if you like. <b>New setup</b> starts a new job for the same part (clamped differently); in the
 overview <b>Create and re-clamp the part …</b> does both in one go and preselects what could not be
 reached in this setup.</p>
+<p><b>Measuring: two equal cuts.</b> For finishing and for holes, “Continue machining” offers <i>In
+two equal cuts (measure in between)</i> – ticked as soon as at most 1 mm is left – and <i>Spring pass
+after every cut</i>. “Create” then adds: the cut with half the allowance (0.3 → 0.15), its spring
+pass, the measuring stop, the same cut to size, its spring pass. The cutter deflects by the same
+amount both times: what is measured after the first cut is what the second one compensates. With
+<b>Hole milling</b> the first cut is its finishing pass (the helix leaves 0.3, the pass 0.15), the
+measuring stop measures the Ø (with a probe, the bore cycle), the second cut and every spring pass
+run only the finishing pass – no helix, no rings cutting air. The same for the walls of a slot.</p>
 <p><b>Planes:</b> if something selected is machined in a plane of its own – tilted (3+2), or
 “from above” on a machine with a horizontal spindle – the “Roughing” step says so and the button reads
 <b>Create plane →</b>. The wizard of the plane then opens right at roughing; at the top it
