@@ -748,7 +748,8 @@ def _setze_werte(tc, werkzeug, einsatz, werkstoff):
     """Drehzahl und Vorschübe eines TC aus dem Einsatz – höchstens mit der Höchstdrehzahl der
     Maschine seines Jobs (werte_im_job); False, wenn vc oder fz fehlen."""
     n, vf, senkrecht = werte_im_job(werkzeug, einsatz, _job_von(tc))
-    if n <= 0 or vf <= 0:
+    steht = werkzeug.art == wz.STOSSWERKZEUG  # Dichtnut hobeln: 0 U/min, vf ist der Hub
+    if (n <= 0 and not steht) or vf <= 0:
         return False  # ohne vc und fz lieber nichts als 0 U/min
     tc.SpindleSpeed = float(round(n))
     tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vf)} mm/min")

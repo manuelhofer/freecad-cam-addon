@@ -45,6 +45,9 @@ def rechne(werkzeug, einsatz):
     Q beim Bohrer ins Volle, beim Fräsen aus ae und ap; Senken, Reiben,
     Zentrieren, Ausdrehen und Gewindebohren tragen kaum ab – dort 0.
     """
+    if werkzeug.art == wz.STOSSWERKZEUG:
+        # Die Spindel steht: Der Vorschub ist der Hub, vc in m/min (Dichtnut hobeln).
+        return 0.0, max(einsatz.vc, 0.0) * 1000.0, 0.0
     n = drehzahl(einsatz.vc, werkzeug.durchmesser)
     if wz.gewindebohrer(werkzeug.art):
         return n, n * werkzeug.steigung, 0.0

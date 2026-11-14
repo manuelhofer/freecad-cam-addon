@@ -183,6 +183,9 @@ SENKEN = "senken"
 REIBEN = "reiben"
 GEWINDEBOHREN = "gewindebohren"
 AUSDREHEN = "ausdrehen"
+# Seit 2026-11-14 (Dichtnut hobeln): das Stoßwerkzeug – vc ist die Hubgeschwindigkeit, ap die
+# Zustellung je Umlauf; die Spindel steht (schnittdaten.rechne: n = 0, vf = vc · 1000).
+HOBELN = "hobeln"
 EINSATZARTEN = (
     VOLLNUT,
     SCHRUPPEN,
@@ -198,6 +201,7 @@ EINSATZARTEN = (
     REIBEN,
     GEWINDEBOHREN,
     AUSDREHEN,
+    HOBELN,
     EIGEN,
 )
 
@@ -412,6 +416,7 @@ def einsatzart_text(art):
         REIBEN: tr("wv.einsatz.reiben"),
         GEWINDEBOHREN: tr("wv.einsatz.gewindebohren"),
         AUSDREHEN: tr("wv.einsatz.ausdrehen"),
+        HOBELN: tr("wv.einsatz.hobeln"),
         EIGEN: tr("wv.einsatz.eigen"),
     }[art]
 
@@ -1298,7 +1303,7 @@ EINSAETZE_JE_ART = {
     AUSSPINDELWERKZEUG: (AUSDREHEN,),
     DREHWERKZEUG: None,
     EINSTECHWERKZEUG: None,
-    STOSSWERKZEUG: None,  # Zustellung je Umlauf und Vorschub stehen an der Operation
+    STOSSWERKZEUG: (HOBELN,),  # vc = Hub, ap = Zustellung je Umlauf (schnittdaten.rechne)
     GEWINDEDREHWERKZEUG: None,
     TASTER: None,
 }

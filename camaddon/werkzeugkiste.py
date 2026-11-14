@@ -36,6 +36,8 @@ from . import werkzeuge as wz
 
 # Faktoren auf vc und fz je Klasse, bezogen auf Stahl bis 750 N/mm² (P1) – wie sie sich in den
 # Katalogen für Vollhartmetall/Hartmetall und für HSS ungefähr verhalten.
+HOBELN_VC = 6.0  # m/min Hub des Stoßwerkzeugs in P1 (Spezifikation Strategien 13.10)
+HOBELN_AP = 0.05  # mm Zustellung je Umlauf
 FAKTOREN_HM = {
     "P1": (1.0, 1.0),
     "P2": (0.67, 0.8),
@@ -819,6 +821,30 @@ def _einstechen():
             schnittwerte=False,
         ),
         Reihe(
+            kennung="beispiel-stosswerkzeug",
+            art=wz.STOSSWERKZEUG,
+            hersteller="",
+            titel="Stoßwerkzeug (Hobelklinge) b 2 / 2,5 / 3",
+            quelle=(
+                "Ein Stoßwerkzeug zum Hobeln von Dichtnuten, wie üblich: Klinge 2 mm hinter der "
+                "Schneide, Schneide zeigt bei Spindelwinkel 0 nach +X – an der Maschine einmessen. "
+                "Hersteller und Nummer selbst eintragen."
+            ),
+            groessen=tuple(
+                {
+                    "schneidenbreite": b,
+                    "klingenlaenge": 2.0,
+                    "stechtiefe": 5.0,
+                    "spindelwinkel": 0.0,
+                    "name": f"Hobel B{str(b).replace('.', ',').removesuffix(',0')}",
+                    "bezeichnung": f"Beispiel · Hub vc 6 m/min, 0,05 mm je Umlauf ({RICHTWERTE})",
+                    "link": suche("Stoßwerkzeug Nut hobeln"),
+                }
+                for b in (2.0, 2.5, 3.0)
+            ),
+            gemeinsam={"schneidstoff": wz.VHM},
+        ),
+        Reihe(
             kennung="beispiel-gewindedrehen",
             art=wz.GEWINDEDREHWERKZEUG,
             hersteller="",
@@ -990,6 +1016,9 @@ def _geschaetzt(werkzeug, art, klasse):
     hss = werkzeug.schneidstoff == wz.HSS
     faktor_vc, faktor_fz = (FAKTOREN_HSS if hss else FAKTOREN_HM)[klasse]
     d = werkzeug.durchmesser
+    if art == wz.HOBELN:
+        # Vorsichtig: ein Zehntel von Horns Hub 60 m/min, 0,05 je Umlauf (Grenze 0,3 je Hub).
+        return _runden(wz.Einsatz(art=art, ap=HOBELN_AP, vc=HOBELN_VC * faktor_vc))
     if art == wz.BOHREN:
         f = _f_bohrer(d, F_BOHRER if hss else F_BOHRER_HM) * faktor_fz
         vc = (BOHREN_VC_HSS if hss else BOHREN_VC_HM) * faktor_vc

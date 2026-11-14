@@ -270,7 +270,7 @@ for r in reihen:
         for kennung, liste in w.schnittwerte.items():
             pruefe(bool(liste), f"{r.kennung} {w.name} {kennung}: leer")
             for e in liste:
-                ohne_fz = wz.gewindebohrer(w.art)
+                ohne_fz = wz.gewindebohrer(w.art) or w.art == wz.STOSSWERKZEUG  # vc ist der Hub
                 pruefe(
                     e.vc > 0 and (e.fz > 0 or ohne_fz),
                     f"{r.kennung} {w.name} {kennung} {e.art}: vc {e.vc}, fz {e.fz}",

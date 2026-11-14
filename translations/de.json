@@ -668,6 +668,7 @@
     "wv.einsatz.dynamisch": "Schruppen dynamisch",
     "wv.einsatz.schlichten": "Schlichten",
     "wv.einsatz.bohren": "Bohren",
+    "wv.einsatz.hobeln": "Hobeln",
     "wv.einsatz.eigen": "Eigener Einsatz",
     "wv.spalte.werkstoff": "Werkstoff",
     "wv.spalte.werkstoff.tooltip": "Der Werkstoff, für den die Zeile gilt – je Zeile wählbar. „Alle Werkstoffe“ gilt für jeden Werkstoff, der keine eigene Zeile hat. Angaben zum Werkstoff zeigt die Auswahl als Tooltip.",

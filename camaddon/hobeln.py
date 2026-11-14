@@ -33,7 +33,9 @@ from .sprache import tr
 GRUPPE = "Hobeln"
 ZUSTELLUNG = 0.05  # mm je Umlauf – vorsichtig unter Horns Grenze 0,3 je Hub
 REST = 0.2  # mm, die das Fräsen davor über dem Grund stehen lässt
-VORSCHUB = 6000.0  # mm/min Hub – ein Zehntel von Horns 60 m/min, die Spindel hält je Satz an
+VORSCHUB = (
+    6000.0  # mm/min Hub ohne Einsatz – ein Zehntel von Horns 60 m/min (werkzeugkiste.HOBELN_VC)
+)
 
 
 class DichtnutHobeln(PathOp.ObjectOp):
@@ -108,44 +110,19 @@ def werkzeug_des_controllers(tc):
     return werkzeug
 
 
-def controller(dokument, job, werkzeug, vorschub=VORSCHUB, nummer=None):
-    """Legt den Werkzeug-Controller für das Stoßwerkzeug `werkzeug` an – ohne eigene Transaktion.
-
-    Die Spindel steht (SpindleDir „None“, 0 U/min: kein M3 im Programm); der Vorschub ist die
-    Hubgeschwindigkeit, eintauchen mit einem Viertel davon."""
-    from Path.Tool import Controller
-    from Path.Tool.camassets import cam_assets
-
+def controller(dokument, job, werkzeug, einsatz=None, werkstoff=""):
+    """Legt den Werkzeug-Controller für das Stoßwerkzeug `werkzeug` an – ohne eigene Transaktion
+    (job_schnittwerte.controller_ohne_transaktion). Die Spindel steht (SpindleDir „None“,
+    0 U/min: kein M3 im Programm); der Vorschub ist der Hub. Ohne `einsatz` der erste
+    Einsatz „Hobeln“ des Werkzeugs, sonst einer mit VORSCHUB und ZUSTELLUNG."""
     from . import job_schnittwerte as js
-
-    nummer = nummer or js._platz_im_magazin(job, werkzeug)
-    nummer = nummer or js._aus_magazin(job, werkzeug) or werkzeug.nummer or js.freie_nummer(job)
-    FreeCAD.setActiveDocument(dokument.Name)
-    bit = js.werkzeug_im_job(job, werkzeug)
-    if bit is None:
-        bit = cam_assets.get(f"toolbit://{js.PRAEFIX}{werkzeug.kennung}").attach_to_doc(
-            doc=dokument
-        )
-        js._ohne_zaehler(bit, wz_name(werkzeug))
-        if getattr(bit, "ViewObject", None) is not None:
-            bit.ViewObject.Visibility = False
-    name = f"T{nummer} {werkzeug.name} – {tr('ho.einsatz')}" if werkzeug.name else None
-    tc = Controller.Create(
-        name or f"T{nummer} {tr('ho.einsatz')}", tool=bit, toolNumber=nummer or werkzeug.nummer
-    )
-    job.Proxy.addToolController(tc)
-    tc.SpindleDir = "None"
-    tc.SpindleSpeed = 0.0
-    tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vorschub)} mm/min")
-    tc.VertFeed = FreeCAD.Units.Quantity(f"{round(vorschub / 4.0)} mm/min")
-    return tc
-
-
-def wz_name(werkzeug):
-    """Der Anzeigename des Werkzeugs (werkzeuge.anzeigename)."""
     from . import werkzeuge as wz
 
-    return wz.anzeigename(werkzeug)
+    if einsatz is None:
+        einsatz = next(
+            (e for e in werkzeug.einsaetze(werkstoff or wz.ALLE) if e.art == wz.HOBELN), None
+        ) or wz.Einsatz(art=wz.HOBELN, ap=ZUSTELLUNG, vc=VORSCHUB / 1000.0)
+    return js.controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff)
 
 
 def werte_fuer(werkzeug, sicher, vorschub, eintauchen=0.0, zustellung=ZUSTELLUNG, rest=REST,

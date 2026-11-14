@@ -223,6 +223,18 @@ op = hop.lege_an(job, tc)
 doc.recompute()
 pruefe(hop.ist_hobeln(op) and op.Nuten == 1, f"Operation: {op.Label}, {op.Nuten} Nuten")
 pruefe(str(tc.SpindleDir) == "None" and float(tc.SpindleSpeed) == 0.0, "die Spindel dreht")
+pruefe(tc.HorizFeed.getValueAs("mm/min").Value == 6000.0, f"Hub {tc.HorizFeed}")
+pruefe("Hobeln" in tc.Label, f"Controller {tc.Label}")
+# Der Einsatz „Hobeln“: Richtwerte, Drehzahl 0, Vorschub = Hub.
+from camaddon import schnittdaten as sd  # noqa: E402
+from camaddon import werkzeugkiste as wk  # noqa: E402
+
+mit_werten = wz.Werkzeug.aus_dict(stoss.als_dict())
+wk.richtwerte_eintragen(mit_werten)
+hobeln_p1 = [e for e in mit_werten.einsaetze("P1") if e.art == wz.HOBELN]
+pruefe(len(hobeln_p1) == 1 and hobeln_p1[0].ap == 0.05, f"Richtwerte: {mit_werten.schnittwerte}")
+if hobeln_p1:
+    pruefe(sd.rechne(mit_werten, hobeln_p1[0])[:2] == (0.0, 6000.0), "n, vf beim Hobeln")
 pruefe(abs(float(op.FinalDepth) - 8.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
 notizen = [b.Name for b in op.Path.Commands if b.Name.startswith("(SPINDEL ")]
 pruefe(len(notizen) > 100, f"nur {len(notizen)} Spindelwinkel")
