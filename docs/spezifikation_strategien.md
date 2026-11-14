@@ -3230,7 +3230,11 @@ Daraus (Lesart, nach der gebaut wird):
 
 **Bauplan – „Dichtnut hobeln“ (nächste Woche, in dieser Reihenfolge; je Schritt eine Prüfdatei):**
 
-1. *Mittellinie und Maße der Nut* – neben `camaddon/nut_bahn.py`: aus den zwei Wänden und dem Boden
+1. *Mittellinie und Maße der Nut* – **gebaut (2026-11-15):** `camaddon/hobeln_bahn.py`
+   (`hobelnuten`, `Hobelnut`, `klinge_pruefen`, `kleinster_radius_fuer`), Prüfung `tests/test_hobeln.py`:
+   umlaufende Nuten jeder Form (Rechteck mit Radien, Kreis, Ellipse), spitze Ecke und wechselnde Breite
+   mit Grund abgelehnt. Offen aus diesem Schritt: Nuten mit Enden (Langloch, zum Rand offen). Der Plan
+   dazu war – neben `camaddon/nut_bahn.py`: aus den zwei Wänden und dem Boden
    einer beliebigen Nut die Mittellinie als Strecken und Bögen, Breite, Tiefe, kleinster Radius, offen
    oder geschlossen (die ringförmige Nut kennt `nut_bahn` schon; `kontur_bahn.konturen` und der Versatz
    dort liefern Wandzüge). Ablehnen mit Satz: spitze Ecke, wechselnde Breite, Radius zu klein für die
