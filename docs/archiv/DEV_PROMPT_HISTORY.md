@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-02 ebener-materialstand
+
+### EINGELESEN
+- Nebenbefund des Bauers (P-2026-11-14-01): Mit Materialstand rechnet jede Lage wie eine Zwischenlage –
+  auch wenn davor nur plangefräst wurde (5,82 statt 4,93 min gegenüber einem gleich hohen Rohteil).
+- `schruppen3d_bahn._mit_stand`; das Simultan-Beispiel (`beispiele/grob_g550_freiform/erstellen.py`).
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `_mit_stand` – ein überall gleich hoher Stand unter der Oberkante des
+  Rohteils (`EBENER_STAND` 0,02 mm) ist ein niedrigeres Rohteil, kein Materialstand.
+- `tests/test_schruppen3d.py` (e): Kuppel, Rohteil von 25 auf 20 plangefräst.
+- `docs/STATUS_SNAPSHOT.md` (0.371.1, B-036), `package.xml`.
+
+### ERGEBNIS
+- Kuppel R 25, Rohteil von 25 auf 20 plangefräst: 5,00 statt 5,82 min (Rohteil 20 ohne Stand: 4,93),
+  Eingriff bis 2,0 statt 5,8 ae, 0 statt 4 Rampen; auf 22 plangefräst 5,27 statt 6,12 min; Kegel 65°
+  von 40 auf 36: 10,26 statt 10,35 min, Eingriff 1,9 statt 5,6 ae. Stände, die nicht eben sind
+  (ringsum geräumt, Tasche daneben), unverändert.
+- **Versucht und zurückgenommen (B-036):** Die Knoten genau auf dem Rand des Rohteils haben im Stand
+  keinen Wert (−inf); deshalb gilt im Simultan-Beispiel schon das unberührte Rohteil als Materialstand.
+  Mit „dort gilt das Rohteil“ wird `test_simultan_planung` minimal schneller (94,33 statt 94,40 s),
+  aber `test_simultan_folge` weist die Varianten mit 2 und 3 mm Zwischenlagen ab: „trägt im
+  Freivorschub 0,016 / 0,024 mm³ ab“ (Rampenanlauf, `schlicht_anlauf`; in einer eigenen Simulation mit
+  0,1 mm Raster nicht nachzustellen). Als offener Fehler eingetragen, der Rand bleibt wie in 0.371.0.
+- Voller Lauf aller 147 Prüfdateien auf 0.371.0: grün. Danach grün: `test_schruppen3d`,
+  `test_schruppen3d_anlauf`, `test_restschruppen`, `test_materialstand`, `test_testteil`,
+  `test_goldene_bahnen`, `test_pruefstand`, `test_raeumen`, `test_simultan_folge`,
+  `test_simultan_planung`, `test_simultan_gesamt`; `szenario_mulde`, `szenario_bearbeitung`,
+  `szenario_formplatte`.
 ## P-2026-11-14-01 zwischenlagen-von-unten-materialstand
 
 ### EINGELESEN

@@ -382,6 +382,35 @@ pruefe(
     set(ps.urteile(k_stand_u)) <= set(ps.urteile(k_stand_o)),
     f"Stand: {ps.urteile(k_stand_u)} (von oben {ps.urteile(k_stand_o)})",
 )
+# Ein ebener Materialstand (das Rohteil von 25 auf 20 plangefräst) ist ein niedrigeres Rohteil:
+# dieselbe Bahn wie mit Rohteil 20 ohne Stand – bis 0.371.0 rechnete dann jede Lage wie eine
+# Zwischenlage (5,82 statt 4,93 min, Eingriff bis 5,8 statt 1,9 ae, vier Rampen).
+q_plan = rm.Quader(0, 60, 0, 60, -1.0, 25.0, mst.SCHRITT)
+voll_plan = q_plan.h.copy()
+q_plan.h[:] = np.minimum(q_plan.h, 20.0)
+stand_plan = mst.Materialstand(q_plan, voll_plan, ["Planfräsen T2"], [q_plan.h < voll_plan - 1e-9])
+plan_u = r3.planen(teil, kugel, werte(25.0), stand=stand_plan, von_unten=True)
+
+
+def plan_gefraest(quader):
+    quader.h[:] = np.minimum(quader.h, 20.0)
+
+
+k_plan_u = gemessen(teil, plan_u, 25.0, plan_gefraest)
+print(ascii(f"Kuppel, auf 20 plangefräst: {plan_u.zeit:.2f} min (Rohteil 20 ohne Stand "
+            f"{bahn_u.zeit:.2f}), {plan_u.lagen} + {plan_u.zwischenlagen} Lagen – "
+            f"{ps.zeile(k_plan_u)}"))  # fmt: skip
+pruefe(
+    abs(plan_u.zeit - bahn_u.zeit) <= 0.05 * bahn_u.zeit and plan_u.lagen == bahn_u.lagen,
+    f"plangefräst: {plan_u.zeit:.2f} min, {plan_u.lagen} Lagen (Rohteil 20: {bahn_u.zeit:.2f}, "
+    f"{bahn_u.lagen})",
+)
+pruefe(k_plan_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"plangefräst: {k_plan_u.einschnitt:.3f}")
+pruefe(k_plan_u.eilgang_abtrag <= 1e-9, f"plangefräst: Eilgang {k_plan_u.eilgang_abtrag:.1f}")
+pruefe(
+    k_plan_u.eintauchungen == 0 and k_plan_u.eingriff_max < 2.5,
+    f"plangefräst: {ps.zeile(k_plan_u)}",
+)
 # Die Schale (eine Höhlung: die erste Lage über die Rampe, dann je hinein vom Freien in der Mitte)
 # und die Schale mit 5 mm Rohteil darüber (die unterste Lage über dem ganzen Teil nimmt alles
 # darüber mit).

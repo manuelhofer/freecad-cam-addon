@@ -68,6 +68,9 @@ GENAU_BIS_RASTER = 0.5  # mm
 # An der genauen Grenze zählt auf einer Zwischenlage als Material, was die Stirn des Rings an der
 # Wand trifft (statt was die des Rings aus dem Raster träfe) – abschaltbar für den Vergleich.
 RAND_ZAEHLT = True
+# Ein Materialstand, der überall im Rohteil gleich hoch ist (so genau, mm), ist ein niedrigeres
+# Rohteil (_mit_stand).
+EBENER_STAND = 0.02
 # Zwischenlagen von unten nach oben (Frage 4, Manuel am 2026-11-13: „a“; am 12.10. lieber „mit der
 # ganzen Schneide“ als dünne Schichten): Jede Zwischenlage fräst nur den schmalen Streifen an der
 # Wand, der über ihr noch steht, mit voller Tiefe bis zur Oberkante der Hauptlage – statt von oben
@@ -1076,6 +1079,16 @@ def _mit_stand(st, feld, netz, stand, hoehe, oben, ziel, z_unten, zugabe):
         st.davor += [name for name in wer if name not in st.davor]
     if not (rohteil & (vom_stand < oben - GLEICH)).any():
         return hoehe, oben, False
+    # Überall gleich hoch und tiefer als das Rohteil (nur plangefräst): ein niedrigeres Rohteil,
+    # kein Materialstand – mit Hauptlagen und der Wahl der Varianten statt jeder Lage als
+    # Zwischenlage (Kuppel R 25, Rohteil von 25 auf 20 plangefräst: 5,82 min und Eingriff bis
+    # 5,8 ae; so 5,00 min und 2,0 ae; gemessen 2026-11-14). Knoten genau auf dem Rand des Rohteils
+    # liegen neben den Zellen des Stands (−inf) – sie zählen dafür nicht.
+    endlich = rohteil & np.isfinite(vom_stand)
+    if endlich.any():
+        eben = float(vom_stand[endlich].max())
+        if eben < oben - GLEICH and eben - float(vom_stand[endlich].min()) <= EBENER_STAND:
+            return np.where(rohteil, np.minimum(hoehe, eben), -np.inf), eben, False
     hoehe = np.where(rohteil, np.minimum(hoehe, vom_stand), -np.inf)
     spitze = np.where(feld.roh <= z_unten + GLEICH, z_unten, feld.roh + zugabe)
     tief = rb._kleinstes_um(spitze, int(max(feld.r - feld.schritt - 0.01, 0.0) / feld.schritt))

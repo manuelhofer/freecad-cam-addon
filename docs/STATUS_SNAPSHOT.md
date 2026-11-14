@@ -597,6 +597,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Korrektur (0.371.1):* **3D-Schruppen nach bloßem Planfräsen rechnet wie mit einem niedrigeren Rohteil:**
+  Ein überall gleich hoher Materialstand galt als „Materialstand“ – jede Lage rechnete dann wie eine
+  Zwischenlage. Kuppel R 25, Rohteil von 25 auf 20 plangefräst: 5,00 statt 5,82 min, Eingriff bis 2,0 statt
+  5,8 ae, keine Rampe mehr (vier vorher); Kegel 65° 10,26 statt 10,35 min, Eingriff 1,9 statt 5,6 ae.
+  Offen dazu (B-036): Knoten genau auf dem Rand des Rohteils haben im Stand keinen Wert – deshalb gilt
+  im Simultan-Beispiel schon das unberührte Rohteil als Materialstand. Mit der Korrektur dort meldet
+  die Materialprüfung der Folge 0,02 mm³ Abtrag im Freivorschub (Rampenanlauf, `schlicht_anlauf`) – erst
+  klären, darum so belassen.
 - *Neu (0.371.0):* **Zwischenlagen von unten auch nach vorangegangenen Operationen (Materialstand)** – bis
   0.370.0 fiel das 3D-Schruppen auf den alten Weg zurück, sobald davor plangefräst oder geräumt war. Jetzt:
   Kuppel nach Planfräsen 5,8 statt 6,3 min, Kuppel mit ringsum geräumter Platte 2,9 statt 3,4, Kegel 65°
@@ -2857,7 +2865,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Offen: B-033 (Frage 3) (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
+Offen: B-033 (Frage 3) und B-036 (unten). B-001 bis B-019 sind behoben (Belege im Verlauf; B-017 und B-018 in P-2026-10-10-35 bis -39, B-019 – eine Nadel nach dem Adaptiv-Kern – in P-2026-10-11-84);
 B-020 (ein Teil als Link in der Maschine angeklickt – der Assistent legte den Job im Dokument der Maschine an: „PropertyLink does not support external object“) behoben in P-2026-10-16-42. B-021 (FreeCADs Assembly ging mit dem Addon nicht mehr: „isInEditMode“, keine Bauteile einlegbar) behoben in P-2026-10-16-11; B-022 (eine Nut quer durch den Klotz galt mit 1 mm Aufmaß als geschlossen und „zu breit“, seit P-2026-10-16-07) behoben in P-2026-10-16-26; B-023 (mit Aufmaß am Boden trat Räumen nicht mehr an – die Bahn lag höher und galt als „Fläche nicht erreicht“, seit P-2026-10-16-05) behoben in P-2026-10-16-27; B-024 (seit P-2026-10-12-170 weicht die Rundum-Schruppbahn dem Halter aus – „Halter stößt an … länger ausspannen“ kam nicht mehr, im 4-Achs-Assistenten wie in „Kollision prüfen“; `szenario_vierachs_ausspannen` und `szenario_pruefen_ausspannen` rot) behoben in P-2026-10-16-33; B-025 (seit P-2026-10-12-170 hielt beim Schruppen mit der Querachse der Schaft die Spitze zu hoch – gerechnet auf dem Strahl durch die Stangenachse statt in der versetzten Stellung des Fräsers; an der Nase blieb für die Kugel bis 16,8 mm² je mm Rest, `test_vierachs_frei` rot) behoben in P-2026-10-16-37; B-026 (am Drehteil meldete die Kollision „Plan indexiert … im Eilgang durch Rohteil, das dort noch steht – bis 1,53 mm tief“: der letzten Lage fehlte am Rand der Fläche ein Stück jeder Zeile, und das Modell der Stange kannte bei Querversatz die Flanke des Fräsers nicht) behoben in P-2026-10-16-57. **Offen (gefunden 2026-11-06 mit `~/freecad_cam/wip/pruefhelfer/nc_pruefen.py` über die NC-Ausgaben des
 vollen Szenario-Laufs, abgelegt in `~/freecad_cam/wip/laeufe/2026-11-06/` als Vergleichsstand):**
 B-027 „Nut schlichten“ an der durchgehenden Nut (szenario_nut_durch): am offenen Ende X 86 fuhr es Y 27 →
@@ -2898,7 +2906,15 @@ Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sec
 - B-035 **Räumen meldete „der Fräser passt nicht hinein“, obwohl er passt:** Eine quadratische Tasche
   räumte der Ø 6 (braucht mit Aufmaß 6,6 mm) erst ab 9,5 mm Seitenlänge. **Behoben in P-2026-11-13-18
   (0.369.1)** – findet das Raster in einer Tasche keinen Ring, fährt der genaue Ring aus der Kontur,
-  nachgerechnet, mit der Rampe rundum. Nächste freie Nummer B-036.
+  nachgerechnet, mit der Rampe rundum.
+- B-036 **Unberührtes Rohteil gilt als Materialstand, wenn ein Stand übergeben wird** (offen, gefunden am
+  2026-11-14): `schruppen3d_bahn._mit_stand` sieht an den Knoten genau auf dem Rand des Rohteils −inf
+  (sie liegen neben den Zellen des Stands) und rechnet dann jede Lage wie eine Zwischenlage
+  (Simultan-Beispiel „Kuppel“: 73 von 1353 Knoten). Die naheliegende Korrektur (dort gilt das Rohteil)
+  macht das Schruppen dort normal, aber die Materialprüfung der Folge meldet dann für 2 und 3 mm
+  Zwischenlagen „trägt im Freivorschub 0,016 / 0,024 mm³ ab“ – der Rampenanlauf (`schlicht_anlauf`)
+  markiert ein Stück als frei, das eine Rasterzelle Material streift. Erst das klären. Nächste freie
+  Nummer B-037.
 
 ## Offene Tasks
 
