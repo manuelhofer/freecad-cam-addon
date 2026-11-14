@@ -2656,6 +2656,14 @@ class WeiterFrage(QtGui.QDialog):
             self.messen_text.setText("")
         elif self.merkmal is None:
             self.messen_text.setText(tr("beta.weiter.messen.keins"))
+        elif self.merkmal.schmal:  # die Kugel passte nicht hinein: von Hand, mit Satz
+            from . import messen
+
+            mm = einheiten.text(messen.NUT_ZYKLUS_BREITE, einheiten.LAENGE, 3)
+            mm += " " + einheiten.einheit(einheiten.LAENGE)
+            self.messen_text.setText(
+                tr("beta.weiter.messen.schmal", was=_merkmal_text(self.merkmal), mm=mm)
+            )
         elif not self.merkmal.zyklus_moeglich:  # die schräge Nut: von Hand, mit Satz
             self.messen_text.setText(
                 tr("beta.weiter.messen.schraeg", was=_merkmal_text(self.merkmal))
@@ -2842,7 +2850,7 @@ def bohrung_messmerkmal(job, rest):
 
 def _hat_zyklus(s, m):
     """Misst die Steuerung `s` das Merkmal `m` mit einem Zyklus (Steuerung.messen_*)? Nicht ohne
-    Merkmal und nicht die schräge Nut (messen.Merkmal.zyklus_moeglich)."""
+    Merkmal und nicht die schräge oder schmale Nut (messen.Merkmal.zyklus_moeglich)."""
     if m is None or not m.zyklus_moeglich:
         return False
     return bool(getattr(s, f"messen_{m.art}", ""))

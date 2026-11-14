@@ -353,6 +353,108 @@ for kennung, m, taster in (
     )
 print(next((x for x in programm("linuxcnc", s_nut) if "Nut 15" in x), "keine Meldung"))
 
+# 10. Nacharbeit des Zweiflers (0.381).
+# a) Heidenhain iTNC 530: 425 endet mit Q330 (Tastsystemzyklen 340 490-03, 8/2006, S. 126 f.);
+#    Q320 und Q301 erst ab der TNC 640 (1303409-13, Beispiel S. 275).
+for kennung, mit_q301 in (("heidenhain", False), ("heidenhain_tnc640", True)):
+    z_h = programm(kennung, s_nut)
+    i = next(i for i, x in enumerate(z_h) if "TCH PROBE 425" in x)
+    j = next(j for j in range(i, len(z_h)) if not z_h[j].endswith("~"))
+    block = z_h[i : j + 1]
+    pruefe(
+        block[-1].endswith("Q301=+1 ;FAHREN AUF S. HOEHE" if mit_q301 else "Q330=+0 ;WERKZEUG")
+        and any("Q320" in x for x in block) == mit_q301,
+        f"{kennung}: 425 endet falsch: {block[-3:]}",
+    )
+# b) Nur eine Wand der Ringnut (Ø 30 … Ø 50) gewählt: die Nut (60, 40), 10 breit – keine Bohrung
+#    Ø 50 in der Inselmitte, in die der Taster führe (Siemens „G1 Z18.5 F1000“ bei 40, 40). So
+#    misst auch der Messstopp von „Schlichten danach“ (gui_bearbeitung, messen.merkmal).
+for r_wand in (25.0, 15.0):
+    eine = namen(
+        ring,
+        lambda f, r_wand=r_wand: f.Surface.__class__.__name__ == "Cylinder"
+        and abs(f.Surface.Radius - r_wand) < 1e-6,
+    )
+    m_e = messen.merkmal(ring, eine)
+    pruefe(
+        len(eine) == 1
+        and m_e is not None
+        and m_e.art == messen.NUT
+        and abs(m_e.breite - 10) < 1e-6
+        and abs(m_e.x - 60) < 1e-6
+        and abs(m_e.y - 40) < 1e-6,
+        f"Ringnut, nur die Wand r {r_wand}: {m_e}",
+    )
+# … ebenso ein Halbkreis des Langlochs allein: die Nut, keine Bohrung Ø 16 an ihrem Ende.
+halb = namen(nut_x, lambda f: f.Surface.__class__.__name__ == "Cylinder" and f.BoundBox.XMax > 70)
+m_h = messen.merkmal(nut_x, halb[:1])
+pruefe(
+    m_h is not None and m_h.art == messen.NUT and abs(m_h.x - 58) < 1e-6,
+    f"Langloch, ein Halbkreis: {m_h}",
+)
+# Tasche, Zapfen, Bohrung und Welle bleiben (oben, 1.–3., geprüft); eine schmale Rechtecktasche
+# 40 × 12 mit scharfen Ecken ist eine Tasche, keine Nut.
+schmal_t = Part.makeBox(100, 60, 20).cut(Part.makeBox(40, 12, 8, V(30, 24, 12)))
+m_t = messen.merkmal(
+    schmal_t, namen(schmal_t, lambda f: senkrecht_wand(f) and f.BoundBox.ZMin > 11.9)
+)
+pruefe(m_t is not None and m_t.art == messen.TASCHE, f"schmale Tasche: {m_t}")
+# c) Die Nut an der Stufe: eine Wand bis z 35, die andere bis z 20, Grund z 14 – gemessen unter
+#    der niedrigeren (z 17), sicher über der höheren (OBEN 35, Heidenhain „L Z+45“).
+stufe = Part.makeBox(100, 60, 20).fuse(Part.makeBox(100, 26, 15, V(0, 0, 20))).removeSplitter()
+stufe = stufe.cut(
+    Part.makeBox(40, 12, 30, V(30, 20, 14))
+    .fuse(Part.makeCylinder(6, 30, V(30, 26, 14)))
+    .fuse(Part.makeCylinder(6, 30, V(70, 26, 14)))
+).removeSplitter()
+grund_st = namen(
+    stufe, lambda f: abs(f.BoundBox.ZMax - 14) < 1e-6 and abs(f.BoundBox.ZMin - 14) < 1e-6
+)
+m_st = messen.merkmal(stufe, grund_st)
+pruefe(
+    m_st is not None
+    and m_st.art == messen.NUT
+    and abs(m_st.z_oben - 35) < 1e-6
+    and abs(m_st.z_mess - 17) < 1e-6,
+    f"Nut an der Stufe: {m_st}",
+)
+z_st = programm("heidenhain_tnc640", messen.soll(m_st, 0.15))
+pruefe(
+    any(x.endswith("L Z+45.000 R0 FMAX") for x in z_st)
+    and any(x.endswith("Q260=+45.000 ;SICHERE HOEHE ~") for x in z_st),
+    f"Stufe: sicher nicht über der höheren Wand: {[x for x in z_st if 'Z+' in x or 'Q260' in x]}",
+)
+import dataclasses  # noqa: E402
+
+# d) Schmaler als NUT_ZYKLUS_BREITE (8 mm): die Ringnut 6 → 5,7 fasste die Kugel Ø 6 nicht – kein
+#    Zyklus, der Halt mit dem Sollmaß; 8,0 misst noch.
+ring6 = Part.makeBox(80, 80, 20).cut(
+    Part.makeCylinder(26, 4, V(40, 40, 16)).cut(Part.makeCylinder(20, 4, V(40, 40, 16)))
+)
+m_6 = messen.soll(
+    messen.merkmal(
+        ring6, namen(ring6, lambda f: abs(f.BoundBox.ZMax - 16) < 1e-6 and f.BoundBox.ZMin > 15)
+    ),
+    0.15,
+)
+pruefe(m_6.art == messen.NUT and abs(m_6.breite - 5.7) < 1e-6, f"Ringnut 6: {m_6}")
+pruefe(m_6.schmal and not m_6.zyklus_moeglich, "Ringnut 5,7: Zyklus trotz schmal")
+pruefe(not dataclasses.replace(m_6, breite=8.0).schmal, "8 mm gilt schon als schmal")
+for kennung in ("siemens", "fanuc", "heidenhain_tnc640"):
+    z_6 = programm(kennung, m_6)
+    pruefe(
+        any(x.endswith("M0") for x in z_6)
+        and not any("CYCLE977" in x or "TCH PROBE" in x or "P9812" in x for x in z_6),
+        f"{kennung}: schmale Nut mit Zyklus",
+    )
+# e) Die schräge Nut nennt ihre Lage (30°), nicht die Messrichtung (120°).
+pruefe(abs(m_s.lage - 30) < 1e-3, f"Lage der schrägen Nut: {m_s.lage}")
+pruefe(
+    "30°" in messen.text(m_s) and "120" not in messen.text(m_s),
+    f"Text schräge Nut: {messen.text(m_s)}",
+)
+print(messen.text(m_s), "|", messen.text(m_6))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

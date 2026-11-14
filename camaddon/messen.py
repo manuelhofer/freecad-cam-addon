@@ -36,6 +36,11 @@ ACHSPARALLEL = 1e-3  # Grad: so nah an 0/90/180/270 misst die Nut noch in X bzw.
 # So viele Flächen hat eine Nut höchstens (Langloch: 4 Wände, Grund, 4 Rundungen am Grund) – mehr
 # gewählt ist mehr als eine Nut; nut_bahn.nuten müsste sonst jede Fläche des Teils lesen.
 NUT_FLAECHEN_HOECHSTENS = 16
+# Schmaler misst kein Zyklus die Nut, die Maschine hält zum Messen von Hand: Die übliche
+# Tasterkugel Ø 6 (Renishaw-Tastereinsätze Ø 6, kleiner Ø 4/Ø 3) braucht je Seite rund 1 mm Weg
+# zum Antasten – die Ringnut 6 nach 0,15 Rest (5,7) fasste sie nicht, Siemens führe sie mit
+# „G1 Z… F1000“ ungeschützt hinein (Zweifler 0.381). Die Kugel kennt der Postprozessor nicht.
+NUT_ZYKLUS_BREITE = 8.0  # mm
 SENKRECHT = 1e-6  # so klein darf die Z-Komponente einer Wandnormale sein
 MESS_UEBER_BODEN = 2.0  # mm
 MESS_UNTER_OBEN = 10.0  # mm – tiefer als nötig fährt der Taster nicht
@@ -78,9 +83,20 @@ class Merkmal:
         return None
 
     @property
+    def schmal(self):
+        """Die Nut schmaler als NUT_ZYKLUS_BREITE – die Tasterkugel passte nicht hinein."""
+        return self.art == NUT and self.breite < NUT_ZYKLUS_BREITE - 1e-9
+
+    @property
+    def lage(self):
+        """Die Nut: in welcher Richtung sie liegt (Grad, 0 … 180; quer zur Messrichtung)."""
+        return (self.winkel + 90.0) % 180.0
+
+    @property
     def zyklus_moeglich(self):
-        """Kann ein Messzyklus der Steuerung das messen? Alle außer der schrägen Nut."""
-        return self.art != NUT or self.achse is not None
+        """Kann ein Messzyklus der Steuerung das messen? Alle außer der schrägen und der schmalen
+        Nut."""
+        return self.art != NUT or (self.achse is not None and not self.schmal)
 
 
 def _normale(flaeche):
@@ -100,6 +116,13 @@ def merkmal(form, namen):
     flaechen = [form.getElement(n) for n in namen]
     if not flaechen:
         return None
+    # Die Nut zuerst: Eine Wand der Ringnut allein ist ein Zylinder, ein Halbkreis des Langlochs
+    # auch – als Bohrung gemessen (Ringnut Ø 40 … Ø 52, nur die Außenwand: Bohrung Ø 52 in der
+    # Inselmitte) führe der Taster in die Insel. Tasche, Zapfen, Bohrung und Welle sind keine Nut
+    # (nut_merkmal None, Zweifler 0.381: dieselben Merkmale wie in 0.380).
+    m = nut_merkmal(form, namen)
+    if m is not None:
+        return m
     zylinder = [
         f
         for f in flaechen
@@ -115,10 +138,6 @@ def merkmal(form, namen):
         m = _rund(zylinder)
     elif ebenen:
         m = _rechteck(ebenen, zylinder)
-    if m is None:
-        # Kein Rechteck, keine Bohrung: vielleicht eine Nut (ihre Wände, ihr Grund) – bis 0.380
-        # hielt der Messstopp dort ohne Sollmaß.
-        return nut_merkmal(form, namen)
     if m is not None:  # Höhe aus allen Flächen: der Boden unter den Rundungen zählt mit
         m.z_unten = min(m.z_unten, min(f.BoundBox.ZMin for f in flaechen))
         m.z_mess = _messhoehe(m.z_oben, m.z_unten)
@@ -233,11 +252,15 @@ def nut_merkmal(form, namen):
             return None
         if not all(_senkrecht_wand(form.getElement(w)) for w in nut.waende):
             return None
-        z_oben = min(float(form.getElement(w).BoundBox.ZMax) for w in nut.waende)
+        oben = [float(form.getElement(w).BoundBox.ZMax) for w in nut.waende]
     except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht zum Modell
         return None
     z_unten = float(nut.z_unten)
-    if z_oben - z_unten <= 1e-6:
+    # Gemessen wird unter der niedrigeren Wand (dort liegen beide an), sicher über der höheren:
+    # An der Stufe (Wände bis z 35 und z 20) führe Heidenhain sonst „L Z+30“ dort, wo der Taster
+    # gerade steht – auch über der Stufe (z_oben wie bei Tasche und Bohrung: die höchste).
+    z_wand, z_oben = min(oben), max(oben)
+    if z_wand - z_unten <= 1e-6:
         return None
     if nut.bogen is not None:
         mx, my, r_m, w_a, w_b = nut.bogen
@@ -261,7 +284,7 @@ def nut_merkmal(form, namen):
         winkel=round(winkel, 3),
         z_oben=z_oben,
         z_unten=z_unten,
-        z_mess=_messhoehe(z_oben, z_unten),
+        z_mess=_messhoehe(z_wand, z_unten),
     )
 
 
@@ -276,8 +299,8 @@ def soll(m, aufmass):
 
 
 def text(m, toleranz=None):
-    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“, „Nut 15,7 mm quer in Y“ (schräg: „… quer,
-    30°“) – mit `toleranz` „… ±0,02“."""
+    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“, „Nut 15,7 mm quer in Y“ (schräg: „… quer (die
+    Nut liegt 30° schräg)“) – mit `toleranz` „… ±0,02“."""
     from . import einheiten
     from .sprache import tr
 
@@ -296,7 +319,9 @@ def text(m, toleranz=None):
         else:
             from .werkstoffe import mit_dezimalzeichen
 
-            zahl = f"{m.winkel:.1f}".rstrip("0").rstrip(".")
+            # Die Lage der Nut, nicht die Messrichtung: An der Maschine liest man „45°“ als die
+            # Nut (Zweifler 0.381: „135° schräg“ für die Nut unter 45° führte in die Irre).
+            zahl = f"{m.lage:.1f}".rstrip("0").rstrip(".")
             zahl = mit_dezimalzeichen(
                 zahl, einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
             )

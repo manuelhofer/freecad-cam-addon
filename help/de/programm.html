@@ -210,17 +210,19 @@ ruft den Messzyklus deiner Steuerung mit dem Sollmaß nach dem Gang davor (Aufma
 P9812/P9814 nur mit H). Die <b>Nut</b> misst er an ihrer Breite quer zur Mittellinie, an einer
 Stelle: die gerade in der Mitte ihrer Länge, die Ringnut radial bei +X – Siemens CYCLE977 „Nut“ mit
 der Messachse X oder Y, Heidenhain 425 MESSEN BREITE INNEN, Renishaw G65 P9812 mit X oder Y. Liegt
-die Nut schräg zu X und Y, hält die Maschine zum Messen von Hand (die Meldung sagt das Sollmaß und
-„schräg“). Gemessen wird nur, korrigiert wird nichts. <b>Am ersten Teil mit Vorschub-Override
-langsam prüfen.</b> Taster ein/aus (etwa G65 P9832/P9833 oder ein M-Befehl) nach deiner Maschine.
-Ohne Taster: der Halt wie bisher. Ist in „Weiter bearbeiten“ <i>Messzyklus korrigiert den
-Schlichtfräser selbst</i> angehakt, trägt der Zyklus eine Abweichung als Radius-Verschleiß beim
-Schlichtwerkzeug danach ein (Siemens D1 des Werkzeugs, Fanuc/Haas mit Renishaw das D-Register mit
-der Werkzeugnummer) – aus einer Messung, bei Tasche und Zapfen der Breite in X, bei Bohrung und
-Welle dem Ø, bei der Nut ihrer Breite; über 0,5 mm korrigiert er nicht und hält mit Alarm. Das wirkt
-nur, wenn der Gang danach mit Radiuskorrektur fährt (eine Kontur oder „Schlichten danach“ mit
-G41/G42) – sonst misst er nur. Siemens ohne Werkzeugverwaltung: Den Werkzeugnamen (S_TNAME) bitte an
-der Maschine prüfen.</li>
+die Nut schräg zu X und Y oder ist sie schmaler als 8 mm (die übliche Tasterkugel Ø 6 passte nicht
+hinein), hält die Maschine zum Messen von Hand (die Meldung sagt das Sollmaß und, wie schräg die Nut
+liegt). Seit 0.381 misst so auch ein Messstopp, der schon nach einer Nut steht (etwa der von
+„Schlichten danach“), mit dem Taster – bis 0.380 hielt die Maschine dort ohne Sollmaß. Gemessen wird
+nur, korrigiert wird nichts. <b>Am ersten Teil mit Vorschub-Override langsam prüfen.</b> Taster
+ein/aus (etwa G65 P9832/P9833 oder ein M-Befehl) nach deiner Maschine. Ohne Taster: der Halt wie
+bisher. Ist in „Weiter bearbeiten“ <i>Messzyklus korrigiert den Schlichtfräser selbst</i> angehakt,
+trägt der Zyklus eine Abweichung als Radius-Verschleiß beim Schlichtwerkzeug danach ein (Siemens D1
+des Werkzeugs, Fanuc/Haas mit Renishaw das D-Register mit der Werkzeugnummer) – aus einer Messung,
+bei Tasche und Zapfen der Breite in X, bei Bohrung und Welle dem Ø, bei der Nut ihrer Breite; über
+0,5 mm korrigiert er nicht und hält mit Alarm. Das wirkt nur, wenn der Gang danach mit
+Radiuskorrektur fährt (eine Kontur oder „Schlichten danach“ mit G41/G42) – sonst misst er nur.
+Siemens ohne Werkzeugverwaltung: Den Werkzeugnamen (S_TNAME) bitte an der Maschine prüfen.</li>
 </ul>
 <p><b>Spindelwinkel beim Hobeln.</b> Beim Dichtnut-Hobeln steht die Spindel (das Stoßwerkzeug
 hat 0 U/min, kein M3) und dreht sich je Satz in Fahrtrichtung. Wie der Winkel in den Satz kommt,

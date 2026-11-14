@@ -205,16 +205,19 @@ the program checks the tolerance itself via _OVR), Heidenhain 421–424 (Q309 = 
 A <b>slot</b> is measured at its width across the centre line, at one point: a straight one in the
 middle of its length, a ring groove radially at +X – Siemens CYCLE977 “slot” with measuring axis X
 or Y, Heidenhain 425 MEASURE INSIDE WIDTH, Renishaw G65 P9812 with X or Y. If the slot lies at an
-angle to X and Y, the machine stops for measuring by hand (the message gives the nominal size and
-“at an angle”). It only measures, it corrects nothing. <b>Check the first part slowly with feed
-override.</b> Probe on/off (e.g. G65 P9832/P9833 or an M code) as your machine needs. Without a
-probe: the stop as before. If <i>Measuring cycle corrects the finishing cutter itself</i> is ticked
-in “Continue machining”, the cycle enters a deviation as radius wear of the following finishing tool
-(Siemens D1 of the tool, Fanuc/Haas with Renishaw the D register with the tool number) – from one
-measurement, the width in X for pockets and bosses, the Ø for bores and round bosses, the width for
-slots; above 0.5 mm it does not correct and stops with an alarm. This only works if the next pass
-runs with cutter compensation (a contour or “Finish afterwards” with G41/G42) – otherwise it only
-measures. Siemens without tool management: please check the tool name (S_TNAME) at the machine.</li>
+angle to X and Y or is narrower than 8 mm (the usual Ø 6 probe ball would not fit), the machine
+stops for measuring by hand (the message gives the nominal size and the angle the slot lies at).
+Since 0.381 a measuring stop that already follows a slot (such as the one from “Finish afterwards”)
+measures like this with the probe too – up to 0.380 the machine stopped there without a nominal
+size. It only measures, it corrects nothing. <b>Check the first part slowly with feed override.</b>
+Probe on/off (e.g. G65 P9832/P9833 or an M code) as your machine needs. Without a probe: the stop as
+before. If <i>Measuring cycle corrects the finishing cutter itself</i> is ticked in “Continue
+machining”, the cycle enters a deviation as radius wear of the following finishing tool (Siemens D1
+of the tool, Fanuc/Haas with Renishaw the D register with the tool number) – from one measurement,
+the width in X for pockets and bosses, the Ø for bores and round bosses, the width for slots; above
+0.5 mm it does not correct and stops with an alarm. This only works if the next pass runs with
+cutter compensation (a contour or “Finish afterwards” with G41/G42) – otherwise it only measures.
+Siemens without tool management: please check the tool name (S_TNAME) at the machine.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>

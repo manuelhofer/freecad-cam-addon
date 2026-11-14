@@ -664,24 +664,28 @@ def _hh_kreis(nummer, titel, groesst, kleinst, tnc640, korr=False):
     return _HH_KOPF + text
 
 
-def _hh_nut(korr=False):
+def _hh_nut(tnc640, korr=False):
     """Zyklus 425 MESSEN BREITE INNEN (TNC 640 Messzyklen 10/2023, 1303409-13, Kap. 6.9; das
     Beispiel dort in dieser Reihenfolge): Startpunkt die Mitte der Nut – die erste Antastung „immer
     in positive Richtung der programmierten Achse“, ohne Versatz Q310 die zweite „direkt in der
     entgegengesetzten Richtung“; Q272 die Messachse (1 = X, 2 = Y), Q311 die Soll-Länge, Q288/Q289
-    Größt-/Kleinstmaß, Q330 das Werkzeug (korr, wie bei 421–424)."""
+    Größt-/Kleinstmaß, Q330 das Werkzeug (korr, wie bei 421–424). Q320 und Q301 erst ab der
+    TNC 640: Die iTNC 530 (Tastsystemzyklen 340 490-03, 8/2006, S. 126 f.) endet bei 425 mit Q330 –
+    Parameterliste und Beispiel dort (bei 421–424 kennt sie Q320/Q301, _HH_HOEHEN)."""
     k = "_k" if korr else ""
     werkzeug = "+{t_korr}" if korr else "+0"
-    return _HH_KOPF + (
+    text = (
         "TCH PROBE 425 MESSEN BREITE INNEN ~\nQ328={x_vz} ;STARTPUNKT 1. ACHSE ~\n"
         "Q329={y_vz} ;STARTPUNKT 2. ACHSE ~\nQ310=+0 ;VERSATZ 2. MESSUNG ~\n"
         "Q272=+{achse_nr} ;MESSACHSE ~\nQ261={z_vz} ;MESSHOEHE ~\n"
         "Q260={sicher_vz} ;SICHERE HOEHE ~\n"
         f"Q311={{b_vz}} ;SOLL-LAENGE ~\nQ288={{b_max{k}}} ;GROESSTMASS ~\n"
         f"Q289={{b_min{k}}} ;KLEINSTMASS ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
-        f"Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330={werkzeug} ;WERKZEUG ~\n"
-        "Q320=+0 ;SICHERHEITS-ABST. ~\nQ301=+1 ;FAHREN AUF S. HOEHE"
+        f"Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330={werkzeug} ;WERKZEUG"
     )
+    if tnc640:
+        text += " ~\nQ320=+0 ;SICHERHEITS-ABST. ~\nQ301=+1 ;FAHREN AUF S. HOEHE"
+    return _HH_KOPF + text
 
 
 def _messen_heidenhain(tnc640):
@@ -696,7 +700,7 @@ def _messen_heidenhain(tnc640):
                 f"{vorne}_zapfen": _HH_KOPF + "TCH PROBE 424 MESSEN RECHTECK AUS. ~\n" + rechteck,
                 f"{vorne}_bohrung": _hh_kreis(421, "MESSEN BOHRUNG", 275, 276, tnc640, korr),
                 f"{vorne}_welle": _hh_kreis(422, "MESSEN KREIS AUSSEN", 277, 278, tnc640, korr),
-                f"{vorne}_nut": _hh_nut(korr),
+                f"{vorne}_nut": _hh_nut(tnc640, korr),
             }
         )
     return {**zyklen, **KORREKTUR_OHNE_D}
