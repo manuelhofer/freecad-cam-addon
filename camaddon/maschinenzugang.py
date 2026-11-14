@@ -62,7 +62,7 @@ def _maschine(job, operation):
         bibliothek = wz.Bibliothek.laden()
         mg.des_jobs(grund, bibliothek)  # die Länge am Platz im Magazin der Maschine
         ein = rw.einspannung(tc, bibliothek)
-        return sw.Maschine(p, aufnahme, ein, rw.nullpunkt(grund))
+        return sw.Maschine(p, aufnahme, ein, rw.nullpunkt(grund, p))
     except Exception as fehler:
         FreeCAD.Console.PrintLog(f"CAM-Addon: Ebenenzugang: {fehler}\n")
         return False

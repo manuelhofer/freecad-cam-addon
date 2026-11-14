@@ -869,7 +869,12 @@ class PruefPanel:
         self._job = self.job()
         job_merken(self._job)
         eingetragen = rw.eingetragener_nullpunkt(self._job)
-        vorschlag = rw.vorschlag_nullpunkt(self._job)
+        aufnahme = self.werkstueckaufnahme()
+        if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
+            # Wie pruefe(): Der Vorschlag braucht die Maschine (eine Stange auf ihrer Rundachse).
+            self._zurueckfahren()
+            self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
+        vorschlag = rw.vorschlag_nullpunkt(self._job, self.pruefung)
         stellen = einheiten.stellen(einheiten.LAENGE, 3)
         for achse, feld in self.felder_nullpunkt.items():
             feld.blockSignals(True)
@@ -890,8 +895,9 @@ class PruefPanel:
         return werte
 
     def nullpunkt(self):
-        """Der Nullpunkt, mit dem gerechnet wird: eingetragen, sonst der Vorschlag."""
-        vorschlag = rw.vorschlag_nullpunkt(self.job())
+        """Der Nullpunkt, mit dem gerechnet wird: eingetragen, sonst der Vorschlag (eine Stange
+        quer zu Z auf der Rundachse dieser Maschine, B-037)."""
+        vorschlag = rw.vorschlag_nullpunkt(self.job(), self.pruefung)
         werte = self.eingetragen()
         return FreeCAD.Vector(
             *(werte.get(achse, getattr(vorschlag, achse.lower())) for achse in ACHSEN)

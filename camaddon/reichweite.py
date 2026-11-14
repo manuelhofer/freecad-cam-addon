@@ -295,7 +295,7 @@ def operationen_mit_ebene(job):
     return ergebnis
 
 
-def vorschlag_nullpunkt(job):
+def vorschlag_nullpunkt(job, pruefung=None):
     """Wo der Nullpunkt des Jobs von der Werkstückaufnahme aus liegt, wenn nichts
     eingetragen ist: das Rohteil mittig auf der Aufnahme, die Unterseite auf der
     Spannfläche. Eine runde Stange längs Z sitzt genau auf ihrer Achse und steckt mit
@@ -303,7 +303,14 @@ def vorschlag_nullpunkt(job):
     runder Rohling im Dreibackenfutter auf dem Tisch (W-021) liegt um die Höhe des Futters höher
     (spannung.futter_hoehe). Mit einer Aufspannung (spannmittel, W-042) da, wo das Spannmittel
     das Rohteil hält. Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres
-    Grundjobs."""
+    Grundjobs.
+
+    Eine Stange quer zu Z (A längs X) liegt mit `pruefung` (der Maschine) auf der Rundachse, um
+    die sie dreht (_auf_der_rundachse) – die Bahn dreht um die Achse der Stange, und so richtet
+    der Einrichter sie ein („auf der Achse der Stange“, Einrichtblatt). B-037: An der Tisch/Tisch
+    lag sie ohne das mit der Unterseite auf dem Rundtisch, 50 mm unter A – die Prüfung drehte sie
+    um A, als Kreis mit 50 mm Radius, und meldete „Schneide ins fertige Teil“ (bei A 23,9° 20,7 mm
+    neben der Bahn), wo der Rest „nirgends ins Teil“ sagte."""
     from . import spannung
 
     job = grundjob_von(job)
@@ -321,7 +328,32 @@ def vorschlag_nullpunkt(job):
         hoeher = spannung.futter_hoehe(job)
         return FreeCAD.Vector(-stange.x, -stange.y, -(stange.z + vr.spannlaenge(job)) + hoeher)
     box = form.BoundBox
-    return FreeCAD.Vector(-box.Center.x, -box.Center.y, -box.ZMin)
+    mittig = FreeCAD.Vector(-box.Center.x, -box.Center.y, -box.ZMin)
+    if pruefung is not None and vr.ist_stange(job, rohteil):
+        auf_achse = _auf_der_rundachse(pruefung, rohteil, mittig)
+        if auf_achse is not None:
+            return auf_achse
+    return mittig
+
+
+def _auf_der_rundachse(pruefung, rohteil, mittig):
+    """Der Nullpunkt (von der Werkstückaufnahme aus), mit dem die Achse der Stange `rohteil` auf
+    der Rundachse der Maschine liegt, die das Werkstück um sie dreht – längs der Achse wie
+    `mittig`. None, wenn keine Rundachse im Tisch parallel zur Stange liegt."""
+    aufnahme = pruefung.werkstueckaufnahme
+    if aufnahme is None:
+        return None
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))  # im Job = in der Aufnahme
+    in_aufnahme = pruefung._lage(aufnahme).inverse()  # Assembly → LCS der Aufnahme
+    for achse in pruefung.verfahren.pfad(pruefung._glied(aufnahme)):
+        if achse.art == LINEAR or pruefung.programmbuchstabe(achse) is None:
+            continue
+        richtung, ursprung = pruefung.verfahren.achslage(achse)
+        if abs(abs(in_aufnahme.Rotation.multVec(richtung).dot(laengs)) - 1.0) > 1e-6:
+            continue
+        punkt = in_aufnahme.multVec(ursprung)
+        return punkt - laengs * punkt.dot(laengs) + laengs * mittig.dot(laengs)
+    return None
 
 
 def _stange_laengs_z(rohteil):
@@ -347,9 +379,10 @@ def eingetragener_nullpunkt(job):
     return {k: float(v) for k, v in werte.items() if k in ("X", "Y", "Z")}
 
 
-def nullpunkt(job):
-    """Der Nullpunkt des Jobs von der Werkstückaufnahme aus: eingetragen, sonst der Vorschlag."""
-    vorschlag = vorschlag_nullpunkt(job)
+def nullpunkt(job, pruefung=None):
+    """Der Nullpunkt des Jobs von der Werkstückaufnahme aus: eingetragen, sonst der Vorschlag
+    (`pruefung`: die Maschine, vorschlag_nullpunkt)."""
+    vorschlag = vorschlag_nullpunkt(job, pruefung)
     werte = eingetragener_nullpunkt(job)
     return FreeCAD.Vector(
         werte.get("X", vorschlag.x), werte.get("Y", vorschlag.y), werte.get("Z", vorschlag.z)
@@ -1119,7 +1152,7 @@ class Pruefung:
             ergebnis.hinweise.append(tr("rw.keine_werkzeugaufnahme"))
             return ergebnis
         if nullpunkt_des_jobs is None:
-            nullpunkt_des_jobs = nullpunkt(job)
+            nullpunkt_des_jobs = nullpunkt(job, self)
         if bibliothek is not None:  # der vorgeschlagene Halter an der Aufnahme dieser Maschine
             from . import magazin as mg
 

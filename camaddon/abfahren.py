@@ -326,7 +326,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     from . import simultan_operation as so
 
     if nullpunkt_des_jobs is None:
-        nullpunkt_des_jobs = rw.nullpunkt(job)
+        nullpunkt_des_jobs = rw.nullpunkt(job, pruefung)
     ergebnis = Abfahrt(pruefung, achsen=[], nullpunkt=nullpunkt_des_jobs)
     if pruefung.werkstueckaufnahme is None:
         return ergebnis

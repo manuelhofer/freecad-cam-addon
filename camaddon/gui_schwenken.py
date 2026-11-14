@@ -102,7 +102,10 @@ def maschine_fuer(job, controller=None):
             if aufnahme is None:
                 continue
             ergebnis = sw.Maschine(
-                pruefung, aufnahme, rw.einspannung(controller, bibliothek), rw.nullpunkt(job)
+                pruefung,
+                aufnahme,
+                rw.einspannung(controller, bibliothek),
+                rw.nullpunkt(job, pruefung),
             )
         except Exception as fehler:  # Keine unlesbare Definition durch eine andere ersetzen.
             FreeCAD.Console.PrintLog(f"CAM-Addon: Schwenken: {fehler}\n")
