@@ -1150,19 +1150,27 @@ Nut statt quer wie beim Fräsen. Die Form ist egal (Kreis, Rechteck mit Radien, 
 Ecken brauchen eine Rundung.</p>
 <ul>
 <li><b>Anklicken:</b> den Grund oder eine Wand der Nut. Der Block wird angeboten, aber nicht von sich
-aus angehakt – ob gehobelt wird, entscheidet man selbst.</li>
+aus angehakt – ob gehobelt wird, entscheidet man selbst (der Knopf, der ein Stoßwerkzeug anlegt,
+hakt ihn an).</li>
 <li><b>Ein Stoßwerkzeug</b> (Art „Stoßwerkzeug“) mit Schneidenbreite und Länge der Klinge hinter
 der Schneide. Fehlt eins, steht unten ein Knopf, der eins anlegt: die Schneide so breit, dass sie
-in die Nut passt, die Klinge so kurz, dass sie die engste Kurve fährt.</li>
+in die Nut passt, die Klinge so kurz, dass sie die engste Kurve fährt – mitgerechnet, dass die
+Spindel nie genau in Fahrtrichtung steht.</li>
 <li><b>Die Schneide ausrichten:</b> Am Werkzeug steht der <b>Spindelwinkel</b>, bei dem die
 Schneide nach +X zeigt – an der Maschine einmessen und eintragen. Das Programm stellt die Spindel
 je Satz (Siemens SPOS, Heidenhain Zyklus 13, andere M19); GRBL kann das nicht und sagt es.</li>
 <li><b>Vorgefräst:</b> Das Räumen lässt am Grund dieser Nut den <b>Rest</b> (0,2 mm) stehen – nur
-dort, andere Böden kommen auf Maß. Die Wände müssen fertig sein, bevor gehobelt wird (sonst passt
-die Klinge nicht dazwischen): Haben sie noch Aufmaß, bietet der Block „Schlichten danach“ an. Das
-Hobeln macht nur den Grund; die Wände bleiben, wie sie gefräst sind.</li>
-<li>Die Felder: <b>Zustellung je Umlauf</b> (0,05 mm), <b>Rest über dem Grund</b>,
-<b>Leerumläufe</b> auf Endtiefe.</li>
+dort, andere Böden kommen auf Maß. Gehobelt wird nur, wo ein Fräser davor die Nut bis auf den Rest
+gefräst hat, und erst zwischen fertigen Wänden: Haben sie noch Aufmaß, bietet der Block „Schlichten
+danach“ an. Nach dem Hobeln fährt der Fräser der Wände sie unten im Rest nach (bis 0,02 mm über den
+Grund) – dort kommt die Klinge nicht ganz hin.</li>
+<li><b>So fährt die Klinge:</b> senkrecht nur bis 0,3 mm über das Material, dann flach in
+Fahrtrichtung auf einem geraden Stück hinein und mit stetigem Gefälle durch die Nut, je Umlauf um
+die Zustellung tiefer; am Ende ein ebener Umlauf und die Leerumläufe. Ist die Klinge schmaler als
+die Nut, fährt sie mehrere Spuren nebeneinander – je Umlauf alle, damit neben ihr nie mehr als eine
+Zustellung steht.</li>
+<li>Die Felder: <b>Zustellung je Umlauf</b> (vom Werkzeug, Schnittwerte „Hobeln“; Richtwert
+0,08 mm in Stahl), <b>Rest über dem Grund</b>, <b>Leerumläufe</b> auf Endtiefe.</li>
 </ul>
 <p><b>Vorsicht:</b> Wie viel Last die <b>stehende Spindel</b> aushält, ist nicht belegt – kein
 Hersteller nennt einen Wert. Am ersten Teil langsam fahren (Vorschub-Override) und die Zustellung

@@ -11905,8 +11905,9 @@ class BearbeitungPanel:
 
     def _hobel_vorgefraest(self, form):
         """{Grund} der gewählten Dichtnuten, die ein angehakter Block davor bis auf den Rest fräst
-        (Räumen, Rest räumen, Tauchfräsen: was sie fertig machen – das Räumen fährt dort um den
-        Rest höher). Nur dort darf gehobelt werden: Mit dem Ø 12 der Testkiste kommt das Räumen
+        (Räumen, Rest räumen, Tauchfräsen, der Boden von „Schlichten danach“: was sie fertig machen
+        – dort fahren sie um den Rest höher; am Deckel macht das Räumen mit Ø 3 den Grund der
+        3,6 breiten Nut nicht ganz, erst der Boden von „Schlichten danach“). Nur dort darf gehobelt werden: Mit dem Ø 12 der Testkiste kommt das Räumen
         nicht in die 3,6 breite Nut, die Klinge stieße bei stehender Spindel 2,5 mm in volles
         Material (Zweifler 14.11.)."""
         gruende = {n.name for n in self._hobelnuten(form)}
@@ -11914,7 +11915,12 @@ class BearbeitungPanel:
             return set()
         fertig = set()
         for block in self.bloecke:
-            if block.s.kennung in ("raeumen", "restraeumen", "tauchfraesen") and block.aktiv():
+            davor = block is self.schlichten_danach or block.s.kennung in (
+                "raeumen",
+                "restraeumen",
+                "tauchfraesen",
+            )
+            if davor and block.aktiv():
                 fertig |= set(self._fertige_flaechen(block, form))
         return gruende & fertig
 

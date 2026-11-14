@@ -1122,19 +1122,26 @@ along the groove instead of across it as with milling. The shape does not matter
 rectangle with radii, following the outline); corners need a fillet.</p>
 <ul>
 <li><b>Click:</b> the bottom or a wall of the groove. The block is offered but not ticked by
-itself – whether to plane is your decision.</li>
+itself – whether to plane is your decision (the button that creates a shaping tool ticks it).</li>
 <li><b>A shaping tool</b> (type “shaping tool”) with edge width and blade length behind the edge.
 If there is none, a button at the bottom creates one: the edge as wide as fits into the groove,
-the blade short enough for the tightest curve.</li>
+the blade short enough for the tightest curve – allowing for the spindle never pointing exactly
+in the direction of travel.</li>
 <li><b>Align the edge:</b> the tool has a <b>spindle angle</b> at which the edge points to +X –
 measure it on the machine and enter it. The program positions the spindle for each block (Siemens
 SPOS, Heidenhain cycle 13, others M19); GRBL cannot do it and says so.</li>
 <li><b>Milled before:</b> clearing leaves the <b>stock</b> (0.2 mm) on the bottom of this groove –
-only there, other floors come to size. The walls must be finished before planing (otherwise the
-blade does not fit between them): if they still have stock, the block offers “Finish afterwards”.
-Planing only does the bottom; the walls stay as milled.</li>
-<li>The fields: <b>infeed per pass</b> (0.05 mm), <b>stock above the bottom</b>, <b>spring
-passes</b> at final depth.</li>
+only there, other floors come to size. Planing only happens where a cutter has milled the groove
+down to the stock, and only between finished walls: if they still have stock, the block offers
+“Finish afterwards”. After planing, the wall cutter runs along the walls once more inside the stock
+(down to 0.02 mm above the bottom) – the blade cannot get quite up to them.</li>
+<li><b>How the blade moves:</b> straight down only to 0.3 mm above the material, then flat in the
+direction of travel on a straight section into the material and with a steady slope through the
+groove, one infeed deeper per pass; at the end one level pass and the spring passes. If the blade
+is narrower than the groove, it runs several tracks side by side – all of them in each pass, so
+that never more than one infeed stands next to it.</li>
+<li>The fields: <b>infeed per pass</b> (from the tool, cutting data “Planing”; guide value 0.08 mm
+in steel), <b>stock above the bottom</b>, <b>spring passes</b> at final depth.</li>
 </ul>
 <p><b>Caution:</b> how much load the <b>stationary spindle</b> takes is not documented – no
 manufacturer gives a value. Run slowly on the first part (feed override) and keep the infeed

@@ -3168,7 +3168,7 @@ dann messsen ... dann vertigschlichten ... und dann nochmal vertig schlichten ..
   „Leerfahrt nach jedem Schnitt“ aus. Alles einstellbar, auch das Ende.
 - Prüfung `tests/test_gangfolge.py`; im Fenster `tests/gui/szenario_beta_schritte.py`, Schritt 4c.
 
-### 13.10 Dichtnut hobeln – Recherche und Bau (2026-11-14; Schritte 1–5 ohne Assistent gebaut)
+### 13.10 Dichtnut hobeln – Recherche und Bau (2026-11-14; Schritte 1–5 und Assistent gebaut)
 
 Manuel, 2026-11-14: „eine nut in einem deckel die mit einem "stech" oder "scharb" werkzeug sozusagen
 rausgekratzt wird … da man dadurch unten am grund auch ne dichtfläche hinbekommen würde und nicht wie
@@ -3260,10 +3260,27 @@ Daraus (Lesart, nach der gebaut wird):
 4. *Operation und Block* – **Operation gebaut (2026-11-14):** `camaddon/hobeln.py`
    (`DichtnutHobeln`, `lege_an`, `controller` – Spindel „None“, 0 U/min, Vorschub = Hub 6000 mm/min;
    Eigenschaften Zustellung 0,05, Rest 0,2, Aufmaß, Leerumläufe, Satzlänge); Beispielteil
-   `beispiele/dichtnut_deckel.FCStd`. **Offen: der Block im Assistenten** – er braucht einen Einsatz
-   „Hobeln“ fürs Stoßwerkzeug (heute zeigt der Assistent nur Werkzeuge mit Einsätzen). Der Plan: `camaddon/hobeln.py`, Block im Assistenten nach der Nut (Vorbild `_Ringnut`):
-   Die Nut-Strategie schruppt vorher mit Aufmaß an Grund und Flanken; Messstopp und Leerumläufe wie in
-   13.9. Fehlt das Werkzeug: Knopf zum Anlegen.
+   `beispiele/dichtnut_deckel.FCStd`. **Block im Assistenten gebaut (2026-11-14):** `_Hobeln` in
+   `gui_bearbeitung` nach der Ringnut, nie von sich aus angehakt; fehlt ein Stoßwerkzeug, legt es
+   ein Knopf an (mit Richtwerten) und hakt den Block an. Gehobelt wird nur ein Grund, den ein Block
+   davor bis auf den Rest fräst (Räumen lässt ihn nur dort stehen; die Operation prüft es an den
+   Bahnen davor – das Raster-Räumen fährt in den Bögen einer 3 mm breiten Nut nicht hinab, erst die
+   Kontur der Wände deckt sie), und nur zwischen fertigen Wänden. Danach fährt der Fräser der Wände
+   sie unten im Rest nach (bis 0,02 über den Grund): Die Klinge kommt nicht ganz an die Wand.
+   Manuel, 2026-11-14, zur Einfahrt: „Die Einfahrt muss flach passieren also an einem geraden Stück
+   in einer Rampe ins Bauteil also 0.3 mm vor Oberkante anfangen und in Richtung der Nut fahren und
+   dabei auf zustelltiefe runter Fahren...“ – dann: „Ja man kann die Zustellung auch über die
+   komplette Nut machen ist sinnvoller ja auch die erste Zustellung einfach so machen .... Das es
+   sozusagen eine stetiges gefallen durch die Nut geht... Die Zustellung sind ja eh sehr gering je
+   Durchlauf ich glaube 0.08 mm span ist da angesagt beim Nut räumen“ und „Die Zustellung ist ja
+   Werkzeug abhängig ...“. Gebaut: senkrecht bis 0,3 über das Material, in der Luft flach über die
+   erste Hälfte des längsten geraden Stücks bis aufs Material (ohne Gerade: 5 mm vor der flachsten
+   Stelle), von dort stetiges Gefälle Zustellung ÷ Umlauflänge; die Zustellung ist das ap des
+   Einsatzes „Hobeln“ (Richtwert 0,08 in P1 × fz-Faktor der Klasse, höchstens 0,3). Mehrere Spuren
+   je Umlauf im Wechsel, die äußeren bis an die Wände. Die Klinge wird mit dem Schwenk der
+   Steuerungen geprüft, die vor dem Satz drehen (sie bekommen die Mitte zweier Winkel), und mit 0,5°
+   Winkelfehler (Fanuc in ganzen Grad) – der Vorschlag für den Deckel wird dadurch 3,5 × 0,8 statt
+   3,5 × 1,1.
 5. *Programm* – **Grundweg gebaut (2026-11-14):** je Satz der Winkel aus der Notiz „(SPINDEL w)“,
    je Steuerung zwei neue Befehle (`spindel_winkel_vor`: Zeilen vor dem Satz, `spindel_winkel_satz`:
    am Satz), im Fenster „Befehle“ änderbar: Siemens `SPOS=DC(w)` im Bewegungssatz, Heidenhain Zyklus 13
