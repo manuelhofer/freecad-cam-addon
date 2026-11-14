@@ -119,6 +119,11 @@ Nullpunkt (G55). Die Bahn im Job zeigt FreeCAD richtig um das Teil, ein Maschine
 aber nur mit <a href="programm.html">Programm schreiben</a> des Addons – FreeCADs eigene
 Postprozessoren kennen das Schwenken nicht, ein Kommentar vorn in der Bahn sagt das. A in
 Grundstellung (das Rohr liegend auf dem Tisch) steht zuletzt.</li>
+<li>An einer <b>3-Achs-Fräse mit 4. Achse</b> (Beispiel „3-Achs-Fräse mit 4. Achse“ unter
+„Neue Maschine …“: Teilapparat A längs X mit Dreibackenfutter, gegenüber ein Reitstock)
+liegt die Stange längs X im Futter, das Werkzeug kommt von oben. Sie steckt mit der Spannlänge in
+den Backen; „Auf der Maschine prüfen“ legt sie auf die Achse A, die Spannfläche an die Stirn der
+Backen.</li>
 <li>Eine Maschine <b>ohne Rundachse</b> für die Stange (eine 3-Achs-Fräse)
 steht grau da: „… – keine Rundachse für die Stange“.</li>
 <li><b>Ohne Maschine</b> weist du der Stange den Buchstaben selbst zu:
@@ -128,6 +133,24 @@ Werkzeug aus X, wie an einer Drehmaschine mit C-Achse.</li>
 </ul>
 <p>Die Achse der Stange geht durch den Nullpunkt des Jobs. So legt FreeCAD
 spätere Bahnen von selbst richtig um das Teil.</p>
+
+<h3>Mit Reitstock</h3>
+<p>Hat die Maschine einen Reitstock, steht unter der Spannlänge der Haken <b>„Mit Reitstock“</b>.
+Er ist angehakt, wenn die Stange weiter als 3 × ihr Ø aus dem Futter ragt – sonst federt sie unter
+dem Fräser; abschalten oder einschalten geht jederzeit. Mit Reitstock:</p>
+<ul>
+<li>Die Stange ist vorn mindestens <b>10 mm</b> länger: ein Zapfen für die
+<b>Zentrierbohrung DIN 332-1 A 4 × 8,5</b>, in der die Spitze sitzt. Das Einrichtblatt sagt es dem
+Einrichter; nach dem Fräsen sägst du den Zapfen ab.</li>
+<li>Die Bahnen halten <b>Abstand zur Spitze</b> wie zum Futter (das Feld „Abstand zum Futter“ gilt
+für beide): Über Spitze und Pinole (Ø 35) hebt der Fräser ab, der Zapfen bleibt stehen.</li>
+<li><b>„Auf der Maschine prüfen“</b> schiebt den Reitstock an die Stirn der Stange (ein Schritt
+Rückgängig in der Maschine) – Abfahren und Kollision nehmen ihn mit. Ohne Haken fährt er ans Ende,
+aus dem Weg. Reicht er nicht bis an die Stange, sagt ein Satz, um wie viel.</li>
+</ul>
+<p>Der Reitstock einer eigenen Maschine: ein Bauteil an einem Schiebegelenk ohne Betriebsart, darin
+ein LCS „Reitstockspitze“ dort, wo die Stirn der Stange an der Spitze anliegt, seine Z-Achse vom
+Futter weg.</p>
 
 <h3>Schritt 2: kurz gehalten</h3>
 <p>Je Strategie steht ihr Haken, darunter ihr <b>Fräser</b> und ihr Ergebnis (Lagen, Zeit). <b>Werte

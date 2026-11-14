@@ -111,6 +111,10 @@ the job also runs untilted (the front face from above), the tilted setup gets th
 program with the add-on's <a href="programm.html">Write program</a> – FreeCAD's own post processors
 do not know about the tilt, and a comment at the start of the path says so. A in its home position
 (the tube lying on the table) comes last.</li>
+<li>On a <b>3-axis mill with a 4th axis</b> (example “3-axis mill with 4th axis” under “New
+machine …”: an indexing head A along X with a three-jaw chuck, a tailstock opposite) the
+bar lies along X in the chuck and the tool comes from above. It sits in the jaws by the clamping
+length; “Check on machine” puts it on the A axis, the clamping face at the front of the jaws.</li>
 <li>A machine <b>without a rotary axis</b> for the bar (a 3-axis mill) is shown
 greyed out: “… – no rotary axis for the bar”.</li>
 <li><b>Without a machine</b> you assign the letter to the bar yourself:
@@ -120,6 +124,25 @@ from X, like a lathe with a C axis.</li>
 </ul>
 <p>The bar axis runs through the job's origin. That way FreeCAD lays later
 paths correctly around the part by itself.</p>
+
+<h3>With tailstock</h3>
+<p>If the machine has a tailstock, the box <b>“With tailstock”</b> appears below the clamping
+length. It is ticked when the bar sticks out of the chuck more than 3 × its Ø – otherwise it
+springs away under the cutter; you can switch it on or off at any time. With tailstock:</p>
+<ul>
+<li>The bar is at least <b>10 mm</b> longer at the front: a spigot for the <b>centre hole DIN 332-1
+A 4 × 8.5</b> the centre sits in. The setup sheet tells the setter; saw the spigot off after
+milling.</li>
+<li>The toolpaths keep their <b>distance from the centre</b> as from the chuck (the field
+“Chuck distance” applies to both): the cutter lifts over centre and quill (Ø 35), the spigot
+stays.</li>
+<li><b>“Check on machine”</b> slides the tailstock up to the front face of the bar (one undo step in
+the machine) – simulation and collision check take it along. Without the tick it moves to the end,
+out of the way. If it cannot reach the bar, a sentence says by how much.</li>
+</ul>
+<p>The tailstock of your own machine: a part on a slider joint without an operating mode, in it an
+LCS “Reitstockspitze” where the front face of the bar rests against the centre, its Z axis pointing
+away from the chuck.</p>
 
 <h3>Step 2: kept short</h3>
 <p>Each strategy shows its tick, below it its <b>cutter</b> and its result (levels, time). <b>Change

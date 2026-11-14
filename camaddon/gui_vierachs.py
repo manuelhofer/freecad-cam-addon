@@ -1451,7 +1451,7 @@ class VierachsPanel:
         self.haken_reitstock = QtGui.QCheckBox(tr("va.reitstock"))
         self.haken_reitstock.setToolTip(tr("va.reitstock.tooltip"))
         self.haken_reitstock.toggled.connect(self._reitstock_umgeschaltet)
-        self.haken_reitstock.hide()
+        self.haken_reitstock.setVisible(self._maschine_mit_reitstock)
         raster.addWidget(self.haken_reitstock, zeile, 1, 1, 2)
         zeile += 1
         aufbau.addWidget(self.felder)
@@ -2314,7 +2314,8 @@ class VierachsPanel:
         self._maschine_mit_reitstock = isinstance(eintrag, va.Maschinenwahl) and rs.hat_reitstock(
             eintrag.assembly
         )
-        self.haken_reitstock.setVisible(self._maschine_mit_reitstock)
+        if hasattr(self, "haken_reitstock"):  # beim Bauen kommt die Liste vor dem Haken
+            self.haken_reitstock.setVisible(self._maschine_mit_reitstock)
         vorher, self._fuellt = self._fuellt, True
         try:
             self.wahl_achse.clear()
