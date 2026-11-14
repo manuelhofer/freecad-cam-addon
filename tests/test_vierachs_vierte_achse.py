@@ -502,80 +502,177 @@ FreeCAD.closeDocument(doc.Name)
 # Maschine prüfen“ meldete es. Geprüft, mit und ohne Reitstock (T1 Ø 16 mit Halter ER32/SK40):
 # jeder Eilgang mindestens den Sicherheitsabstand vom Fertigteil (der Fräser als Zylinder, je
 # Satz), die Kollision ohne Befund, der Rest wie ohne Reitstock.
-eben = Part.makeCylinder(25.0, 100.0, V(), V(1, 0, 0)).cut(Part.makeBox(40, 60, 30, V(60, -30, 10)))
-eben = eben.removeSplitter()
+# Nacharbeit (Zweifler 2026-11-14): dasselbe neben stehendem ROHTEIL – die Fläche hinten vor dem
+# Futter mit einer Lücke von 30 mm (die letzten mm erreicht der Fräser nicht, dort steht die Stange
+# bis r 25; die Helix begann 0,12 mm daneben, der Eilgang fuhr bis 9 mm unter ihre Oberkante) und
+# eine Welle Ø 40 in der Stange Ø 50 (neben der Fläche steht das Rohteil über dem Teil: 0,145 mm).
+# Je Bahn wird der Weg JEDES Eilgangs (nicht nur sein Ende) gegen das Material gemessen, das dann
+# steht: das Material selbst abgefahren (restmaterial.Stange), vor jedem Eilgang der Fräser um den
+# Sicherheitsabstand größer, die Spitze um ihn tiefer – nimmt er etwas weg, fehlt der Abstand.
+
+
+def flach_oben(welle_r, x0, x1, z):
+    welle = Part.makeCylinder(welle_r, 100.0, V(), V(1, 0, 0))
+    return welle.cut(Part.makeBox(x1 - x0, 80, 40, V(x0, -40, z))).removeSplitter()
+
+
+bahnen = []  # (Bahn, netz, laengs, radial, werte) – je planen() der Prüffälle
+_planen_echt = vp.planen
+
+
+def _planen_gemerkt(netz, laengs, radial, werte, *args, **kw):
+    bahn = _planen_echt(netz, laengs, radial, werte, *args, **kw)
+    bahnen.append((bahn, netz, laengs, radial, werte))
+    return bahn
+
+
+def eilgang_eindringen(bahn, netz, laengs, radial, w, spiel=0.05):
+    """(mm, Punkt): wie weit der um den Sicherheitsabstand größere Fräser auf dem Weg eines
+    Eilgangs höchstens ins Material oder ins Teil eindränge – 0: überall Abstand."""
+    s = float(w.sicherheit) - spiel
+    gross = w.form.mit_aufmass(s)
+    a_vorn = float(w.a_stange_vorne)
+    anzahl = max(2, int(math.ceil((a_vorn - min(float(w.a_futter), a_vorn - 1.0)) / rm.SCHRITT_A)))
+    material = rm.Stange(float(w.stange_radius), a_vorn - anzahl * rm.SCHRITT_A, a_vorn)
+    teil = rm.Stange(float(w.stange_radius) + 80.0, material.a[0], a_vorn + 60.0)
+    teil.r = rm.teilradien(netz, laengs, radial, teil).astype(float)
+
+    def eindringen(stange, von, nach):
+        vorher = stange.r.copy()
+        v, n = np.array(von, dtype=float), np.array(nach, dtype=float)
+        v[1] -= s
+        n[1] -= s
+        stange.fahre_stuecke(v[None, :], n[None, :], gross)
+        weg = vorher - stange.r
+        stange.r = vorher
+        weg = weg[np.isfinite(weg)]
+        return float(weg.max()) if weg.size else 0.0
+
+    schlimmst, vorschub = (0.0, None), []
+    pk = bahn.punkte
+    for k in range(1, len(pk)):
+        p0, p1 = pk[k - 1], pk[k]
+        von, nach = (p0.a, p0.r, p0.phi, p0.q), (p1.a, p1.r, p1.phi, p1.q)
+        if not p1.eilgang:
+            vorschub.append((von, nach))
+            continue
+        if vorschub:
+            material.fahre_stuecke(
+                np.array([x[0] for x in vorschub]), np.array([x[1] for x in vorschub]), w.form
+            )
+            vorschub = []
+        quer = math.hypot(p1.a - p0.a, p1.q - p0.q) + abs(p1.phi - p0.phi)
+        if quer > 1e-6 or p1.r < p0.r - 1e-9:  # senkrecht hinauf ist frei
+            tief = max(eindringen(material, von, nach), eindringen(teil, von, nach))
+            if tief > schlimmst[0]:
+                schlimmst = (tief, k)
+        material.fahre_stuecke(np.array([von]), np.array([nach]), w.form)
+    return schlimmst
+
+
+eben = flach_oben(25.0, 60, 100, 10)
 t1.durchmesser, t1.schneidenlaenge = 16.0, 30.0
-reste = {}
-for mit in (True, False):
-    doc = FreeCAD.newDocument(f"FlaecheVorn{int(mit)}")
-    mit_flaeche = doc.addObject("Part::Feature", "Teil")
-    mit_flaeche.Shape = eben
-    doc.recompute()
-    stirn = next(
-        f for f in eben.Faces if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
-    )
-    lage = vr.berechne(eben, stirn, achse, durchmesser=50)
-    job = vr.richte_ein(doc, mit_flaeche, lage, vr.Stange(50.0, reitstock=mit), achse)
-    tc = job.Tools.Group[0]
-    tc.Tool.Diameter, tc.ToolNumber, tc.HorizFeed, tc.SpindleSpeed = 16, 1, "800 mm/min", 4000
-    modell = vr.modell(job).Shape
-    flaeche = next(
-        f"Face{i + 1}"
-        for i, f in enumerate(modell.Faces)
-        if vr.ist_eben(f) and abs(f.normalAt(0, 0).z - 1.0) < 1e-6 and f.BoundBox.ZMax < 11
-    )
-    plan = vplan.lege_an(
-        job, tc, achse, 4.0, 8.0, aufmass=0.0, flaechen=[flaeche], halter=hl.seitlich(halter)
-    )
-    doc.recompute()
-    sicherheit = float(plan.Sicherheitsabstand)
-    stand, auf_der_flaeche = {"X": 0.0, "Y": 0.0, "Z": 0.0, "A": 0.0}, []
-    naechster = (math.inf, None)
-    for i, b in enumerate(plan.Path.Commands):
-        stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZA"})
-        if b.Name == "G1" and stand["Z"] < 11.0:
-            auf_der_flaeche.append(stand["X"])
-        if b.Name == "G0":
-            dreh = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * stand["A"])
-            spitze = dreh.multVec(V(stand["X"], stand["Y"], stand["Z"]))
-            fraeser = Part.makeCylinder(8.0, 60.0, spitze, dreh.multVec(V(0, 0, 1)))
-            naechster = min(naechster, (fraeser.distToShape(modell)[0], i))
-    print(
-        ascii(
-            f"Plan vorn offen, Reitstock {mit}: G1 auf der Fläche bis X "
-            f"{max(auf_der_flaeche, default=None)}; nächster Eilgang {naechster[0]:.3f} mm "
-            f"vom Teil (Satz {naechster[1]})"
-        )
-    )
-    pruefe(
-        auf_der_flaeche and max(auf_der_flaeche) >= 0.0,
-        f"Reitstock {mit}: Fläche bis X {max(auf_der_flaeche, default=None)}",
-    )
-    pruefe(
-        naechster[0] >= sicherheit - 0.05,
-        f"Reitstock {mit}: Eilgang {naechster[0]:.3f} mm am Teil (Satz {naechster[1]})",
-    )
-    rs.anstellen(asm, ma, job)
-    p = rw.Pruefung(asm, ma)
-    nullpunkt = rw.nullpunkt(job, p)
-    fahrt = ab.abfahrt(p, job, nullpunkt, bib)
-    texte = [b.text() for b in kb.kollision(fahrt, job, nullpunkt, bib).befunde]
-    abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
-    abtrag.bis_station(len(fahrt.stationen) - 1)
-    reste[mit] = abtrag.vergleich()
-    print(
-        ascii(
-            f"  Kollision {texte[:3]}; Rest {reste[mit].kleinster:.3f} … "
-            f"{reste[mit].groesster:.3f} mm"
-        )
-    )
-    pruefe(not texte, f"Plan vorn offen, Reitstock {mit}: {texte[:3]}")
-    pruefe(reste[mit].kleinster > -rm.BLAU_AB, f"ins Teil: {reste[mit].kleinster:.3f} mm")
-    FreeCAD.closeDocument(doc.Name)
-pruefe(
-    abs(reste[True].groesster - reste[False].groesster) < 0.05,
-    f"Rest mit Reitstock bis {reste[True].groesster:.3f}, ohne {reste[False].groesster:.3f}",
+FAELLE = (
+    # Name, Teil, Stange, Lücke hinten vor dem Futter
+    ("vorn offen", eben, 50.0, 0.0),
+    ("hinten mit Lücke", flach_oben(25.0, 0, 40, 10), 50.0, 30.0),
+    ("Welle Ø 40 in Ø 50", flach_oben(20.0, 30, 70, 10), 50.0, 0.0),
 )
+vp.planen = _planen_gemerkt
+reste = {}
+for name, teilform, durchmesser, luecke in FAELLE:
+    for mit in (True, False):
+        doc = FreeCAD.newDocument(f"Flaeche{len(reste)}")
+        mit_flaeche = doc.addObject("Part::Feature", "Teil")
+        mit_flaeche.Shape = teilform
+        doc.recompute()
+        stirn = next(
+            f
+            for f in teilform.Faces
+            if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+        )
+        lage = vr.berechne(teilform, stirn, achse, durchmesser=durchmesser)
+        stange = vr.Stange(durchmesser, reitstock=mit, frei_hinten=luecke)
+        job = vr.richte_ein(doc, mit_flaeche, lage, stange, achse)
+        tc = job.Tools.Group[0]
+        tc.Tool.Diameter, tc.ToolNumber, tc.HorizFeed, tc.SpindleSpeed = 16, 1, "800 mm/min", 4000
+        modell = vr.modell(job).Shape
+        flaeche = next(
+            f"Face{i + 1}"
+            for i, f in enumerate(modell.Faces)
+            if vr.ist_eben(f) and abs(f.normalAt(0, 0).z - 1.0) < 1e-6 and f.BoundBox.ZMax < 11
+        )
+        bahnen.clear()
+        plan = vplan.lege_an(
+            job, tc, achse, 4.0, 8.0, aufmass=0.0, flaechen=[flaeche], halter=hl.seitlich(halter)
+        )
+        doc.recompute()
+        sicherheit = float(plan.Sicherheitsabstand)
+        stand, auf_der_flaeche = {"X": 0.0, "Y": 0.0, "Z": 0.0, "A": 0.0}, []
+        naechster = (math.inf, None)
+        for i, b in enumerate(plan.Path.Commands):
+            stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZA"})
+            if b.Name == "G1" and stand["Z"] < 11.0:
+                auf_der_flaeche.append(stand["X"])
+            if b.Name == "G0":
+                dreh = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * stand["A"])
+                spitze = dreh.multVec(V(stand["X"], stand["Y"], stand["Z"]))
+                fraeser = Part.makeCylinder(8.0, 60.0, spitze, dreh.multVec(V(0, 0, 1)))
+                naechster = min(naechster, (fraeser.distToShape(modell)[0], i))
+        tief = max(
+            (eilgang_eindringen(*eintrag) for eintrag in bahnen),
+            key=lambda t: t[0],
+            default=(0.0, None),
+        )
+        print(
+            ascii(
+                f"Plan {name}, Reitstock {mit}: G1 auf der Fläche bis X "
+                f"{max(auf_der_flaeche, default=None)}; nächster Eilgang {naechster[0]:.3f} mm "
+                f"vom Teil (Satz {naechster[1]}); Eilgang ins Material/Teil {tief[0]:.3f} mm "
+                f"(Punkt {tief[1]}, {len(bahnen)} Bahnen)"
+            )
+        )
+        pruefe(bahnen, f"{name}, Reitstock {mit}: planen() nicht gerufen")
+        if name == "vorn offen":
+            pruefe(
+                auf_der_flaeche and max(auf_der_flaeche) >= 0.0,
+                f"Reitstock {mit}: Fläche bis X {max(auf_der_flaeche, default=None)}",
+            )
+        pruefe(
+            naechster[0] >= sicherheit - 0.05,
+            f"{name}, Reitstock {mit}: Eilgang {naechster[0]:.3f} mm am Teil (Satz {naechster[1]})",
+        )
+        pruefe(
+            tief[0] <= 0.05,
+            f"{name}, Reitstock {mit}: Eilgang {tief[0]:.3f} mm zu nah am Material "
+            f"(Punkt {tief[1]})",
+        )
+        rs.anstellen(asm, ma, job)
+        p = rw.Pruefung(asm, ma)
+        nullpunkt = rw.nullpunkt(job, p)
+        fahrt = ab.abfahrt(p, job, nullpunkt, bib)
+        texte = [b.text() for b in kb.kollision(fahrt, job, nullpunkt, bib).befunde]
+        abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
+        abtrag.bis_station(len(fahrt.stationen) - 1)
+        reste[name, mit] = abtrag.vergleich()
+        print(
+            ascii(
+                f"  Kollision {texte[:3]}; Rest {reste[name, mit].kleinster:.3f} … "
+                f"{reste[name, mit].groesster:.3f} mm"
+            )
+        )
+        pruefe(not texte, f"Plan {name}, Reitstock {mit}: {texte[:3]}")
+        pruefe(
+            reste[name, mit].kleinster > -rm.BLAU_AB,
+            f"{name}: ins Teil {reste[name, mit].kleinster:.3f} mm",
+        )
+        FreeCAD.closeDocument(doc.Name)
+    pruefe(
+        abs(reste[name, True].groesster - reste[name, False].groesster) < 0.05,
+        f"{name}: Rest mit Reitstock bis {reste[name, True].groesster:.3f}, ohne "
+        f"{reste[name, False].groesster:.3f}",
+    )
+vp.planen = _planen_echt
 FreeCAD.closeDocument(asm.Document.Name)
 
 # --- Die allgemeine Prüfung der Eilgänge (B-038, vierachs_planbahn._eilgaenge_sichern) ----------
@@ -625,6 +722,42 @@ pruefe(
 )
 nichts, null = vp._eilgaenge_sichern(roh[:2], tiefst_wand)
 pruefe(null == 0 and nichts == roh[:2], "Eilgang in der Höhe 30 geändert")
+
+# --- Das Material über der Fläche für die Eilgänge (B-038 Nacharbeit, vierachs_planbahn._Stand) ---
+# Stange Ø 50, Stirn bei a 0, Schaftfräser Ø 16, Sicherheitsabstand 2. Drei Zeilen (q −8, 0, 8)
+# von a −10 bis −50 auf 15 gefräst: Darüber darf der Eilgang bis 15 + Sicherheit; die Stange vor
+# dem Ende der Zeilen (ab a −2) steht noch bis 25 – an a −11 ist sie 1 + 8 mm weg, der Eilgang
+# bleibt um √(1,99² − 1²) über ihr (das Raster bis 0,15 mm mehr, zur sicheren Seite: Eine Zelle,
+# die der Fräser nur zum Teil geräumt hat, steht ganz); an a −13 sieht er sie nicht mehr. Vor der
+# Stange (a ≥ R + s) steht nichts, auf einem anderen Winkel gilt das Raster nicht.
+from camaddon import fraeserform as ff  # noqa: E402
+
+w_stand = vp.Planwerte(
+    form=ff.scheibe(8.0), stange_radius=25.0, zustellung=4.0, zeilenabstand=8.0, aufmass=0.0,
+    a_stange_vorne=0.0, a_futter=-80.0, sicherheit=2.0,
+)  # fmt: skip
+ebene_0 = vp.Ebene("Face1", 0.0, 10.0, -20.0, 0.0, -20.0, 20.0)
+st = vp._Stand(w_stand, ebene_0, -60.0, -40.0, 40.0)
+s_e = 2.0 - vp.EILGANG_SPIEL
+vorher = float(st.tiefst([-30.0], [0.0], [0.0])[0])
+pruefe(abs(vorher - (25.0 + s_e)) < 0.02, f"Stand: über der Stange {vorher:.3f}")
+pruefe(
+    st.tiefst([10.0], [0.0], [0.0])[0] == -math.inf
+    and st.tiefst([-30.0], [0.0], [90.0])[0] == -math.inf,
+    "Stand: vor der Stange oder auf einem anderen Winkel steht etwas",
+)
+for q_z in (-8.0, 0.0, 8.0):
+    st.abtragen(
+        [P(True, -10.0, 30.0, 0.0, q=q_z), P(False, -10.0, 15.0, 0.0, True, q_z),
+         P(False, -50.0, 15.0, 0.0, q=q_z)],
+        1,
+    )  # fmt: skip
+werte_st = [float(x) for x in st.tiefst([-30.0, -13.0, -11.0], [0.0, 0.0, 0.0], [0.0] * 3)]
+soll_st = [15.0 + s_e, 15.0 + s_e, 25.0 + math.sqrt(s_e**2 - 1.0)]
+pruefe(
+    all(y - 0.01 <= x <= y + 0.15 for x, y in zip(werte_st, soll_st, strict=True)),
+    f"Stand nach den Zeilen: {werte_st}, soll {soll_st}",
+)
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

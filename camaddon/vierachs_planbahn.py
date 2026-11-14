@@ -40,12 +40,15 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   beginnt, sonst über die Rampe mit dem Eintauchwinkel längs der Zeile.
 - **Eilgang mit Abstand** (B-038; Manuel: ein Eilgang nie im oder dicht am Material, im Freien
   schnell): Ein Eilgang hinab hält den Sicherheitsabstand auch seitlich zu Teil, Schutz vor dem
-  Reitstock und Material (_frei_ab: der Fräser um ihn größer gegen das Teil, darüber was noch
-  steht). In der Luft taucht die Zeile so weit draußen ein, dass das reicht (_hinaus) – ganz vor
-  der Stange im Eilgang bis den Sicherheitsabstand über die Lage –, die Helix beginnt an einer
-  Stelle ihres Kreises, an der es reicht (_helix_anfangen); sonst fährt der Rest im
-  Eintauchvorschub. Zuletzt prüft _eilgaenge_sichern jeden Eilgang der Bahn gegen das Teil. An
-  der Welle mit Reitstock tauchte die Helix bis 0.379 im Eilgang 0,37 mm neben der Schulter ein.
+  Reitstock und Material (_frei_ab: der Fräser um ihn größer gegen das Teil, dazu das Material
+  im Umkreis Fräserradius + Sicherheitsabstand, Fahrt für Fahrt im Raster _Stand – auch das
+  Rohteil hinter dem Ende der Zeilen und neben der Fläche). In der Luft taucht die Zeile so weit
+  draußen ein, dass das reicht (_hinaus) – ganz vor der Stange im Eilgang bis den
+  Sicherheitsabstand über die Lage –, die Helix beginnt an einer Stelle ihres Kreises, an der es
+  reicht (_helix_anfangen); sonst fährt der Rest im Eintauchvorschub. Die allgemeine Prüfung
+  _eilgaenge_sichern sieht jede Fahrt gegen das Material vor ihr durch, am Ende die ganze Bahn
+  gegen das Teil. An der Welle mit Reitstock tauchte die Helix bis 0.379 im Eilgang 0,37 mm neben
+  der Schulter ein, neben stehendem Rohteil bis 0,12 mm.
 - **Stiche von der offenen Seite** (Planwerte.weg, P-2026-10-12-146; Manuel, 2026-10-12: „fährt
   mir der Fräser in einem Zickzack-Eintauch ins Teil … aber für was? außenrum ist alles frei …
   so dass er D's fährt“): Statt der Zeilen räumt das 3-Achs-Räumen (raeumen_bahn, Variante
@@ -415,7 +418,7 @@ class Planbahn:
     seiten: int = 0  # mit dem Bohrer: von so vielen Seiten gebohrt
     mantelnuten: int = 0  # so viele Flächen davon als Nut auf dem Mantel (Rundachse dreht)
     # So viele Eilgänge hat die allgemeine Prüfung (_eilgaenge_sichern) geändert: Sie kamen dem
-    # Teil näher als den Sicherheitsabstand.
+    # Teil oder dem Material näher als den Sicherheitsabstand.
     eilgaenge_gesichert: int = 0
 
 
@@ -1388,6 +1391,7 @@ def planen(
         return roh_e + abstand_e
 
     ungeprueft = []  # (von, bis) der Punkte, die _eilgaenge_sichern auslässt
+    gesichert_material = 0  # so viele Eilgänge kamen dem Material zu nah (je Fahrt geprüft)
     punkte = [vb.Punkt(True, a_anfang, sicher, 0.0)]
     lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = bohrungen_gefraest = 0
     r_min = math.inf
@@ -1450,8 +1454,12 @@ def planen(
             )
             if kombi is not None:
                 erster = kombi.punkte[0]
+                beginn = len(punkte)
                 _eilgang(punkte, erster.a, sicher, ebene.phi, erster.q)
                 punkte.extend(kombi.punkte[1:])
+                stueck, mehr = _im_stand_sichern(punkte[beginn:], punkte[beginn - 1], w, ebene)
+                punkte[beginn:] = stueck
+                gesichert_material += mehr
                 flaechen_gefraest += 2  # die Ebene und die Stirnseite
                 lagen_gesamt += kombi.lagen
                 zeilen_gesamt += kombi.zuege
@@ -1467,6 +1475,8 @@ def planen(
         als_nut = _als_nut(nuten_.get(ebene.name, []) if nuten_ else [], radius)
         if als_nut:
             stueck, nut = _nut_punkte(als_nut, ebene, w, oben, sicher)
+            stueck, mehr = _im_stand_sichern(stueck, punkte[-1], w, ebene)
+            gesichert_material += mehr
             punkte.extend(stueck)
             letzter = punkte[-1]
             punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
@@ -1482,6 +1492,8 @@ def planen(
             )
             if stiche is not None:
                 stueck, raeumbahn = stiche
+                stueck, mehr = _im_stand_sichern(stueck, punkte[-1], w, ebene)
+                gesichert_material += mehr
                 punkte.extend(stueck)
                 letzter = punkte[-1]
                 punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
@@ -1561,6 +1573,10 @@ def planen(
         # nichts über `vorige` steht (am Drehteil fuhr ihr Eilgang sonst neben der Zeile, wo die
         # Stange noch rund stand, ins Material).
         stand = np.array(oben_grob, dtype=float)
+        # Das Material über der Fläche, Fahrt für Fahrt (_Stand) – für die Eilgänge hinab: so weit
+        # um das Feld, wie der Fräser mit dem Sicherheitsabstand reicht.
+        weit_e = radius + w.sicherheit + 1.0
+        stand_e = _Stand(w, ebene, a_von - weit_e, ebene.q_von - weit_e, ebene.q_bis + weit_e)
         for lage in lagen:
             schlichtlage = lage is None
             if schlichtlage:  # auf der Fläche, mit dem feinen Zeilenabstand
@@ -1720,11 +1736,9 @@ def planen(
                     None if schlichtlage else stand,
                     lage_a,
                 )
-                frei_ab = _frei_ab(
-                    teil_tiefst, ebene.phi, w, radius, (q_zeilen, a_von, schritt),
-                    (None if schlichtlage else stand, geraeumt, lage_a),
-                )  # fmt: skip
+                frei_ab = _frei_ab(teil_tiefst, stand_e, ebene.phi)
                 for a, q, m, offen in folge:
+                    beginn = len(punkte)
                     r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
                     ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
                     _einfahrt(
@@ -1736,6 +1750,14 @@ def planen(
                             vb.Punkt(False, float(a[i]), float(r[i]), ebene.phi, q=float(q[i]))
                         )
                     punkte.append(vb.Punkt(True, float(a[-1]), sicher, ebene.phi, q=float(q[-1])))
+                    # Die allgemeine Prüfung der Eilgänge gegen das Material, das vor dieser Fahrt
+                    # steht (das Teil prüft sie am Ende für die ganze Bahn); danach ist weg, wo
+                    # die Fahrt fräste.
+                    stueck, mehr = _im_stand_sichern(
+                        punkte[beginn:], punkte[beginn - 1], w, ebene, stand_e
+                    )
+                    punkte[beginn:] = stueck
+                    gesichert_material += mehr
                     zeilen_gesamt += len(set(m[m >= 0].tolist()))
                     r_min = min(r_min, float(np.min(r)))
             lagen_gesamt += 1
@@ -1759,7 +1781,7 @@ def planen(
         huebe,
         seiten_gebohrt,
         mantel_gefraest,
-        gesichert,
+        gesichert + gesichert_material,
     )
 
 
@@ -2106,48 +2128,180 @@ def _eilgaenge_sichern(punkte, tiefst, ohne=()):
     return sauber, len(schlecht)
 
 
-def _frei_ab(teil_tiefst, phi, w, radius, raster, stand_jetzt):
-    """frei_ab(a, q) für die Einfahrten einer Lage: so tief darf ein Eilgang an den Stellen
-    (a, q) hinab – den Sicherheitsabstand zum Teil mit dem Schutz (`teil_tiefst`) und über dem
-    Material, das dort noch steht. `raster`: (q der Zeilen, a der ersten Stelle, Schritt längs);
-    `stand_jetzt`: (je Zeile und Stelle, was nach den Lagen davor steht – höchstens unter der
-    Stirn; None in der Schlichtlage: dort steht nur noch die Lage –, wo in dieser Lage schon
-    geräumt ist, die Höhe der Lage je Stelle). Je Stelle zählen
-    wie in _im_feld die beiden Zeilen daneben und die Stellen davor und danach; vor der Stange
-    (der Fräser mit dem Sicherheitsabstand ganz davor) steht nichts, außerhalb des Rasters sonst
-    die Stange."""
-    q_zeilen, a_von, schritt = raster
-    stand, geraeumt, lage_a = stand_jetzt
-    q_zeilen = np.asarray(q_zeilen, dtype=float)
+# mm – so fein führt _Stand das Material über einer Fläche (wie die Zeilen längs, SCHRITT_A)
+STAND_RASTER = vh.SCHRITT_A
+
+
+class _Stand:
+    """Das Material über einer Fläche, im Rahmen der Fläche (a längs, q quer, die Höhe zum
+    Fräser), für die Eilgänge (B-038, Zweifler 2026-11-14): je Zelle des Rasters (STAND_RASTER)
+    das Höchste, was darin steht – anfangs die Stange oder der Rest nach dem Schruppen
+    (_stand_im_rahmen), nach jeder Fahrt gesenkt, wo der Fräser durch ist (abtragen). Das
+    Raster der Zeilen (je Zeile, was unter der Stirn steht) sah nur die Zelle unter der Spitze:
+    Neben einer Wand aus Rohteil – hinter dem Ende der Zeilen vor dem Futter, eine Schulter, wo
+    die Welle dünner ist als die Stange – begann die Helix 0,12 bis 0,37 mm daneben, der Eilgang
+    fuhr bis 9 mm unter ihre Oberkante. Zur sicheren Seite: Eine Zelle gilt als geräumt, wenn sie
+    ganz in der ebenen Stirn lag; ihr Abstand ist der ihres nächsten Punkts; die letzte Zelle
+    längs endet an der Stirn der Stange, davor steht nichts."""
+
+    def __init__(self, w, ebene, a_hinten, q_von, q_bis):
+        g = STAND_RASTER
+        self.w, self.phi, self.g = w, float(ebene.phi), g
+        self.radius = float(w.form.radius)
+        self.abstand = max(w.sicherheit - EILGANG_SPIEL, 0.0)
+        a_vorn = float(w.a_stange_vorne)
+        anzahl_a = max(2, int(math.ceil((a_vorn - a_hinten) / g - 1e-9)) + 1)
+        self.a = a_vorn - g * np.arange(anzahl_a - 1, -1, -1, dtype=float)
+        anzahl_q = max(2, int(math.ceil((q_bis - q_von) / g - 1e-9)) + 1)
+        self.q = q_von + g * np.arange(anzahl_q, dtype=float)
+        # je Zelle das Höchste: an ihrer Mitte und ihren Rändern quer (am Rand der Stange fällt
+        # sie auf einer Zelle bis 2 mm)
+        self.h = np.max(
+            [_stand_im_rahmen(w, ebene, self.a, -(self.q + d)) for d in (-g / 2, 0.0, g / 2)],
+            axis=0,
+        )
+        self.a_lo = self.a - g / 2
+        self.a_hi = np.minimum(self.a + g / 2, a_vorn)
+        # geräumt nur, was ganz in der ebenen Stirn lag (alle vier Ecken der Zelle: Das Stück ist
+        # ein Langloch, konvex). Mit der Mitte der Zelle um eine halbe Diagonale enger tauchte die
+        # Nase 0,5 mm weiter draußen ein: Hinter dem Ende der Zeilen blieb eine Zelle stehen, die
+        # der Fräser ganz geräumt hatte.
+        self.klar = float(ebener_radius(w.form))
+
+    def _hier(self, phi):
+        return abs((float(phi) - self.phi + 180.0) % 360.0 - 180.0) <= 1e-6
+
+    def tiefst(self, pa, pq, pphi):
+        """Je Stelle (a, q, φ): so tief darf die Spitze im Eilgang hinab – den Sicherheitsabstand
+        über und neben allem, was dort steht (der Fräser als Zylinder, um ihn größer wie von einer
+        Kugel abgerollt); −inf, wo nichts steht oder φ nicht die Fläche ist."""
+        pa = np.atleast_1d(np.asarray(pa, dtype=float))
+        pq = np.atleast_1d(np.asarray(pq, dtype=float))
+        pphi = np.broadcast_to(np.asarray(pphi, dtype=float), pa.shape)
+        g, s, rad = self.g, self.abstand, self.radius
+        weit = rad + s
+        rs = float(self.w.stange_radius)
+        a_vorn = float(self.a_hi[-1])
+        ergebnis = np.full(len(pa), -math.inf)
+        stellen = zip(pa.tolist(), pq.tolist(), pphi.tolist(), strict=True)
+        for k, (a_k, q_k, phi_k) in enumerate(stellen):
+            if not self._hier(phi_k) or a_k - weit >= a_vorn:
+                continue
+            i0 = max(int(math.floor((a_k - weit - self.a[0]) / g)), 0)
+            i1 = min(int(math.ceil((a_k + weit - self.a[0]) / g)) + 1, len(self.a))
+            j0 = max(int(math.floor((q_k - weit - self.q[0]) / g)), 0)
+            j1 = min(int(math.ceil((q_k + weit - self.q[0]) / g)) + 1, len(self.q))
+            hoch = -math.inf
+            if i1 > i0 and j1 > j0:
+                da = np.maximum(self.a_lo[i0:i1] - a_k, a_k - self.a_hi[i0:i1])
+                da = np.maximum(da, 0.0)[:, None]
+                dq = np.maximum(np.abs(self.q[j0:j1] - q_k) - g / 2, 0.0)[None, :]
+                d = np.hypot(da, dq)
+                h = self.h[i0:i1, j0:j1]
+                nah = (d < weit) & np.isfinite(h)
+                if nah.any():
+                    ueber = np.sqrt(np.maximum(s * s - np.maximum(d[nah] - rad, 0.0) ** 2, 0.0))
+                    hoch = float(np.max(h[nah] + ueber))
+            # Reicht der Kreis über das Raster hinaus (nicht vorgesehen), steht dort die Stange.
+            if a_k - weit < self.a_lo[0]:
+                hoch = max(hoch, rs + s)
+            for rand_von, rand_bis in (
+                (q_k - weit, self.q[0] - g / 2),
+                (self.q[-1] + g / 2, q_k + weit),
+            ):
+                if rand_von < rand_bis:
+                    nahe = min(max(0.0, rand_von), rand_bis)
+                    if abs(nahe) < rs:
+                        hoch = max(hoch, math.sqrt(rs * rs - nahe * nahe) + s)
+            ergebnis[k] = hoch
+        return ergebnis
+
+    def abtragen(self, punkte, von):
+        """Senkt das Material, wo der Fräser in `punkte[von:]` (im Vorschub, auf dieser Fläche)
+        durch ist: je Stück die Zellen, die ganz in seiner ebenen Stirn lagen, auf die Höhe der
+        Spitze dort (senkrecht: die tiefste)."""
+        g, klar = self.g, self.klar
+        if klar <= 0:
+            return
+        for k in range(max(von, 1), len(punkte)):
+            p0, p1 = punkte[k - 1], punkte[k]
+            if p1.eilgang or not (self._hier(p0.phi) and self._hier(p1.phi)):
+                continue
+            i0 = max(int(math.floor((min(p0.a, p1.a) - klar - self.a[0]) / g)), 0)
+            i1 = min(int(math.ceil((max(p0.a, p1.a) + klar - self.a[0]) / g)) + 1, len(self.a))
+            j0 = max(int(math.floor((min(p0.q, p1.q) - klar - self.q[0]) / g)), 0)
+            j1 = min(int(math.ceil((max(p0.q, p1.q) + klar - self.q[0]) / g)) + 1, len(self.q))
+            if i1 <= i0 or j1 <= j0:
+                continue
+            da, dq = p1.a - p0.a, p1.q - p0.q
+            laenge2 = da * da + dq * dq
+            drin, hoehe = True, -math.inf
+            for ga in (self.a_lo[i0:i1, None], self.a_hi[i0:i1, None]):
+                for gq in (self.q[None, j0:j1] - g / 2, self.q[None, j0:j1] + g / 2):
+                    if laenge2 < 1e-12:  # senkrecht: die tiefste Höhe
+                        t, h_ecke = 0.0, min(p0.r, p1.r)
+                    else:  # schräg: je Ecke die Höhe der Spitze an der nächsten Stelle, die höchste
+                        t = np.clip(((ga - p0.a) * da + (gq - p0.q) * dq) / laenge2, 0.0, 1.0)
+                        h_ecke = p0.r + t * (p1.r - p0.r)
+                    abst2 = (p0.a + t * da - ga) ** 2 + (p0.q + t * dq - gq) ** 2
+                    drin = drin & (abst2 <= klar * klar + 1e-9)
+                    hoehe = np.maximum(hoehe, h_ecke)
+            feld = self.h[i0:i1, j0:j1]
+            np.minimum(feld, np.where(drin, hoehe, math.inf), out=feld)
+
+
+def _frei_ab(teil_tiefst, stand_e, phi):
+    """frei_ab(a, q) für die Einfahrten auf der Fläche mit dem Winkel `phi`: so tief darf ein
+    Eilgang an den Stellen (a, q) hinab – den Sicherheitsabstand zum Teil mit dem Schutz
+    (`teil_tiefst`) und zu allem Material, das im Umkreis Fräserradius + Sicherheitsabstand
+    noch steht (`stand_e`, _Stand: auch das Rohteil hinter dem Ende der Zeilen und neben der
+    Fläche)."""
 
     def frei_ab(pa, pq):
         pa = np.atleast_1d(np.asarray(pa, dtype=float))
         pq = np.atleast_1d(np.asarray(pq, dtype=float))
-        tief = np.asarray(teil_tiefst(pa, pq, phi), dtype=float)
-        if stand is None:  # die Schlichtlage: darüber ist alles weg, bis auf die Lage
-            jetzt = np.broadcast_to(lage_a[None, :], geraeumt.shape)
-        else:
-            jetzt = np.where(geraeumt, np.minimum(stand, lage_a[None, :]), stand)
-        anzahl = jetzt.shape[1]
-        material = np.empty(len(pa))
-        for i, (a_i, q_i) in enumerate(zip(pa.tolist(), pq.tolist(), strict=True)):
-            if a_i - radius - w.sicherheit >= w.a_stange_vorne - EILGANG_GENAU:
-                material[i] = -math.inf  # vor der Stange, mit Abstand: Luft
-                continue
-            if a_i - radius >= w.a_stange_vorne - EILGANG_GENAU:
-                material[i] = w.stange_radius  # der Rand dicht vor ihrer Stirn
-                continue
-            rechts = min(int(np.searchsorted(q_zeilen, q_i - vb.GLEICH)), len(q_zeilen) - 1)
-            links = rechts if abs(q_zeilen[rechts] - q_i) <= vb.GLEICH else max(rechts - 1, 0)
-            k = (a_i - a_von) / schritt
-            stellen = {int(math.floor(k + 1e-9)), int(math.ceil(k - 1e-9))}
-            if not all(0 <= s < anzahl for s in stellen):
-                material[i] = w.stange_radius
-                continue
-            material[i] = max(float(jetzt[z, s]) for z in {links, rechts} for s in stellen)
-        return np.maximum(tief, material + max(w.sicherheit, 0.0))
+        winkel = np.full(len(pa), float(phi))
+        return np.maximum(
+            np.asarray(teil_tiefst(pa, pq, phi), dtype=float), stand_e.tiefst(pa, pq, winkel)
+        )
 
     return frei_ab
+
+
+def _im_stand_sichern(stueck, davor, w, ebene, stand_e=None):
+    """Die allgemeine Prüfung der Eilgänge (_eilgaenge_sichern) gegen das Material (B-038,
+    Zweifler 2026-11-14: auch das Rohteil, nicht nur das Teil): Die Punkte `stueck` nach `davor`
+    der Reihe nach – vor jedem Eilgang ist weg, was die Vorschübe davor gefräst haben
+    (_Stand.abtragen), der Eilgang hält den Sicherheitsabstand zu dem, was dann steht. `stand_e`:
+    das Material über der Fläche `ebene` (_Stand, je Fahrt der Zeilen weitergeführt); ohne aus der
+    Stange oder dem Rest, so weit die Punkte reichen. Gibt (Punkte, so viele Eilgänge geändert)."""
+    stueck = list(stueck)
+    if stand_e is None:
+        auf = [p for p in stueck if abs((p.phi - ebene.phi + 180.0) % 360.0 - 180.0) <= 1e-6]
+        if not auf:
+            return stueck, 0
+        weit = float(w.form.radius) + w.sicherheit + 1.0
+        stand_e = _Stand(
+            w, ebene, min(p.a for p in auf) - weit, min(p.q for p in auf) - weit,
+            max(p.q for p in auf) + weit,
+        )  # fmt: skip
+    neu, geaendert, abgetragen, i = [davor], 0, 1, 0
+    while i < len(stueck):
+        if not stueck[i].eilgang:
+            neu.append(stueck[i])
+            i += 1
+            continue
+        j = i
+        while j < len(stueck) and stueck[j].eilgang:
+            j += 1
+        stand_e.abtragen(neu, abgetragen)  # was die Vorschübe davor gefräst haben
+        gesichert, mehr = _eilgaenge_sichern([neu[-1], *stueck[i:j]], stand_e.tiefst)
+        geaendert += mehr
+        abgetragen = len(neu)  # der Rest im Vorschub, den die Prüfung eingefügt hat, zählt mit
+        neu.extend(gesichert[1:])
+        i = j
+    stand_e.abtragen(neu, abgetragen)
+    return neu[1:], geaendert
 
 
 def _hinaus(a, q, lage, knapp, w, feld, frei_ab):
