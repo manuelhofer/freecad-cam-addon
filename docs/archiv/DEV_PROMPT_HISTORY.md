@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-05 hobeln-uebergabe-und-m5
+
+### EINGELESEN
+- Zweifler des Hobel-Workflows: „Werkzeugübergabe: KeyError 'hobeln' – Anlegen scheitert für alle
+  Strategien, sobald ein Stoßwerkzeug Schnittwerte „Hobeln“ für alle Werkstoffe hat“ (seit 0.376.0).
+- Bericht zur Tisch/Tisch: am Programmende M5 doppelt.
+
+### DATEIEN
+- `camaddon/uebergabe_werkzeuge.py`, `camaddon/postprozessor.py`; `tests/test_hobeln.py`,
+  `tests/test_postprozessor.py`; `package.xml` 0.376.1.
+
+### ERGEBNIS
+- Der Einsatz „Hobeln“ kommt nicht mehr in FreeCADs Presets (die Spindel steht); nachgestellt: ohne die
+  Korrektur scheitert test_hobeln, mit ihr grün.
+- M5 am Programmende nur einmal, vor dem Weg zum Wechselpunkt (alle Steuerungen).
+- Geprüft: test_hobeln, test_uebergabe_werkzeuge, test_postprozessor, test_programm_pruefen, test_schwenken,
+  test_vierachs_geschwenkt.
 ## P-2026-11-15-04 rohr-im-futter-auf-dem-rundtisch
 
 ### EINGELESEN

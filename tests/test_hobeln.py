@@ -208,6 +208,12 @@ if not profil_ordner or not FreeCAD.getUserAppDataDir().startswith(profil_ordner
     raise AssertionError("Kein Testprofil – die Werkzeugverwaltung würde überschrieben.")
 stoss = wz.Werkzeug(nummer=9, art=wz.STOSSWERKZEUG, name="Hobel 2,6", schneidenbreite=2.6,
                     klingenlaenge=2.0, spindelwinkel=30.0, stechtiefe=4.0)  # fmt: skip
+# Mit Richtwerten (Einsatz „Hobeln“): Die Übergabe an FreeCAD darf daran nicht scheitern (bis 0.376.0
+# KeyError – dann scheiterte das Anlegen für alle Strategien).
+from camaddon import werkzeugkiste as wk  # noqa: E402
+
+wk.richtwerte_eintragen(stoss)
+stoss.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.HOBELN, ap=0.05, vc=6.0)]
 bibliothek = wz.Bibliothek([stoss])
 bibliothek.speichern()
 ue.uebergeben(bibliothek)
