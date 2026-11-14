@@ -33,3 +33,13 @@ Steht nichts am Werkzeug, rechnet das Addon die Klinge als Rechteck (0°) – si
 Welchen Winkel haben deine Klingen üblicherweise? Dann belegt der Knopf „Stoßwerkzeug … anlegen“ ihn vor.
 *Warum nur Manuel:* Wie seine Klingen hinten geschliffen sind, steht in keinem Modell.
 *Was die Antwort ändert:* die Vorgabe beim Anlegen eines Stoßwerkzeugs (bis dahin 0° – ein Rechteck).
+
+## 3. Bohrung in zwei Schnitten: wo kommen Messstopp und zweiter Schnitt hin? (seit 2026-11-14)
+
+**Die Frage:** „Weiter bearbeiten“ → „Löcher“ legt jetzt mit „In zwei gleichen Schnitten“ an: Bohrung
+fräsen (Wand 0,15) → Leerfahrt → Messstopp (Ø 29,7) → Bohrung auf Maß → Leerfahrt. Diese Folge hängt
+heute **hinten am Job**, also nach Senken und Gewinde aus demselben Schritt (wie beim Schlichten).
+(a) so lassen – weniger Werkzeugwechsel; oder (b) direkt hinter „Bohrung fräsen“ – die Bohrung ist fertig
+und gemessen, bevor gesenkt wird, dafür ein Werkzeugwechsel mehr. Empfehlung: (b).
+*Warum nur Manuel:* Reihenfolge an der Maschine ist Werkstattpraxis.
+*Was die Antwort ändert:* wo „Anlegen“ die Folge einsortiert. Bis zur Antwort: (a).

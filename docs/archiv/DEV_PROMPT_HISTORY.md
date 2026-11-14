@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-12 zwei-schnitte-bohrung-nut
+
+### EINGELESEN
+- Manuel, 2026-11-14 (Frage 1, P-2026-11-14-06): „a <-- aber es muss auch die möglichkeit geben das man
+  leerfahrten eingeben kann … erstes vorschlichten ... und danach nochmal erstes vorschlichten .... dann
+  messsen ... dann vertigschlichten ... und dann nochmal vertig schlichten …“; STATUS: offen „Bohrung
+  fräsen und die Nut als zwei gleiche Schnitte“.
+
+### DATEIEN
+- `camaddon/bohrung.py`, `bohrung_bahn.py` (Schlichtrest, NurSchlichten), `nut.py`, `nut_bahn.py`
+  (Schlichtrest, schlichtzug), `leerfahrt.py`, `gangfolge.py` (teilen, davor_messen, ist_bohrungsgang),
+  `gui_bearbeitung_beta.py` (Weiter-Frage bei den Löchern, _stopp_dahinter), `messen.py`; Prüfungen
+  `tests/test_gangfolge.py`, `tests/gui/szenario_zwei_schnitte_bohrung.py`, `szenario_beta_schritte.py`;
+  Hilfe Bearbeitung de/en; `docs/OFFENE_FRAGEN.md` (Frage 3), `docs/STATUS_SNAPSHOT.md`; `package.xml`
+  0.380.0.
+
+### ERGEBNIS
+- Bohrung Ø 30 (Ø 12): 29,700 → Leerfahrt → Messstopp (Soll 29,7; Siemens CYCLE977, Heidenhain 421) →
+  30,000 → Leerfahrt; Leerfahrt und zweiter Schnitt nur über den Schlichtzug. Ohne die Haken: alle Bahnen
+  von Bohrung und Nut Satz für Satz gleich (Zweifler nachgemessen).
+- Workflow Bauer + Zweifler (3 Fehler im Dialog) + Nacharbeit (dazu: Leerfahrt der offenen Nut im
+  Eilgang ins Rohteil – behoben). Nut im Assistenten noch nicht angeboten (Messmerkmal fehlt).
+- Geprüft: test_gangfolge, test_bohrung, test_nut, test_ringnut, test_goldene_bahnen, test_materialstand,
+  test_testteil, test_sprache; Szenarien zwei_schnitte_bohrung, beta_schritte (Bilder angesehen).
 ## P-2026-11-15-11 eilgang-alle-vierachs-bahnen
 
 ### EINGELESEN

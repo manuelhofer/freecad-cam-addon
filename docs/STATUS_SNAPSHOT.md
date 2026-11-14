@@ -537,8 +537,10 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
 1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1.** Offen dazu: den Rest an der
    Unterkante im Fenster zeigen (heute bleibt er stehen, ohne dass es jemand sagt).
 2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
-   über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). Offen: „Bohrung fräsen“ und die Nut als
-   zwei gleiche Schnitte.
+   über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). **0.380.0: auch „Bohrung fräsen“** („Weiter
+   bearbeiten“ → „Löcher“: 29,7 → Leerfahrt → Messstopp Ø → 30 → Leerfahrt; der zweite Schnitt und die
+   Leerfahrten nur über den Schlichtzug). Die Nut ist ohne Oberfläche gebaut (Schlichtrest, Leerfahrt
+   über den Schlichtzug), im Assistenten noch nicht angeboten – dafür fehlt ein Messmerkmal „Nut“. Frage 3.
 3. *Dichtnut hobeln* (Manuels Wunsch; Bauplan Spezifikation Strategien 13.10): **Schritte 1–5 gebaut
    (0.376.0)** – Erkennen jeder umlaufenden Nut, Hobelbahn mit Spindelwinkel je Satz, Werkzeugart
    Stoßwerkzeug mit Einsatz „Hobeln“, Operation, Programm für alle Steuerungen (Siemens SPOS, Heidenhain
@@ -618,6 +620,13 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.380.0):* **Bohrung fräsen in zwei gleichen Schnitten mit Messen dazwischen** (Manuel, 2026-11-14,
+  Frage 1: „… erstes vorschlichten ... und danach nochmal … dann messsen ... dann vertigschlichten …“):
+  „Bohrung fräsen“ hat den Schlichtrest; die Kopie fährt nur den Schlichtzug (nicht noch einmal Helix und
+  Ringe durch Luft – Leerfahrt 85 statt 3198 mm). Zweifler: drei Fehler im Dialog (Messstopp verschwand
+  ohne Schlichtzug; „Messstopp davor“ maß nach den Löchern die Bohrung statt der Tasche; Soll Ø 29,4 statt
+  30 ohne Schlichtzug); Nacharbeit fand dazu: Leerfahrt einer offenen Nut fuhr im Eilgang ins Rohteil
+  dahinter – alles behoben.
 - *Sicherheit (0.379.3):* **Eilgänge aller 4-Achs-Bahnen mit Abstand** (nach B-038 gemessen, nicht
   gemeldet): Mit Reitstock lag die sichere Höhe unter dem Schutz der Pinole – Rundum schruppen, schlichten,
   entgraten und die Anfahrt der Querbohrung fuhren im Eilgang bis 2,45 mm hinein (dünne Stange Ø 30: 5,5);
