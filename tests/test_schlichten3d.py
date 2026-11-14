@@ -413,6 +413,38 @@ pruefe(
 )
 pruefe(s3._gewoelbt(ff.kugel(3.0)).radius == 3.0, "Kugel: Form verändert")
 
+# --- Nie unter den Teilboden (B-033) -------------------------------------------------------------
+# Eine Kuppel R 40, die am Teilboden endet: Die Kugel rollte über die Unterkante, die Spitze neben
+# dem Teil bis 1,4 mm unter dem Boden (Ø 12: 3,0 mm), auf über 700 mm Weg – dort stehen Backen und
+# Unterlagen. Manuel, 2026-11-14: „der teilboden darf nicht überfahren werden es müssen dann reste
+# bleiben“. In jeder Richtung: kein Punkt darunter, die Kugel nirgends im Teil, und bis an den
+# Boden heran wird gefräst.
+kappe = Part.makeSphere(40, V(0, 0, -20)).common(Part.makeBox(100, 100, 25, V(-50, -50, 0)))
+kappe_f = [f"Face{i + 1}" for i, f in enumerate(kappe.Faces) if isinstance(f.Surface, Part.Sphere)]
+for richtung, radius in (("auto", 3.0), ("auto", 6.0), ("x", 3.0), ("aequidistant", 3.0), ("flaeche", 3.0)):  # fmt: skip
+    w_k = s3.Schlichtwerte(
+        form=ff.kugel(radius), oben=21.0, sicher=26.0, richtung=richtung, vorschub=900.0
+    )
+    b_boden = s3.planen(kappe, kappe_f, w_k)
+    tiefste_z = min(p.z for p in b_boden.punkte)
+    schnitt = [p for p in b_boden.punkte if not p.eilgang]
+    im_teil = min(
+        kappe.distToShape(Part.Vertex(V(p.x, p.y, p.z + radius)))[0] - radius
+        for p in schnitt[:: max(1, len(schnitt) // 300)]
+    )
+    print(ascii(f"Teilboden, {richtung}, R {radius:g}: tiefste Spitze {tiefste_z:+.3f}, "
+                f"Kugel-Teil {im_teil:+.4f}, {b_boden.zeit:.2f} min"))  # fmt: skip
+    pruefe(tiefste_z >= -1e-6, f"Teilboden, {richtung}, R {radius:g}: Spitze bei {tiefste_z:.3f}")
+    pruefe(b_boden.z_min >= -1e-6, f"Teilboden, {richtung}: z_min {b_boden.z_min:.3f}")
+    pruefe(tiefste_z <= 0.6, f"Teilboden, {richtung}: nur bis {tiefste_z:.3f} gefräst")
+    pruefe(im_teil > -0.02, f"Teilboden, {richtung}: Kugel {im_teil:.4f} im Teil")
+# Ohne die Grenze (boden weit unten) ginge sie darunter – die Prüfung prüft etwas.
+b_ohne = s3.planen(
+    kappe, kappe_f,
+    s3.Schlichtwerte(form=ff.kugel(3.0), oben=21.0, sicher=26.0, richtung="x", boden=-1e9),
+)  # fmt: skip
+pruefe(min(p.z for p in b_ohne.punkte) < -1.0, "Teilboden: ohne die Grenze nicht darunter")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

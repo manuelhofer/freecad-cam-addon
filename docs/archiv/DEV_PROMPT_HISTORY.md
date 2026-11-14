@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-07 nie-unter-den-teilboden
+
+### EINGELESEN
+- B-033; Manuels Antwort auf Frage 3 (P-2026-11-14-06).
+- `schlichten3d_bahn._raster`, `_eine_richtung`, `_hinueber`, `_verbinden`, `planen`; `bleistift_bahn`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`: `Schlichtwerte.boden` (planen setzt ihn aus dem Teil), `_ueber_dem_boden`
+  (die Hüllfläche auf den Boden gehoben, die Stellen aus den Zeilen genommen), `_nie_unter_dem_boden` (letzte
+  Sicherung), die Neigung aus der ungehobenen Hüllfläche.
+- `tests/test_schlichten3d.py`: Kuppel R 40, die am Teilboden endet – in fünf Richtungen kein Punkt darunter,
+  die Kugel nirgends im Teil, bis an den Boden gefräst; ohne die Grenze über 1 mm darunter.
+- `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.372.1).
+
+### ERGEBNIS
+- Vorher (gemessen, `~/freecad_cam/wip/strategien/teilboden/`): Spitze bis −1,39 mm (Kugel Ø 6), −3,02 mm
+  (Ø 12), äquidistant −1,61 mm; 770 bis 1250 mm Weg unter dem Boden. Nachher: 0 Punkte darunter, Kugel–Teil
+  wie vorher (−0,006 mm, die Netzgenauigkeit), Zeit 12,14 statt 12,68 min (automatisch), Zeilen 13,25 statt
+  13,80 min.
+- Erster Versuch („trifft nichts“ statt „auf den Boden gehoben“) verworfen: Die Verbindungen zwischen den
+  Zeilen gingen dann über die sichere Höhe (37 statt 14 min).
+- Der Bleistift bleibt ohne die Grenze (er folgt Kehlen im Teil; ein gehobener Rand sähe wie eine Kehle aus).
+- Grün: `test_schlichten3d`, `test_bleistift`, `test_restschlichten`, `test_goldene_bahnen` (nichts bewegt),
+  `test_schlicht_anlauf`.
 ## P-2026-11-14-06 antworten-fragen-1-bis-4
 
 ### EINGELESEN

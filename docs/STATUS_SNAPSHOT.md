@@ -534,8 +534,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 **Auftrag vom 2026-11-14 (Manuels Antworten auf die Fragen 1 bis 4, wörtlich im Verlauf
 P-2026-11-14-06) – in dieser Reihenfolge:**
-1. *3D-Schlichten nie unter den Teilboden* (B-033): Die Spitze bleibt auf der Endtiefe, der Rest an der
-   Unterkante bleibt stehen und wird gezeigt. „Das Fertigteil darf NIEMALS beschädigt werden.“
+1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1.** Offen dazu: den Rest an der
+   Unterkante im Fenster zeigen (heute bleibt er stehen, ohne dass es jemand sagt).
 2. *„Weiter bearbeiten“ mit Messen dazwischen:* das letzte Aufmaß in zwei gleichen Schnitten (Haken,
    angehakt ab 1 mm Aufmaß davor), dazu **Leerfahrten** (derselbe Schnitt noch einmal ohne Zustellung –
    vorschlichten, Leerfahrt, messen, fertigschlichten, Leerfahrt), die Aufmaße frei einstellbar.
@@ -610,6 +610,13 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Korrektur (0.372.1):* **3D-Schlichten fährt nie unter den Teilboden** (B-033; Manuel, 2026-11-14: „das
+  fertigteil darf NIEMALS irgendwie beschädigt werden … der teilboden darf nicht überfahren werden es
+  müssen dann reste bleiben“). Reicht eine Freiformfläche bis an die Unterkante des Teils, rollte die Kugel
+  über die Kante – die Spitze neben dem Teil bis 1,4 mm (Kugel Ø 6) und 3,0 mm (Ø 12) unter dem Boden, auf
+  770 bis 1250 mm Weg, in jeder Richtung (Kuppel R 40, die am Boden endet). Jetzt endet jede Zeile, wo die
+  Spitze den Boden erreicht; an der Unterkante bleibt der Rest stehen. Die Bahn wird dabei kürzer (Zeilen
+  13,25 statt 13,80 min). Gilt für 3D-Schlichten und Restschlichten; der Bleistift fährt nur Kehlen im Teil.
 - *Neu (0.372.0):* **„Ringnut fräsen“ – Sicherungsring- und O-Ring-Nuten in Bohrungen mit dem
   Scheibenfräser, ohne Umspannen.** Anlass: das Lagerschild von Manuels Pumpe (Nut Ø 65,1 × 2,13 im Lagersitz
   Ø 62). Bisher blieb so eine Nut unbearbeitet – und wer ihre Wand anklickte, bekam „Bohrung fräsen“ bis auf
@@ -2941,8 +2948,8 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   Ausfahren darf weiter `WAND_SPIEL` 0,05 mm näher an eine Wand (`_lauf`, `mindest`).
 - B-032 Kontur, Wand mit gestufter Unterkante: **behoben in P-2026-11-13-11 (0.367.3)** – je höherer
   Stufe der Unterkante eine eigene Wand (`kontur_bahn._stufen`).
-- B-033 **3D-Schlichten fährt neben dem Teil unter die Endtiefe** (selbst nicht nachgestellt, vom Zweifler
-  bestätigt): Reicht eine gewählte Fläche bis zum Teilboden, geht die Spitze neben dem Teil bis 1,7 mm
+- B-033 **3D-Schlichten fährt neben dem Teil unter die Endtiefe** (**behoben in 0.372.1**, P-2026-11-14-07 –
+  nachgestellt und gemessen; vom Zweifler gefunden): Reicht eine gewählte Fläche bis zum Teilboden, geht die Spitze neben dem Teil bis 1,7 mm
   unter Boden und Endtiefe. Ins Teil geht nichts; gefährlich nur, wenn dort Unterlage oder Spannmittel
   stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – gestellt als Frage 3 in
   OFFENE_FRAGEN.md.

@@ -91,6 +91,7 @@ LUFT = 0.1  # mm – so hoch gleitet er zwischen zwei Zeilen über der Hüllflä
 # die Hüllfläche hinab (wie freiwege.LINK_LUFT über dem Material)
 HEBEN_EILGANG = 2.0
 LUECKE_FAHREN = 10.0  # mm – kürzere Lücken in einer Zeile fährt er auf der Hüllfläche durch
+BODEN_GLEICH = 1e-6  # mm – so genau gilt „auf dem Teilboden“
 LUECKE_KNICK = 0.04  # mm – so weit darf die Hüllfläche in einer Lücke je Stelle nach unten knicken
 TOLERANZ_GERADE = 0.002  # mm – so weit darf ein ausgelassener Punkt von der Geraden liegen
 NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst sieht er nichts
@@ -140,6 +141,8 @@ class Schlichtwerte:
         None  # fraeserform.Form des größeren Fräsers davor: nur der Rest (Restschlichten)
     )
     rest: float = REST
+    # z des Teilbodens: Tiefer fährt die Spitze nie (planen setzt ihn aus dem Teil; −inf: aus).
+    boden: float = -math.inf
 
 
 @dataclass
@@ -404,6 +407,39 @@ class _Raster:
         return feld[i, j]
 
 
+def _ueber_dem_boden(alle, w):
+    """(Hüllfläche, Maske „darunter“): die Hüllfläche `alle` (Spitze ohne Aufmaß) auf den
+    Teilboden gehoben, wo die Spitze darunter käme – dort wird nicht gefräst (die Maske nimmt die
+    Stellen aus den Zeilen), aber die Verbindungen gleiten auf der Höhe des Bodens darüber.
+    Reicht eine Fläche bis an die Unterkante des Teils, rollte die Kugel dort über die Kante – die
+    Spitze neben dem Teil bis 1,4 mm (Kugel Ø 6) und 3,0 mm (Ø 12) unter dem Boden, auf über 700 mm
+    Weg (Kuppel R 40, die am Boden endet; gemessen 2026-11-14, B-033). Dort stehen Backen,
+    Unterlagen, der Tisch. Manuel, 2026-11-14: „der teilboden darf nicht überfahren werden es
+    müssen dann reste bleiben“ – die Zeile endet, wo sie den Boden erreicht, an der Unterkante
+    bleibt der Rest."""
+    # Der Bleistift rechnet hier mit seinen eigenen Werten, ohne Boden: Er folgt nur Kehlen im
+    # Teil – und ein auf den Boden gehobener Rand sähe für ihn wie eine Kehle aus.
+    boden = getattr(w, "boden", -math.inf)
+    if not math.isfinite(boden):
+        return alle, np.zeros(alle.shape, dtype=bool)
+    grenze = boden - max(w.aufmass, 0.0)
+    with np.errstate(invalid="ignore"):
+        darunter = np.isfinite(alle) & (alle < grenze - BODEN_GLEICH)
+    return np.where(darunter, grenze, alle), darunter
+
+
+def _nie_unter_dem_boden(bahn, w):
+    """Die Bahn, kein Punkt unter dem Teilboden – die letzte Sicherung hinter _ueber_dem_boden:
+    Was eine Richtung zwischen den Rasterstellen genau nachrechnet oder verbindet, kann um
+    Hundertstel darunter liegen; höher als die Hüllfläche schneidet die Kugel nirgends ein."""
+    if not math.isfinite(w.boden) or not any(p.z < w.boden for p in bahn.punkte):
+        return bahn
+    punkte = [replace(p, z=w.boden) if p.z < w.boden else p for p in bahn.punkte]
+    laenge = sum(bn.weg(a, b) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang)
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    return replace(bahn, punkte=punkte, z_min=max(bahn.z_min, w.boden), laenge=laenge, zeit=zeit)
+
+
 def _raster(netz_alle, netz_rest, geformt, box, w, gewaehlt_netz=None):
     """Die Hüllfläche im Raster über `box` ± R, mit und ohne die gewählten Flächen – beim
     Restschlichten ± dem größeren Radius (der Fräser davor braucht seine Lagen am Rand). Mit
@@ -417,14 +453,17 @@ def _raster(netz_alle, netz_rest, geformt, box, w, gewaehlt_netz=None):
     ny = max(3, int(math.ceil((y1 - y0) / w.raster - 1e-9)) + 1)
     xs, ys = np.linspace(x0, x1, nx), np.linspace(y0, y1, ny)
     sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
-    alle = hf.je_zeile(netz_alle, geformt, ys, x0, sx, nx, True)
+    roh = hf.je_zeile(netz_alle, geformt, ys, x0, sx, nx, True)
+    alle, darunter = _ueber_dem_boden(roh, w)
     rest = hf.je_zeile(netz_rest, geformt, ys, x0, sx, nx, True)
-    gewaehlt = np.isfinite(alle) & (alle > rest + MASKE)
+    gewaehlt = np.isfinite(alle) & (alle > rest + MASKE) & ~darunter
     innen = None
     if gewaehlt_netz is not None:
         innen = _erweitert(_beruehrt(gewaehlt_netz, geformt, xs, ys), 1.01 * max(sx, sy), sx, sy)
         gewaehlt &= innen
-    endlich = np.where(np.isfinite(alle), alle, np.nan)
+    # Die Neigung aus der Hüllfläche, wie sie ohne den Teilboden wäre: Auf den Boden gehoben ist
+    # sie dort eben – der Rand gälte als „flach“ und bekäme Zeilen statt Höhenlinien.
+    endlich = np.where(np.isfinite(roh), roh, np.nan)
     gx, gy = np.gradient(endlich, sx, sy)
     neigung = np.arctan(np.hypot(gx, gy))
     genau = _Genau(netz_alle, netz_rest, geformt, max(w.aufmass, 0.0))
@@ -706,9 +745,10 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
     u_werte = np.linspace(u0, u1, anzahl_u)
     schritt = float(u_werte[1] - u_werte[0])
     alle = hf.je_zeile(netz_alle, geformt, v_werte, u0, schritt, anzahl_u, laengs_x).T
+    alle, darunter = _ueber_dem_boden(alle, w)
     rest = hf.je_zeile(netz_rest, geformt, v_werte, u0, schritt, anzahl_u, laengs_x).T
     z = alle + max(w.aufmass, 0.0)
-    maske = np.isfinite(alle) & (alle > rest + MASKE)
+    maske = np.isfinite(alle) & (alle > rest + MASKE) & ~darunter
     if raster is not None:
         uu, vv = np.meshgrid(u_werte, v_werte)  # (Zeilen, Stellen)
         xx, yy = (uu, vv) if laengs_x else (vv, uu)
@@ -1420,6 +1460,8 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     flaechen = freiformflaechen(form_teil, namen)
     if not flaechen:
         raise ValueError(tr("s3.fehler.keine"))
+    if w.boden == -math.inf:  # der Teilboden: tiefer nie (_ueber_dem_boden)
+        w = replace(w, boden=float(form_teil.BoundBox.ZMin))
     from . import stl_teil
     from . import vierachs_flaechen as vf
 
@@ -1492,7 +1534,7 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         # der Kette der Ebenen am Geist ging „Anlegen“ sonst nicht (die 16 Dreiecke von hinten
         # verdeckt).
         raise mst.SchonWeg(tr("s3.fehler.nichts"))
-    return beste
+    return _nie_unter_dem_boden(beste, w)
 
 
 def _im_winkel(form_teil, namen, w, toleranz):
