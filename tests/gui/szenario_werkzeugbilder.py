@@ -1,5 +1,5 @@
 # Die Bilder der Werkzeugarten (Spezifikation Werkzeugarten, Stufe 3): Ein
-# neues Werkzeug geht in der Werkzeugverwaltung durch alle 26 Arten; jedes
+# neues Werkzeug geht in der Werkzeugverwaltung durch alle 27 Arten; jedes
 # Mal zeigt das Bild neben den Feldern die Form der Art mit ihren
 # Beispielmaßen – alle zusammen in einer Übersicht. Dazu die Auswahl mit den
 # kleinen Bildern vor den Namen.

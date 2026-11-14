@@ -1,5 +1,5 @@
 # Prüft die Umrisse der Werkzeugarten ohne Oberfläche (werkzeugform.py): Jede
-# der 26 Arten ergibt mit ihren Beispielmaßen ein Bild; Zentrierbohrer und
+# der 27 Arten ergibt mit ihren Beispielmaßen ein Bild; Zentrierbohrer und
 # Bohrer sind spitz, der Kugelfräser rund, links ist das Spiegelbild von
 # rechts, der Taster hat seine Kugel.
 import math

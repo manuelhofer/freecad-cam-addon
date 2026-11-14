@@ -95,11 +95,12 @@ pruefe(
 pruefe(set(wz.BEISPIELE_ZOLL) == set(wz.ARTEN), "nicht jede Art hat Beispiele in Zoll")
 einheiten.setze_masssystem(vorher_mass)
 
-# Die 26 Arten (Spezifikation Werkzeugarten): jede in einer Gruppe, Beispiele,
+# Die 27 Arten (Spezifikation Werkzeugarten; seit 2026-11-15 mit dem Stoßwerkzeug für das Hobeln
+# einer Dichtnut): jede in einer Gruppe, Beispiele,
 # Pflichtfelder und übliche Winkel nur für Felder, die die Art hat.
-pruefe(len(wz.ARTEN) == 26, f"{len(wz.ARTEN)} Arten statt 26")
+pruefe(len(wz.ARTEN) == 27, f"{len(wz.ARTEN)} Arten statt 27")
 pruefe(
-    sum(len(wz.arten_der_gruppe(g)) for g in wz.GRUPPEN) == 26, "Arten ohne oder in zwei Gruppen"
+    sum(len(wz.arten_der_gruppe(g)) for g in wz.GRUPPEN) == 27, "Arten ohne oder in zwei Gruppen"
 )
 for art, daten in wz.ARTDATEN.items():
     for beispiele in (daten.beispiel, daten.beispiel_zoll):
@@ -518,6 +519,17 @@ for name, soll in (
     ("Fraeser VHM 12", None), ("D6 auf D8", None), ("", None),
 ):  # fmt: skip
     pruefe(wz.durchmesser_im_namen(name) == soll, f"Durchmesser im Namen {name!r}")
+
+# Das Stoßwerkzeug: Klingenlänge und Spindelwinkel werden gespeichert und gelesen.
+stoss = wz.Werkzeug(nummer=9, art=wz.STOSSWERKZEUG, schneidenbreite=2.6, klingenlaenge=2.0,
+                    spindelwinkel=30.0, stechtiefe=4.0)  # fmt: skip
+zurueck = wz.Werkzeug.aus_dict(stoss.als_dict())
+pruefe(
+    (zurueck.art, zurueck.klingenlaenge, zurueck.spindelwinkel, zurueck.schneidenbreite)
+    == (wz.STOSSWERKZEUG, 2.0, 30.0, 2.6),
+    f"Stoßwerkzeug gespeichert/gelesen: {zurueck.klingenlaenge}, {zurueck.spindelwinkel}",
+)
+pruefe(wz.artdaten(wz.STOSSWERKZEUG).gruppe == wz.GRUPPE_FRAESEN, "Stoßwerkzeug nicht beim Fräsen")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

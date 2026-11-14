@@ -84,6 +84,7 @@ _KENNZEICHNEND = {
     wz.GEWINDEBOHRER_RECHTS: ("steigung",),
     wz.GEWINDEBOHRER_LINKS: ("steigung",),
     wz.EINSTECHWERKZEUG: ("schneidenbreite",),
+    wz.STOSSWERKZEUG: ("schneidenbreite", "klingenlaenge"),
 }
 # Formen, die das Addon nicht hat – nennt der Titel sie, passt die Art vermutlich nicht.
 _FREMDE_FORMEN = (

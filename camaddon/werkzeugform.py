@@ -453,6 +453,20 @@ def _einstechwerkzeug(w, unsicher, _schaft_unsicher):
     return _gespiegelt(teile, w.ausfuehrung)
 
 
+def _stosswerkzeug(w, unsicher, _schaft_unsicher):
+    """Der Schaft in der Spindel, unten die Klinge: so breit wie die Schneide, so tief wie die
+    Stechtiefe – im Schnitt längs der Werkzeugachse wie ein schmaler Fräser gezeichnet."""
+    b = w.schneidenbreite or 3.0
+    tiefe = w.stechtiefe or 5.0
+    schaft = (w.schaft or 10.0) / 2
+    lang = max(w.gesamtlaenge or 60.0, tiefe + 10.0)
+    return [
+        Teil(SCHAFT, _rechteck(-schaft, tiefe + 3.0, schaft, lang)),
+        Teil(SCHAFT, _rechteck(-b / 2, tiefe, b / 2, tiefe + 3.0)),
+        Teil(SCHNEIDE, _rechteck(-b / 2, 0, b / 2, tiefe), unsicher),
+    ]
+
+
 def _gewindedrehwerkzeug(w, unsicher, _schaft_unsicher):
     """Dreieckige Platte mit dem Flankenwinkel an der Spitze unter dem Halter."""
     halb = math.tan(math.radians(wz.wert(w, "flankenwinkel") / 2))
@@ -508,6 +522,7 @@ _ZEICHNER = {
     wz.AUSSPINDELWERKZEUG: _ausspindelwerkzeug,
     wz.DREHWERKZEUG: _drehwerkzeug,
     wz.EINSTECHWERKZEUG: _einstechwerkzeug,
+    wz.STOSSWERKZEUG: _stosswerkzeug,
     wz.GEWINDEDREHWERKZEUG: _gewindedrehwerkzeug,
     wz.TASTER: _taster,
 }

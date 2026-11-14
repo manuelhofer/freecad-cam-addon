@@ -56,6 +56,10 @@ BOHRSTANGE = "bohrstange"
 AUSSPINDELWERKZEUG = "ausspindelwerkzeug"
 DREHWERKZEUG = "drehwerkzeug"
 EINSTECHWERKZEUG = "einstechwerkzeug"
+# Ein Werkzeug, das in der Frässpindel steht und gezogen wird: Hobeln/Stoßen einer Dichtnut
+# (hobeln_bahn; Manuel, 2026-11-14: „ein "stech" oder "scharb" werkzeug“). Die Spindel dreht nicht,
+# sie stellt die Schneide in Fahrtrichtung.
+STOSSWERKZEUG = "stosswerkzeug"
 GEWINDEDREHWERKZEUG = "gewindedrehwerkzeug"
 TASTER = "taster"
 # Gespeicherte Wörter, die es nicht mehr gibt -> heutige Art. Bis
@@ -85,6 +89,7 @@ LAENGEN_FELDER = (
     "profilradius",
     "schneidenbreite",
     "stechtiefe",
+    "klingenlaenge",
 )
 WINKEL_FELDER = (
     "eintauchwinkel",
@@ -93,6 +98,7 @@ WINKEL_FELDER = (
     "flankenwinkel",
     "einstellwinkel",
     "plattenwinkel",
+    "spindelwinkel",
 )
 STEIGUNG = "steigung"
 ZAHLEN_FELDER = LAENGEN_FELDER + WINKEL_FELDER + (STEIGUNG,)
@@ -228,6 +234,7 @@ def art_text(art):
         AUSSPINDELWERKZEUG: tr("wv.art.ausspindelwerkzeug"),
         DREHWERKZEUG: tr("wv.art.drehwerkzeug"),
         EINSTECHWERKZEUG: tr("wv.art.einstechwerkzeug"),
+        STOSSWERKZEUG: tr("wv.art.stosswerkzeug"),
         GEWINDEDREHWERKZEUG: tr("wv.art.gewindedrehwerkzeug"),
         TASTER: tr("wv.art.taster"),
     }[art]
@@ -291,6 +298,8 @@ def feld_text(feld, art):
         "einstellwinkel": tr("wv.einstellwinkel"),
         "plattenwinkel": tr("wv.plattenwinkel"),
         "stechtiefe": tr("wv.stechtiefe"),
+        "klingenlaenge": tr("wv.klingenlaenge"),
+        "spindelwinkel": tr("wv.spindelwinkel"),
         "ausfuehrung": tr("wv.ausfuehrung"),
         DREHRICHTUNG: tr("wv.drehrichtung"),
     }[feld]
@@ -558,7 +567,12 @@ class Werkzeug:
     schneidenbreite: float = 0.0  # mm (Nutenfräser, Einstechwerkzeug)
     einstellwinkel: float = 0.0  # Grad (Planfräser, Drehwerkzeug); 0 = üblich
     plattenwinkel: float = 0.0  # Grad (Drehwerkzeug); 0 = üblich
-    stechtiefe: float = 0.0  # mm (Einstechwerkzeug)
+    stechtiefe: float = 0.0  # mm (Einstechwerkzeug, Stoßwerkzeug)
+    # Stoßwerkzeug: so lang ist die Klinge hinter der Schneide (mm) – davon hängt der kleinste
+    # Radius ab, den sie in einer Nut fährt (hobeln_bahn.kleinster_radius_fuer); und bei diesem
+    # Spindelwinkel (Grad) zeigt die Schneide nach +X – beim Einrichten gemessen.
+    klingenlaenge: float = 0.0
+    spindelwinkel: float = 0.0
     ausfuehrung: str = ""  # RECHTS, LINKS, NEUTRAL (Drehwerkzeuge)
     drehrichtung: str = ""  # RECHTS (M3) oder LINKS (M4); leer = wie üblich (dreht_links)
     # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
@@ -1206,6 +1220,27 @@ ARTDATEN = {
         ueblich={"einstellwinkel": 95.0, "plattenwinkel": 80.0},
         pflicht=(),
     ),
+    STOSSWERKZEUG: Artdaten(
+        GRUPPE_FRAESEN,
+        (
+            "schneidenbreite",
+            "klingenlaenge",
+            "stechtiefe",
+            "spindelwinkel",
+            "gesamtlaenge",
+            "schaft",
+        )
+        + _SCHNEIDSTOFF,
+        {
+            "schneidenbreite": 3.0,
+            "klingenlaenge": 2.0,
+            "stechtiefe": 5.0,
+            "gesamtlaenge": 60.0,
+            "schaft": 10.0,
+        },
+        _zoll(schneidenbreite=1 / 8, klingenlaenge=1 / 16, stechtiefe=0.2, gesamtlaenge=2.5),
+        pflicht=("schneidenbreite", "klingenlaenge"),
+    ),
     EINSTECHWERKZEUG: Artdaten(
         GRUPPE_DREHEN,
         ("schneidenbreite", "eckradius", "stechtiefe", "ausfuehrung") + _SCHNEIDSTOFF,
@@ -1263,6 +1298,7 @@ EINSAETZE_JE_ART = {
     AUSSPINDELWERKZEUG: (AUSDREHEN,),
     DREHWERKZEUG: None,
     EINSTECHWERKZEUG: None,
+    STOSSWERKZEUG: None,  # Zustellung je Umlauf und Vorschub stehen an der Operation
     GEWINDEDREHWERKZEUG: None,
     TASTER: None,
 }
@@ -1279,6 +1315,8 @@ NEUE_FELDER = (
     "einstellwinkel",
     "plattenwinkel",
     "stechtiefe",
+    "klingenlaenge",
+    "spindelwinkel",
 )
 # Die Beispiele je Art, wie bis P-2026-09-26-55 als eigene Tabellen.
 BEISPIELE = {art: daten.beispiel for art, daten in ARTDATEN.items()}

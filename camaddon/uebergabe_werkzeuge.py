@@ -30,7 +30,7 @@ Läuft ohne Oberfläche.
 import functools
 import importlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import werkzeuge as wz
 from . import werkzeugform as wf
@@ -69,6 +69,9 @@ NAEHERUNGEN = {
     wz.FLACHSENKER: wz.SCHAFTFRAESER,
     wz.BOHRSTANGE: wz.SCHAFTFRAESER,
     wz.AUSSPINDELWERKZEUG: wz.SCHAFTFRAESER,
+    # Das Stoßwerkzeug dreht nicht; für FreeCADs Werkzeugwechsel und Anzeige genügt ein
+    # Schaftfräser so breit wie die Schneide (die Hobelbahn prüft die Klinge selbst).
+    wz.STOSSWERKZEUG: wz.SCHAFTFRAESER,
 }
 FORMEN.update({art: FORMEN[ziel] for art, ziel in NAEHERUNGEN.items()})
 
@@ -481,6 +484,8 @@ def uebergeben(bibliothek):
     # anderen – sie zählt dort nur die Reihe.
     ohne_nummer = max([w.nummer for w in bibliothek.werkzeuge] + [0])
     for werkzeug in bibliothek.sortierte_werkzeuge():
+        if werkzeug.art == wz.STOSSWERKZEUG and werkzeug.durchmesser <= 0:
+            werkzeug = replace(werkzeug, durchmesser=werkzeug.schneidenbreite)
         kurz = f"{wz.genannt(werkzeug)} {wz.art_text(werkzeug.art)}"
         if werkzeug.art not in FORMEN:
             bericht.ohne_form.append(kurz)
