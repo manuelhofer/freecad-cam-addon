@@ -149,8 +149,10 @@ eins = rw.einspannung(tc, bib)
 gefahren = p.befehle(op, None, aufnahme, eins, nullpunkt)
 bewegt = [b for b in gefahren if b.Name in ("G0", "G1")]
 pruefe(
-    set(bewegt[0].Parameters) == {"Z"} and bewegt[1].Parameters == {"A": 90.0},
-    f"vor der Bahn: {[(b.Name, b.Parameters) for b in bewegt[:2]]}",
+    set(bewegt[0].Parameters) == {"Z"}
+    and set(bewegt[1].Parameters) == {"X", "Y"}
+    and bewegt[2].Parameters == {"A": 90.0},
+    f"vor der Bahn: {[(b.Name, b.Parameters) for b in bewegt[:3]]}",
 )
 verfahren = p.verfahren
 linear, dreh = p.achsen_fuer(aufnahme)
@@ -246,13 +248,17 @@ for kennung, schwenken, zurueck, c_wort in (
     zeilen = [z.split(" ", 1)[1] if kennung == "heidenhain" else z for z in programm.zeilen]
     an = next((i for i, z in enumerate(zeilen) if z == schwenken), -1)
     erste_c = next((i for i, z in enumerate(zeilen) if re.search(c_wort, z)), -1)
-    hoch = zeilen[an - 1] if an > 0 else ""
+    hoch = zeilen[an - 2] if an > 1 else ""  # erst hoch, dann über C, dann schwenken
+    ueber_c = zeilen[an - 1] if an > 0 else ""
     print(
         ascii(
             f"{kennung}: {hoch} | {zeilen[an] if an >= 0 else '-'} | Hinweise {programm.hinweise}"
         )
     )
-    pruefe(0 < an < erste_c and ("Z" in hoch), f"{kennung}: Schwenken {an}, erstes C {erste_c}")
+    pruefe(
+        0 < an < erste_c and "Z" in hoch and "X" in ueber_c and "Y" in ueber_c,
+        f"{kennung}: Schwenken {an} ({hoch} | {ueber_c}), erstes C {erste_c}",
+    )
     pruefe(sum(z.startswith(schwenken) for z in zeilen) == 1, f"{kennung}: A mehrmals")
     pruefe(zurueck in zeilen[erste_c:], f"{kennung}: am Ende nicht zurück")
     pruefe(not programm.hinweise, f"{kennung}: {programm.hinweise}")
@@ -277,6 +283,14 @@ kollision = kb.kollision(fahrt, job, nullpunkt, bib)
 texte = [b.text() for b in kollision.befunde]
 print(ascii(f"Kollision: {len(fahrt.stationen)} Stationen, {texte[:3]}"))
 pruefe(not kollision.befunde, f"Befunde: {texte[:3]}")
+# Geschwenkt wird über der Achse von C (das Programm fährt dorthin, die Prüfung mit): X, Y im
+# Programm bei Rundachsen 0 auf C – vom Nullpunkt nach dem Schwenken aus gezählt.
+ueber = [s.punkt for s in fahrt.stationen if 1e-6 < abs(s.rund.get("A", 0.0)) < 90.0 - 1e-6]
+soll_ueber = (-schwenkung.versatz[0], -schwenkung.versatz[1])
+pruefe(
+    ueber and all(math.dist(u[:2], soll_ueber) < 1e-6 for u in ueber),
+    f"geschwenkt bei {ueber[:1]}, soll über C {soll_ueber}",
+)
 abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
 abtrag.bis_station(len(fahrt.stationen) - 1)
 vergleich = abtrag.vergleich()

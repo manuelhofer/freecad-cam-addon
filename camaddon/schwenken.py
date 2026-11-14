@@ -457,6 +457,11 @@ class Schwenkung:
     # (im Programm bei Rundachsen 0 gezählt) vom Nullpunkt des Jobs: Die Abbildung hat dann kein b,
     # im Programm steht nur die Drehung. None: der Nullpunkt des Jobs.
     versatz: tuple = None
+    # Ohne Schwenkzyklus: (X, Y) im Programm, auf die das Werkzeug auf der Schwenkhöhe fährt, bevor
+    # es schwenkt – in geschwenkter Lage über die Achse von C: Dort dreht sich unter ihm nur, was
+    # die Schwenkhöhe kennt (Rohr und Futter); am Wechselpunkt stand es irgendwo über dem Tisch.
+    # None: dort, wo es steht.
+    ueber: tuple = None
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -521,6 +526,9 @@ def befehle_ohne_zyklus(befehle, schwenkung, schon_oben=False):
             if schwenkung.hoehe is not None and not schon_oben:
                 # Erst hoch genug, dass sich das Rohteil frei dreht (wie CYCLE800 _FR = 1).
                 ergebnis.append(Path.Command("G0", {"Z": float(schwenkung.hoehe)}))
+            if schwenkung.ueber is not None:  # … und über die Stelle, an der es frei schwenkt
+                x, y = (float(w) for w in schwenkung.ueber)
+                ergebnis.append(Path.Command("G0", {"X": x, "Y": y}))
             ergebnis.append(Path.Command("G0", dict(rund)))
             gefahren = True
         if name in ("G98", "G99"):
@@ -962,7 +970,14 @@ def schwenkung_der_operation(op, maschine, job=None):
             futter = spannung.tischfutter(job)
             form = rohteil if futter is None else Part.makeCompound([rohteil, futter])
             hoehe = schwenkhoehe(form, maschine.abbildung, fest) - versatz[2]
-    return Schwenkung(FreeCAD.Placement(), dict(fest), abbildung, hoehe=hoehe, versatz=versatz)
+    # Geschwenkt wird über der Achse von C (sie geht bei Rundachsen 0 durch den Nullpunkt des Jobs,
+    # vierachs_rohteil): Dort dreht sich unter dem Werkzeug nur Rohr und Futter, die die
+    # Schwenkhöhe kennt. Am Wechselpunkt stand es irgendwo – an der Beispiel-Tisch/Tisch kommen die
+    # Wangen der Wiege beim Schwenken bis 170 mm an A heran, die Spitze stand A + 173 (Zweifler).
+    ueber = None if versatz is None else (-versatz[0], -versatz[1])
+    return Schwenkung(
+        FreeCAD.Placement(), dict(fest), abbildung, hoehe=hoehe, versatz=versatz, ueber=ueber
+    )
 
 
 def versatz_der_operation(op, maschine):
