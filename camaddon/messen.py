@@ -10,20 +10,32 @@ Steuerungen messen lässt (Siemens CYCLE977, Heidenhain 421–424, Renishaw 9812
 - **tasche:** senkrechte ebene Wände, achsparallel, die ein Rechteck umschließen (ihre Normalen
   zeigen nach innen) – Seitenlängen in X und Y;
 - **zapfen:** dasselbe von außen (die Normalen zeigen nach außen);
-- **bohrung / welle:** eine senkrechte Zylinderfläche, innen bzw. außen – ihr Durchmesser.
+- **bohrung / welle:** eine senkrechte Zylinderfläche, innen bzw. außen – ihr Durchmesser;
+- **nut:** eine Nut (nut_bahn.nuten: Langloch, offen, Bogen- oder Ringnut) – ihre Breite quer zur
+  Mittellinie, an einer Stelle: die gerade Nut in der Mitte ihrer Länge, die Bogennut in der Mitte
+  ihres Bogens, die Ringnut radial bei +X (dort, wo auch ihre Helix hinabgeht). `winkel` ist die
+  Messrichtung (Grad, 0 = in X, 90 = in Y); schräg zu X und Y (achse None) misst kein Zyklus der
+  Steuerungen (Heidenhain 425 und Renishaw 9812 nur in einer Achse), dort hält die Maschine zum
+  Messen von Hand (Manuel, 2026-11-14: „erstes vorschlichten … dann messsen ... dann
+  vertigschlichten“).
 
 Rundungen in den Ecken einer Tasche und am Boden (Zylinder mit waagerechter Achse) zählen nicht
 mit. Gemessen wird auf halber Höhe der Wände, höchstens MESS_UNTER_OBEN unter der Oberkante und
 mindestens MESS_UEBER_BODEN über dem Boden. `soll(merkmal, aufmass)` ist das Maß nach einem Gang,
-der `aufmass` stehen lässt: Tasche und Bohrung um 2 × Aufmaß kleiner, Zapfen und Welle größer.
+der `aufmass` stehen lässt: Tasche, Bohrung und Nut um 2 × Aufmaß kleiner, Zapfen und Welle
+größer.
 
 Läuft ohne Oberfläche.
 """
 
 from dataclasses import dataclass, replace
 
-TASCHE, ZAPFEN, BOHRUNG, WELLE = "tasche", "zapfen", "bohrung", "welle"
-ARTEN = (TASCHE, ZAPFEN, BOHRUNG, WELLE)
+TASCHE, ZAPFEN, BOHRUNG, WELLE, NUT = "tasche", "zapfen", "bohrung", "welle", "nut"
+ARTEN = (TASCHE, ZAPFEN, BOHRUNG, WELLE, NUT)
+ACHSPARALLEL = 1e-3  # Grad: so nah an 0/90/180/270 misst die Nut noch in X bzw. Y
+# So viele Flächen hat eine Nut höchstens (Langloch: 4 Wände, Grund, 4 Rundungen am Grund) – mehr
+# gewählt ist mehr als eine Nut; nut_bahn.nuten müsste sonst jede Fläche des Teils lesen.
+NUT_FLAECHEN_HOECHSTENS = 16
 SENKRECHT = 1e-6  # so klein darf die Z-Komponente einer Wandnormale sein
 MESS_UEBER_BODEN = 2.0  # mm
 MESS_UNTER_OBEN = 10.0  # mm – tiefer als nötig fährt der Taster nicht
@@ -38,6 +50,8 @@ class Merkmal:
     laenge_x: float = 0.0  # tasche/zapfen: Seitenlängen
     laenge_y: float = 0.0
     durchmesser: float = 0.0  # bohrung/welle
+    breite: float = 0.0  # nut: quer zur Mittellinie
+    winkel: float = 0.0  # nut: die Messrichtung (Grad, 0 = in X, 90 = in Y)
     z_oben: float = 0.0  # Oberkante der Wände
     z_unten: float = 0.0  # Unterkante (Boden)
     z_mess: float = 0.0  # hier misst der Taster
@@ -48,7 +62,25 @@ class Merkmal:
 
     @property
     def innen(self):
-        return self.art in (TASCHE, BOHRUNG)
+        return self.art in (TASCHE, BOHRUNG, NUT)
+
+    @property
+    def achse(self):
+        """Die Nut: „X“ oder „Y“, in der quer gemessen wird – None, wenn sie schräg liegt (dann
+        misst kein Zyklus, die Maschine hält); die anderen Merkmale: None."""
+        if self.art != NUT:
+            return None
+        rest = self.winkel % 180.0
+        if min(rest, 180.0 - rest) < ACHSPARALLEL:
+            return "X"
+        if abs(rest - 90.0) < ACHSPARALLEL:
+            return "Y"
+        return None
+
+    @property
+    def zyklus_moeglich(self):
+        """Kann ein Messzyklus der Steuerung das messen? Alle außer der schrägen Nut."""
+        return self.art != NUT or self.achse is not None
 
 
 def _normale(flaeche):
@@ -66,6 +98,8 @@ def merkmal(form, namen):
     """Das Merkmal (Merkmal) der Flächen `namen` („Face3“ …) von `form` – None, wenn sie keins
     der vier ergeben (schräge oder gemischte Wände, mehrere Bohrungen …)."""
     flaechen = [form.getElement(n) for n in namen]
+    if not flaechen:
+        return None
     zylinder = [
         f
         for f in flaechen
@@ -76,12 +110,15 @@ def merkmal(form, namen):
         for f in flaechen
         if f.Surface.__class__.__name__ == "Plane" and abs(_normale(f).z) < SENKRECHT
     ]
+    m = None
     if zylinder and not ebenen:
         m = _rund(zylinder)
     elif ebenen:
         m = _rechteck(ebenen, zylinder)
-    else:
-        return None
+    if m is None:
+        # Kein Rechteck, keine Bohrung: vielleicht eine Nut (ihre Wände, ihr Grund) – bis 0.380
+        # hielt der Messstopp dort ohne Sollmaß.
+        return nut_merkmal(form, namen)
     if m is not None:  # Höhe aus allen Flächen: der Boden unter den Rundungen zählt mit
         m.z_unten = min(m.z_unten, min(f.BoundBox.ZMin for f in flaechen))
         m.z_mess = _messhoehe(m.z_oben, m.z_unten)
@@ -164,16 +201,83 @@ def _rechteck(ebenen, ecken):
     )
 
 
+def _senkrecht_wand(flaeche):
+    """Steht die Fläche senkrecht – eine Ebene mit waagerechter Normale oder ein Zylinder um eine
+    senkrechte Achse? (An einer Fase oder schrägen Wand hinge die Breite von der Höhe ab.)"""
+    art = flaeche.Surface.__class__.__name__
+    if art == "Plane":
+        return abs(_normale(flaeche).z) < SENKRECHT
+    if art == "Cylinder":
+        return abs(abs(flaeche.Surface.Axis.z) - 1) < 1e-6
+    return False
+
+
+def nut_merkmal(form, namen):
+    """Die Nut der Flächen `namen` (ihre Wände oder ihr Grund, nut_bahn.nuten) als Merkmal: die
+    Breite quer zur Mittellinie an einer Stelle (Modulkopf) – None, wenn die Flächen nicht genau
+    eine Nut sind oder eine ihrer Wände nicht senkrecht steht (eine Fase außen an der Ringnut)."""
+    import math
+
+    from . import nut_bahn as nb
+
+    namen = list(namen)
+    if not namen or len(namen) > NUT_FLAECHEN_HOECHSTENS:
+        return None
+    try:
+        nuten = nb.nuten(form, namen)
+        if len(nuten) != 1:
+            return None
+        nut = nuten[0]
+        # Jede Fläche gehört zu dieser Nut – sonst misst man etwas, das nicht gewählt ist.
+        if any(not any(n.waende == nut.waende for n in nb.nuten(form, [x])) for x in namen):
+            return None
+        if not all(_senkrecht_wand(form.getElement(w)) for w in nut.waende):
+            return None
+        z_oben = min(float(form.getElement(w).BoundBox.ZMax) for w in nut.waende)
+    except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht zum Modell
+        return None
+    z_unten = float(nut.z_unten)
+    if z_oben - z_unten <= 1e-6:
+        return None
+    if nut.bogen is not None:
+        mx, my, r_m, w_a, w_b = nut.bogen
+        w = 0.0 if nut.ring else 0.5 * (w_a + w_b)  # die Ringnut bei +X, wie ihre Helix
+        x, y = mx + r_m * math.cos(w), my + r_m * math.sin(w)
+        winkel = math.degrees(w)  # radial
+    else:
+        (ax, ay), (bx, by) = nut.a, nut.b
+        x, y = 0.5 * (ax + bx), 0.5 * (ay + by)
+        winkel = math.degrees(math.atan2(by - ay, bx - ax)) + 90.0  # quer zur Mittellinie
+    winkel %= 180.0  # gemessen wird hin und her: 0 und 180 Grad sind dieselbe Richtung
+    if min(winkel, 180.0 - winkel) < ACHSPARALLEL:
+        winkel = 0.0
+    elif abs(winkel - 90.0) < ACHSPARALLEL:
+        winkel = 90.0
+    return Merkmal(
+        NUT,
+        float(x),
+        float(y),
+        breite=2.0 * float(nut.radius),
+        winkel=round(winkel, 3),
+        z_oben=z_oben,
+        z_unten=z_unten,
+        z_mess=_messhoehe(z_oben, z_unten),
+    )
+
+
 def soll(m, aufmass):
     """Das Merkmal nach einem Gang, der `aufmass` (mm je Seite) stehen lässt."""
     um = -2 * aufmass if m.innen else 2 * aufmass
     if m.rund:
         return replace(m, durchmesser=m.durchmesser + um)
+    if m.art == NUT:
+        return replace(m, breite=m.breite + um)
     return replace(m, laenge_x=m.laenge_x + um, laenge_y=m.laenge_y + um)
 
 
 def text(m, toleranz=None):
-    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“ – mit `toleranz` „… ±0,02“."""
+    """„Tasche 59,4 × 39,4 mm“, „Bohrung Ø 18 mm“, „Nut 15,7 mm quer in Y“ (schräg: „… quer,
+    30°“) – mit `toleranz` „… ±0,02“."""
     from . import einheiten
     from .sprache import tr
 
@@ -182,8 +286,24 @@ def text(m, toleranz=None):
         ZAPFEN: tr("mn.zapfen"),
         BOHRUNG: tr("mn.bohrung"),
         WELLE: tr("mn.welle"),
+        NUT: tr("mn.nut"),
     }[m.art]
     laenge = einheiten.LAENGE
+    if m.art == NUT:
+        ergebnis = f"{art} {einheiten.text(m.breite, laenge, 3)} {einheiten.einheit(laenge)}"
+        if m.achse is not None:
+            ergebnis += " " + tr("mn.nut.quer", achse=m.achse)
+        else:
+            from .werkstoffe import mit_dezimalzeichen
+
+            zahl = f"{m.winkel:.1f}".rstrip("0").rstrip(".")
+            zahl = mit_dezimalzeichen(
+                zahl, einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+            )
+            ergebnis += " " + tr("mn.nut.schraeg", winkel=zahl)
+        if toleranz is not None:
+            ergebnis += f" ±{einheiten.text(toleranz, laenge, 3)}"
+        return ergebnis
     if m.rund:
         mass = f"Ø {einheiten.text(m.durchmesser, laenge, 3)}"
     else:

@@ -156,12 +156,16 @@ class Steuerung:
     messen_zapfen: str = ""
     messen_bohrung: str = ""
     messen_welle: str = ""
+    # Die Nut (messen.NUT): Breite quer zur Nut – {b} die Breite, {achse} „X“ oder „Y“, {achse_nr}
+    # 1 oder 2 (die Messachse der Ebene). Eine schräge Nut misst kein Zyklus: Halt von Hand.
+    messen_nut: str = ""
     # … mit Korrektur des Schlichtwerkzeugs danach ({t_korr} seine Nummer, {name_korr} sein Name
     # an der Steuerung): nur, wenn der Messstopp sie verlangt (Zeile „KORR…“); leer: nur messen.
     korrigieren_tasche: str = ""
     korrigieren_zapfen: str = ""
     korrigieren_bohrung: str = ""
     korrigieren_welle: str = ""
+    korrigieren_nut: str = ""
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
@@ -440,10 +444,12 @@ BEFEHLSFELDER = (
     "messen_zapfen",
     "messen_bohrung",
     "messen_welle",
+    "messen_nut",
     "korrigieren_tasche",
     "korrigieren_zapfen",
     "korrigieren_bohrung",
     "korrigieren_welle",
+    "korrigieren_nut",
     "schwenken",
     "schwenken_aus",
     "tcpm_ein",
@@ -509,7 +515,10 @@ _ENDE = "M5\nM9\nM30\n%"
 # (1303409-13, Kap. 6.5–6.10: 421–424, Q309=1 hält bei Toleranzfehler, Q330=0 korrigiert nichts);
 # Renishaw Inspection Plus H-2000-6031/-6222 (G65 P9812/P9814 nur mit H – ohne S und T keine
 # Korrektur, außerhalb hält „OUT OF TOL“). Vorgestellt wird über der Mitte, Tasche und Bohrung auf
-# Messhöhe, Zapfen und Welle senkt der Zyklus selbst ab.
+# Messhöhe, Zapfen und Welle senkt der Zyklus selbst ab. Die Nut (Breite quer, in X oder Y; seit
+# 0.381): CYCLE977 S_MVAR 3 mit S_MA, Heidenhain 425 MESSEN BREITE INNEN, Renishaw 9812 mit X oder
+# Y; die schräge Nut misst keiner davon (425 und 9812 nur achsparallel; CYCLE977 könnte es über
+# S_STA1, an der Maschine ungeprüft) – dort hält die Maschine zum Messen von Hand.
 _SIEMENS_PRUEFEN = (
     "IF (ABS(_OVR[16])>{tol}) OR (ABS(_OVR[17])>{tol}) GOTOF MESSEN_AUS{n}\nGOTOF MESSEN_OK{n}\n"
     'MESSEN_AUS{n}:\nMSG("Messen: ausser Toleranz")\nM0\nMSG()\nMESSEN_OK{n}:\nG0 Z{sicher}'
@@ -527,6 +536,11 @@ MESSEN_SIEMENS = {
     "CYCLE977(1,,,1,{d},,,2,1,0" + _SIEMENS_REST + _SIEMENS_PRUEFEN_RUND,
     "messen_welle": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
     "CYCLE977(2,,,1,{d},,,2,1,0,{absenken}" + _SIEMENS_REST[1:] + _SIEMENS_PRUEFEN_RUND,
+    # Die Nut (S_MVAR 3, S_SETV die Breite, S_MA die Messachse 1 = X, 2 = Y; Handbuch Kap. 3.3.9
+    # „Kante Abstand – Nut“: der Taster vorher „in der Messachse ungefähr auf der Mitte der Nut und
+    # auf Messhöhe“; Tabelle 3-16: _OVR[16] „Differenz Nutbreite“ – wie beim Ø nur [16] prüfen).
+    "messen_nut": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    "CYCLE977(3,,,1,{b},,,2,1,0,,,,{achse_nr}" + _SIEMENS_REST[4:] + _SIEMENS_PRUEFEN_RUND,
 }
 
 
@@ -558,6 +572,9 @@ KORRIGIEREN_SIEMENS = {
     "korrigieren_welle": "G0 X{x} Y{y}\nG0 Z{ueber}\n"
     + _siemens_korrektur("202", "{d}", absenken="{absenken}")
     + "G0 Z{sicher}",
+    "korrigieren_nut": "G0 X{x} Y{y}\nG0 Z{sicher}\nG1 Z{z} F1000\n"
+    + _siemens_korrektur("203", "{b}", ma="{achse_nr}")
+    + "G0 Z{sicher}",
 }
 _RENISHAW_EIN = "G0 G90 X{x} Y{y}\nG43 H{t} Z{sicher}\nG65 P9832\n"
 _RENISHAW_AUS = "G65 P9810 Z{sicher}\nG65 P9833"
@@ -572,6 +589,10 @@ MESSEN_RENISHAW = {
     "messen_welle": _RENISHAW_EIN
     + "G65 P9810 Z{ueber} F3000.\nG65 P9814 D{d} Z{z} H{tol}\n"
     + _RENISHAW_AUS,
+    # Die Nut: 9812 „Web/Pocket“ mit X oder Y – ohne Z die Tasche (innen), die Breite in der Achse.
+    "messen_nut": _RENISHAW_EIN
+    + "G65 P9810 Z{z} F3000.\nG65 P9812 {achse}{b} H{tol}\n"
+    + _RENISHAW_AUS,
 }
 KORRIGIEREN_RENISHAW = {
     "korrigieren_tasche": _RENISHAW_EIN + "G65 P9810 Z{z} F3000.\nG65 P9812 X{lx} T{t_korr} U0.5\n"
@@ -582,6 +603,8 @@ KORRIGIEREN_RENISHAW = {
     "G65 P9814 D{d} T{t_korr} U0.5\n" + _RENISHAW_AUS,
     "korrigieren_welle": _RENISHAW_EIN + "G65 P9810 Z{ueber} F3000.\n"
     "G65 P9814 D{d} Z{z} T{t_korr} U0.5\n" + _RENISHAW_AUS,
+    "korrigieren_nut": _RENISHAW_EIN + "G65 P9810 Z{z} F3000.\n"
+    "G65 P9812 {achse}{b} T{t_korr} U0.5\n" + _RENISHAW_AUS,
 }
 # Radiuskorrektur: Siemens und LinuxCNC nehmen den Radius des eingewechselten Werkzeugs (Siemens
 # D1, LinuxCNC die Werkzeugtabelle, Heidenhain RL/RR mit R + DR der Tabelle), Fanuc und Haas aus
@@ -641,6 +664,25 @@ def _hh_kreis(nummer, titel, groesst, kleinst, tnc640, korr=False):
     return _HH_KOPF + text
 
 
+def _hh_nut(korr=False):
+    """Zyklus 425 MESSEN BREITE INNEN (TNC 640 Messzyklen 10/2023, 1303409-13, Kap. 6.9; das
+    Beispiel dort in dieser Reihenfolge): Startpunkt die Mitte der Nut – die erste Antastung „immer
+    in positive Richtung der programmierten Achse“, ohne Versatz Q310 die zweite „direkt in der
+    entgegengesetzten Richtung“; Q272 die Messachse (1 = X, 2 = Y), Q311 die Soll-Länge, Q288/Q289
+    Größt-/Kleinstmaß, Q330 das Werkzeug (korr, wie bei 421–424)."""
+    k = "_k" if korr else ""
+    werkzeug = "+{t_korr}" if korr else "+0"
+    return _HH_KOPF + (
+        "TCH PROBE 425 MESSEN BREITE INNEN ~\nQ328={x_vz} ;STARTPUNKT 1. ACHSE ~\n"
+        "Q329={y_vz} ;STARTPUNKT 2. ACHSE ~\nQ310=+0 ;VERSATZ 2. MESSUNG ~\n"
+        "Q272=+{achse_nr} ;MESSACHSE ~\nQ261={z_vz} ;MESSHOEHE ~\nQ260={sicher_vz} ;SICHERE HOEHE ~\n"
+        f"Q311={{b_vz}} ;SOLL-LAENGE ~\nQ288={{b_max{k}}} ;GROESSTMASS ~\n"
+        f"Q289={{b_min{k}}} ;KLEINSTMASS ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
+        f"Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330={werkzeug} ;WERKZEUG ~\n"
+        "Q320=+0 ;SICHERHEITS-ABST. ~\nQ301=+1 ;FAHREN AUF S. HOEHE"
+    )
+
+
 def _messen_heidenhain(tnc640):
     """Messen (421–424) und Messen mit Korrektur des Schlichtwerkzeugs (dieselben mit Q330), dazu
     die Radiuskorrektur RL/RR – klartext.py macht sie aus G41/G42/G40."""
@@ -653,6 +695,7 @@ def _messen_heidenhain(tnc640):
                 f"{vorne}_zapfen": _HH_KOPF + "TCH PROBE 424 MESSEN RECHTECK AUS. ~\n" + rechteck,
                 f"{vorne}_bohrung": _hh_kreis(421, "MESSEN BOHRUNG", 275, 276, tnc640, korr),
                 f"{vorne}_welle": _hh_kreis(422, "MESSEN KREIS AUSSEN", 277, 278, tnc640, korr),
+                f"{vorne}_nut": _hh_nut(korr),
             }
         )
     return {**zyklen, **KORREKTUR_OHNE_D}
@@ -1337,6 +1380,7 @@ def feld_text(feld):
         "messen_zapfen": (tr("pp.feld.messen_zapfen"), tr("pp.feld.messen.tooltip")),
         "messen_bohrung": (tr("pp.feld.messen_bohrung"), tr("pp.feld.messen.tooltip")),
         "messen_welle": (tr("pp.feld.messen_welle"), tr("pp.feld.messen.tooltip")),
+        "messen_nut": (tr("pp.feld.messen_nut"), tr("pp.feld.messen_nut.tooltip")),
         "korrigieren_tasche": (tr("pp.feld.korrigieren_tasche"), tr("pp.feld.korrigieren.tooltip")),
         "korrigieren_zapfen": (tr("pp.feld.korrigieren_zapfen"), tr("pp.feld.korrigieren.tooltip")),
         "korrigieren_bohrung": (
@@ -1344,6 +1388,7 @@ def feld_text(feld):
             tr("pp.feld.korrigieren.tooltip"),
         ),
         "korrigieren_welle": (tr("pp.feld.korrigieren_welle"), tr("pp.feld.korrigieren.tooltip")),
+        "korrigieren_nut": (tr("pp.feld.korrigieren_nut"), tr("pp.feld.korrigieren.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
         "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
@@ -1543,6 +1588,8 @@ def _messen_saetze(s, gemessen, info, nummer=1, korrigiert=None, abschnitte=()):
     if not gemessen or not s.taster.strip() or info.drehmaschine:
         return []
     m, toleranz = gemessen
+    if not m.zyklus_moeglich:
+        return []  # die schräge Nut: Halt zum Messen von Hand (der Satz sagt quer, wie schräg)
     vorlage = getattr(s, f"messen_{m.art}", "")
     if korrigiert and getattr(s, f"korrigieren_{m.art}", ""):
         vorlage = getattr(s, f"korrigieren_{m.art}")
@@ -1583,6 +1630,14 @@ def _messen_saetze(s, gemessen, info, nummer=1, korrigiert=None, abschnitte=()):
         "ly_min_k": f"{m.laenge_y - KORR_GRENZE:+.3f}",
         "d_max_k": f"{m.durchmesser + KORR_GRENZE:+.3f}",
         "d_min_k": f"{m.durchmesser - KORR_GRENZE:+.3f}",
+        "b_vz": f"{m.breite:+.3f}",
+        "b_max": f"{m.breite + toleranz:+.3f}",
+        "b_min": f"{m.breite - toleranz:+.3f}",
+        "b_max_k": f"{m.breite + KORR_GRENZE:+.3f}",
+        "b_min_k": f"{m.breite - KORR_GRENZE:+.3f}",
+        "b": f"{m.breite:.3f}",
+        "achse": m.achse or "",
+        "achse_nr": 2 if m.achse == "Y" else 1,
         "x": f"{m.x:.3f}",
         "y": f"{m.y:.3f}",
         "z": f"{m.z_mess:.3f}",

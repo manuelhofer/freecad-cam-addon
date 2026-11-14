@@ -2564,7 +2564,7 @@ class WeiterFrage(QtGui.QDialog):
         self._kennung = gp.steuerung_des_jobs(job)
         s = pp.steuerung(self._kennung, gp.gespeicherte_aenderungen(self._kennung))
         self._steuerung = s
-        self._zyklus = bool(self.merkmal is not None and getattr(s, f"messen_{self.merkmal.art}"))
+        self._zyklus = _hat_zyklus(s, self.merkmal)
         self.messen_text = _grau()
         self.messen_text.setWordWrap(True)
         self.messen_text.setContentsMargins(22, 0, 0, 0)
@@ -2615,8 +2615,7 @@ class WeiterFrage(QtGui.QDialog):
         if merkmal == self.merkmal:
             return
         self.merkmal = merkmal
-        art = getattr(merkmal, "art", None)
-        self._zyklus = bool(art is not None and getattr(self._steuerung, f"messen_{art}"))
+        self._zyklus = _hat_zyklus(self._steuerung, merkmal)
 
     def _messen_zeigen(self, *_):
         an = self.messstopp.isChecked()
@@ -2631,6 +2630,10 @@ class WeiterFrage(QtGui.QDialog):
             self.messen_text.setText("")
         elif self.merkmal is None:
             self.messen_text.setText(tr("beta.weiter.messen.keins"))
+        elif not self.merkmal.zyklus_moeglich:  # die schräge Nut: von Hand, mit Satz
+            self.messen_text.setText(
+                tr("beta.weiter.messen.schraeg", was=_merkmal_text(self.merkmal))
+            )
         elif not self._zyklus:
             self.messen_text.setText(
                 tr(
@@ -2799,6 +2802,14 @@ def bohrung_messmerkmal(job, rest):
     except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht mehr zum Modell
         return None
     return None if m is None else messen.soll(m, max(float(rest), 0.0))
+
+
+def _hat_zyklus(s, m):
+    """Misst die Steuerung `s` das Merkmal `m` mit einem Zyklus (Steuerung.messen_*)? Nicht ohne
+    Merkmal und nicht die schräge Nut (messen.Merkmal.zyklus_moeglich)."""
+    if m is None or not m.zyklus_moeglich:
+        return False
+    return bool(getattr(s, f"messen_{m.art}", ""))
 
 
 def _merkmal_text(m):

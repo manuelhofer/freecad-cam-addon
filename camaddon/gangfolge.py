@@ -187,29 +187,49 @@ def davor_messen(ops):
     )
 
 
+def _quelle(op):
+    """`op`, bei einer Leerfahrt ihre Quelle."""
+    if op is not None and lf.ist_leerfahrt(op):
+        return getattr(op, "Quelle", None)
+    return op
+
+
+def ist_nutgang(op):
+    """Eine Nut (auch nur ihr Schlichtgang) oder ihre Leerfahrt? Nach ihr misst der Taster die
+    Breite der Nut (messen.nut_merkmal)."""
+    from . import nut as nu
+
+    return nu.ist_nut(_quelle(op))
+
+
 def mess_flaechen(op, flaechen):
-    """Die Flächen, an denen nach `op` gemessen wird: bei „Bohrung fräsen“ (auch ihrer Leerfahrt)
-    ihre Bohrungen – gemessen wird der Ø; sonst `flaechen` (die am Job gemerkten)."""
+    """Die Flächen, an denen nach `op` gemessen wird: bei „Bohrung fräsen“ und der Nut (auch ihrer
+    Leerfahrt) ihre Flächen – gemessen wird der Ø bzw. die Breite; sonst `flaechen` (die am Job
+    gemerkten)."""
     from . import bohrung as bo
 
-    if op is not None and lf.ist_leerfahrt(op):
-        op = getattr(op, "Quelle", None)
-    if op is not None and bo.ist_bohrungsfraesen(op) and list(op.Flaechen):
+    op = _quelle(op)
+    gang = op is not None and (bo.ist_bohrungsfraesen(op) or ist_nutgang(op))
+    if gang and list(getattr(op, "Flaechen", []) or []):
         return list(op.Flaechen)
     return list(flaechen)
 
 
 def messmerkmal(form, flaechen, davor):
     """Was ein Taster nach der Operation `davor` misst (messen.Merkmal mit dem Soll): das Merkmal
-    der Flächen (mess_flaechen), um den Rest an der Wand (wand_rest) – None, wenn sie keins
-    ergeben."""
+    der Flächen (mess_flaechen) – nach einer Nut ihre Breite (messen.nut_merkmal; ihre Flächen
+    können auch nur eine Wand der Ringnut sein, die sonst als Bohrung gälte) –, um den Rest an der
+    Wand (wand_rest) – None, wenn sie keins ergeben."""
     from . import messen
 
     namen_ = mess_flaechen(davor, flaechen)
     if not namen_:
         return None
     try:
-        m = messen.merkmal(form, namen_)
+        if davor is not None and ist_nutgang(davor):
+            m = messen.nut_merkmal(form, namen_)
+        else:
+            m = messen.merkmal(form, namen_)
     except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht mehr zum Modell
         return None
     return None if m is None else messen.soll(m, wand_rest(davor))

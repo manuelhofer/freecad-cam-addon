@@ -8,7 +8,8 @@
 # 80 × 60 × 20 mit einer Bohrung Ø 30 (durch) und einer geschlossenen Nut 30 × 16, 8 tief, mit dem
 # Ø 12. Helix und Ringe lassen 0,3; der Schlichtzug des ersten Schnitts 0,15, Leerfahrt (nur der
 # Schlichtzug), Messstopp (Bohrung Ø 29,7), der Schlichtzug auf Maß (ohne Helix und Ringe),
-# Leerfahrt – der Ø nach jedem Schnitt aus der Bahn nachgemessen.
+# Leerfahrt – der Ø nach jedem Schnitt aus der Bahn nachgemessen. Die Nut misst der Taster an ihrer
+# Breite: 16 → 15,7 → gemessen 15,7 → 16, quer in Y.
 import math
 import os
 import pathlib
@@ -359,11 +360,18 @@ if len(folge.fertig) == 2 and len(folge.leer_vor) == 2 and len(folge.leer_fertig
     # Im geräumten Kern im Eilgang hinab (der Materialstand sieht ihn frei), nicht im Vorschub.
     pruefe(tiefster_eilgang(fertig_b) < 5.0, f"zweiter: Eilgang bis {tiefster_eilgang(fertig_b)}")
     pruefe(tiefster_eilgang(leer_b) < 5.0, f"Leerfahrt: Eilgang bis {tiefster_eilgang(leer_b)}")
-    # Der Messstopp misst die Bohrung am Ø nach dem ersten Schnitt.
+    # Der Messstopp misst die Bohrung am Ø nach dem ersten Schnitt (nach ihrer Leerfahrt). Hier
+    # steht er hinter der Leerfahrt der Nut, die zuletzt schnitt: Seit 0.381 misst er dort die Nut
+    # (15,7) – bis 0.380 kannte er keine und nahm die Bohrung aus den Flächen des Jobs.
+    m_b = gf.messmerkmal(form, [bohrung_flaeche], leer_b)
+    pruefe(
+        m_b is not None and m_b.art == messen.BOHRUNG and abs(m_b.durchmesser - (D - 0.3)) < 1e-6,
+        f"Messmerkmal Bohrung: {m_b}",
+    )
     m_ = merkmale[0] if merkmale else None
     pruefe(
-        m_ is not None and m_.art == messen.BOHRUNG and abs(m_.durchmesser - (D - 0.3)) < 1e-6,
-        f"Messmerkmal: {m_}",
+        m_ is not None and m_.art == messen.NUT and abs(m_.breite - (NUT_B - 0.3)) < 1e-6,
+        f"Messmerkmal hinter der Nut: {m_}",
     )
     pruefe(len(stopps) == 1 and stopps[0][0] == leer_n.Label, f"Messstopp: {stopps}")
     # Die Nut ebenso: erst 0,15, dann auf Maß; die Leerfahrt und der zweite nur der Schlichtgang.
@@ -392,6 +400,57 @@ if len(folge.fertig) == 2 and len(folge.leer_vor) == 2 and len(folge.leer_fertig
     pruefe(gf.davor_messen([bohrung, leer_b]) is None, "davor_messen: nur die Bohrung")
     pruefe(gf.davor_messen([nut_op, folge.stopp]) is nut_op, "davor_messen: nach einem Messstopp")
     pruefe(gf.ist_bohrungsgang(leer_b) and not gf.ist_bohrungsgang(leer_n), "ist_bohrungsgang")
+    # Gemessen wird die Nut an ihrer Breite (messen.NUT, seit 0.381): 16 → 15,7 nach dem ersten
+    # Schnitt und seiner Leerfahrt → gemessen 15,7 → 16 nach dem zweiten. Quer zur Mittellinie
+    # (sie läuft in X): in Y, in der Mitte (58, 30), auf halber Wand z 16 – auch wenn am Job
+    # noch die Bohrung gemerkt ist (die Nut misst an ihren eigenen Flächen).
+    breiten = []
+    for op in (nut_op, leer_n, fertig_n, leer2_n):
+        m_n = gf.messmerkmal(form, [bohrung_flaeche, nut_grund], op)
+        breiten.append(None if m_n is None else round(m_n.breite, 3))
+        pruefe(
+            m_n is not None
+            and m_n.art == messen.NUT
+            and m_n.achse == "Y"
+            and abs(m_n.x - 58.0) < 1e-6
+            and abs(m_n.y - NUT_Y) < 1e-6
+            and abs(m_n.z_mess - 16.0) < 1e-6,
+            f"Nut-Messmerkmal nach {op.Label}: {m_n}",
+        )
+    print(f"Nut gemessen nach jedem Schnitt: {breiten}")
+    pruefe(breiten == [15.7, 15.7, 16.0, 16.0], f"Nut gemessen: {breiten}")
+    # Der Messstopp zwischen den Schnitten der Nut allein (gangfolge.folge): misst 15,7.
+    nut_allein = nu.lege_an(job, tc_r, 4.0, 1.5, aufmass=0.3, schlichten=True, flaechen=[nut_grund])
+    doc.recompute()
+    gemerkt = []
+
+    def stopp_nut(davor, danach):
+        gemerkt.append(gf.messmerkmal(form, [nut_grund], davor))
+        return ms.lege_an(job, davor.ToolController, danach.ToolController, gemerkt[-1])
+
+    folge_n = gf.folge(job, [nut_allein], 0.0, leerfahrt=True, stopp_anlegen=stopp_nut)
+    zeile_n = ms.merkmal_von(list(folge_n.stopp.Gcode)) if folge_n.stopp is not None else None
+    print(f"Messstopp der Nut: {zeile_n}")
+    pruefe(
+        zeile_n is not None
+        and zeile_n[0].art == messen.NUT
+        and abs(zeile_n[0].breite - 15.7) < 1e-6
+        and zeile_n[0].achse == "Y",
+        f"Messstopp der Nut: {zeile_n}",
+    )
+
+    # Nach „Schlichten danach“ (eine Kontur an den Wänden der Nut, Rest 0,15) misst er die Nut
+    # über die am Job gemerkten Flächen – ihren Grund (bis 0.380: kein Merkmal, Halt ohne Soll).
+    class KonturZug:
+        PropertiesList = ["Aufmass", "Schlichten", "Schlichtrest"]
+        Aufmass, Schlichten, Schlichtrest = 0.3, True, 0.15
+        ToolController = tc_r
+
+    m_k = gf.messmerkmal(form, [nut_grund], KonturZug())
+    pruefe(
+        m_k is not None and m_k.art == messen.NUT and abs(m_k.breite - 15.7) < 1e-6,
+        f"nach der Kontur: {m_k}",
+    )
 
 # „Bohrung fräsen“ ohne Schlichtzug: Die Helix fräst auf Maß – es bleibt 0 an der Wand, gemessen
 # wird Ø 30 (bis 0.379: Ø 29,4 aus ihrem Aufmaß 0,3), und zwei Schnitte gibt es dort nicht (die

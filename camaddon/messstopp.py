@@ -61,9 +61,14 @@ def zeilen(sicher, drehzahl, rueckwaerts=False, kuehlung=None):
 
 def merkmal_zeile(m, toleranz, korrigieren=None):
     """„(MESSEN tasche X50.000 Y40.000 LX58.000 LY38.000 Z32.500 OBEN40.000 TOL0.020)“ – rund mit
-    D statt LX/LY; mit `korrigieren` (die Werkzeugnummer des Schlichtwerkzeugs danach) dazu
+    D statt LX/LY, die Nut mit B (Breite) und W (Messrichtung, Grad: 0 in X, 90 in Y); mit `korrigieren` (die Werkzeugnummer des Schlichtwerkzeugs danach) dazu
     „KORR3“: Der Messzyklus trägt die Abweichung als dessen Radius-Verschleiß ein."""
-    masse = f"D{m.durchmesser:.3f}" if m.rund else f"LX{m.laenge_x:.3f} LY{m.laenge_y:.3f}"
+    if m.rund:
+        masse = f"D{m.durchmesser:.3f}"
+    elif m.art == "nut":
+        masse = f"B{m.breite:.3f} W{m.winkel:.3f}"
+    else:
+        masse = f"LX{m.laenge_x:.3f} LY{m.laenge_y:.3f}"
     korr = f" KORR{int(korrigieren)}" if korrigieren else ""
     return (
         f"({MESSEN} {m.art} X{m.x:.3f} Y{m.y:.3f} {masse} Z{m.z_mess:.3f} "
@@ -121,6 +126,8 @@ def merkmal_von(zeilen_):
             laenge_x=werte.get("LX", 0.0),
             laenge_y=werte.get("LY", 0.0),
             durchmesser=werte.get("D", 0.0),
+            breite=werte.get("B", 0.0),
+            winkel=werte.get("W", 0.0),
             z_oben=werte.get("OBEN", werte["Z"]),
             z_mess=werte["Z"],
         )
