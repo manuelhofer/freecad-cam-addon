@@ -2098,17 +2098,20 @@ class BetaPanel(BearbeitungPanel):
         self._beta_knoepfe()
 
     def _schlichten_danach_einrichten(self, form):
-        """Wie im Assistenten – nur mit zwei gleichen Schnitten aus „Weiter bearbeiten“ ohne den
-        Messstopp, den „Schlichten danach“ nach einer Nut von sich aus anhakt: Gemessen wird
-        zwischen den Schnitten (gangfolge). Mit ihm stand im Szenario vor dem ersten Wandzug ein
-        zweiter Messstopp (Nut 15,4 nach dem Schruppen), den keiner verlangt hatte. Von Hand
-        angehakt bleibt er."""
+        """Wie im Assistenten – nur ohne den Messstopp, den „Schlichten danach“ nach einer Nut von
+        sich aus anhakt, wenn „Weiter bearbeiten“ schon misst: mit zwei gleichen Schnitten
+        zwischen ihnen (gangfolge), sonst mit „Messstopp davor“ vor den neuen Operationen
+        (_anlegen). Mit ihm standen zwei Halte da, die keiner verlangt hatte – bei zwei Schnitten
+        vor dem ersten Wandzug (Nut 15,4 nach dem Schruppen), mit „Messstopp davor“ zwei
+        hintereinander, beide an der Nut 15,4 (nachgestellt 2026-11-15, szenario_messstopp_einmal).
+        Von Hand angehakt bleibt er."""
         block = self.schlichten_danach
         haken = block.haken_felder.get("messstopp")
         vorher = bool(haken is not None and haken.isChecked())
         super()._schlichten_danach_einrichten(form)
         folge = getattr(self, "_beta_folge", None) or {}
-        if haken is None or vorher or folge.get("ende") is None or not haken.isChecked():
+        misst = folge.get("ende") is not None or getattr(self, "_beta_messstopp", False)
+        if haken is None or vorher or not misst or not haken.isChecked():
             return
         alt = (self._fuellt, self._ruhig)
         self._fuellt = self._ruhig = True
