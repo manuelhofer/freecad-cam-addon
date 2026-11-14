@@ -1115,33 +1115,37 @@ reason.</li>
 </ul>
 
 <h3>21. Plane seal groove</h3>
-<p>For the <b>bottom of a closed groove</b> that an O-ring seals on (a lid): a <b>shaping
-tool</b> sits in the spindle, the spindle does not turn. The machine pulls the blade along the
-centre line of the groove and turns it into the direction of travel for each block – the marks run
-along the groove instead of across it as with milling. The shape does not matter (circle,
-rectangle with radii, following the outline); corners need a fillet.</p>
+<p>For a <b>closed groove</b> that an O-ring seals in (a lid): a <b>shaping tool</b> sits in the
+spindle, the spindle does not turn. The machine pulls the blade along the centre line of the groove
+and turns it into the direction of travel for each block – the marks run along the groove instead
+of across it as with milling. The blade makes the groove <b>from solid</b>, width and depth, without
+a cutter before it. The shape does not matter (circle, rectangle with radii, following the outline);
+corners need a fillet.</p>
 <ul>
 <li><b>Click:</b> the bottom or a wall of the groove. The block is offered but not ticked by
-itself – whether to plane is your decision (the button that creates a shaping tool ticks it).</li>
-<li><b>A shaping tool</b> (type “shaping tool”) with edge width and blade length behind the edge.
-If there is none, a button at the bottom creates one: the edge as wide as fits into the groove,
-the blade short enough for the tightest curve – allowing for the spindle never pointing exactly
-in the direction of travel.</li>
+itself – whether to plane is your decision (the button that creates a shaping tool ticks it). When
+ticked, clearing, “Finish afterwards” and contour no longer mill in the groove.</li>
+<li><b>A shaping tool</b> (type “shaping tool”) with edge width, blade length behind the edge and
+reach. If there is none, a button at the bottom creates one: the edge as wide as fits into the
+groove, the blade short enough for the tightest curve – allowing for the spindle never pointing
+exactly in the direction of travel –, the reach long enough to keep the shank above the part (the
+groove from the top of the material + 0.5 mm).</li>
 <li><b>Align the edge:</b> the tool has a <b>spindle angle</b> at which the edge points to +X –
 measure it on the machine and enter it. The program positions the spindle for each block (Siemens
 SPOS, Heidenhain cycle 13, others M19); GRBL cannot do it and says so.</li>
-<li><b>Milled before:</b> clearing leaves the <b>stock</b> (0.2 mm) on the bottom of this groove –
-only there, other floors come to size. Planing only happens where a cutter has milled the groove
-down to the stock, and only between finished walls: if they still have stock, the block offers
-“Finish afterwards”. After planing, the wall cutter runs along the walls once more inside the stock
-(down to 0.02 mm above the bottom) – the blade cannot get quite up to them.</li>
-<li><b>How the blade moves:</b> straight down only to 0.3 mm above the material, then flat in the
-direction of travel on a straight section into the material and with a steady slope through the
-groove, one infeed deeper per pass; at the end one level pass and the spring passes. If the blade
-is narrower than the groove, it runs several tracks side by side – all of them in each pass, so
-that never more than one infeed stands next to it.</li>
+<li><b>How the blade moves:</b> straight down only to 0.3 mm above the top of the material (the
+stock, after face milling the part), then flat in the direction of travel on a straight section into
+the material and with a steady slope through the groove, one infeed deeper per pass, down to the
+bottom; there one level pass and the spring passes. If the blade is narrower than the groove, it
+makes the groove in several tracks: the first along one wall all the way down, then it starts at
+the top again for the next along the other wall; they overlap. The blade stays far enough from the
+walls not to hit them even when swung (on the lid up to about 0.04 mm in the curves).</li>
+<li><b>Mill first, plane the remainder</b> (tick box, off): clearing and “Finish afterwards” mill the
+groove down to the <b>stock</b> (0.2 mm) above the bottom, only that is planed – between finished
+walls; afterwards the wall cutter runs along the walls once more inside the stock.</li>
 <li>The fields: <b>infeed per pass</b> (from the tool, cutting data “Planing”; guide value 0.08 mm
-in steel), <b>stock above the bottom</b>, <b>spring passes</b> at final depth.</li>
+in steel), <b>stock above the bottom</b> (only with “Mill first”), <b>spring passes</b>. From solid
+there are many passes (2.7 mm deep at 0.08: some 34 per track) – the time is shown in the block.</li>
 </ul>
 <p><b>Caution:</b> how much load the <b>stationary spindle</b> takes is not documented – no
 manufacturer gives a value. Run slowly on the first part (feed override) and keep the infeed

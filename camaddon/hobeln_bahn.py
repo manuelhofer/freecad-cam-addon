@@ -731,12 +731,15 @@ def planen(nut, werte):
     senkrecht nur bis UEBER_MATERIAL über das Material (Grund + Rest), dann in Fahrtrichtung flach
     bis auf das Material und von dort mit stetigem Gefälle durch die Nut – je Umlauf um die
     Zustellung (Zustellung ÷ Länge des Umlaufs je mm), bis auf das Aufmaß; dort ein ebener Umlauf
-    und die Leerumläufe. Mehrere Spuren (die Klinge schmaler als die Nut) wechseln sich je Umlauf
-    ab – Umlauf 1 Spur 1, Umlauf 1 Spur 2, …, dann Umlauf 2 –, so steht neben der Klinge nie mehr
-    als eine Zustellung (führe Spur 1 erst ganz hinab, liefe sie als Schlitz mit einer Stufe bis
-    „Rest“ hoch neben sich). Zwischen zwei Spuren hinauf auf UEBER_MATERIAL über alles, zurück an
-    den Anfang der Geraden und dort neu wie beim ersten Mal (ohne Gerade über dem Teil, weil die
-    Spindel dreht)."""
+    und die Leerumläufe. Das Material: `rest` über dem Grund – aus dem Vollen die Oberkante des
+    Teils oder Rohteils über der Nut, vorgefräst der Rest.
+
+    Ist die Klinge schmaler als die Nut, fährt sie mehrere Spuren, jede eine eigene schmale Nut von
+    oben bis unten (Manuel, 2026-11-14: „das man die schmale Nut fährt auf der einen Seite und dann
+    wieder oben anfängt und dann an der anderen Seite entlang die selbe Nut fährt“): Spur 1 an der
+    einen Wand ganz hinab, dann hinauf auf UEBER_MATERIAL über alles, zurück an den Anfang der
+    Geraden und die nächste Spur wie beim ersten Mal (ohne Gerade über dem Teil, weil die Spindel
+    dreht); sie überlappen um SPUR_UEBERLAPP der Klingenbreite."""
     w = werte
     grund = klinge_pruefen(nut, w.breite, w.laenge, w.schritt)
     if grund:
@@ -744,14 +747,14 @@ def planen(nut, werte):
     if w.zustellung <= 0 or w.vorschub <= 0:
         raise ValueError(tr("hn.fehler.werte"))
     z_ende = nut.z_boden + max(w.aufmass, 0.0)
-    z_oben_material = min(nut.z_boden + max(w.rest, 0.0), nut.z_oben)
+    z_oben_material = nut.z_boden + max(w.rest, 0.0)  # aus dem Vollen auch über der Nut (Rohteil)
     if z_oben_material < z_ende:
         z_oben_material = z_ende
     stellen = _stellen_je_stueck(nut, max(w.schritt, 0.05))
     c, m, gerade = _anfang(nut, stellen)
     stellen = stellen[c:] + stellen[:c]  # die Stelle, an der die Klinge ins Material kommt, zuerst
     n = len(stellen)
-    hoch = nut.z_oben + w.sicherheit
+    hoch = max(nut.z_oben, z_oben_material + UEBER_MATERIAL) + w.sicherheit
     spuren = _spuren(nut, w.breite)
     kruemmung = _kruemmung(stellen, w.laenge) if len(spuren) > 1 else None
     reihen = [_spur_planen(nut, w, stellen, d, kruemmung, len(spuren) > 1) for d in spuren]
@@ -794,12 +797,12 @@ def planen(nut, werte):
         return max(z_ende, z_oben_material - w.zustellung * u / wege[j][n])
 
     lage = None  # wo die Klinge gerade ist (x, y, z) – None: oben
-    for k in range(1, gesamt + 1):
-        for j, reihe in enumerate(reihen):
+    for j, reihe in enumerate(reihen):
+        for k in range(1, gesamt + 1):
             weg = wege[j]
             umlauf = weg[n]
             luft_weg = umlauf - weg[n - m]
-            if lage is None or len(reihen) > 1:
+            if k == 1:
                 # Einfahren: senkrecht bis UEBER_MATERIAL über das Material am Anfang der Rampe,
                 # dann in Fahrtrichtung flach bis auf das Material an Stelle 0.
                 x0, y0, r0 = reihe[(n - m) % n]

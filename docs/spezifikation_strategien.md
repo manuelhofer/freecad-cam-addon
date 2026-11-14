@@ -3281,6 +3281,21 @@ Daraus (Lesart, nach der gebaut wird):
    Steuerungen geprüft, die vor dem Satz drehen (sie bekommen die Mitte zweier Winkel), und mit 0,5°
    Winkelfehler (Fanuc in ganzen Grad) – der Vorschlag für den Deckel wird dadurch 3,5 × 0,8 statt
    3,5 × 1,1.
+   **Aus dem Vollen (Manuel, 2026-11-14, 16:2x):** „Ne das hobeln sollte auch bei nicht vor
+   gefraeseter Nut funktionieren oder?? Also das ja Sinn der Sache das man es nicht fräst“ – und zu
+   den Spuren: „Naja das mit der nurbreite und dem versetzen muss schon so sein das man die schmale
+   Nut fährt auf der einen Seite und dann wieder oben anfängt und dann an der anderen Seite entlang
+   die selbe Nut fährt.“ Gebaut: Vorgabe ist die Nut aus dem Vollen ab der Oberkante des Materials
+   (Rohteil, nach dem Planfräsen das Teil; Operation: StartDepth, Eigenschaft „Vorgefraest“ aus).
+   Angehakt lassen Räumen, „Schlichten danach“, Kontur und Nut Grund und Wände der Nut aus; bleibt
+   ihnen nichts, treten sie nicht an. Jede Spur ist eine eigene schmale Nut von oben bis unten, die
+   nächste beginnt wieder oben. Die Klinge muss so tief reichen wie die Nut ab der Oberkante + 0,5
+   (Stechtiefe, sonst rot; der Knopf schlägt sie so vor). Der bisherige Weg ist der Haken „Vorher
+   fräsen, Rest hobeln“ (Vorgabe aus); nur dann gilt die Sperre „nur vorgefräst“ und das Nachfahren
+   der Wände unten im Rest. Offen: Die Wände macht die Klinge – sie bleibt so weit davon weg, dass
+   sie auch geschwenkt nicht hineinstößt (gerade 0,005–0,02, in Kurven bis 0,04 mm je Seite am
+   Deckel); ob das für die Nutbreite reicht oder ein Fräser die Wände nachfahren soll, entscheidet
+   Manuel.
 5. *Programm* – **Grundweg gebaut (2026-11-14):** je Satz der Winkel aus der Notiz „(SPINDEL w)“,
    je Steuerung zwei neue Befehle (`spindel_winkel_vor`: Zeilen vor dem Satz, `spindel_winkel_satz`:
    am Satz), im Fenster „Befehle“ änderbar: Siemens `SPOS=DC(w)` im Bewegungssatz, Heidenhain Zyklus 13

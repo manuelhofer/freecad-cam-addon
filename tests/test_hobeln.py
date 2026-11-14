@@ -192,18 +192,23 @@ if nuten:
             davor = [v for _q, v in schnitt[max(k - 4, 0) : k + 1]]
             pruefe(max(davor) - min(davor) < 1e-6, f"ins Material in der Kurve bei {p.x}, {p.y}")
             break
-    # Spuren im Wechsel: Neben der Klinge steht nie mehr als eine Zustellung (Spur 1 nicht erst
-    # bis zum Grund, dann Spur 2).
-    boden = {}
-    groesster = 0.0
-    for p, _w, sp, st in umlauf:
-        boden[(sp, st)] = min(boden.get((sp, st), z_top), p.z)
-        for nachbar in (sp - 1, sp + 1):
-            if 0 <= nachbar < hbahn.spuren:
-                groesster = max(groesster, abs(boden[(sp, st)] - boden.get((nachbar, st), z_top)))
-    print(f"Spuren: größter Höhenunterschied nebeneinander {groesster:.4f} mm")
-    # (je Spur das Gefälle über ihre eigene Länge: in den Bögen bis 2 % mehr als die Zustellung)
-    pruefe(groesster <= 0.05 * 1.02, f"Spuren nebeneinander {groesster:.4f} mm verschieden hoch")
+    # Ist die Klinge schmaler als die Nut, fährt jede Spur eine eigene schmale Nut von oben bis
+    # unten (Manuel, 2026-11-14: „das man die schmale Nut fährt auf der einen Seite und dann wieder
+    # oben anfängt und dann an der anderen Seite entlang die selbe Nut fährt“): Spur 1 ganz, dann
+    # Spur 2 ganz; jede beginnt oben (die Prüfung oben: nie senkrecht ins Material). Dazwischen
+    # bleibt nichts stehen: Nebeneinander liegen die Spuren auf Endtiefe weniger als eine
+    # Klingenbreite auseinander (sie überlappen).
+    reihenfolge = [sp for _p, _w, sp, _s in umlauf]
+    wechsel = sum(1 for a, b in zip(reihenfolge, reihenfolge[1:], strict=False) if a != b)
+    pruefe(wechsel == hbahn.spuren - 1, f"Spuren nicht nacheinander: {wechsel} Wechsel")
+    unten = {(sp, st): (p.x, p.y) for p, _w, sp, st in umlauf if p.z < n.z_boden + 1e-9}
+    abstand_max = max(
+        math.dist(unten[(sp, st)], unten[(sp + 1, st)])
+        for (sp, st) in unten
+        if (sp + 1, st) in unten
+    )
+    print(f"Spuren: größter Abstand nebeneinander {abstand_max:.3f} mm (Klinge 2,6)")
+    pruefe(abstand_max < 2.6 - 0.01, f"zwischen den Spuren bleibt etwas stehen: {abstand_max:.3f}")
     # Unabhängig: die Klinge als Rechteck (Schneide vorn auf dem Punkt, Körper `laenge` dahinter,
     # quer 2,6) muss in jeder Stellung ganz im Grund der Nut liegen.
     grund_flaeche = next(
@@ -335,13 +340,34 @@ print(f"Kontur: tiefste Spitze ohne Rest {tiefste(k_ohne):.3f}, mit Rest {tiefst
 pruefe(abs(tiefste(k_ohne) - 8.0) < 1e-6, f"Kontur ohne Rest: {tiefste(k_ohne)}")
 pruefe(abs(tiefste(k_mit) - 8.2) < 1e-6, f"Kontur mit Rest: {tiefste(k_mit)}")
 
-# Die Vorschau im Assistenten: die Nut, ihr Grund ist danach fertig. Stehen die Wände noch 0,3 vor,
-# passt die Klinge 2,6 nicht dazwischen (3 − 0,6) – ein Satz, der „Schlichten danach“ anbietet.
-hv = hop.vorschau(job, stoss, [waende[0]], vorschub=6000.0)
+# Die Vorschau im Assistenten, aus dem Vollen (die Vorgabe; Manuel, 2026-11-14: „Also das ja Sinn
+# der Sache das man es nicht fräst“): ab der Oberkante (hier das Teil, 10) bis zum Grund (8), je
+# Umlauf 0,05 – 40 Umläufe, ein ebener, ein Leerumlauf; zwei Spuren.
+hv = hop.vorschau(job, stoss, [waende[0]], zustellung=0.05, vorschub=6000.0, oben=10.0)
 pruefe(hv.namen == [grund] and len(hv.je_nut) == 1 and not hv.nicht_passend, f"Vorschau: {hv}")
-pruefe(hv.zeit > 0 and len(hv.punkte) > 100, f"Vorschau: {hv.zeit} min, {len(hv.punkte)} Sätze")
+pruefe(
+    hv.je_nut[0]["umlaeufe"] == 40 + 1 + 1 and hv.je_nut[0]["spuren"] == 2,
+    f"aus dem Vollen: {hv.je_nut[0]['umlaeufe']} Umläufe, {hv.je_nut[0]['spuren']} Spuren",
+)
+z_schnitt = [p.z for p in hv.punkte if not p.eilgang]
+pruefe(max(z_schnitt) <= 10.3 + 1e-9 and min(z_schnitt) >= 8.0 - 1e-9, "aus dem Vollen: Höhen")
+print(f"Aus dem Vollen: {hv.zeit:.1f} min, {len(hv.punkte)} Sätze")
+# Die Klinge muss so tief reichen wie die Nut ab der Oberkante (+ 0,5): sonst stieße der Schaft
+# ans Teil. Das Stoßwerkzeug reicht 4 – mit dem Rohteil 3 mm über der Nut (11 − 8 = 3 + 0,5) geht
+# es, 4 über (12) nicht.
+pruefe(not hop.klinge_grund(nut, stoss, 0.0, 3.0), "Stechtiefe 4 für 3 tief")
+pruefe("Schaft" in hop.klinge_grund(nut, stoss, 0.0, 4.0), "Stechtiefe 4 für 4 tief geht")
 try:
-    hop.vorschau(job, stoss, [grund], wand_aufmass=0.3)
+    hop.vorschau(job, stoss, [grund], oben=12.0)
+    pruefe(False, "Klinge zu kurz für 4 mm")
+except ValueError as satz:
+    pruefe("Schaft" in str(satz), f"zu kurz: {satz}")
+# Mit „Vorher fräsen, Rest hobeln“: nur der Rest. Stehen die Wände noch 0,3 vor, nicht – ein Satz,
+# der „Schlichten danach“ anbietet.
+hv_rest = hop.vorschau(job, stoss, [grund], aus_dem_vollen=False, oben=10.0)
+pruefe(hv_rest.je_nut[0]["umlaeufe"] == 3 + 1 + 1, f"Rest: {hv_rest.je_nut[0]['umlaeufe']}")
+try:
+    hop.vorschau(job, stoss, [grund], wand_aufmass=0.3, aus_dem_vollen=False)
     pruefe(False, "Klinge 2,6 zwischen Wänden mit 0,3 Aufmaß")
 except ValueError as satz:
     print(ascii(f"Wände mit Aufmaß: {satz}"))
@@ -349,20 +375,25 @@ except ValueError as satz:
 # Auch 0,1 nicht: Gehobelt wird erst zwischen fertigen Wänden (die äußeren Spuren führen sonst
 # seitlich ins Aufmaß, Zweifler 14.11.).
 try:
-    hop.vorschau(job, stoss, [grund], wand_aufmass=0.1)
+    hop.vorschau(job, stoss, [grund], wand_aufmass=0.1, aus_dem_vollen=False)
     pruefe(False, "Klinge zwischen Wänden mit 0,1 Aufmaß")
 except ValueError as satz:
     pruefe(getattr(satz, "daten", {}).get("waende"), f"0,1: ohne Hinweis auf die Wände: {satz}")
 # Nicht vorgefräst (Räumen fehlt oder sein Fräser passt nicht hinein): nicht hobeln.
 try:
-    hop.vorschau(job, stoss, [grund], vorgefraest=set())
+    hop.vorschau(job, stoss, [grund], vorgefraest=set(), aus_dem_vollen=False)
     pruefe(False, "gehobelt, ohne dass die Nut vorgefräst ist")
 except ValueError as satz:
     pruefe("Material" in str(satz), f"nicht vorgefräst: {satz}")
-pruefe(hop.vorschau(job, stoss, [grund], vorgefraest={grund}).namen == [grund], "vorgefräst")
+pruefe(
+    hop.vorschau(job, stoss, [grund], vorgefraest={grund}, aus_dem_vollen=False).namen == [grund],
+    "vorgefräst",
+)
 # Das vorgeschlagene Stoßwerkzeug: die Schneide 3 − 2 · (0,005 + 0,02) auf 0,1 abgerundet, die
 # Klinge so lang, dass sie R 10 fährt, geschwenkt (0,73 → 0,7).
 vorschlag = hop.werkzeug_vorschlag([nut])
+tief = hop.werkzeug_vorschlag([nut], 3.0)
+pruefe(tief.stechtiefe == 4.0 and vorschlag.stechtiefe == 3.0, f"Stechtiefe {tief.stechtiefe}")
 print(
     ascii(f"Vorschlag: {vorschlag.name} b {vorschlag.schneidenbreite} L {vorschlag.klingenlaenge}")
 )
@@ -401,6 +432,7 @@ stopp = ms.lege_an(job, tc_fraeser, tc)
 op = hop.lege_an(job, tc)
 doc.recompute()
 pruefe(hop.ist_hobeln(op) and op.Nuten == 1, f"Operation: {op.Label}, {op.Nuten} Nuten")
+print(f"Operation aus dem Vollen ab {float(op.StartDepth):.2f}, {len(op.Path.Commands)} Befehle")
 pruefe(str(tc.SpindleDir) == "None" and float(tc.SpindleSpeed) == 0.0, "die Spindel dreht")
 pruefe(tc.HorizFeed.getValueAs("mm/min").Value == 6000.0, f"Hub {tc.HorizFeed}")
 pruefe("Hobeln" in tc.Label, f"Controller {tc.Label}")
@@ -504,7 +536,7 @@ pruefe(
 )
 gruende2 = [x.name for x in nuten2]
 tc2 = hop.controller(doc2, job2, stoss)
-ohne_raeumen = hop.lege_an(job2, tc2, gruende2)
+ohne_raeumen = hop.lege_an(job2, tc2, gruende2, vorgefraest=True)
 doc2.recompute()
 pruefe(ohne_raeumen.Nuten == 0, f"ohne Räumen gehobelt: {ohne_raeumen.Nuten}")
 tc2_f = js.controller_ohne_transaktion(doc2, job2, fraeser, einsatz)
@@ -514,10 +546,14 @@ waende2 = [w for x in nuten2 for w in x.flaechen if w != x.name]
 ko.lege_an(job2, tc2_f, 2.0, 0.1, 0.0, True, 0.1, flaechen=waende2,
            waende_rest=tuple((w, 0.2) for w in waende2))  # fmt: skip
 doc2.recompute()
-mit_raeumen = hop.lege_an(job2, tc2, gruende2)
+mit_raeumen = hop.lege_an(job2, tc2, gruende2, vorgefraest=True)
 doc2.recompute()
 g1 = [c for c in mit_raeumen.Path.Commands if c.Name in ("G1", "G01")]
 pruefe(mit_raeumen.Nuten == 1 and len(g1) > 100, f"zwei Nuten: {mit_raeumen.Nuten}, {len(g1)} G1")
+# Aus dem Vollen braucht es kein Räumen: die passende Nut ja, der Kreis R 5 nicht.
+voll2 = hop.lege_an(job2, tc2, gruende2, oben=10.0)
+doc2.recompute()
+pruefe(voll2.Nuten == 1 and not voll2.Vorgefraest, f"aus dem Vollen, zwei Nuten: {voll2.Nuten}")
 FreeCAD.closeDocument(doc2.Name)
 
 if fehler:

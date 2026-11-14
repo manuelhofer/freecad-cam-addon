@@ -3,8 +3,12 @@
 
 Ein Stoßwerkzeug (werkzeuge.STOSSWERKZEUG) steht in der Spindel und wird längs der Mittellinie
 einer umlaufenden Nut gezogen; die Spindel dreht nicht, sie stellt die Schneide je Satz in
-Fahrtrichtung (hobeln_bahn). Die Nut ist davor gefräst bis auf den Rest über dem Grund; die
-Operation nimmt ihn in Umläufen weg, mit Leerumläufen am Ende – die Riefen laufen längs der Nut.
+Fahrtrichtung (hobeln_bahn). Sie macht die Nut **aus dem Vollen** – Breite und Tiefe ganz mit der
+Klinge, ohne Fräser davor (Manuel, 2026-11-14: „das hobeln sollte auch bei nicht vor gefraeseter
+Nut funktionieren oder?? Also das ja Sinn der Sache das man es nicht fräst“): von der Oberkante des
+Materials (StartDepth: Teil oder Rohteil über der Nut) in Umläufen bis zum Grund, mit Leerumläufen
+am Ende – die Riefen laufen längs der Nut. Mit „Vorgefraest“ ist die Nut davor bis auf den Rest
+über dem Grund gefräst, und nur der Rest wird gehobelt.
 
 Wie „Ringnut fräsen“ (ringnut) eine eigene Operation (FreeCADs ObjectOp) mit Werkzeug-Controller,
 Kühlmittel und FreeCADs Tiefen und Höhen. Den Spindelwinkel trägt jeder Satz als Kommentar
@@ -17,6 +21,8 @@ und Abfahren zählt sie so; ob sie in der Nut bleibt, prüft hobeln_bahn (die Kl
 Läuft ohne Oberfläche.
 """
 
+import contextlib
+import dataclasses
 import math
 from dataclasses import dataclass
 
@@ -56,6 +62,9 @@ LUFT_MINDESTENS = 0.02
 WAND_UNTEN = 0.02
 WAND_UNTEN_BREITE = 0.1
 VORGEFRAEST = 0.95  # so viel der Mittellinie muss eine Operation davor bis auf den Rest fräsen
+# mm – so viel länger als die Nut tief ist (ab der Oberkante des Materials) muss die Klinge nach
+# unten reichen (Stechtiefe): Darüber beginnt der Schaft, er darf das Teil nicht berühren.
+STECHTIEFE_SICHER = 0.5
 
 
 class DichtnutHobeln(PathOp.ObjectOp):
@@ -85,6 +94,7 @@ class DichtnutHobeln(PathOp.ObjectOp):
         for typ, name, text in (
             ("App::PropertyStringList", "Flaechen", tr("ho.eigenschaft.flaechen")),
             ("App::PropertyLength", "Zustellung", tr("ho.eigenschaft.zustellung")),
+            ("App::PropertyBool", "Vorgefraest", tr("ho.eigenschaft.vorgefraest")),
             ("App::PropertyLength", "Rest", tr("ho.eigenschaft.rest")),
             ("App::PropertyLength", "Aufmass", tr("ho.eigenschaft.aufmass")),
             ("App::PropertyLength", "AufmassWand", tr("ho.eigenschaft.aufmass_wand")),
@@ -194,15 +204,23 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         float(obj.Zustellung), float(obj.Rest), float(obj.Aufmass), int(obj.Leerumlaeufe),
         float(obj.Satzlaenge), float(obj.Sicherheitsabstand),
     )  # fmt: skip
-    wand = float(getattr(obj, "AufmassWand", 0.0) or 0.0)
+    vorgefraest = bool(getattr(obj, "Vorgefraest", False))
+    wand = float(getattr(obj, "AufmassWand", 0.0) or 0.0) if vorgefraest else 0.0
+    oben = oberkante(obj, job)
     punkte, gehobelt, gruende = [], 0, []
     for nut in nuten:
         # Eine Nut, die nicht geht, nicht mit: Brach die ganze Operation ab, blieb an der, die
         # geht, der Rest des Räumens stehen (Zweifler 14.11.).
-        grund = klinge_grund(nut, werkzeug, wand) or _nicht_vorgefraest(job, obj, nut, w.rest)
+        tiefe = max(oben, nut.z_oben) - nut.z_boden
+        grund = klinge_grund(nut, werkzeug, wand, tiefe)
+        if vorgefraest:
+            grund = grund or _nicht_vorgefraest(job, obj, nut, w.rest)
+            w_nut = w
+        else:
+            w_nut = dataclasses.replace(w, rest=tiefe)  # aus dem Vollen: ab der Oberkante
         if not grund:
             try:
-                bahn = hb.planen(nut, w)
+                bahn = hb.planen(nut, w_nut)
             except ValueError as fehler:
                 grund = str(fehler)
         if grund:
@@ -214,6 +232,15 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     if not gehobelt:
         raise ValueError(gruende[0])
     return punkte, gehobelt
+
+
+def oberkante(obj, job):
+    """z der Oberkante des Materials über den Nuten: die Starttiefe der Operation, nicht über dem
+    Rohteil."""
+    oben = float(obj.StartDepth)
+    with contextlib.suppress(Exception):  # ohne Rohteil: die Starttiefe
+        oben = min(oben, float(pf.rohteil_von_oben(job)[4]))
+    return oben
 
 
 def _stuecke(befehl, von, nach):
@@ -298,13 +325,19 @@ def _nicht_vorgefraest(job, obj, nut, rest):
     return tr("ho.grund.nicht_vorgefraest", rest=hb._mm(rest))
 
 
-def klinge_grund(nut, werkzeug, wand_aufmass=0.0):
+def klinge_grund(nut, werkzeug, wand_aufmass=0.0, tiefe=None):
     """ "" wenn das Stoßwerkzeug `werkzeug` die Nut `nut` hobeln kann – sonst der Satz, warum
-    nicht: die Klinge (hobeln_bahn.klinge_pruefen), oder die Wände stehen über dem Rest noch
-    `wand_aufmass` vor (das Fräsen davor ließ Aufmaß an der Wand)."""
+    nicht: die Klinge (hobeln_bahn.klinge_pruefen); sie reicht nicht so tief, wie die Nut ab der
+    Oberkante des Materials ist (`tiefe`, ohne: die Nut selbst) – darüber stieße der Schaft ans
+    Teil; oder die Wände stehen über dem Rest noch `wand_aufmass` vor (das Fräsen davor ließ
+    Aufmaß an der Wand)."""
     grund = hb.klinge_pruefen(nut, float(werkzeug.schneidenbreite), float(werkzeug.klingenlaenge))
     if grund:
         return grund
+    noetig = (nut.tiefe if tiefe is None else float(tiefe)) + STECHTIEFE_SICHER
+    stech = float(getattr(werkzeug, "stechtiefe", 0.0) or 0.0)
+    if stech < noetig - 1e-9:
+        return tr("ho.grund.stechtiefe", stech=hb._mm(stech), noetig=hb._mm(noetig))
     a = max(float(wand_aufmass or 0.0), 0.0)
     if a > 1e-6:
         # Gehobelt wird erst zwischen fertigen Wänden: Die Klinge passte sonst nicht dazwischen,
@@ -326,17 +359,24 @@ class Hobelvorschau:
 
 
 def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1,
-             vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0, vorgefraest=None):  # fmt: skip
+             vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0, vorgefraest=None, oben=None,
+             aus_dem_vollen=True):  # fmt: skip
     """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen() (kein
     Nebenrechner). Nuten, die nicht gehen, mit ihrem Satz in `nicht_passend`; geht keine,
-    ValueError mit dem ersten Satz. `vorgefraest`: die Gründe, die ein Block davor bis auf den
-    Rest fräst (None: nicht prüfen) – die anderen gehen nicht."""
+    ValueError mit dem ersten Satz. `oben`: die Oberkante des Materials über den Nuten (None: das
+    Rohteil). `aus_dem_vollen`: die ganze Nut ab `oben`; sonst nur `rest` über dem Grund, und
+    `vorgefraest` sind die Gründe, die ein Block davor bis auf den Rest fräst (None: nicht
+    prüfen) – die anderen gehen nicht; `wand_aufmass` zählt nur dann."""
     form_teil = vs._teil(job.Model.Group)
     gewaehlt = list(flaechen)
     alle = [n for n in hb.alle_hobelnuten(form_teil) if set(n.flaechen) & set(gewaehlt)]
     if not alle:
         raise ValueError(tr("ho.fehler.keine"))
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
+    if oben is None:
+        oben = z_oben
+    if aus_dem_vollen:
+        wand_aufmass, vorgefraest = 0.0, None
     w = werte_fuer(
         werkzeug, z_oben + vb.SICHERHEIT + 3.0, vorschub or 1000.0, eintauchen, zustellung,
         rest, 0.0, leerumlaeufe,
@@ -344,14 +384,15 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
     punkte, je_nut, nicht, namen_ = [], [], [], []
     waende = False  # eine Nut geht nur nicht, weil ihre Wände noch Aufmaß haben
     for nut in alle:
-        ohne_waende = nut.grund or klinge_grund(nut, werkzeug)
-        grund = ohne_waende or klinge_grund(nut, werkzeug, wand_aufmass)
+        tiefe = max(oben, nut.z_oben) - nut.z_boden
+        ohne_waende = nut.grund or klinge_grund(nut, werkzeug, 0.0, tiefe)
+        grund = ohne_waende or klinge_grund(nut, werkzeug, wand_aufmass, tiefe)
         waende = waende or (bool(grund) and not ohne_waende)
         if not grund and vorgefraest is not None and nut.name not in vorgefraest:
             grund = tr("ho.grund.nicht_vorgefraest", rest=hb._mm(rest))
         if not grund:
             try:
-                bahn = hb.planen(nut, w)
+                bahn = hb.planen(nut, dataclasses.replace(w, rest=tiefe) if aus_dem_vollen else w)
             except ValueError as fehler:
                 grund = str(fehler)
         if grund:
@@ -371,12 +412,13 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
     return Hobelvorschau(punkte, je_nut, nicht, namen_, zeit)
 
 
-def werkzeug_vorschlag(nuten):
+def werkzeug_vorschlag(nuten, tiefe=None):
     """Ein Stoßwerkzeug (werkzeuge.Werkzeug, ohne Nummer) für die Nuten `nuten`: die Schneide so
     breit, dass sie in die schmalste passt (Nutbreite − 2 · (SPIEL + LUFT_MINDESTENS), auf 0,1
     abgerundet), die Klinge so lang, dass sie den kleinsten Radius jeder Nut fährt
     (hobeln_bahn.kleinster_radius_fuer), höchstens LAENGE_HOECHSTENS. Wird sie kürzer als
-    LAENGE_MINDESTENS, die Schneide 0,1 schmaler (bis zu fünfmal); None, wenn nichts passt."""
+    LAENGE_MINDESTENS, die Schneide 0,1 schmaler (bis zu fünfmal); None, wenn nichts passt. Die
+    Stechtiefe: `tiefe` (ab der Oberkante des Materials; ohne: die tiefste Nut) + 1, aufgerundet."""
     from . import werkzeuge as wz
 
     if not nuten:
@@ -392,7 +434,8 @@ def werkzeug_vorschlag(nuten):
             break
     else:
         return None
-    tiefe = max(n.tiefe for n in nuten)
+    if tiefe is None:
+        tiefe = max(n.tiefe for n in nuten)
     name = tr("ho.werkzeug_name", b=hb._mm(b))
     return wz.Werkzeug(
         art=wz.STOSSWERKZEUG, name=name, schneidenbreite=b, klingenlaenge=laenge,
@@ -415,9 +458,11 @@ def _laenge_fuer(nuten, b):
 
 
 def lege_an(job, tc, flaechen=(), name=None, zustellung=None, rest=REST, aufmass=0.0,
-            leerumlaeufe=1, aufmass_wand=0.0):  # fmt: skip
+            leerumlaeufe=1, aufmass_wand=0.0, vorgefraest=False, oben=None):  # fmt: skip
     """Legt „Dichtnut hobeln“ im Job an – ohne eigene Transaktion. Gibt die Operation zurück.
-    Ohne `zustellung` die des Stoßwerkzeugs (zustellung_fuer, für den Werkstoff des Jobs)."""
+    Ohne `zustellung` die des Stoßwerkzeugs (zustellung_fuer, für den Werkstoff des Jobs).
+    `vorgefraest`: nur den Rest hobeln (sonst aus dem Vollen); `oben`: die Oberkante des Materials
+    (StartDepth; ohne: wie FreeCAD, das Rohteil)."""
     if zustellung is None:
         zustellung = zustellung_fuer(werkzeug_des_controllers(tc), _werkstoff(job, tc))
     dokument = job.Document
@@ -434,6 +479,10 @@ def lege_an(job, tc, flaechen=(), name=None, zustellung=None, rest=REST, aufmass
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
     obj.Flaechen = list(flaechen)
+    obj.Vorgefraest = bool(vorgefraest)
+    if oben is not None:
+        obj.setExpression("StartDepth", None)
+        obj.StartDepth = float(oben)
     obj.Zustellung = float(zustellung)
     obj.Rest = float(rest)
     obj.Aufmass = float(aufmass)
@@ -466,7 +515,8 @@ def _werkstoff(job, tc):
     return getattr(werkstoff, "kennung", "") if werkstoff is not None else ""
 
 
-def aendere(obj, tc, flaechen=None, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1):
+def aendere(obj, tc, flaechen=None, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1,
+            vorgefraest=None, oben=None):  # fmt: skip
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
     vorgeschlagene ist."""
@@ -477,6 +527,11 @@ def aendere(obj, tc, flaechen=None, zustellung=ZUSTELLUNG, rest=REST, leerumlaeu
     obj.Zustellung = float(zustellung)
     obj.Rest = float(rest)
     obj.Leerumlaeufe = int(leerumlaeufe)
+    if vorgefraest is not None:
+        obj.Vorgefraest = bool(vorgefraest)
+    if oben is not None:
+        obj.setExpression("StartDepth", None)
+        obj.StartDepth = float(oben)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
 

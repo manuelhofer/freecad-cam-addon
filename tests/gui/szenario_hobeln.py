@@ -1,17 +1,17 @@
 # „Dichtnut hobeln“ (hobeln, hobeln_bahn; Spezifikation Strategien 13.10) am Beispielteil
 # beispiele/dichtnut_deckel.FCStd: Deckel 120 × 90 × 12, O-Ring-Nut 3,6 × 2,7 (Mittellinie Rechteck
-# 84 × 59 mit R 12), vier Bohrungen Ø 6,6. In der Werkzeugverwaltung die Testkiste und ein
-# Schaftfräser Ø 3 (T5) für die Nut. Angeklickt: der Grund der Nut und die Bohrungen. Das Räumen
-# bekommt den Ø 3, „Schlichten danach“ macht die Wände fertig. Ohne Stoßwerkzeug steht unten der
-# Knopf „Stoßwerkzeug b 3,5 × 0,8 anlegen“; vorher ist „Dichtnut hobeln“ nie von sich aus angehakt,
-# der Knopf hakt es an (wer ihn drückt, will hobeln). Die Zustellung kommt vom Werkzeug (ap
-# „Hobeln“). „Anlegen“: Das Räumen lässt am Grund der Nut 0,2 stehen (nur dort), die Kontur der
-# Wände endet 0,2 über dem Grund, die Bohrungen gehen durch, dann das Hobeln und zuletzt die Wände
-# unten im Rest (bis 0,02 über den Grund). Programm Siemens: SPOS je Satz, beim Hobeln keine Spindel
-# an. Ohne „Schlichten danach“ ist der Block rot (Aufmaß an den Wänden) mit dem Verweis, der es
-# anhakt.
-# Bilder: 1_angebot (der Knopf), 2_hobeln (der Block), 3_vorschau (die Bahn im Teil), 2b_waende,
-# 4_uebersicht, 5_angelegt.
+# 84 × 59 mit R 12), vier Bohrungen Ø 6,6. In der Werkzeugverwaltung nur die Testkiste (kein Fräser
+# passt in die Nut). Angeklickt: der Grund der Nut und die Bohrungen.
+# Aus dem Vollen (Manuel, 2026-11-14: „das hobeln sollte auch bei nicht vor gefraeseter Nut
+# funktionieren oder?? Also das ja Sinn der Sache das man es nicht fräst“): Die Nut wird so nicht
+# fertig, unten steht der Knopf „Stoßwerkzeug b 3,5 × 0,8 anlegen“ – vorher ist „Dichtnut hobeln“
+# nie von sich aus angehakt, der Knopf hakt es an. Dann fräst nichts in der Nut (Räumen tritt nicht
+# an), die Zustellung kommt vom Werkzeug, die Zeit steht im Block. Der Haken „Vorher fräsen, Rest
+# hobeln“ gibt dem Räumen die Nut zurück (mit Rest am Grund), aus wieder nicht. „Anlegen“: Hobeln
+# ab der Oberkante des Rohteils, keine Operation fräst in der Nut, die Bohrungen gehen durch.
+# Programm Siemens: SPOS je Satz, beim Hobeln keine Spindel an.
+# Bilder: 1_angebot (der Knopf), 2_hobeln (der Block), 3_vorschau (die Bahn im Teil),
+# 2b_vorfraesen (mit dem Haken), 4_uebersicht, 5_angelegt.
 # ZEITLIMIT: 1500
 import os
 import re
@@ -37,19 +37,12 @@ def schritte(h):
     from camaddon import hobeln as hop
     from camaddon import hobeln_bahn as hb
     from camaddon import kontur as ko
+    from camaddon import planfraesen as pf
     from camaddon import postprozessor as pp
     from camaddon import raeumen as ra
     from camaddon import werkzeuge as wz
-    from camaddon.sprache import tr
 
-    kiste = list(wz.testkiste())  # T1–T4 wie immer, dazu der Ø 3
-    klein = wz.Werkzeug(nummer=5, name="VHM 3", durchmesser=3.0, schneiden=3, schneidenlaenge=8.0,
-                        eintauchwinkel=3.0)  # fmt: skip
-    klein.schnittwerte[wz.ALLE] = [
-        wz.Einsatz(art=wz.SCHRUPPEN, ae=0.3, ap=3.0, vc=85.0, fz=0.02),
-        wz.Einsatz(art=wz.SCHLICHTEN, ae=0.1, ap=3.0, vc=85.0, fz=0.02),
-    ]
-    wz.Bibliothek(kiste + [klein]).speichern()
+    wz.Bibliothek(list(wz.testkiste())).speichern()  # T1–T4 wie immer
     datei = os.path.join(camaddon.ADDON_ORDNER, "beispiele", "dichtnut_deckel.FCStd")
     doc = FreeCAD.openDocument(datei)
     doc.UndoMode = 1
@@ -58,7 +51,6 @@ def schritte(h):
     nuten = hb.hobelnuten(teil.Shape)
     h.pruefe(len(nuten) == 1, f"Dichtnuten im Beispielteil: {[n.name for n in nuten]}")
     nut = nuten[0]
-    waende = [f for f in nut.flaechen if f != nut.name]
     bohrungen = [
         f"Face{i + 1}"
         for i, f in enumerate(teil.Shape.Faces)
@@ -90,22 +82,7 @@ def schritte(h):
     block = panel.hobeln
     h.pruefe(not block.moeglich, "Dichtnut hobeln ohne Stoßwerkzeug möglich")
     h.pruefe(not block.aktiv(), "Dichtnut hobeln von sich aus angehakt")
-    # Das Räumen bekommt den Ø 3 (der Ø 12 passt nicht in die Nut).
-    d3 = next((w for w in panel.raeumen._fraeser if w.durchmesser == 3.0), None)
-    h.pruefe(d3 is not None, "kein Ø 3 fürs Räumen")
-    if d3 is not None:
-        panel.raeumen.fraeser_setzen(d3)
-        yield 1500
-        yield from h.warte_auf(fertig_gerechnet, 300000)
-        yield 1500
-    # Die Wände haben das Aufmaß des Räumens: „Nicht fertig“ bietet „Schlichten danach“ an.
-    if not panel.schlichten_danach.aktiv() and "Schlichten danach" in panel.unfertig_knopf.text():
-        panel.unfertig_knopf.click()
-        yield 1500
-        yield from h.warte_auf(fertig_gerechnet, 300000)
-        yield 1500
-    h.pruefe(panel.schlichten_danach.aktiv(), "Schlichten danach nicht angehakt")
-    # Kein Stoßwerkzeug: der Knopf, der eins anlegt.
+    # Kein Fräser passt in die Nut, kein Stoßwerkzeug: der Knopf, der eins anlegt.
     satz, knopf = panel.unfertig_satz.text(), panel.unfertig_knopf.text()
     print("HOBELN Angebot", repr(satz), repr(knopf), flush=True)
     h.pruefe(not panel.unfertig_angebot.isHidden(), "kein Angebot unten")
@@ -118,11 +95,14 @@ def schritte(h):
     yield from h.warte_auf(fertig_gerechnet, 300000)
     yield 1500
     stoss = [w for w in panel.bibliothek.werkzeuge if w.art == wz.STOSSWERKZEUG]
+    oben = float(pf.rohteil_von_oben(job)[4])
+    tiefe = oben - nut.z_boden
     h.pruefe(
         len(stoss) == 1
         and abs(stoss[0].schneidenbreite - 3.5) < 1e-9
-        and abs(stoss[0].klingenlaenge - 0.8) < 1e-9,
-        f"Stoßwerkzeug: {stoss}",
+        and abs(stoss[0].klingenlaenge - 0.8) < 1e-9
+        and stoss[0].stechtiefe >= tiefe + hop.STECHTIEFE_SICHER,
+        f"Stoßwerkzeug: {stoss}, Nut {tiefe:.2f} tief ab dem Rohteil",
     )
     h.pruefe(
         bool(stoss) and any(e.art == wz.HOBELN for e in stoss[0].einsaetze("P1")),
@@ -130,9 +110,19 @@ def schritte(h):
     )
     h.pruefe(block.moeglich, f"Dichtnut hobeln nicht möglich: {block.erklaerung.text()!r}")
     h.pruefe(block.aktiv(), "der Knopf hakt „Dichtnut hobeln“ nicht an")
+    h.pruefe(not block.haken_felder["vorfraesen"].isChecked(), "Vorfräsen von sich aus an")
     h.pruefe(
         panel.unfertig_angebot.isHidden(), f"noch ein Angebot: {panel.unfertig_knopf.text()!r}"
     )
+    # Aus dem Vollen: In der Nut fräst nichts – das Räumen hat keine Fläche mehr.
+    print("HOBELN Räumen", panel.raeumen.moeglich, panel.raeumen.aktiv(),
+          repr(panel.raeumen.erklaerung.text()), flush=True)  # fmt: skip
+    h.pruefe(not panel.raeumen.aktiv(), "Räumen fräst in der Nut")
+    for b in (panel.raeumen, panel.schlichten_danach, panel.kontur):
+        h.pruefe(
+            not set(panel._flaechen(b, form)) & set(nut.flaechen),
+            f"{b.s.titel()}: {panel._flaechen(b, form)}",
+        )
     # Die Zustellung vom Werkzeug: das ap seines Einsatzes „Hobeln“ (Richtwert 0,08 × fz-Faktor).
     ap = float(getattr(block.einsatz(), "ap", 0.0) or 0.0)
     print("HOBELN Zustellung", block.wert("zustellung"), ap, flush=True)
@@ -141,13 +131,12 @@ def schritte(h):
     print("HOBELN Block", repr(text), repr(block.hinweis.text()), flush=True)
     h.pruefe(nut.name in text and "Umläufe" in text, f"Ergebnis: {text!r}")
     h.pruefe(not block.hinweis.text(), f"rot: {block.hinweis.text()!r}")
-    rest = (panel._zusatz(panel.raeumen, form) or {}).get("boden_rest")
-    h.pruefe(rest == ((nut.name, hop.REST),), f"Räumen ohne Rest am Grund: {rest}")
-    danach = panel._zusatz(panel.schlichten_danach, form) or {}
-    h.pruefe(
-        {w for w, _r in danach.get("waende_rest", ())} == set(waende),
-        f"Schlichten danach: {danach.get('waende_rest')}",
-    )
+    if block.vorschau is not None:
+        umlaeufe = block.vorschau.je_nut[0]["umlaeufe"]
+        soll = int(-(-round(tiefe, 6) // ap)) + 2  # bis zum Grund, eben, ein Leerumlauf
+        print("HOBELN Umläufe", umlaeufe, soll, block.vorschau.zeit, flush=True)
+        h.pruefe(umlaeufe == soll, f"Umläufe {umlaeufe} statt {soll}")
+    h.pruefe(not panel.unfertig.isVisible(), "noch „Nicht fertig“")
     panel.seite_zeigen(beta.abschnitt(block) + beta.ERSTER_ABSCHNITT)
     yield 800
     h.bild("2_hobeln", panel.form)
@@ -158,26 +147,27 @@ def schritte(h):
     yield 800
     h.bild("3_vorschau")
 
-    # Ohne „Schlichten danach“ haben die Wände das Aufmaß des Räumens (0,3): Gehobelt wird nur
-    # zwischen fertigen Wänden – rot, mit dem Verweis, der es wieder anhakt.
-    panel.schlichten_danach.haken.setChecked(False)
+    # „Vorher fräsen, Rest hobeln“: Das Räumen bekommt die Nut zurück und lässt den Rest am Grund.
+    block.haken_felder["vorfraesen"].setChecked(True)
     yield 1500
-    yield from h.warte_auf(fertig_gerechnet, 300000)
-    yield 1500
-    rot = block.hinweis.text()
-    print("HOBELN ohne Schlichten", repr(rot), flush=True)
-    h.pruefe("Aufmaß" in rot and "anhaken:schlichtendanach" in rot, f"rot: {rot!r}")
-    rest = (panel._zusatz(panel.raeumen, form) or {}).get("boden_rest")
-    h.pruefe(not rest, f"Rest am Grund, obwohl nicht gehobelt wird: {rest}")
+    h.pruefe(nut.name in panel._flaechen(panel.raeumen, form), "Vorfräsen: Räumen ohne die Nut")
+    # Der Rest am Grund nur zwischen fertigen Wänden: Ohne „Schlichten danach“ haben sie das
+    # Aufmaß des Räumens – dann kein Rest (der Block ist rot und bietet es an).
+    rest = panel._hobel_reste(form)
+    wand = panel._hobel_wand_aufmass(form)
+    print("HOBELN Vorfräsen", rest, wand, flush=True)
+    h.pruefe(
+        rest == ((nut.name, hop.REST),) if wand <= 0 else rest == (),
+        f"Vorfräsen: Rest {rest}, Wandaufmaß {wand}",
+    )
     panel.seite_zeigen(beta.abschnitt(block) + beta.ERSTER_ABSCHNITT)
     yield 800
-    h.bild("2b_waende", panel.form)
-    block._hinweis_verweis("anhaken:schlichtendanach")
+    h.bild("2b_vorfraesen", panel.form)
+    block.haken_felder["vorfraesen"].setChecked(False)
     yield 1500
     yield from h.warte_auf(fertig_gerechnet, 300000)
     yield 1500
-    h.pruefe(panel.schlichten_danach.aktiv(), "der Verweis hakt „Schlichten danach“ nicht an")
-    h.pruefe(not block.hinweis.text(), f"noch rot: {block.hinweis.text()!r}")
+    h.pruefe(not panel.raeumen.aktiv(), "nach dem Vorfräsen fräst das Räumen weiter in der Nut")
 
     panel.seite_zeigen(beta.UEBERSICHT)
     yield 1500
@@ -192,13 +182,19 @@ def schritte(h):
     hobeln = [o for o in ops if hop.ist_hobeln(o)]
     h.pruefe(len(hobeln) == 1 and hobeln[0].Nuten == 1, f"Operationen: {namen}")
     if hobeln:
+        o = hobeln[0]
+        print("HOBELN Operation", float(o.StartDepth), bool(o.Vorgefraest), float(o.Zustellung),
+              flush=True)  # fmt: skip
         h.pruefe(
-            abs(float(hobeln[0].Zustellung) - ap) < 1e-9,
-            f"Operation: Zustellung {float(hobeln[0].Zustellung)} statt {ap}",
+            not o.Vorgefraest
+            and abs(float(o.StartDepth) - oben) < 1e-6
+            and abs(float(o.Zustellung) - ap) < 1e-9,
+            f"Operation: ab {float(o.StartDepth)}, vorgefräst {o.Vorgefraest}, {o.Zustellung}",
         )
-    unten_name = tr("ho.wand_unten_name", werkzeug="")
-    unten = [o for o in ops if ko.ist_kontur(o) and o.Label.startswith(unten_name.strip())]
-    z_rest = nut.z_boden + hop.REST
+    # In der Nut fräst nichts.
+    for o in ops:
+        if ra.ist_raeumen(o) or ko.ist_kontur(o):
+            h.pruefe(not set(o.Flaechen) & set(nut.flaechen), f"{o.Label} fräst in der Nut")
 
     def tiefste(op):
         hoehen = [
@@ -208,46 +204,12 @@ def schritte(h):
         ]
         return min(hoehen) if hoehen else None
 
-    raeumen = [o for o in ops if ra.ist_raeumen(o)]
-    h.pruefe(raeumen, f"kein Räumen: {namen}")
-    for o in raeumen:
-        z = tiefste(o)
-        print("HOBELN Räumen", o.Label, list(o.RestFlaechen), float(o.RestBoden), z, flush=True)
-        h.pruefe(
-            list(o.RestFlaechen) == [nut.name] and abs(float(o.RestBoden) - hop.REST) < 1e-9,
-            f"{o.Label}: Rest {list(o.RestFlaechen)} {float(o.RestBoden)}",
-        )
-        h.pruefe(z is not None and z >= z_rest - 1e-6, f"{o.Label}: unter dem Rest ({z})")
-    for o in ops:
-        if ko.ist_kontur(o) and set(o.Flaechen) & set(waende) and o not in unten:
-            z = tiefste(o)
-            print("HOBELN Kontur", o.Label, list(o.RestWaende), float(o.RestUnten), z, flush=True)
-            h.pruefe(z is not None and z >= z_rest - 1e-6, f"{o.Label}: unter dem Rest ({z})")
-    if hobeln:
-        h.pruefe(all(
-            not (ra.ist_raeumen(o) or ko.ist_kontur(o)) or o in unten
-            for o in ops[ops.index(hobeln[0]):]
-        ), f"Hobeln vor dem Fräsen der Nut: {namen}")  # fmt: skip
-    # Danach die Wände unten im Rest: bis WAND_UNTEN über den Grund – den Streifen, den die Klinge an
-    # der Wand lässt (SPIEL, ihr Schwenk), ohne den gehobelten Grund zu berühren.
-    h.pruefe(len(unten) == 1 and hobeln and ops.index(unten[0]) > ops.index(hobeln[0]),
-             f"Wände unten nach dem Hobeln: {namen}")  # fmt: skip
-    for o in unten:
-        z = tiefste(o)
-        print("HOBELN Wände unten", o.Label, sorted(o.Flaechen) == sorted(waende), z, flush=True)
-        h.pruefe(
-            z is not None
-            and abs(z - (nut.z_boden + hop.WAND_UNTEN)) < 1e-6
-            and sorted(o.Flaechen) == sorted(waende),
-            f"{o.Label}: tiefste {z}, Flächen {list(o.Flaechen)}",
-        )
-    # Die Bohrungen gehen durch – auf Maß, kein Rest.
+    # Die Bohrungen gehen durch – auf Maß.
     durch = [o for o in ops if set(getattr(o, "Flaechen", []) or []) & set(bohrungen)]
     durch += [o for o in ops if "Bohr" in o.Label and o not in durch]
     h.pruefe(durch, f"keine Operation an den Bohrungen: {namen}")
     for o in durch:
-        z = tiefste(o)
-        print("HOBELN Bohrung", o.Label, z, float(o.FinalDepth), flush=True)
+        print("HOBELN Bohrung", o.Label, tiefste(o), float(o.FinalDepth), flush=True)
         h.pruefe(float(o.FinalDepth) <= 1e-6, f"{o.Label}: nicht durch ({float(o.FinalDepth)})")
 
     # Das Programm für Siemens: je Satz SPOS, beim Hobeln keine Spindel an.
@@ -262,7 +224,8 @@ def schritte(h):
         hobel = zeilen[anfang:ende]
         an = [z for z in hobel if {"M3", "M03", "M4", "M04"} & set(z.split())]
         s_wort = [z for z in hobel if re.search(r"(^|\s)S\d", z)]
-        print("HOBELN Programm", zeilen[anfang : anfang + 4], zeilen[spos[0]], flush=True)
+        print("HOBELN Programm", len(zeilen), zeilen[anfang : anfang + 4], zeilen[spos[0]],
+              flush=True)  # fmt: skip
         h.pruefe(not an and not s_wort, f"Spindel beim Hobeln: {(an + s_wort)[:3]}")
 
     fertig = beta.FertigFenster.offen
