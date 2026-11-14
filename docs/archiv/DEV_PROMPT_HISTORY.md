@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-08 vierte-achse-reitstock
+
+### EINGELESEN
+- Manuel, 2026-11-15: „auch die 4te achse würde es eher in ein drei backenfutter horizonal entlang der x
+  oder y achse so das die z achse vertikal von oben drauf schaut spannen ! und vll sogar mit einem
+  reitstock stützen ..“; „arbeite durch bis morgen frueh“.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (FRAESE_4), `camaddon/reitstock.py` (neu), `vierachs_rohteil.py`,
+  `vierachs_*` (Schutz), `reichweite.py`, `abfahren.py`, `postprozessor.py` (_erst_ueber_den_punkt),
+  `gui_vierachs.py`, `gui_reichweite.py`, `einrichtblatt.py`, `resources/…/bauart_fraese4.svg`;
+  `tests/test_vierachs_vierte_achse.py`, `tests/gui/szenario_vierachs_vierte_achse.py`; Hilfe vierachs und
+  neue_maschine de/en; `docs/STATUS_SNAPSHOT.md` (B-038), `package.xml` 0.379.0.
+
+### ERGEBNIS
+- Beispielmaschine „3-Achs-Fräse mit 4. Achse“ mit Teilapparat A längs X, Dreibackenfutter, Reitstock;
+  Haken „Mit Reitstock“; Prüfung mit Urteil „Reitstock“. Workflow Bauer + Zweifler (6 Funde, einer
+  Sicherheit: Z hinab vor X/Y nach dem Werkzeugwechsel) + Nacharbeit (5 behoben, B-038 offen).
+- Geprüft (Workflow): test_vierachs_vierte_achse, _a_achse, _achsen, _plan, _kurvennut, _pruefen,
+  _geschwenkt, test_restmaterial, test_beispielmaschine, test_sprache, test_hilfe, test_kollision,
+  test_abfahren, test_postprozessor_nachfahren, test_postprozessor, test_programm_pruefen; Szenarien
+  vierachs_vierte_achse und vierachs_mantelnut (Bilder angesehen). Nach dem Zusammenführen:
+  test_vierachs_vierte_achse, test_hobeln, test_sprache, test_postprozessor.
 ## P-2026-11-15-07 hobeln-freiwinkel-kurze-saetze
 
 ### EINGELESEN

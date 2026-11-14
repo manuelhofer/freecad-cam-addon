@@ -548,8 +548,8 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
    abgeschnitten.
 5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – **gebaut in 0.376.0**
    („C, A −90° – Rohr im Futter auf dem Rundtisch“), B-037 behoben; Kopf/Tisch geht schon. **Offen:** die
-   4. Achse auf einer 3-Achs-Fräse – Futter horizontal längs X/Y, Werkzeug von oben, Reitstock als Option;
-   dafür fehlt eine Beispielmaschine „3-Achs-Fräse mit 4. Achse“ und der Reitstock als Spannmittel.
+   4. Achse auf einer 3-Achs-Fräse – **gebaut in 0.379.0** (Beispielmaschine „3-Achs-Fräse mit 4. Achse“,
+   Teilapparat A längs X mit Dreibackenfutter, Reitstock als Haken). Offen: B-038.
 4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
    „Ringnut fräsen“ bleibt als Option, wie gebaut.
 
@@ -618,6 +618,16 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.379.0):* **4. Achse auf der 3-Achs-Fräse** (Manuel, 2026-11-15: Futter horizontal längs X,
+  Z von oben, „vll sogar mit einem reitstock stützen“). Neue Beispielmaschine „3-Achs-Fräse mit 4. Achse“
+  (unter „Neue Maschine …“): Teilapparat A längs X, Achse 125 über dem Tisch, Dreibackenfutter Ø 160,
+  gegenüber ein Reitstock (Pinole Ø 35, Spitze 60°), der sich an die Stirn der Stange schiebt. Im
+  4-Achs-Assistenten der Haken „Mit Reitstock“ (an ab 3 × Ø Ausspannlänge): die Stange vorn mit Zapfen
+  und Zentrierbohrung DIN 332 A 4 × 8,5 (im Einrichtblatt), die Bahnen halten Abstand zu Spitze und
+  Pinole; „Auf der Maschine prüfen“ hat die Zeile „Reitstock“ (rot mit „Ohne Reitstock“, wenn er nicht
+  an die Stange reicht). Nach dem Werkzeugwechsel fährt eine 4-Achs-Operation erst oben über den ersten
+  Punkt, dann hinab (Zweifler-Fund: vorher Z zuerst an beliebiger Stelle – über Teilapparat und
+  Reitstock). Kurvennut-Rohr: Spitze 0,000 mm neben der Bahn, nichts berührt sich.
 - *Neu (0.377.0):* **Dichtnut hobeln im Assistenten – aus dem Vollen, ohne Fräser** (Manuel, 2026-11-14:
   „das ja Sinn der Sache das man es nicht fräst“). Grund oder Wand der Nut anklicken: Fehlt ein
   Stoßwerkzeug, legt ein Knopf eins an (am Deckel 3,5 × 0,8, Stechtiefe 5) und hakt „Dichtnut hobeln“ an;
@@ -3049,6 +3059,13 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   ein Dreibackenfutter senkrecht auf dem Rundtisch als Spannmittel; (c) der Widerspruch in (1) bleibt zu
   klären – kinematisch ist es dieselbe Lage wie eine 4. Achse längs X mit Werkzeug von oben.
   Nächste freie Nummer B-038.
+
+- B-038 **Plan indexiert mit Reitstock: Eilgang 0,37 mm neben einer Schulter** (offen, vom Zweifler am
+  2026-11-14 gefunden): Ist die Fläche vorn offen und steht dort der Reitstock, kann die Bahn vorn nicht
+  ausfahren und taucht im Eilgang neben der Schulter ein (Satz 176/177); „Auf der Maschine prüfen“ meldet
+  es (Kollision). Behebung in `vierachs_planbahn`: Eintauchstelle mit Radius + Sicherheit zur Wand oder
+  im Vorschub eintauchen. Nachstellen: `~/freecad_cam/wip/strategien/vierte_achse/nach/zw_eng.py`.
+  Nächste freie Nummer B-039.
 
 Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben.
 
