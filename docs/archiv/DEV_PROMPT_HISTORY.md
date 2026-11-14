@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-13 messmerkmal-nut
+
+### EINGELESEN
+- Weiter aus P-2026-11-15-12: die Nut im Assistenten in zwei gleichen Schnitten – dafür fehlte ein
+  Messmerkmal „Nut“. Manuel (14.11., Frage 1): „… dann messsen ... dann vertigschlichten …“.
+
+### DATEIEN
+- `camaddon/messen.py` (nut_merkmal, NUT_ZYKLUS_BREITE), `camaddon/postprozessor.py` (messen_nut,
+  korrigieren_nut, _hh_nut), `camaddon/gangfolge.py`, `camaddon/gui_bearbeitung_beta.py`; translations;
+  `tests/test_messen.py`, `tests/test_gangfolge.py`, `tests/gui/szenario_zwei_schnitte_nut.py`; Hilfe
+  Bearbeitung und Programm de/en; `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.381.0.
+
+### ERGEBNIS
+- Nut 16 (Ø 12): 15,7 → Leerfahrt → Messstopp „Nut 15,7 quer in Y“ → 16,0 → Leerfahrt; Zyklen gegen die
+  Handbücher geprüft (Siemens Tabelle 4-7/3-16, TNC 640 S. 275, iTNC 530 8/2006 S. 126 f., Renishaw
+  H-2000-6031). Bahnen unverändert. Workflow Bauer + Zweifler (6 Funde) + Nacharbeit (alle behoben).
+- Geprüft: test_messen, test_gangfolge, test_postprozessor, test_sprache; Szenarien zwei_schnitte_nut,
+  beta_schritte (Bilder angesehen).
 ## P-2026-11-15-12 zwei-schnitte-bohrung-nut
 
 ### EINGELESEN

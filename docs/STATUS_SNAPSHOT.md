@@ -540,7 +540,8 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
    über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). **0.380.0: auch „Bohrung fräsen“** („Weiter
    bearbeiten“ → „Löcher“: 29,7 → Leerfahrt → Messstopp Ø → 30 → Leerfahrt; der zweite Schnitt und die
    Leerfahrten nur über den Schlichtzug). Die Nut ist ohne Oberfläche gebaut (Schlichtrest, Leerfahrt
-   über den Schlichtzug), im Assistenten noch nicht angeboten – dafür fehlt ein Messmerkmal „Nut“. Frage 3.
+   über den Schlichtzug); **0.381.0: auch die Nut** („Weiter bearbeiten“ → „Schlichten“, gemessen an der
+   Breite quer zur Nut). Frage 3.
 3. *Dichtnut hobeln* (Manuels Wunsch; Bauplan Spezifikation Strategien 13.10): **Schritte 1–5 gebaut
    (0.376.0)** – Erkennen jeder umlaufenden Nut, Hobelbahn mit Spindelwinkel je Satz, Werkzeugart
    Stoßwerkzeug mit Einsatz „Hobeln“, Operation, Programm für alle Steuerungen (Siemens SPOS, Heidenhain
@@ -620,6 +621,13 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.381.0):* **Messmerkmal „Nut“ – die Nut in zwei gleichen Schnitten mit Messen dazwischen.** Die
+  Breite quer zur Mittellinie (gerade Nut in der Mitte, Bogennut in der Bogenmitte, Ringnut radial), mit
+  Messzyklus je Steuerung: Siemens CYCLE977 (S_MVAR 3, S_MA), Heidenhain 425 MESSEN BREITE INNEN (iTNC 530
+  mit Q330 am Ende, TNC 640 mit Q320/Q301 – nach den Handbüchern), Renishaw G65 P9812 an Fanuc/Haas; schräg
+  oder unter 8 mm breit: Halt mit Sollmaß. Zweifler: 6 Funde, u. a. falsche 425-Syntax an der iTNC 530 und
+  eine einzelne Wand einer Ringnut wurde als Bohrung in der Inselmitte gemessen – behoben. Ein Messstopp
+  nach einer Nut misst jetzt mit dem Taster (bis 0.380 hielt er ohne Sollmaß).
 - *Neu (0.380.0):* **Bohrung fräsen in zwei gleichen Schnitten mit Messen dazwischen** (Manuel, 2026-11-14,
   Frage 1: „… erstes vorschlichten ... und danach nochmal … dann messsen ... dann vertigschlichten …“):
   „Bohrung fräsen“ hat den Schlichtrest; die Kopie fährt nur den Schlichtzug (nicht noch einmal Helix und
