@@ -12,7 +12,12 @@ Aus den Operationen eines Schlichtgangs, die der Assistent gerade angelegt hat, 
 - **Zwei gleiche Schnitte:** Der zweite ist eine Kopie des ersten (FreeCADs „Operation kopieren“)
   mit dem Aufmaß des Endes – derselbe Fräser, dieselbe Tiefe, derselbe Vorschub. Dann drängt es
   beide Male gleich weit ab: Was nach dem ersten gemessen wird, ist, was der zweite ausgleicht.
-- **Leerfahrt:** derselbe Schnitt noch einmal ohne Zustellung (leerfahrt.py).
+- **„Bohrung fräsen“ und die Nut**, die in einem Gang schruppen und die Wand schlichten: Der erste
+  Schnitt ist ihr Schlichtzug mit dem halben Aufmaß ihres Schruppens (0,3 → 0,15, teilen()), der
+  zweite nur noch der Schlichtzug auf Maß (NurSchlichten) – Helix, Ringe und Bögen noch einmal
+  gingen durch die Luft. Gemessen wird am Ø, also an der Wand.
+- **Leerfahrt:** derselbe Schnitt noch einmal ohne Zustellung (leerfahrt.py) – bei Bohrung und Nut
+  nur ihr Schlichtzug.
 - **Messstopp:** zwischen den beiden Schnitten (messstopp.py; mit Taster und Zyklus misst die
   Maschine selbst) – nach der Leerfahrt des ersten, denn erst dann stimmt, was man misst.
 
@@ -60,14 +65,38 @@ def halbes_aufmass(davor, ende=0.0):
     return round(ende + max(davor - ende, 0.0) / 2.0, 3)
 
 
+def schruppt_mit(op):
+    """Schruppt `op` und schlichtet im selben Gang die Wand („Bohrung fräsen“, Nut mit Schlichten,
+    nicht NurSchlichten)? Dann ist ihr Schlichtzug der Schnitt, der zweimal kommt."""
+    return lf.nur_schlichtzug(op) and "Schlichtrest" in getattr(op, "PropertiesList", ())
+
+
+def teilen(op, ende=0.0):
+    """Der erste von zwei gleichen Schnitten bei einer Operation, die schruppt und schlichtet
+    (schruppt_mit): Ihr Schlichtzug lässt die Hälfte zwischen ihrem Aufmaß und `ende` stehen
+    (0,3 → 0,15) – nur, wenn er noch auf das Ende geht (sonst hat ihn schon jemand gesetzt). Gibt
+    True zurück, wenn sie geteilt ist."""
+    if not schruppt_mit(op) or lf.gang_aufmass(op) > float(ende) + 1e-9:
+        return False
+    halb = halbes_aufmass(float(op.Aufmass), ende)
+    if halb <= float(ende) + 1e-9:
+        return False
+    op.Schlichtrest = halb
+    return True
+
+
 def kopie(job, op, aufmass):
     """Die Operation `op` noch einmal im Job (hinten), mit dem Aufmaß `aufmass` – alles andere
-    gleich. Gibt die Kopie zurück."""
+    gleich; schruppt `op` mit (schruppt_mit), nur ihr Schlichtzug. Gibt die Kopie zurück."""
     import PathScripts.PathUtils as PathUtils
 
+    feld = lf.gang_feld(op)
+    nur_schlichtzug = schruppt_mit(op)
     neu = job.Document.copyObject([op], False)[0]
     PathUtils.addToJob(neu, job.Name)
-    setattr(neu, lf.gang_feld(op), float(aufmass))
+    if nur_schlichtzug:
+        neu.NurSchlichten = True
+    setattr(neu, feld, float(aufmass))
     if float(aufmass) <= 1e-9:
         text = tr("gf.auf_mass", name=op.Label)
     else:
@@ -84,12 +113,16 @@ def folge(job, ops, aufmass_ende=None, leerfahrt=False, stopp_anlegen=None):
     """Legt hinter den gerade angelegten Operationen `ops` (ein Schlichtgang) den Rest der Folge
     an – ohne eigene Transaktion. `leerfahrt`: je Schnitt eine Leerfahrt danach. `aufmass_ende`
     (mm, nicht None): zwei gleiche Schnitte – jede Operation mit Aufmaß noch einmal mit diesem
-    Aufmaß; davor mit `stopp_anlegen(davor, danach)` (gibt die Messstopp-Operation zurück oder
-    None) der Messstopp. Gibt die Folge zurück."""
+    Aufmaß (die, die schruppt und schlichtet, vorher geteilt: teilen()); davor mit
+    `stopp_anlegen(davor, danach)` (gibt die Messstopp-Operation zurück oder None) der Messstopp.
+    Gibt die Folge zurück."""
     ergebnis = Folge()
     erste = schnitte(ops)
     if not erste:
         return ergebnis
+    if aufmass_ende is not None:
+        for op in erste:
+            teilen(op, aufmass_ende)  # gerechnet wird mit dem Rest der Folge (der Aufrufer)
     if leerfahrt:
         ergebnis.leer_vor = [lf.lege_an(job, op) for op in erste]
     if aufmass_ende is None:
@@ -108,3 +141,44 @@ def folge(job, ops, aufmass_ende=None, leerfahrt=False, stopp_anlegen=None):
     if leerfahrt:
         ergebnis.leer_fertig = [lf.lege_an(job, op) for op in ergebnis.fertig]
     return ergebnis
+
+
+def wand_rest(op):
+    """So viel lässt `op` an der Wand stehen (mm) – was ein Taster nach ihr misst: der Schlichtrest
+    ihres Schlichtzugs, sonst ihr Aufmaß; eine Leerfahrt wie ihre Quelle (ihr „Aufmass“ ist das
+    des Gangs, beim Räumen das am Boden)."""
+    if op is None:
+        return 0.0
+    if lf.ist_leerfahrt(op) and getattr(op, "Quelle", None) is not None:
+        return wand_rest(op.Quelle)
+    feld = "Schlichtrest" if lf.gang_feld(op) == "Schlichtrest" else "Aufmass"
+    wert = getattr(op, feld, 0.0)
+    return max(0.0, float(getattr(wert, "Value", wert) or 0.0))
+
+
+def mess_flaechen(op, flaechen):
+    """Die Flächen, an denen nach `op` gemessen wird: bei „Bohrung fräsen“ (auch ihrer Leerfahrt)
+    ihre Bohrungen – gemessen wird der Ø; sonst `flaechen` (die am Job gemerkten)."""
+    from . import bohrung as bo
+
+    if op is not None and lf.ist_leerfahrt(op):
+        op = getattr(op, "Quelle", None)
+    if op is not None and bo.ist_bohrungsfraesen(op) and list(op.Flaechen):
+        return list(op.Flaechen)
+    return list(flaechen)
+
+
+def messmerkmal(form, flaechen, davor):
+    """Was ein Taster nach der Operation `davor` misst (messen.Merkmal mit dem Soll): das Merkmal
+    der Flächen (mess_flaechen), um den Rest an der Wand (wand_rest) – None, wenn sie keins
+    ergeben."""
+    from . import messen
+
+    namen_ = mess_flaechen(davor, flaechen)
+    if not namen_:
+        return None
+    try:
+        m = messen.merkmal(form, namen_)
+    except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht mehr zum Modell
+        return None
+    return None if m is None else messen.soll(m, wand_rest(davor))

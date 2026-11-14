@@ -2423,7 +2423,7 @@ class _SchlichtenDanach(_Strategie):
                     werte["zeilenabstand"] or float(form.radius), 0.0, ringe, schlichten=True,
                     nur_schlichten=True, gleichlauf=werte["gleichlauf"], schneidenlaenge=schneide,
                     vorschub=werte.get("vorschub", 0.0), eintauchen=werte.get("eintauchen", 0.0),
-                    stand=stand,
+                    stand=stand, schlichtrest=gang_rest,
                 )  # fmt: skip
             except mst.SchonWeg:
                 ring = None
@@ -2436,7 +2436,7 @@ class _SchlichtenDanach(_Strategie):
                     job, job.Model.Group, r_eng, werte["zustellung"], r_eng, 0.0, enge,
                     schlichten=True, nur_schlichten=True, gleichlauf=werte["gleichlauf"],
                     schneidenlaenge=float(werte.get("nut_eng_schneide") or 0.0),
-                    vorschub=werte.get("vorschub", 0.0), stand=stand,
+                    vorschub=werte.get("vorschub", 0.0), stand=stand, schlichtrest=gang_rest,
                 )  # fmt: skip
             except mst.SchonWeg:
                 eng = None
@@ -13895,7 +13895,7 @@ class BearbeitungPanel:
                     werte["zeilenabstand"] or tc.Tool.Diameter / 2, 0.0, schlichten=True,
                     gleichlauf=werte["gleichlauf"],
                     name=tr("ba.nut.schlichten_name", werkzeug=werkzeug),
-                    flaechen=bahn.ringe, nur_schlichten=True,
+                    flaechen=bahn.ringe, nur_schlichten=True, schlichtrest=gang_rest,
                 )  # fmt: skip
             )
         if getattr(bahn, "eng", None) is not None:
@@ -13905,7 +13905,7 @@ class BearbeitungPanel:
                     self.job, tc_eng, werte["zustellung"], tc_eng.Tool.Diameter / 2, 0.0,
                     schlichten=True, gleichlauf=werte["gleichlauf"],
                     name=tr("ba.nut.schlichten_name", werkzeug=f"T{tc_eng.ToolNumber}"),
-                    flaechen=bahn.enge, nur_schlichten=True,
+                    flaechen=bahn.enge, nur_schlichten=True, schlichtrest=gang_rest,
                 )  # fmt: skip
             )
         if not ops or (len(ops) == 1 and werte.get("messstopp")):

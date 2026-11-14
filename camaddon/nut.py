@@ -80,6 +80,8 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
             ("App::PropertyBool", "Wellen", tr("nt.eigenschaft.wellen")),
             ("App::PropertyBool", "NurSchlichten", tr("nt.eigenschaft.nur_schlichten")),
+            # Was der Schlichtgang an der Wand lässt – für zwei gleiche Schnitte (gangfolge).
+            ("App::PropertyLength", "Schlichtrest", tr("nt.eigenschaft.schlichtrest")),
             ("App::PropertyLength", "Tiefer", tr("nt.eigenschaft.tiefer")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("nt.eigenschaft.eintauchwinkel")),
@@ -157,6 +159,39 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         stand=stand,
         eintauchen_bei=eintauchstellen(obj),
+        schlichtrest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
+    )
+
+
+def schlichtzug(obj, job, modell, vorschub=0.0, eintauchen=0.0):
+    """Nur der Schlichtgang der Operation `obj` (Nutbahn, Nutwerte.nur_schlichten) – für ihre
+    Leerfahrt (leerfahrt.py): Die Bögen noch einmal führen durch die Luft. None, wenn `obj` keinen
+    Schlichtgang hat."""
+    if not bool(getattr(obj, "Schlichten", False)) and not bool(getattr(obj, "NurSchlichten", 0)):
+        return None
+    form = vs.form_des_controllers(obj.ToolController)
+    if form is None or vp.ebener_radius(form) <= 0:
+        raise ValueError(tr("nt.fehler.form"))
+    return bahn_fuer(
+        job,
+        modell,
+        float(form.radius),
+        float(obj.Zustellung),
+        float(obj.Zeilenabstand),
+        float(obj.Aufmass),
+        vo.flaechen(obj),
+        schlichten=True,
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
+        nur_schlichten=True,
+        tiefer=float(obj.Tiefer),
+        schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
+        oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
+        sicher=float(obj.SafeHeight),
+        sicherheit=float(obj.Sicherheitsabstand),
+        eintauchwinkel=float(obj.Eintauchwinkel),
+        vorschub=vorschub,
+        eintauchen=eintauchen,
+        schlichtrest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
     )
 
 
@@ -182,6 +217,7 @@ def bahn_fuer(
     stand=None,
     eintauchen_bei=None,
     nur_schlichten=False,
+    schlichtrest=0.0,
 ):
     """Die Bahn „Nut“ für Modell und Rohteil des Jobs. `flaechen`: Wände oder Grund der Nuten
     („Face7“ …); `stand`: der Materialstand davor (materialstand) – die Lagen beginnen dann,
@@ -213,6 +249,7 @@ def bahn_fuer(
         eintauchen=eintauchen,
         eintauchen_bei=eintauchen_bei or None,
         nur_schlichten=bool(nur_schlichten),
+        schlichtrest=max(float(schlichtrest), 0.0),
     )
     return nb.planen(werte, liste, stand)
 
@@ -304,6 +341,7 @@ def lege_an(
     eintauchstellen=None,
     wellen=False,
     nur_schlichten=False,
+    schlichtrest=0.0,
 ):
     """Legt „Nut“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und Höhen
     wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation zurück."""
@@ -327,6 +365,7 @@ def lege_an(
     obj.Gleichlauf = bool(gleichlauf)
     obj.Wellen = bool(wellen)
     obj.NurSchlichten = bool(nur_schlichten)
+    obj.Schlichtrest = max(float(schlichtrest), 0.0)
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten
         obj.Eintauchwinkel = float(eintauchwinkel)

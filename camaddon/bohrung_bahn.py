@@ -76,6 +76,16 @@ class Bohrwerte:
     eintauchwinkel: float = vb.EINTAUCHWINKEL  # Grad – so steil die Helix
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0
+    # Bleibt nach dem Schlichtzug an der Wand (mm, 0: auf Maß) – für zwei gleiche Schlichtschnitte
+    # mit Messen dazwischen (gangfolge; Manuel, 2026-11-14: „erstes vorschlichten ... dann messsen
+    # ... dann vertigschlichten“): der erste mit 0,15, der zweite auf Maß.
+    schlichtrest: float = 0.0
+    # Nur der Schlichtzug – die Bohrung ist geschruppt (der zweite der zwei gleichen Schnitte, die
+    # Leerfahrt): ohne Helix und Ringe, die sonst noch einmal durch die Luft führen (Luftfräsen
+    # weg, Manuel). Im Eilgang hinab, so weit der Kern laut Materialstand frei ist – ohne Stand nur
+    # mit `kern_frei` (die Leerfahrt hinter ihrer Quelle, die ihn eben geräumt hat).
+    nur_schlichten: bool = False
+    kern_frei: bool = False
 
 
 @dataclass
@@ -426,10 +436,12 @@ def _bohrung(punkte, b, w, r, stand=None):
         )
     r_aussen = max(r_aussen, 0.0)
     z_grund = b.z_unten - max(w.tiefer, 0.0) if b.durch else b.z_unten + max(w.aufmass_boden, 0.0)
+    if w.nur_schlichten:
+        return _nur_schlichten(punkte, b, w, r, z_grund, uhr, stand)
     r_helix = min(r_aussen, KERN_ANTEIL * r)
     oben, frei_bis = material_oben(b, w, stand, r_helix + r)
     if oben <= z_grund + GLEICH:
-        if not (w.schlichten and stand is not None and b.radius - r > GLEICH):
+        if not (w.schlichten and stand is not None and _radius_schlichten(b, w, r) > GLEICH):
             return 0.0, 0, 0.0, math.inf
         if min(w.oben, b.z_oben) <= z_grund + GLEICH:
             return 0.0, 0, 0.0, math.inf
@@ -501,7 +513,7 @@ def _bohrung(punkte, b, w, r, stand=None):
                 radius = neu
         vorige = lage
     z_min = vorige
-    if w.schlichten and b.radius - r > GLEICH:
+    if w.schlichten and _radius_schlichten(b, w, r) > GLEICH:
         # Die Wand ganz, wie ohne Materialstand – auch wo davor schon jemand war.
         laenge += _schlichten(punkte, b, w, r, w.oben, z_grund, uhr)
         z_min = min(z_min, z_grund)
@@ -510,18 +522,53 @@ def _bohrung(punkte, b, w, r, stand=None):
     return laenge, len(lagen), umlaeufe, z_min
 
 
-def _schlichten(punkte, b, w, r, oben, z_grund, uhr):
-    """Die Wand bei Radius: aus der Mitte im Halbkreis hinein, einmal ganz herum, im Halbkreis
-    zurück in die Mitte – in Zügen von höchstens der Schneidenlänge. Gibt die Länge zurück."""
-    r_f = b.radius - r
+def _radius_schlichten(b, w, r):
+    """Die Mitte des Fräsers beim Schlichtzug: an der Wand, um den Schlichtrest davor."""
+    return b.radius - r - max(w.schlichtrest, 0.0)
+
+
+def _zuege(b, w, oben, z_grund):
+    """Die Höhen der Schlichtzüge, von oben nach unten – höchstens die Schneidenlänge je Zug."""
     hoehe = min(oben, b.z_oben) - z_grund
     anzahl = 1
     if 0 < w.schneidenlaenge < hoehe - GLEICH:
         anzahl = max(1, int(math.ceil(hoehe / w.schneidenlaenge - 1e-9)))
+    return [min(oben, b.z_oben) - hoehe * i / anzahl for i in range(1, anzahl + 1)]
+
+
+def _nur_schlichten(punkte, b, w, r, z_grund, uhr, stand):
+    """Nur der Schlichtzug an der geschruppten Bohrung (Bohrwerte.nur_schlichten): in der Mitte im
+    Eilgang hinab bis knapp über das Material darunter, dann die Züge (_schlichten). Gibt zurück
+    wie _bohrung()."""
+    if _radius_schlichten(b, w, r) <= GLEICH:
+        return 0.0, 0, 0.0, math.inf
+    oben = min(w.oben, b.z_oben)
+    if oben <= z_grund + GLEICH:
+        return 0.0, 0, 0.0, math.inf
+    erster = _zuege(b, w, w.oben, z_grund)[0]
+    if stand is not None:
+        # Unter dem Fräser in der Mitte, mit zwei Zellen Rand wie bei der Helix (material_oben).
+        frei = stand.hoechste_bei(b.mitte[0], b.mitte[1], r + 2.0 * stand.schritt)
+    else:
+        frei = z_grund if w.kern_frei else oben
+    ab = min(oben, max(frei, erster))
+    punkte.append(bn.Punkt(True, b.mitte[0], b.mitte[1], w.sicher))
+    knapp = min(w.sicher, ab + w.sicherheit)
+    if knapp < w.sicher:
+        punkte.append(bn.Punkt(True, b.mitte[0], b.mitte[1], knapp))
+    laenge = _schlichten(punkte, b, w, r, w.oben, z_grund, uhr)
+    punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, w.sicher))
+    return laenge, 0, 0.0, z_grund
+
+
+def _schlichten(punkte, b, w, r, oben, z_grund, uhr):
+    """Die Wand bei Radius (weniger dem Schlichtrest): aus der Mitte im Halbkreis hinein, einmal
+    ganz herum, im Halbkreis zurück in die Mitte – in Zügen von höchstens der Schneidenlänge. Gibt
+    die Länge zurück."""
+    r_f = _radius_schlichten(b, w, r)
     laenge = 0.0
     richtung = -1.0 if uhr else 1.0
-    for i in range(1, anzahl + 1):
-        z = min(oben, b.z_oben) - hoehe * i / anzahl
+    for z in _zuege(b, w, oben, z_grund):
         mitte = b.mitte
         punkt = bn.Punkt(False, mitte[0], mitte[1], z)
         laenge += bn.weg(punkte[-1], punkt)

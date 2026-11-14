@@ -4,6 +4,12 @@
 # Eine Platte 80 × 80 × 10 mit einem Klotz 40 × 30 × 10 darauf, ringsum mit 0,3 geschruppt. Der
 # Wandzug (Kontur, nur der Schlichtzug) mit dem halben Aufmaß 0,15; daraus die Folge: Leerfahrt,
 # Messstopp, derselbe Schnitt auf Maß, Leerfahrt.
+# Dann „Bohrung fräsen“ und die Nut, die in einem Gang schruppen und die Wand schlichten: ein Block
+# 80 × 60 × 20 mit einer Bohrung Ø 30 (durch) und einer geschlossenen Nut 30 × 16, 8 tief, mit dem
+# Ø 12. Helix und Ringe lassen 0,3; der Schlichtzug des ersten Schnitts 0,15, Leerfahrt (nur der
+# Schlichtzug), Messstopp (Bohrung Ø 29,7), der Schlichtzug auf Maß (ohne Helix und Ringe),
+# Leerfahrt – der Ø nach jedem Schnitt aus der Bahn nachgemessen.
+import math
 import os
 import pathlib
 import sys
@@ -17,12 +23,14 @@ import Part
 import Path.Main.Job as PathJob
 from Path.Tool.camassets import user_asset_store
 
+from camaddon import bohrung as bo
 from camaddon import gangfolge as gf
 from camaddon import job_schnittwerte as js
 from camaddon import kontur as ko
 from camaddon import leerfahrt as lf
+from camaddon import messen, sprache
 from camaddon import messstopp as ms
-from camaddon import sprache
+from camaddon import nut as nu
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import werkzeuge as wz
 
@@ -186,6 +194,193 @@ from camaddon import postprozessor as pp
 text = pp.programm(pp.abschnitte(doc.Job), pp.steuerung("siemens"), None, "GANGFOLGE").text
 pruefe(text.count("M0") >= 1, "kein Halt im Programm")
 print(f"Programm: {len(text.splitlines())} Zeilen")
+FreeCAD.closeDocument(doc.Name)
+
+# --- „Bohrung fräsen“ und die Nut: zwei gleiche Schnitte nur über den Schlichtzug -------------
+doc = FreeCAD.newDocument("GangfolgeBohrung")
+objekt = doc.addObject("Part::Feature", "Block")
+MX, MY, D = 25.0, 30.0, 30.0  # die Bohrung
+NUT_Y, NUT_B = 30.0, 16.0  # die Nut: Mittellinie, Breite (x 51 … 65 zwischen den Rundungen)
+nut_form = (
+    Part.makeBox(14, NUT_B, 8, V(51, NUT_Y - NUT_B / 2, 12))
+    .fuse(Part.makeCylinder(NUT_B / 2, 8, V(51, NUT_Y, 12)))
+    .fuse(Part.makeCylinder(NUT_B / 2, 8, V(65, NUT_Y, 12)))
+)
+objekt.Shape = (
+    Part.makeBox(80, 60, 20)
+    .cut(Part.makeCylinder(D / 2, 20, V(MX, MY, 0)))
+    .cut(nut_form)
+    .removeSplitter()
+)
+doc.recompute()
+job = PathJob.Create("Job", [objekt])
+job.Stock.ExtZpos = 0.0
+doc.recompute()
+tc_r = js.controller_ohne_transaktion(doc, job, fraeser, schruppen)
+form = job.Model.Group[0].Shape
+bohrung_flaeche = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(form.Faces)
+    if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - D / 2) < 1e-6
+)
+nut_grund = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(form.Faces)
+    if isinstance(f.Surface, Part.Plane) and abs(f.BoundBox.ZMax - 12.0) < 1e-6
+    and abs(f.BoundBox.ZMin - 12.0) < 1e-6
+)  # fmt: skip
+
+
+def bogen_punkte(op):
+    """[(Abstand von der Achse der Bohrung, z, ändert sich z)] je G2/G3 in der Bohrung."""
+    ergebnis, z = [], None
+    for b in op.Path.Commands:
+        p = b.Parameters
+        neu_z = p.get("Z", z)
+        if b.Name in ("G2", "G02", "G3", "G03"):
+            a = math.hypot(p["X"] - MX, p["Y"] - MY)
+            if a < D / 2:
+                ergebnis.append((a, neu_z, z is not None and abs(neu_z - z) > 1e-6))
+        z = neu_z
+    return ergebnis
+
+
+def durchmesser(op):
+    """Der Ø, den die Bahn in der Bohrung fräst: der weiteste Bogen und der Fräser."""
+    punkte = bogen_punkte(op)
+    return 2.0 * (max(a for a, _z, _dz in punkte) + fraeser.durchmesser / 2) if punkte else 0.0
+
+
+def nut_breite(op):
+    """Die Breite, die die Bahn in der Nut fräst: die weiteste Stelle quer zur Mittellinie."""
+    quer = [
+        abs(b.Parameters["Y"] - NUT_Y)
+        for b in op.Path.Commands
+        if b.Name in lf.FAHREN[2:] and "Y" in b.Parameters and b.Parameters.get("X", 0.0) > 45.0
+    ]
+    return 2.0 * (max(quer) + fraeser.durchmesser / 2) if quer else 0.0
+
+
+def vorschubweg(op):
+    """mm im Vorschub (G1, G2, G3 – die Bögen mit ihrem Winkel um I, J)."""
+    weg, alt = 0.0, None
+    for b in op.Path.Commands:
+        p = b.Parameters
+        if not {"X", "Y", "Z"} & set(p):
+            continue
+        neu = {k: p.get(k, (alt or {}).get(k, 0.0)) for k in ("X", "Y", "Z")}
+        if alt is not None and b.Name in ("G2", "G02", "G3", "G03"):
+            mx, my = alt["X"] + p.get("I", 0.0), alt["Y"] + p.get("J", 0.0)
+            a0 = math.atan2(alt["Y"] - my, alt["X"] - mx)
+            a1 = math.atan2(neu["Y"] - my, neu["X"] - mx)
+            w = (a1 - a0) if b.Name in ("G3", "G03") else (a0 - a1)
+            w = w % (2 * math.pi) or 2 * math.pi
+            r_ = math.hypot(alt["X"] - mx, alt["Y"] - my)
+            weg += math.hypot(r_ * w, neu["Z"] - alt["Z"])
+        elif alt is not None and b.Name in ("G1", "G01"):
+            weg += math.dist([neu[k] for k in "XYZ"], [alt[k] for k in "XYZ"])
+        alt = neu
+    return weg
+
+
+def tiefster_eilgang(op):
+    eilgaenge = [
+        b.Parameters["Z"]
+        for b in op.Path.Commands
+        if b.Name in ("G0", "G00") and "Z" in b.Parameters
+    ]
+    return min(eilgaenge, default=math.inf)
+
+
+bohrung = bo.lege_an(job, tc_r, 2.0, 1.5, aufmass=0.3, flaechen=[bohrung_flaeche])
+nut_op = nu.lege_an(job, tc_r, 4.0, 1.5, aufmass=0.3, schlichten=True, flaechen=[nut_grund])
+doc.recompute()
+# Ohne die neuen Haken wie bisher: der Schlichtzug auf Maß, gang_feld ist sein Schlichtrest (0).
+pruefe(float(bohrung.Schlichtrest) == 0.0 and not bohrung.NurSchlichten, "Vorgaben der Bohrung")
+pruefe(lf.gang_feld(bohrung) == "Schlichtrest", f"gang_feld Bohrung: {lf.gang_feld(bohrung)}")
+pruefe(lf.gang_feld(nut_op) == "Schlichtrest", f"gang_feld Nut: {lf.gang_feld(nut_op)}")
+pruefe(abs(durchmesser(bohrung) - D) < 0.01, f"Bohrung ohne Folge: Ø {durchmesser(bohrung):.3f}")
+pruefe(abs(nut_breite(nut_op) - NUT_B) < 0.01, f"Nut ohne Folge: {nut_breite(nut_op):.3f} breit")
+weg_ganz, weg_nut_ganz = vorschubweg(bohrung), vorschubweg(nut_op)
+stopps.clear()
+merkmale = []
+
+
+def stopp_bohrung(davor, danach):
+    stopps.append((davor.Label, danach.Label))
+    merkmale.append(gf.messmerkmal(form, [bohrung_flaeche], davor))
+    return ms.lege_an(job, davor.ToolController, danach.ToolController, merkmale[-1])
+
+
+folge = gf.folge(job, [bohrung, nut_op], 0.0, leerfahrt=True, stopp_anlegen=stopp_bohrung)
+doc.recompute()
+namen_ = [o.Label for o in job.Operations.Group]
+print("Folge Bohrung/Nut:", namen_)
+pruefe(
+    len(folge.leer_vor) == 2 and len(folge.fertig) == 2 and len(folge.leer_fertig) == 2,
+    f"Folge: {namen_}",
+)
+pruefe(abs(float(bohrung.Schlichtrest) - 0.15) < 1e-9, f"erster: Rest {bohrung.Schlichtrest}")
+pruefe(abs(float(nut_op.Schlichtrest) - 0.15) < 1e-9, f"Nut erster: Rest {nut_op.Schlichtrest}")
+if len(folge.fertig) == 2 and len(folge.leer_vor) == 2 and len(folge.leer_fertig) == 2:
+    leer_b, leer_n = folge.leer_vor
+    fertig_b, fertig_n = folge.fertig
+    leer2_b, leer2_n = folge.leer_fertig
+    d_ = [durchmesser(o) for o in (bohrung, leer_b, fertig_b, leer2_b)]
+    print(f"Bohrung Ø nach jedem Schnitt: {d_[0]:.3f} → Leerfahrt {d_[1]:.3f} → Messstopp → "
+          f"{d_[2]:.3f} → Leerfahrt {d_[3]:.3f}")  # fmt: skip
+    pruefe(abs(d_[0] - (D - 0.3)) < 0.01, f"erster Schnitt: Ø {d_[0]:.3f}")
+    pruefe(abs(d_[1] - (D - 0.3)) < 0.01, f"Leerfahrt: Ø {d_[1]:.3f}")
+    pruefe(abs(d_[2] - D) < 0.01, f"zweiter Schnitt: Ø {d_[2]:.3f}")
+    pruefe(abs(d_[3] - D) < 0.01, f"Leerfahrt des zweiten: Ø {d_[3]:.3f}")
+    pruefe(fertig_b.NurSchlichten and abs(float(fertig_b.Schlichtrest)) < 1e-9, "zweiter: Werte")
+    pruefe(abs(float(fertig_b.Aufmass) - 0.3) < 1e-9, f"zweiter: Aufmass {fertig_b.Aufmass}")
+    pruefe(abs(float(leer_b.Aufmass) - 0.15) < 1e-9, f"Leerfahrt: Aufmass {leer_b.Aufmass}")
+    # Nur der Schlichtzug: keine Helix (G2/G3 mit z), keine Ringe – nur Bögen an der Wand oder in
+    # die Mitte (dort enden die Halbkreise hinein und heraus).
+    r_f = D / 2 - fraeser.durchmesser / 2
+    for name, op, rest in (
+        ("Leerfahrt", leer_b, 0.15), ("zweiter", fertig_b, 0.0), ("Leerfahrt 2", leer2_b, 0.0),
+    ):  # fmt: skip
+        punkte = bogen_punkte(op)
+        pruefe(punkte and not any(dz for _a, _z, dz in punkte), f"{name}: Helix in {punkte[:4]}")
+        ringe = [a for a, _z, _dz in punkte if a > 0.01 and abs(a - (r_f - rest)) > 0.01]
+        pruefe(not ringe, f"{name}: Ringe bei {ringe[:4]}")
+    weg_zug = vorschubweg(fertig_b)
+    print(f"Vorschub: ganze Bohrung {weg_ganz:.0f} mm, zweiter Schnitt {weg_zug:.0f} mm, "
+          f"Leerfahrt {vorschubweg(leer_b):.0f} mm; im Eilgang hinab bis z "
+          f"{tiefster_eilgang(fertig_b):.2f} / {tiefster_eilgang(leer_b):.2f}")  # fmt: skip
+    pruefe(weg_zug < 0.5 * weg_ganz, f"zweiter Schnitt {weg_zug:.0f} von {weg_ganz:.0f} mm")
+    # Die Leerfahrt fährt den Schlichtzug 0,15 weiter innen: 2 mm kürzer (gemessen 85 / 87 mm).
+    pruefe(
+        weg_zug - 5.0 < vorschubweg(leer_b) <= weg_zug,
+        f"Leerfahrt {vorschubweg(leer_b):.0f} statt Schlichtzug {weg_zug:.0f} mm",
+    )
+    # Im geräumten Kern im Eilgang hinab (der Materialstand sieht ihn frei), nicht im Vorschub.
+    pruefe(tiefster_eilgang(fertig_b) < 5.0, f"zweiter: Eilgang bis {tiefster_eilgang(fertig_b)}")
+    pruefe(tiefster_eilgang(leer_b) < 5.0, f"Leerfahrt: Eilgang bis {tiefster_eilgang(leer_b)}")
+    # Der Messstopp misst die Bohrung am Ø nach dem ersten Schnitt.
+    m_ = merkmale[0] if merkmale else None
+    pruefe(
+        m_ is not None and m_.art == messen.BOHRUNG and abs(m_.durchmesser - (D - 0.3)) < 1e-6,
+        f"Messmerkmal: {m_}",
+    )
+    pruefe(len(stopps) == 1 and stopps[0][0] == leer_n.Label, f"Messstopp: {stopps}")
+    # Die Nut ebenso: erst 0,15, dann auf Maß; die Leerfahrt und der zweite nur der Schlichtgang.
+    b_ = [nut_breite(o) for o in (nut_op, leer_n, fertig_n, leer2_n)]
+    w_ = [vorschubweg(o) for o in (nut_op, leer_n, fertig_n, leer2_n)]
+    print(f"Nut breit nach jedem Schnitt: {' → '.join(f'{b:.3f}' for b in b_)}; "
+          f"Vorschub {' / '.join(f'{w:.0f}' for w in w_)} mm")  # fmt: skip
+    pruefe(abs(b_[0] - (NUT_B - 0.3)) < 0.01, f"Nut erster: {b_[0]:.3f}")
+    pruefe(abs(b_[1] - (NUT_B - 0.3)) < 0.01, f"Nut Leerfahrt: {b_[1]:.3f}")
+    pruefe(abs(b_[2] - NUT_B) < 0.01 and abs(b_[3] - NUT_B) < 0.01, f"Nut zweiter: {b_[2:]}")
+    pruefe(fertig_n.NurSchlichten, "Nut zweiter: nicht nur der Schlichtgang")
+    pruefe(max(w_[1:]) < 0.5 * w_[0], f"Nut: Leerfahrt/zweiter so lang wie die ganze: {w_}")
+    # Nach allem ist die Bohrung im Materialstand auf Maß – in ihr steht nichts mehr.
+    from camaddon import materialstand as mst
+
+    rest_h = mst.fuer(job).hoechste_bei(MX, MY, D / 2 - 0.4)
+    pruefe(rest_h < 0.5, f"in der Bohrung steht noch Material bis z {rest_h:.2f}")
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

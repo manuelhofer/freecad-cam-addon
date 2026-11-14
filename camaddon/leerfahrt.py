@@ -10,6 +10,10 @@ die Abdrängung stehen ließ – erst danach stimmt, was man misst, und erst dan
 
 Eine eigene Operation, die nichts rechnet: Sie fährt die Bahn ihrer Quelle (`Quelle`, eine
 Operation im selben Job) Satz für Satz noch einmal – mit deren Werkzeug, Vorschüben und Höhen.
+Nur bei „Bohrung fräsen“ und der Nut, die erst schruppen und dann die Wand schlichten, fährt sie
+allein den Schlichtzug der Quelle (schlichtzug()): Helix, Ringe und Bögen noch einmal gingen
+durch die Luft (Luftfräsen weg, Manuel) – an einer Bohrung Ø 20 mit dem Ø 12 sind das ein
+Mehrfaches des Schlichtzugs (test_gangfolge).
 Ändert sich die Quelle (anderes Aufmaß, anderer Fräser), rechnet FreeCAD die Leerfahrt danach von
 selbst neu (die Verknüpfung). Für Materialstand, Abfahren und Kollision ist sie eine Operation wie
 jede andere: Sie nimmt nichts weg, was die Quelle nicht schon genommen hat.
@@ -31,11 +35,16 @@ FAHREN = ("G0", "G00", "G1", "G01", "G2", "G02", "G3", "G03")
 
 def gang_feld(op):
     """Der Name der Eigenschaft, in der bei `op` steht, was nach ihrem Schlichtgang stehen
-    bleibt – None, wenn sie keine hat: der Schlichtzug der Kontur („Schlichtrest“; ihr „Aufmass“
-    ist das des Schruppens davor), der Boden des Räumens („AufmassBoden“), sonst „Aufmass“."""
+    bleibt – None, wenn sie keine hat: der Schlichtzug der Kontur, von „Bohrung fräsen“ und der
+    Nut („Schlichtrest“; ihr „Aufmass“ ist das des Schruppens davor), der Boden des Räumens
+    („AufmassBoden“), sonst „Aufmass“. „Bohrung fräsen“ ohne Schlichtzug: „Aufmass“ – die Bohrung
+    misst man am Ø, also an der Wand, nicht am Boden."""
     felder = getattr(op, "PropertiesList", ())
-    if "Schlichtrest" in felder and getattr(op, "Schlichten", False):
+    schlichtzug = getattr(op, "Schlichten", False) or getattr(op, "NurSchlichten", False)
+    if "Schlichtrest" in felder and schlichtzug:
         return "Schlichtrest"
+    if "NurSchlichten" in felder:  # „Bohrung fräsen“, Nut: ohne Schlichtzug bleibt das Aufmaß
+        return "Aufmass" if "Aufmass" in felder else None
     if "AufmassBoden" in felder:
         return "AufmassBoden"
     return "Aufmass" if "Aufmass" in felder else None
@@ -45,6 +54,26 @@ def gang_aufmass(op):
     """So viel bleibt nach dem Schlichtgang `op` stehen (mm) – None ohne Angabe (gang_feld)."""
     feld = gang_feld(op)
     return None if feld is None else float(getattr(op, feld))
+
+
+def _schlichtzug_modul(op):
+    """Das Modul (bohrung, nut) mit schlichtzug(), wenn `op` erst schruppt und dann die Wand
+    schlichtet – nur dann fährt ihre Leerfahrt allein den Schlichtzug; None sonst."""
+    if not getattr(op, "Schlichten", False) or getattr(op, "NurSchlichten", True):
+        return None
+    from . import bohrung as bo
+    from . import nut as nu
+
+    if bo.ist_bohrungsfraesen(op):
+        return bo
+    if nu.ist_nut(op):
+        return nu
+    return None
+
+
+def nur_schlichtzug(op):
+    """Fährt die Leerfahrt zu `op` nur deren Schlichtzug (nicht die ganze Bahn)?"""
+    return _schlichtzug_modul(op) is not None
 
 
 class Leerfahrt(PathOp.ObjectOp):
@@ -77,6 +106,9 @@ class Leerfahrt(PathOp.ObjectOp):
     def opExecute(self, obj):
         quelle = getattr(obj, "Quelle", None)
         befehle = list(quelle.Path.Commands) if quelle is not None else []
+        modul = _schlichtzug_modul(quelle) if befehle else None
+        if modul is not None:
+            befehle = self._schlichtzug(obj, quelle, modul)
         fahrten = [b for b in befehle if b.Name in FAHREN]
         # FreeCAD hängt jeder Operation „G0 Z<Freifahrhöhe>“ an – auch dieser: das der Quelle
         # stünde sonst doppelt da.
@@ -91,6 +123,25 @@ class Leerfahrt(PathOp.ObjectOp):
         if aufmass is not None and abs(float(obj.Aufmass) - aufmass) > 1e-9:
             obj.Aufmass = aufmass
         self.commandlist.extend(Path.Command(b.Name, dict(b.Parameters)) for b in fahrten)
+
+    def _schlichtzug(self, obj, quelle, modul):
+        """Die Befehle des Schlichtzugs der Quelle (modul.schlichtzug) – mit den Vorschüben des
+        Werkzeugs, wie die Quelle sie fährt; leer, wenn es nicht geht (dann der Fehler wie ohne
+        Quelle)."""
+        from . import bahn as bn
+        from . import vierachs_operation as vo
+
+        vorschub = float(self.horizFeed or 0.0) * 60.0
+        try:
+            bahn = modul.schlichtzug(
+                quelle, self.job, self.model, vorschub, vo.eintauchvorschub(self)
+            )
+        except ValueError as fehler:
+            FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
+            return []
+        if bahn is None or vorschub <= 0:
+            return []
+        return list(bn.befehle(bahn.punkte, vorschub, vo.eintauchvorschub(self)))
 
 
 def lege_an(job, quelle, name=None):

@@ -76,6 +76,10 @@ class BohrungFraesen(PathOp.ObjectOp):
             ("App::PropertyLength", "Aufmass", tr("bo.eigenschaft.aufmass")),
             ("App::PropertyLength", "AufmassBoden", tr("ra.eigenschaft.aufmass_boden")),
             ("App::PropertyBool", "Schlichten", tr("bo.eigenschaft.schlichten")),
+            # Für zwei gleiche Schlichtschnitte mit Messen dazwischen (gangfolge): was der
+            # Schlichtzug an der Wand lässt, und der zweite Schnitt nur als Schlichtzug.
+            ("App::PropertyLength", "Schlichtrest", tr("bo.eigenschaft.schlichtrest")),
+            ("App::PropertyBool", "NurSchlichten", tr("bo.eigenschaft.nur_schlichten")),
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
             ("App::PropertyLength", "Tiefer", tr("bo.eigenschaft.tiefer")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
@@ -149,6 +153,42 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         stand=stand,
+        schlichtrest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
+        nur_schlichten=bool(getattr(obj, "NurSchlichten", False)),
+    )
+
+
+def schlichtzug(obj, job, modell, vorschub=0.0, eintauchen=0.0):
+    """Nur der Schlichtzug der Operation `obj` (Bohrbahn) – für ihre Leerfahrt (leerfahrt.py):
+    Die Helix und die Ringe noch einmal führen durch die Luft. Ohne Materialstand: `obj` hat den
+    Kern eben geräumt (Bohrwerte.kern_frei). None, wenn `obj` keinen Schlichtzug hat."""
+    if not bool(getattr(obj, "Schlichten", False)) and not bool(getattr(obj, "NurSchlichten", 0)):
+        return None
+    form = vs.form_des_controllers(obj.ToolController)
+    if form is None or vp.ebener_radius(form) <= 0:
+        raise ValueError(tr("bo.fehler.form"))
+    return bahn_fuer(
+        job,
+        modell,
+        float(form.radius),
+        float(obj.Zustellung),
+        float(obj.Zeilenabstand),
+        float(obj.Aufmass),
+        vo.flaechen(obj),
+        aufmass_boden=float(obj.AufmassBoden),
+        schlichten=True,
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
+        tiefer=float(obj.Tiefer),
+        schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
+        oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
+        sicher=float(obj.SafeHeight),
+        sicherheit=float(obj.Sicherheitsabstand),
+        eintauchwinkel=float(obj.Eintauchwinkel),
+        vorschub=vorschub,
+        eintauchen=eintauchen,
+        schlichtrest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
+        nur_schlichten=True,
+        kern_frei=True,
     )
 
 
@@ -172,10 +212,14 @@ def bahn_fuer(
     vorschub=0.0,
     eintauchen=0.0,
     stand=None,
+    schlichtrest=0.0,
+    nur_schlichten=False,
+    kern_frei=False,
 ):
     """Die Bahn „Bohrung fräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten
     Zylinderflächen („Face7“ …); leer: alle Bohrungen des Teils. `stand`: der Materialstand
-    davor (bohrung_bahn.planen). ValueError mit einem Satz, wenn es nicht geht."""
+    davor (bohrung_bahn.planen). `schlichtrest`, `nur_schlichten`, `kern_frei`: wie in
+    bohrung_bahn.Bohrwerte. ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -201,6 +245,9 @@ def bahn_fuer(
         eintauchwinkel=eintauchwinkel,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        schlichtrest=max(float(schlichtrest), 0.0),
+        nur_schlichten=bool(nur_schlichten),
+        kern_frei=bool(kern_frei),
     )
     return bb.planen(werte, liste, stand)
 
@@ -224,6 +271,7 @@ def lege_an(
     name=None,
     flaechen=(),
     eintauchwinkel=None,
+    schlichtrest=0.0,
 ):
     """Legt „Bohrung fräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen
     und Höhen wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation
@@ -246,6 +294,7 @@ def lege_an(
     obj.Aufmass = aufmass
     obj.AufmassBoden = aufmass_boden
     obj.Schlichten = bool(schlichten)
+    obj.Schlichtrest = max(float(schlichtrest), 0.0)
     obj.Gleichlauf = bool(gleichlauf)
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten

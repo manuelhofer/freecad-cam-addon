@@ -184,6 +184,10 @@ class Nutwerte:
     # Schlichtens nicht passt (am C-Ring Ø 12 in der 10 mm breiten Nut, W-029): offen von außen
     # hinein (_offen_schlichten), geschlossen auf der Mittellinie hinab und rundum (_schlichten).
     nur_schlichten: bool = False
+    # Bleibt nach dem Schlichtgang an der Wand (mm, 0: auf Maß) – für zwei gleiche Schlichtschnitte
+    # mit Messen dazwischen (gangfolge; Manuel, 2026-11-14: „erstes vorschlichten ... dann messsen
+    # ... dann vertigschlichten“): der erste mit 0,15, der zweite auf Maß.
+    schlichtrest: float = 0.0
 
 
 @dataclass
@@ -1567,7 +1571,8 @@ def _nut(punkte, nut, w, stand=None, bei=None, eintauchen=None):
         raise ValueError(tr("nt.fehler.zu_schmal", breite=breite, fraeser=fraeser))
     if art == "zu_breit":
         raise ValueError(tr("nt.fehler.zu_breit", breite=breite))
-    r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
+    # Die Mitte des Fräsers an der Wand (um den Schlichtrest davor)
+    r_w = max(nut.radius - R - max(w.schlichtrest, 0.0), 0.0)
     r_l = nut.radius - R - aufmass  # … auf den Bögen
     # Nur schlichten: Die Nut ist geräumt – der Materialstand sähe über dem Grund nichts mehr;
     # die Wände reichen bis zu ihrer Oberkante.
@@ -1703,7 +1708,7 @@ def _ring_gestreckt(punkte, nut, w, oben):
     aufmass = max(w.aufmass, 0.0)
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
     runde = nut.laenge
-    r_w = max(nut.radius - R, 0.0)
+    r_w = max(nut.radius - R - max(w.schlichtrest, 0.0), 0.0)
     r_l = nut.radius - R - aufmass
     vollnut = verfahren(nut, R, aufmass) == "vollnut"
     uhr = not w.gleichlauf
