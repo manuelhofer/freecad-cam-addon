@@ -2524,8 +2524,10 @@ def programm(
             zeilen.append(s.kuehlung_aus)
         if abschnitt.fest is not None:
             fest_stand = abschnitt.fest
+    schon_aus = []  # die Zeilen „Spindel aus“ vom Ende der letzten Operation
     if spindel_an is not None:
-        zeilen.extend(_spindel_aus(s, spindel_an))
+        schon_aus = _spindel_aus(s, spindel_an)
+        zeilen.extend(schon_aus)
     if fest_stand is not None:
         # Aus der geschwenkten Lage zurück auf 0, bevor es zum Wechselpunkt geht: auf der
         # Schwenkhöhe über C, wie hinein – so fährt es auch die Prüfung (abfahren).
@@ -2546,6 +2548,9 @@ def programm(
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     for zeile in _zeilen(s.ende):
+        if zeile in schon_aus:  # die Spindel ist schon aus – vor dem Wechselpunkt (kein 2. M5)
+            schon_aus.remove(zeile)
+            continue
         if not (zeilen and zeile == zeilen[-1]):  # „M5“ nach „M5“: schon aus
             zeilen.append(zeile)
     return fertig(zeilen, saetze)

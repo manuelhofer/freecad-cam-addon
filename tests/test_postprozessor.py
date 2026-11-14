@@ -1235,6 +1235,12 @@ for kennung in ("siemens", "linuxcnc"):
         not any(a == b == "M5" for a, b in zip(z, z[1:], strict=False)),
         f"{kennung}: M5 nach M5: {z[-6:]}",
     )
+# Mit Wechselpunkt: „M5“, der Weg dorthin, dann das Ende – ohne zweites „M5“ (0.376.1).
+mit_wp = pp.Maschineninfo("Fräse", wechselpunkt={"X": 0.0, "Y": 0.0, "Z": 150.0})
+for kennung in ("siemens", "linuxcnc", "heidenhain", "fanuc"):
+    z = pp.programm([doppelt], pp.steuerung(kennung), mit_wp, "D").zeilen
+    aus = [zeile for zeile in z if zeile.split()[-1:] == ["M5"] or zeile.strip() == "M5"]
+    pruefe(len(aus) == 1, f"{kennung}: M5 {len(aus)}-mal: {z[-8:]}")
 
 # Fein geprüfte Simultanbahnen: lineare und Moduloachsen nicht auf drei Stellen runden;
 # die Glättung muss innerhalb des reservierten Qualitätsbudgets bleiben.
