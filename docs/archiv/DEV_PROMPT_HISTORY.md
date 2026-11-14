@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-07 hobeln-freiwinkel-kurze-saetze
+
+### EINGELESEN
+- Manuel, 2026-11-14, auf Frage 2 (die Nut wird ein paar Hundertstel schmaler: a so lassen, b Fräser
+  nachfahren, c Klinge mit seitlichem Freiwinkel, d kürzere Sätze in Kurven): „C und D ?? Ne nach Fräsen
+  nicht..“
+
+### DATEIEN
+- `camaddon/hobeln_bahn.py` (schritt_im_bogen, klingen_umriss, _ueberstand numerisch mit Umriss),
+  `camaddon/hobeln.py`, `camaddon/werkzeuge.py` (Feld `freiwinkel`), translations; `tests/test_hobeln.py`;
+  `docs/OFFENE_FRAGEN.md` (Frage 2 neu), `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.378.0.
+
+### ERGEBNIS
+- (d) In Bögen kürzere Sätze (halber Schritt ≤ 0,25°, mindestens 0,1 mm); (c) seitlicher Freiwinkel am
+  Stoßwerkzeug, die Klinge als Trapez. Gemessen (eigenes Rechteck-/Trapezmodell gegen den Grund aus Part,
+  ~/freecad_cam/wip/strategien/hobeln/frage2/): Deckel Vorschlag 3,5 × 0,9 je Seite schmaler Ø 0,025 /
+  max 0,047, mit 2° Ø 0,006 / max 0,015; 2,6 × 1,4 Ø 0,034 / 0,095 → Ø 0,007 / 0,046; R 3 mit 2,6 × 1,0
+  Ø 0,027 / 0,128 → Ø 0,007 / 0,094. Nirgends in der Wand, kein Satz unter dem Grund.
+- Geprüft: test_hobeln, test_werkzeuge, test_werkzeugkiste_datei, test_sprache.
 ## P-2026-11-15-06 dichtnut-hobeln-im-assistenten
 
 ### EINGELESEN

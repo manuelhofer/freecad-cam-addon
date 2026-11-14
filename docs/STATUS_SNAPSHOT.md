@@ -627,7 +627,10 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   Die Klinge wird als Rechteck in jeder Stellung gegen die Wände geprüft, auch mit dem Schwenk der
   Steuerungen, die den Winkel vor dem Satz stellen (Zweifler-Fund: dort 0,03–0,18 mm in der Wand – behoben).
   Deckel: 49 Umläufe je Spur, 2 Spuren, 4,4 min. Haken „Vorher fräsen, Rest hobeln“ (aus) für den alten Weg.
-  Offen: Frage 2 (die Nut wird bis 0,05 mm je Seite schmaler).
+  Dazu 0.378.0 (Manuel zu Frage 2: „C und D … Ne nach Fräsen nicht“): seitlicher Freiwinkel am
+  Stoßwerkzeug (die Klinge hinten schmaler) und kürzere Sätze in Bögen (halber Schritt ≤ 0,25°, ≥ 0,1 mm) –
+  mit 2° wird die Nut am Deckel je Seite im Mittel 0,006 mm schmaler statt 0,025. Frage 2 neu: der übliche
+  Freiwinkel seiner Klingen.
 - *Neu (0.376.0):* **4-Achs an der Tisch/Tisch: das Rohr im Dreibackenfutter auf dem Rundtisch** (Manuel,
   2026-11-15). Im 4-Achs-Assistenten steht an der Tisch/Tisch als erste Rundachse „C, A −90° – Rohr im Futter
   auf dem Rundtisch, Werkzeug von oben“: Das Rohr steht mittig im Futter (Körper in Bild und Kollision), die

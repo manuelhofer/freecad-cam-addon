@@ -24,18 +24,12 @@ Kinematik – das hängt aber daran, dass sie richtig eingerichtet ist.
 *Was die Antwort ändert:* ob das Programm für diese Lage einen Schwenkzyklus schreibt oder A als einfache
 Achse mit Koordinaten nach dem Schwenken. Bis zur Antwort bleibt es beim Nullpunkt nach dem Schwenken.
 
-## 2. Dichtnut aus dem Vollen gehobelt: Darf die Nut ein paar Hundertstel schmaler werden? (seit 2026-11-14)
+## 2. Welchen seitlichen Freiwinkel haben deine Hobelklingen? (seit 2026-11-14)
 
-**Die Frage:** Die Klinge ist im Addon ein Rechteck (Breite × Länge hinter der Schneide). In der Kurve
-schwenkt ihre hintere Ecke nach außen; dazu stellen Heidenhain, LinuxCNC, Haas, Fanuc und Mach den
-Spindelwinkel vor dem Satz (die Klinge dreht einen halben Satzschritt voraus), Fanuc in ganzen Grad. Damit
-die Ecke nie in die fertige Wand geht, bleibt die Spur dort etwas weiter weg – **die Nut wird je Seite
-schmaler**: am Beispieldeckel (Nut 3,6, R 12, Klinge 3,5 × 0,8) im Mittel 0,023, höchstens 0,048 mm; mit
-einer langen Klinge 2,6 × 1,4 bis 0,11 mm; Rechteck R 3 mit 2,6 × 1,0 bis 0,17 mm. Was ist dir lieber?
-(a) so lassen und im Block die Abweichung zeigen; (b) einen Fräser die Wände danach nachfahren lassen (dann
-ist es nicht mehr „ohne Fräsen“); (c) die Klinge mit seitlichem Freiwinkel rechnen (echte Hobelklingen
-sind hinter der Schneide schmaler – dann schwenkt die Ecke kaum aus; dafür ein Maß am Werkzeug); (d) in
-Kurven kürzere Sätze.
-*Warum nur Manuel:* Welche Toleranz die Nut braucht und wie seine Klingen hinten aussehen, weiß nur er.
-*Was die Antwort ändert:* wie breit die Nut wirklich wird; ob am Werkzeug ein Freiwinkel dazukommt.
-Bis zur Antwort: (a) – die Klinge geht nie in die Wand, die Nut ist höchstens so viel schmaler.
+**Die Frage:** Am Stoßwerkzeug gibt es jetzt das Maß „Seitlicher Freiwinkel“ (deine Antwort auf die
+vorige Frage: „C und D“). Mit 2° wird die Nut am Deckel je Seite nur noch im Mittel 0,006 mm (höchstens
+0,015) schmaler statt 0,025 (0,047); mit einer langen Klinge 2,6 × 1,4 0,007 (0,046) statt 0,034 (0,095).
+Steht nichts am Werkzeug, rechnet das Addon die Klinge als Rechteck (0°) – sicher, aber schmaler.
+Welchen Winkel haben deine Klingen üblicherweise? Dann belegt der Knopf „Stoßwerkzeug … anlegen“ ihn vor.
+*Warum nur Manuel:* Wie seine Klingen hinten geschliffen sind, steht in keinem Modell.
+*Was die Antwort ändert:* die Vorgabe beim Anlegen eines Stoßwerkzeugs (bis dahin 0° – ein Rechteck).
