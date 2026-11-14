@@ -619,6 +619,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Schritten merkt sich am Job die gewählten Flächen – das markierte ihn nach jedem „Anlegen“ (blaues Häkchen
   im Baum; „Neu berechnen“ rechnete ihn noch einmal). Gefunden, weil das neue Szenario danach 5 min auf
   nichts wartete: `szenario_schritte_alles` braucht jetzt 66 statt 665 s.
+  Voller Lauf ohne Oberfläche auf 0.372.0 (14.11. früh): 147/148; `test_empfehlung` baute das
+  Katalogwerkzeug noch ohne das neue Feld „Breite der Scheibe“ (nur die Prüfdatei) – berichtigt, grün.
 - *Korrektur (0.371.3):* **Im Freien schnell: eine Ecke, die ein Zug davor nur berührt hat, steht noch.**
   Fuhren zwei Züge genau einen Fräserdurchmesser auseinander oder tangierte ein Zug eine Ecke des stehenden
   Materials (Ring bei x = 3 und y = 13 mit Ø 12: die Ecke bei 9; 7 liegt genau 6,000 entfernt), galt sie für

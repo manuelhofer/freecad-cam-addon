@@ -247,10 +247,11 @@ kurze_bib.werkzeuge.append(kurz6)
 kurz6.halter = kurze_bib.neuer_halter("er32", None, "SK40").kennung
 lang6 = ww._Katalogwerkzeug(
     (wz.KUGELFRAESER, 6.0, 6.0, 80.0, 0.0, 0.0, {}, "Kugel lang", "Probe", "K6-80", "", 6.0, 5.6,
-     45.0, 0.0)
+     45.0, 0.0, 0.0)
 )  # fmt: skip
 schaft6 = ww._Katalogwerkzeug(
-    (wz.SCHAFTFRAESER, 6.0, 13.0, 80.0, 0.0, 0.0, {}, "Schaft", "Probe", "S6", "", 6.0, 0.0, 0.0, 0.0)
+    (wz.SCHAFTFRAESER, 6.0, 13.0, 80.0, 0.0, 0.0, {}, "Schaft", "Probe", "S6", "", 6.0, 0.0, 0.0, 0.0,
+     0.0)
 )  # fmt: skip
 mit_katalog_w, mit_norm, mit_katalog_h = ww.katalog_werkzeuge, em._normhalter, em._katalog_halter
 ww.katalog_werkzeuge = lambda: [lang6, schaft6]
