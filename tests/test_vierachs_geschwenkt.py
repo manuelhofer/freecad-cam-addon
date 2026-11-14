@@ -22,6 +22,7 @@ sys.path.insert(0, ADDON)
 import FreeCAD
 import numpy as np
 import Part
+import Path
 
 from camaddon import abfahren as ab
 from camaddon import beispielmaschine as bm
@@ -304,6 +305,54 @@ pruefe(
     futter_texte, f"Gegenprobe: das Futter trifft nichts ({[b.text() for b in gegen.befunde][:2]})"
 )
 setattr(job, vr.EIGENSCHAFT_SPANNLAENGE, vr.SPANNLAENGE)
+
+# --- Mischjob: danach die Stirn von oben planen (A 0) --------------------------------------------
+# Das Programm schwenkt nach der geschwenkten Lage zurück (hoch, über C, A 0), die Prüfung fährt
+# es mit; die geschwenkte Lage bekommt den nächsten Nullpunkt (G55, nach dem Schwenken
+# eingerichtet), die Stirn behält G54 bei A 0.
+plan = doc.addObject("Path::Feature", "StirnPlanen")
+plan.addProperty("App::PropertyLink", "ToolController")
+plan.ToolController = tc
+plan.addProperty("App::PropertyBool", "Active")
+plan.Active = True
+plan.Path = Path.Path(
+    [
+        Path.Command("G0", {"X": -40.0, "Y": 0.0, "Z": 10.0}),
+        Path.Command("G1", {"Z": 0.5, "F": 5.0}),
+        Path.Command("G1", {"X": 40.0, "F": 5.0}),
+        Path.Command("G0", {"Z": 10.0}),
+    ]
+)
+job.Operations.Group = [op, plan]
+doc.recompute()
+misch = ab.abfahrt(p, job, nullpunkt, bib)
+erste_plan = misch.operationen[1].erste
+nach = [s.rund.get("A", 0.0) for s in misch.stationen[misch.operationen[0].erste : erste_plan]]
+pruefe(
+    any(1e-6 < abs(a) < 90.0 - 1e-6 for a in nach[-95:]) and abs(nach[-1]) < 1e-9,
+    f"Mischjob: nicht zurückgeschwenkt ({nach[-3:]})",
+)
+pruefe(
+    all(abs(s.rund.get("A", 0.0)) < 1e-9 for s in misch.stationen[erste_plan:]),
+    "Mischjob: die Stirn mit gekipptem Tisch",
+)
+misch_befunde = [b.text() for b in kb.kollision(misch, job, nullpunkt, bib).befunde]
+pruefe(not misch_befunde, f"Mischjob: {misch_befunde[:2]}")
+zeilen = pp.programm(
+    pp.abschnitte(job, maschine=maschine_sw), pp.steuerung("siemens"), info, "Rohr"
+).zeilen
+an = next((i for i, z in enumerate(zeilen) if z == "G0 A1=-90.000"), -1)
+zurueck = next((i for i, z in enumerate(zeilen) if z == "G0 A1=0.000"), -1)
+g54 = [i for i, z in enumerate(zeilen) if z.startswith("G54")]
+g55 = [i for i, z in enumerate(zeilen) if z.startswith("G55")]
+print(ascii(f"Mischjob: G55 {g55}, A-90 {an}, A0 {zurueck}, G54 {g54}"))
+pruefe(g55 and g55[0] < an < zurueck and g54 and g54[-1] > zurueck, "Mischjob: Nullpunkte")
+pruefe(
+    any(re.search(r"G55: .*A [−-]90 und C 0 schwenken", z) for z in zeilen),
+    "Mischjob: Kopf ohne G55",
+)
+misch_null = eb.nullpunkt_text(job, sprache.tr)
+pruefe("G54 ungeschwenkt" in misch_null and "G55 nach dem Schwenken" in misch_null, misch_null)
 
 FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)

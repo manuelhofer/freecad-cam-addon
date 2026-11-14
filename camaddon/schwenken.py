@@ -980,6 +980,24 @@ def schwenkung_der_operation(op, maschine, job=None):
     )
 
 
+def zurueck_aus_der_lage(schwenkung):
+    """Die Sätze aus der geschwenkten Lage zurück (Path.Command, wie postprozessor._schwenken_aus
+    sie schreibt): auf die Schwenkhöhe, über die Achse von C, die festen Rundachsen auf 0 – leer
+    ohne Schwenkung."""
+    import Path
+
+    if schwenkung is None or not schwenkung.rund:
+        return []
+    saetze = []
+    if schwenkung.hoehe is not None:
+        saetze.append(Path.Command("G0", {"Z": float(schwenkung.hoehe)}))
+    if schwenkung.ueber is not None:
+        x, y = (float(w) for w in schwenkung.ueber)
+        saetze.append(Path.Command("G0", {"X": x, "Y": y}))
+    saetze.append(Path.Command("G0", dict.fromkeys(schwenkung.rund, 0.0)))
+    return saetze
+
+
 def versatz_der_operation(op, maschine):
     """Schwenkung.versatz einer 4-Achs-Operation in geschwenkter Lage: wo die Stirn auf der Achse
     (der Nullpunkt des Jobs) nach dem Schwenken steht, im Programm mit dem Nullpunkt des Jobs bei

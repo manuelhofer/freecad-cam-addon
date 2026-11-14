@@ -2526,6 +2526,11 @@ def programm(
             fest_stand = abschnitt.fest
     if spindel_an is not None:
         zeilen.extend(_spindel_aus(s, spindel_an))
+    if fest_stand is not None:
+        # Aus der geschwenkten Lage zurück auf 0, bevor es zum Wechselpunkt geht: auf der
+        # Schwenkhöhe über C, wie hinein – so fährt es auch die Prüfung (abfahren).
+        zeilen.extend(_schwenken_aus(s, fest_stand, False, False, info))
+        fest_stand = None
     zurueck = None
     if s.schwenken_aus_zuerst and zyklus and geschwenkt is not None:
         zeilen.extend(_zeilen(s.schwenken_aus))  # Fanuc G69 vor G53
@@ -2538,9 +2543,6 @@ def programm(
     if geschwenkt is not None:
         oben = werkzeug is not None and _wechselpunkt_oben(s, info)
         zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben, info))
-    if fest_stand is not None:  # aus der geschwenkten Lage zurück auf 0
-        oben = werkzeug is not None and _wechselpunkt_oben(s, info)
-        zeilen.extend(_schwenken_aus(s, fest_stand, False, oben, info))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     for zeile in _zeilen(s.ende):
@@ -2764,6 +2766,10 @@ def _schwenken_aus(s, schwenkung, zyklus, oben=False, info=None, auf_null=True):
     zeilen = []
     if schwenkung.hoehe is not None and not oben:
         zeilen.append(f"G0 {_wort(s, 'Z', _zahl(schwenkung.hoehe))}")
+    if getattr(schwenkung, "ueber", None) is not None:
+        # In geschwenkter Lage über der Achse von C zurück – wie hinein (Schwenkung.ueber).
+        x, y = schwenkung.ueber
+        zeilen.append(f"G0 {_wort(s, 'X', _zahl(x))} {_wort(s, 'Y', _zahl(y))}")
     woerter = [
         _wort(s, _adresse(s, b, info) if info is not None else b, _zahl(0.0))
         for b in sorted(schwenkung.rund)

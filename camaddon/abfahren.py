@@ -390,6 +390,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             (op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte, versatz)
         )
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
+    _zurueck_schwenken(pruefung, vorbereitet, nullpunkt_des_jobs)
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
     tempo = _tempo(pruefung.maschine, ergebnis.achsen)
@@ -597,6 +598,32 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     ergebnis.wechselzeit, ergebnis.wechsel_vor = dauert, wechsel_vor
     yield from ergebnis._fertig_schritte()
     return ergebnis
+
+
+def _zurueck_schwenken(pruefung, vorbereitet, nullpunkt_des_jobs):
+    """In geschwenkter Lage („C, A auf 90°“): Wo es danach ohne sie weitergeht (eine Operation
+    ungeschwenkt, oder das Ende), schwenkt das Programm zurück – hoch, über C, die festen
+    Rundachsen auf 0 (postprozessor._schwenken_aus). Dieselben Sätze kommen ans Ende der
+    Operation, so fährt die Prüfung sie mit; sonst stand A dort weiter auf −90, und eine Operation
+    danach (die Stirn von oben planen) lief mit gekipptem Tisch (Zweifler 2026-11-14)."""
+    from . import schwenken as sw
+    from . import vierachs_operation as vo
+
+    for k, eintrag in enumerate(vorbereitet):
+        op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte, versatz = eintrag
+        fest = vo.schwenk(op) if ebene is None and vo.ist_rundum(op) else {}
+        if not fest:
+            continue
+        if k + 1 < len(vorbereitet):
+            naechste, ebene_danach = vorbereitet[k + 1][0], vorbereitet[k + 1][6]
+            if ebene_danach is None and vo.ist_rundum(naechste) and vo.schwenk(naechste) == fest:
+                continue  # weiter in derselben Lage – die nächste schwenkt selbst (schon dort)
+        maschine = sw.Maschine(pruefung, aufnahme, eingespannt, nullpunkt_des_jobs)
+        zurueck = sw.zurueck_aus_der_lage(sw.schwenkung_der_operation(op, maschine))
+        if zurueck:
+            vorbereitet[k] = (
+                op, tc, aufnahme, eingespannt, linear, befehle + zurueck, ebene, None, versatz
+            )  # fmt: skip
 
 
 def dauer_text(sekunden):
