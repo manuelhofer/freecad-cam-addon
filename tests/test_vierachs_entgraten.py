@@ -120,9 +120,14 @@ pruefe(
 start = bahn.punkte[0]
 pruefe(start.eilgang and start.a == 1.0 + 4.0 + 2.0 and start.r == 14.0, f"Start: {start}")
 pruefe(sum(1 for p in vorschub if p.eintauchen) == 2, "zweimal hinein mit dem Eintauchvorschub")
+# Im Eilgang hinab bis den Sicherheitsabstand über die Berührung, die Fasenbreite darüber (nach
+# 0.379.2, eilgang4: vorher 2 mm über der Spitze IN der Kante – 1,7 mm über dem Teil).
 for vorher, punkt in zip(bahn.punkte, bahn.punkte[1:], strict=False):
     if punkt.eintauchen:
-        pruefe(vorher.eilgang and vorher.r <= punkt.r + 2.0 + 1e-9, "nicht knapp über der Kante")
+        pruefe(
+            vorher.eilgang and abs(vorher.r - (punkt.r + 0.3 + 2.0)) < 1e-9,
+            f"nicht den Sicherheitsabstand über der Kante: {vorher.r} über {punkt.r}",
+        )
 ende = bahn.punkte[-1]
 pruefe(ende.eilgang and ende.a == 7.0 and ende.r == 14.0, f"Ende: {ende}")
 pruefe(abs(vb.dauer(bahn, 400.0) - 0.1) < 0.02, f"Dauer {vb.dauer(bahn, 400.0)}")

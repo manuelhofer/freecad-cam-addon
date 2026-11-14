@@ -46,9 +46,12 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   draußen ein, dass das reicht (_hinaus) – ganz vor der Stange im Eilgang bis den
   Sicherheitsabstand über die Lage –, die Helix beginnt an einer Stelle ihres Kreises, an der es
   reicht (_helix_anfangen); sonst fährt der Rest im Eintauchvorschub. Die allgemeine Prüfung
-  _eilgaenge_sichern sieht jede Fahrt gegen das Material vor ihr durch, am Ende die ganze Bahn
-  gegen das Teil. An der Welle mit Reitstock tauchte die Helix bis 0.379 im Eilgang 0,37 mm neben
-  der Schulter ein, neben stehendem Rohteil bis 0,12 mm.
+  (vierachs_bahn.eilgaenge_sichern, wie bei den Rundum-Bahnen) sieht jede Fahrt gegen das Material
+  vor ihr durch, am Ende die ganze Bahn gegen das Teil. An der Welle mit Reitstock tauchte die
+  Helix bis 0.379 im Eilgang 0,37 mm neben der Schulter ein, neben stehendem Rohteil bis 0,12 mm.
+  Die sichere Höhe liegt mit Reitstock auch über dem Schutz vor der Stange
+  (vierachs_bahn.sicher_radius): An der Stange Ø 40 fuhr die Anfahrt einer Querbohrung bis 0.379.2
+  auf r 22 durch ihn (r 22,5 mit dem Abstand zum Futter).
 - **Stiche von der offenen Seite** (Planwerte.weg, P-2026-10-12-146; Manuel, 2026-10-12: „fährt
   mir der Fräser in einem Zickzack-Eintauch ins Teil … aber für was? außenrum ist alles frei …
   so dass er D's fährt“): Statt der Zeilen räumt das 3-Achs-Räumen (raeumen_bahn, Variante
@@ -400,6 +403,7 @@ class Planwerte:
     # So oft fährt der letzte Umlauf einer Nut im Mantel noch einmal, ohne Zustellung (Manuel,
     # 2026-11-15: „vorarbeiten auf 0.3 … und leer durchfahrten je arbeitsgang“).
     leerfahrten: int = 0
+    netz_hoehe: float = 0.0  # wie bei vierachs_bahn.Schruppwerte (vierachs_bahn.mit_netz_hoehe)
 
 
 @dataclass
@@ -417,8 +421,8 @@ class Planbahn:
     huebe: int = 0  # mit dem Bohrer: so oft fährt er hinab, über alle Seiten
     seiten: int = 0  # mit dem Bohrer: von so vielen Seiten gebohrt
     mantelnuten: int = 0  # so viele Flächen davon als Nut auf dem Mantel (Rundachse dreht)
-    # So viele Eilgänge hat die allgemeine Prüfung (_eilgaenge_sichern) geändert: Sie kamen dem
-    # Teil oder dem Material näher als den Sicherheitsabstand.
+    # So viele Eilgänge hat die allgemeine Prüfung (vierachs_bahn.eilgaenge_sichern) geändert:
+    # Sie kamen dem Teil oder dem Material näher als den Sicherheitsabstand.
     eilgaenge_gesichert: int = 0
 
 
@@ -1341,7 +1345,7 @@ def planen(
     ([Mantelnut], mantelnuten()): Nuten auf dem Mantel; `form_teil` (Part.Shape im Job): das Teil
     für die Stiche (Planwerte.weg) – ohne fahren alle Flächen Zeilen. ValueError mit einem Satz,
     wenn es nicht geht."""
-    w = werte
+    w = vb.mit_netz_hoehe(werte, netz, laengs, radial)  # mit Reitstock: über dem Schutz
     form = w.form
     radius = form.radius
     if w.bohrer is not None:
@@ -1373,24 +1377,15 @@ def planen(
     # gehoben – so bleibt er überall aus dem Teil; die Fläche selbst liegt nicht im Netz.
     zugabe = netz.toleranz + vb.RAND
     geformt = form.mit_aufmass(netz.toleranz)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = vb.sicher_radius(w)
     # Wie tief ein Eilgang hinab darf (B-038): Der Fräser um den Sicherheitsabstand größer, rundum
     # wie von einer Kugel abgerollt, gegen das Teil mit dem Schutz vor dem Reitstock – so hält
     # jeder Eilgang den Sicherheitsabstand auch seitlich zu Wand und Hindernis, nicht nur über dem
-    # Material (neben der Schulter tauchte er 0,37 mm von der Wand im Eilgang ein). Um EILGANG_SPIEL
-    # weniger: Genau den Sicherheitsabstand vor der Stirn (dort beginnen die Zeilen vor der Stange)
-    # berührte der größere Fräser sie sonst gerade, und der Eilgang blieb über ihr.
-    abstand_e = max(w.sicherheit - EILGANG_SPIEL, 0.0)
-    eilgang_form = form.mit_aufmass(abstand_e)
+    # Material (neben der Schulter tauchte er 0,37 mm von der Wand im Eilgang ein). Dieselbe
+    # Prüfung wie bei den Rundum-Bahnen (vierachs_bahn.eilgang_tiefst).
+    teil_tiefst, teil_oben = vb.eilgang_tiefst(netz, laengs, radial, form, w.sicherheit)
 
-    def teil_tiefst(pa, pq, pphi):
-        pa = np.atleast_1d(np.asarray(pa, dtype=float))
-        pq = np.atleast_1d(np.asarray(pq, dtype=float))
-        pphi = np.broadcast_to(np.radians(np.asarray(pphi, dtype=float)), pa.shape)
-        roh_e = vh.je_stellung(netz, laengs, radial, eilgang_form, pphi, pq, pa)
-        return roh_e + abstand_e
-
-    ungeprueft = []  # (von, bis) der Punkte, die _eilgaenge_sichern auslässt
+    ungeprueft = []  # (von, bis) der Punkte, die vb.eilgaenge_sichern auslässt
     gesichert_material = 0  # so viele Eilgänge kamen dem Material zu nah (je Fahrt geprüft)
     punkte = [vb.Punkt(True, a_anfang, sicher, 0.0)]
     lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = bohrungen_gefraest = 0
@@ -1417,8 +1412,10 @@ def planen(
             zeilen_gesamt += max(1, int(math.ceil(bohrbahn.umlaeufe)))
             z_min = bohrbahn.z_min
         # In der Bohrung fährt der Eilgang zurück ins eigene Loch (Hübe, die zweite Seite einer
-        # durchgehenden) – dort misst die allgemeine Prüfung die Wand der Bohrung, nicht Luft.
-        ungeprueft.append((len(punkte), len(punkte) + len(stueck) + 1))
+        # durchgehenden) – dort misst die allgemeine Prüfung die Wand der Bohrung, nicht Luft. Die
+        # Anfahrt über die Bohrung (der erste Punkt) prüft sie: Bis 0.379 lag sie mit Reitstock
+        # an der Stange Ø 40 im Schutz vor der Stirn (r 22 statt über 22,5 + Abstand).
+        ungeprueft.append((len(punkte) + 1, len(punkte) + len(stueck) + 1))
         punkte.extend(stueck)
         letzter = punkte[-1]
         punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
@@ -1768,7 +1765,7 @@ def planen(
         raise ValueError(tr("vp.fehler.nichts"))
     letzter = punkte[-1]
     _eilgang(punkte, a_anfang, sicher, letzter.phi, 0.0)
-    punkte, gesichert = _eilgaenge_sichern(punkte, teil_tiefst, ungeprueft)
+    punkte, gesichert = vb.eilgaenge_sichern(punkte, teil_tiefst, ungeprueft, teil_oben)
     return Planbahn(
         punkte,
         flaechen_gefraest,
@@ -2039,95 +2036,6 @@ def _eilgang(punkte, a, r, phi, q):
             punkte.append(punkt)
 
 
-# mm – so dicht tastet die allgemeine Prüfung (_eilgaenge_sichern) einen Eilgang ab, der nicht
-# senkrecht fährt; höchstens EILGANG_STELLEN Stellen je Eilgang (eine lange Drehung).
-EILGANG_SCHRITT = 1.0
-EILGANG_STELLEN = 400
-EILGANG_GENAU = 1e-6  # mm – so viel tiefer gilt noch als gleich (Rechengenauigkeit)
-# mm – so viel darf ein Eilgang dem Teil näher kommen als den Sicherheitsabstand
-EILGANG_SPIEL = 0.01
-
-
-def _eilgaenge_sichern(punkte, tiefst, ohne=()):
-    """Die allgemeine Prüfung der Eilgänge einer Bahn (B-038; Manuel: ein Eilgang nie im oder
-    dicht am Material, das Fertigteil wird nie beschädigt): `tiefst(a, q, φ)` sagt je Stellung,
-    wie tief die Spitze im Eilgang hinab darf – mit dem Sicherheitsabstand zu allem, was dort
-    steht. Ein Eilgang senkrecht hinab, der tiefer ginge, fährt im Eilgang nur bis dorthin und den
-    Rest mit dem Eintauchvorschub; einer quer oder mit Drehung, der dem Teil zu nah käme, hebt
-    vorher so weit ab, wie es seine Stellen verlangen. Hinauf ist immer frei. `ohne`: [(von, bis)]
-    der Punkte, die nicht geprüft werden (Bohren in Hüben fährt im Eilgang zurück ins eigene
-    Loch). Gibt (Punkte, so viele Eilgänge geändert)."""
-    stellen_i, stellen_t = [], []
-    for i in range(1, len(punkte)):
-        p1 = punkte[i]
-        if not p1.eilgang or any(von <= i < bis for von, bis in ohne):
-            continue
-        p0 = punkte[i - 1]
-        quer = math.hypot(p1.a - p0.a, p1.q - p0.q)
-        dreh = abs(math.radians(p1.phi - p0.phi)) * max(p0.r, p1.r, 0.0)
-        if quer <= vb.GLEICH and dreh <= vb.GLEICH:
-            if p1.r < p0.r - vb.GLEICH:  # senkrecht hinab: das Ende zählt
-                stellen_i.append(i)
-                stellen_t.append(1.0)
-            continue
-        weg = math.hypot(quer, dreh, p1.r - p0.r)
-        n = min(EILGANG_STELLEN, max(1, int(math.ceil(weg / EILGANG_SCHRITT - 1e-9))))
-        stellen_i.extend([i] * n)
-        stellen_t.extend((k + 1) / n for k in range(n))
-    if not stellen_i:
-        return punkte, 0
-    idx = np.asarray(stellen_i, dtype=np.int64)
-    t = np.asarray(stellen_t, dtype=float)
-
-    def feld(name):
-        werte = np.array([getattr(p, name) for p in punkte], dtype=float)
-        return werte[idx - 1] + t * (werte[idx] - werte[idx - 1])
-
-    hoehe = feld("r")
-    grenze = np.asarray(tiefst(feld("a"), feld("q"), feld("phi")), dtype=float)
-    zu_tief = hoehe < grenze - EILGANG_GENAU
-    if not zu_tief.any():
-        return punkte, 0
-    schlecht = {}  # Index des Eilgangs: (höchste Grenze an seinen Stellen, Grenze am Ende)
-    for i in np.unique(idx[zu_tief]).tolist():
-        seine = idx == i
-        schlecht[i] = (float(grenze[seine].max()), float(grenze[seine][-1]))
-    neu = [punkte[0]]
-    for i in range(1, len(punkte)):
-        p1 = punkte[i]
-        if i not in schlecht:
-            neu.append(p1)
-            continue
-        p0 = punkte[i - 1]
-        hoch, am_ende = schlecht[i]
-        senkrecht = (
-            math.hypot(p1.a - p0.a, p1.q - p0.q) <= vb.GLEICH and abs(p1.phi - p0.phi) <= vb.GLEICH
-        )
-        oben = p0.r
-        if not senkrecht and hoch > p0.r + EILGANG_GENAU:
-            # quer: erst hinauf, dann in der Höhe hinüber, die überall Abstand hält
-            oben = max(hoch, p1.r)
-            neu.append(vb.Punkt(True, p0.a, oben, p0.phi, q=p0.q))
-            neu.append(vb.Punkt(True, p1.a, oben, p1.phi, q=p1.q))
-        elif not senkrecht:
-            neu.append(vb.Punkt(True, p1.a, max(p0.r, p1.r), p1.phi, q=p1.q))
-            oben = max(p0.r, p1.r)
-        if p1.r >= am_ende - EILGANG_GENAU:
-            if oben > p1.r + vb.GLEICH or not senkrecht:
-                neu.append(p1)
-            continue
-        bis = min(oben, am_ende)
-        if bis < oben - vb.GLEICH:
-            neu.append(vb.Punkt(True, p1.a, bis, p1.phi, q=p1.q))
-        neu.append(vb.Punkt(False, p1.a, p1.r, p1.phi, True, p1.q))  # der Rest im Vorschub
-    # doppelte Punkte (hinüber in der Höhe, in der er schon war) weg
-    sauber = [neu[0]]
-    for p in neu[1:]:
-        if p != sauber[-1]:
-            sauber.append(p)
-    return sauber, len(schlecht)
-
-
 # mm – so fein führt _Stand das Material über einer Fläche (wie die Zeilen längs, SCHRITT_A)
 STAND_RASTER = vh.SCHRITT_A
 
@@ -2148,7 +2056,7 @@ class _Stand:
         g = STAND_RASTER
         self.w, self.phi, self.g = w, float(ebene.phi), g
         self.radius = float(w.form.radius)
-        self.abstand = max(w.sicherheit - EILGANG_SPIEL, 0.0)
+        self.abstand = max(w.sicherheit - vb.EILGANG_SPIEL, 0.0)
         a_vorn = float(w.a_stange_vorne)
         anzahl_a = max(2, int(math.ceil((a_vorn - a_hinten) / g - 1e-9)) + 1)
         self.a = a_vorn - g * np.arange(anzahl_a - 1, -1, -1, dtype=float)
@@ -2269,9 +2177,9 @@ def _frei_ab(teil_tiefst, stand_e, phi):
 
 
 def _im_stand_sichern(stueck, davor, w, ebene, stand_e=None):
-    """Die allgemeine Prüfung der Eilgänge (_eilgaenge_sichern) gegen das Material (B-038,
-    Zweifler 2026-11-14: auch das Rohteil, nicht nur das Teil): Die Punkte `stueck` nach `davor`
-    der Reihe nach – vor jedem Eilgang ist weg, was die Vorschübe davor gefräst haben
+    """Die allgemeine Prüfung der Eilgänge (vierachs_bahn.eilgaenge_sichern) gegen das Material
+    (B-038, Zweifler 2026-11-14: auch das Rohteil, nicht nur das Teil): Die Punkte `stueck` nach
+    `davor` der Reihe nach – vor jedem Eilgang ist weg, was die Vorschübe davor gefräst haben
     (_Stand.abtragen), der Eilgang hält den Sicherheitsabstand zu dem, was dann steht. `stand_e`:
     das Material über der Fläche `ebene` (_Stand, je Fahrt der Zeilen weitergeführt); ohne aus der
     Stange oder dem Rest, so weit die Punkte reichen. Gibt (Punkte, so viele Eilgänge geändert)."""
@@ -2295,7 +2203,7 @@ def _im_stand_sichern(stueck, davor, w, ebene, stand_e=None):
         while j < len(stueck) and stueck[j].eilgang:
             j += 1
         stand_e.abtragen(neu, abgetragen)  # was die Vorschübe davor gefräst haben
-        gesichert, mehr = _eilgaenge_sichern([neu[-1], *stueck[i:j]], stand_e.tiefst)
+        gesichert, mehr = vb.eilgaenge_sichern([neu[-1], *stueck[i:j]], stand_e.tiefst)
         geaendert += mehr
         abgetragen = len(neu)  # der Rest im Vorschub, den die Prüfung eingefügt hat, zählt mit
         neu.extend(gesichert[1:])
@@ -2313,7 +2221,7 @@ def _hinaus(a, q, lage, knapp, w, feld, frei_ab):
     a0, q0 = float(a[0]), float(q[0])
     if feld is None or len(a) < 2 or abs(float(a[1]) - a0) <= vb.GLEICH:
         return a0
-    if float(frei_ab([a0], [q0])[0]) <= knapp + EILGANG_GENAU:
+    if float(frei_ab([a0], [q0])[0]) <= knapp + vb.EILGANG_GENAU:
         return a0
     q_zeilen, a_von, schritt, stehen, _zwischen, _stand, lage_a = feld
     zeile = np.flatnonzero(np.abs(np.asarray(q_zeilen) - q0) <= vb.GLEICH)
@@ -2373,7 +2281,7 @@ def _einfahrt(
             # den Sicherheitsabstand über die Lage – im Freien schnell, statt eine Zustellung
             # und mehr im Eintauchvorschub durch die Luft.
             a0 = _hinaus(a, q, lage, knapp, w, feld, frei_ab)
-            if a0 - _radius(w) - w.sicherheit >= w.a_stange_vorne - EILGANG_GENAU:
+            if a0 - _radius(w) - w.sicherheit >= w.a_stange_vorne - vb.EILGANG_GENAU:
                 tief = min(knapp, lage + w.sicherheit)
         _eilgang(punkte, a0, sicher, phi, q0)
         _abwaerts(punkte, a0, q0, phi, tief, sicher, frei_ab)
@@ -2449,7 +2357,7 @@ def _helix_anfangen(mitte, rh, anfang, oben, lage, w, frei_ab, knapp):
         return None
     anfaenge = [_helix_beginn(mitte, rh, anfang, hinab + k, w) for k in range(HELIX_PUNKTE)]
     tief = frei_ab([p[0] for p in anfaenge], [p[1] for p in anfaenge])
-    gut = np.flatnonzero(np.asarray(tief) <= knapp + EILGANG_GENAU)
+    gut = np.flatnonzero(np.asarray(tief) <= knapp + vb.EILGANG_GENAU)
     if not len(gut):
         return False
     return None if int(gut[0]) == 0 else hinab + int(gut[0])

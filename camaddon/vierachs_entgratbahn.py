@@ -25,6 +25,10 @@ als Kantenbruch –, die Rundachse dreht mit (Manuel: „Und Entgraten nicht ver
   senkrecht auf den ersten Punkt. Ein Ring rundum wird ganz gefahren und endet, wo er begann
   (die Rundachse dreht eine Umdrehung). Was gerade weitergeht, fasst die Bahn zusammen
   (vierachs_bahn._zusammengefasst), höchstens HOECHSTENS_GRAD Drehung je Satz.
+- Eilgang mit Abstand (wie alle 4-Achs-Bahnen, vierachs_bahn.eilgaenge_sichern): hinab bis den
+  Sicherheitsabstand über die Berührung, die sichere Höhe mit Reitstock über dem Schutz vor der
+  Stange (vierachs_bahn.sicher_radius); zuletzt jeder Eilgang gegen das Teil mit dem um den
+  Sicherheitsabstand größeren Fräser – was zu nah käme, fährt den Rest im Eintauchvorschub.
 - Längs reicht die Bahn so weit wie die anderen Rundum-Bahnen: nicht näher ans Futter, als
   Fräser oder Halter mit Abstand erlauben (vierachs_bahn._ende).
 
@@ -201,6 +205,7 @@ class Entgratwerte:
     abstand_futter: float = vb.ABSTAND_FUTTER
     halter: float = 0.0  # wie bei vierachs_bahn.Schruppwerte
     gleichlauf: bool = True  # im Gleichlauf für M3 (spindel.fuer_m3); False: andersherum
+    netz_hoehe: float = 0.0  # wie bei vierachs_bahn.Schruppwerte (vierachs_bahn.mit_netz_hoehe)
 
 
 @dataclass
@@ -230,7 +235,7 @@ def entgraten(netz, laengs, radial, werte, kanten_):
     """Die Bahn „Rundum entgraten“ (Entgratbahn) an den Kanten `kanten_` ([Kante]) mit den
     Werten `werte`; `netz` ist das ganze Teil (vierachs_huelle.vernetze), `laengs` und `radial`
     wie in vierachs_huelle. ValueError mit einem Satz, wenn es nicht geht."""
-    w = werte
+    w = vb.mit_netz_hoehe(werte, netz, laengs, radial)  # mit Reitstock: über dem Schutz
     form = w.form
     radius = form.radius
     if w.breite <= 0:
@@ -248,7 +253,7 @@ def entgraten(netz, laengs, radial, werte, kanten_):
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
     tiefe = eindringtiefe(form, w.breite)
     geformt = form.mit_aufmass(netz.toleranz)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = vb.sicher_radius(w)
     # Alle Punkte aller Kanten auf einmal: wo berührt der Fräser dort das Teil?
     alle = np.concatenate([k.punkte for k in kanten_])
     a = alle @ l_
@@ -288,9 +293,14 @@ def entgraten(netz, laengs, radial, werte, kanten_):
             ausgelassen += 1
     if gefahren == 0:
         raise ValueError(tr("ve.fehler.nichts"))
-    laenge = _fahrten(punkte, stuecke, sicher, w.sicherheit)
+    # Im Eilgang hinab bis den Sicherheitsabstand über die Berührung – bis 0.379 über die Spitze
+    # in der Kante (um die Fasenbreite tiefer); die allgemeine Prüfung danach auch seitlich: An
+    # der Abflachung auf der Welle Ø 36 kam die Flanke des Fasenfräsers dem Teil 0,24 mm zu nah,
+    # wo eine Mantelnut die Abflachung kreuzt, 0,92 mm (eigene Messung, eilgang4).
+    laenge = _fahrten(punkte, stuecke, sicher, w.sicherheit + tiefe)
     letzter = punkte[-1]
     vb._eilgang(punkte, a_anfang, sicher, letzter.phi)
+    punkte, _geaendert = vb.eilgaenge_am_teil(punkte, netz, laengs, radial, form, w.sicherheit)
     return Entgratbahn(punkte, gefahren, ausgelassen, laenge, hinten_frei)
 
 
@@ -336,9 +346,9 @@ def _laeufe(gut):
 
 def _fahrten(punkte, stuecke, sicher, sicherheit):
     """Die Stücke an die Bahn, immer das nächste zuerst: im Eilgang über das nähere Ende,
-    knapp über die Berührung, mit dem Eintauchvorschub hinein, an der Kante entlang – ohne
-    Abheben weiter, wo ein Stück beginnt, wo das vorige endet –, am Ende radial hinaus. Gibt
-    die Länge im Vorschub an den Kanten zurück (mm)."""
+    `sicherheit` über die Spitze in der Kante, mit dem Eintauchvorschub hinein, an der Kante
+    entlang – ohne Abheben weiter, wo ein Stück beginnt, wo das vorige endet –, am Ende radial
+    hinaus. Gibt die Länge im Vorschub an den Kanten zurück (mm)."""
     offen = list(stuecke)
     laenge = 0.0
     unten = False  # die Spitze steht an der Kante (noch nicht abgehoben)

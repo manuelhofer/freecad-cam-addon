@@ -80,6 +80,15 @@ nicht, ist das Stück frei (Punkt.frei, _frei): zusammen mindestens freiwege.MIN
 freiwege.VORLAUF mm vor dem nächsten Material – befehle() schreibt dort den Freivorschub der
 Maschine. Die Bahn bleibt, wo sie ist; nur schneller.
 
+Eilgang mit Abstand (B-038, für alle 4-Achs-Bahnen; Manuel: ein Eilgang nie im oder dicht am
+Material, im Freien schnell): Die sichere Höhe liegt den Sicherheitsabstand über der Stange UND
+über allem, was im Netz steht (sicher_radius, mit_netz_hoehe) – mit Reitstock über dem Schutz vor
+ihr (reitstock.mit_schutz, Pinole r 17,5 plus Abstand zum Futter). An der Stange Ø 40 lag sie bis
+0.379 auf r 22, der Schutz auf r 22,5: Die Eilgänge vor der Stirn fuhren durch ihn. Am Ende prüft
+eilgaenge_sichern jeden Eilgang gegen das Teil mit dem Schutz (eilgang_tiefst: der Fräser um den
+Sicherheitsabstand größer): Ein zu tiefer hinab fährt den Rest im Vorschub, einer quer hebt vorher
+ab – „Plan indexiert“ und „Rundum entgraten“ nutzen dieselbe Prüfung.
+
 Läuft ohne Oberfläche.
 """
 
@@ -284,6 +293,10 @@ class Schruppwerte:
     # Wird über der Schneide nichts schmaler (kein Hals, kein Lollipop – vierachs_operation.
     # hinauf_frei), fährt der Fräser längs seiner Achse hinauf im Freivorschub (_hinauf_frei).
     hinauf_frei: bool = False
+    # So hoch steht das Netz über der Achse, wo es höher ist als die Stange (mm; mit_netz_hoehe):
+    # mit Reitstock der Schutz vor ihr – die sichere Höhe liegt auch darüber (sicher_radius);
+    # 0: nirgends höher.
+    netz_hoehe: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -331,6 +344,7 @@ class Schlichtwerte:
     # (k, n): nur den k-ten von n Blöcken der Bahnen der Wendel (die Vorschau verteilt selbst).
     wendel_teil: tuple = None
     hinauf_frei: bool = False  # wie bei Schruppwerte
+    netz_hoehe: float = 0.0  # wie bei Schruppwerte
 
 
 @dataclass
@@ -648,13 +662,175 @@ def _hinauf_frei(punkte):
             punkte[i + 1] = replace(nach, frei=True)
 
 
+# mm – so dicht tastet die allgemeine Prüfung (eilgaenge_sichern) einen Eilgang ab, der nicht
+# senkrecht fährt; höchstens EILGANG_STELLEN Stellen je Eilgang (eine lange Drehung).
+EILGANG_SCHRITT = 1.0
+EILGANG_STELLEN = 400
+EILGANG_GENAU = 1e-6  # mm – so viel tiefer gilt noch als gleich (Rechengenauigkeit)
+# mm – so viel darf ein Eilgang dem Teil näher kommen als den Sicherheitsabstand
+EILGANG_SPIEL = 0.01
+NETZ_HOEHER = 1e-6  # mm – so viel höher als die Stange muss das Netz stehen, damit es zählt
+
+
+def netz_hoehe(netz, laengs, radial):
+    """So weit reicht das Netz höchstens von der Achse weg (mm) – die Achse durch den Nullpunkt
+    des Jobs; 0 ohne Punkte."""
+    l_, _u, _v = vh.rahmen(laengs, radial)
+    punkte = np.asarray(netz.punkte, dtype=float).reshape(-1, 3)
+    if not len(punkte):
+        return 0.0
+    laengs_anteil = punkte @ l_
+    quadrat = np.einsum("ij,ij->i", punkte, punkte) - laengs_anteil * laengs_anteil
+    return float(math.sqrt(max(float(quadrat.max()), 0.0)))
+
+
+def mit_netz_hoehe(werte, netz, laengs, radial):
+    """Die Werte (Schrupp-, Schlicht-, Plan- oder Entgratwerte) mit `netz_hoehe`, wenn das Netz
+    höher steht als die Stange – mit Reitstock der Schutz vor ihr (reitstock.mit_schutz): An der
+    Stange Ø 40 steht die Pinole mit dem Abstand zum Futter auf r 22,5, die sichere Höhe lag bis
+    0.379 auf 20 + 2. Sonst die Werte selbst."""
+    if netz is None or not hasattr(werte, "netz_hoehe"):
+        return werte
+    hoehe = netz_hoehe(netz, laengs, radial)
+    if hoehe <= float(werte.stange_radius) + NETZ_HOEHER:
+        return werte
+    return replace(werte, netz_hoehe=hoehe)
+
+
+def sicher_radius(w):
+    """Die sichere Höhe der Eilgänge (mm von der Achse): der Sicherheitsabstand über der Stange
+    und über dem, was im Netz höher steht (w.netz_hoehe, mit_netz_hoehe)."""
+    return max(float(w.stange_radius), float(getattr(w, "netz_hoehe", 0.0) or 0.0)) + float(
+        w.sicherheit
+    )
+
+
+def eilgang_tiefst(netz, laengs, radial, form, sicherheit):
+    """tiefst(a, q, φ in Grad) für eilgaenge_sichern: so tief darf die Spitze an den Stellungen
+    im Eilgang hinab – der Fräser `form` um den Sicherheitsabstand größer, rundum wie von einer
+    Kugel abgerollt, gegen das Netz (das Teil, mit Reitstock samt Schutz): So hält der Eilgang den
+    Abstand auch seitlich zu Wand und Hindernis, nicht nur über dem Material. Um EILGANG_SPIEL
+    weniger: Genau den Sicherheitsabstand vor der Stirn berührte der größere Fräser sie sonst
+    gerade. Dazu die Höhe, über der nichts mehr zu prüfen ist (netz_hoehe + Abstand): Die Spitze
+    des größeren Fräsers kommt nie höher als das Netz. Gibt (tiefst, oben)."""
+    abstand = max(float(sicherheit) - EILGANG_SPIEL, 0.0)
+    gross = form.mit_aufmass(abstand)
+
+    def tiefst(pa, pq, pphi):
+        pa = np.atleast_1d(np.asarray(pa, dtype=float))
+        pq = np.atleast_1d(np.asarray(pq, dtype=float))
+        pphi = np.broadcast_to(np.radians(np.asarray(pphi, dtype=float)), pa.shape)
+        return vh.je_stellung(netz, laengs, radial, gross, pphi, pq, pa) + abstand
+
+    return tiefst, netz_hoehe(netz, laengs, radial) + abstand
+
+
+def eilgaenge_sichern(punkte, tiefst, ohne=(), oben=math.inf):
+    """Die allgemeine Prüfung der Eilgänge einer Bahn (B-038; Manuel: ein Eilgang nie im oder
+    dicht am Material, das Fertigteil wird nie beschädigt): `tiefst(a, q, φ)` sagt je Stellung,
+    wie tief die Spitze im Eilgang hinab darf – mit dem Sicherheitsabstand zu allem, was dort
+    steht. Ein Eilgang senkrecht hinab, der tiefer ginge, fährt im Eilgang nur bis dorthin und den
+    Rest mit dem Eintauchvorschub; einer quer oder mit Drehung, der dem Teil zu nah käme, hebt
+    vorher so weit ab, wie es seine Stellen verlangen. Hinauf ist immer frei. `ohne`: [(von, bis)]
+    der Punkte, die nicht geprüft werden (Bohren in Hüben fährt im Eilgang zurück ins eigene
+    Loch); `oben`: so hoch verlangt `tiefst` nie – Stellen darüber (der Weg auf der sicheren
+    Höhe) fragt die Prüfung nicht. Gibt (Punkte, so viele Eilgänge geändert)."""
+    stellen_i, stellen_t = [], []
+    for i in range(1, len(punkte)):
+        p1 = punkte[i]
+        if not p1.eilgang or any(von <= i < bis for von, bis in ohne):
+            continue
+        p0 = punkte[i - 1]
+        if min(p0.r, p1.r) >= oben:
+            continue
+        quer = math.hypot(p1.a - p0.a, p1.q - p0.q)
+        dreh = abs(math.radians(p1.phi - p0.phi)) * max(p0.r, p1.r, 0.0)
+        if quer <= GLEICH and dreh <= GLEICH:
+            if p1.r < p0.r - GLEICH:  # senkrecht hinab: das Ende zählt
+                stellen_i.append(i)
+                stellen_t.append(1.0)
+            continue
+        weg = math.hypot(quer, dreh, p1.r - p0.r)
+        n = min(EILGANG_STELLEN, max(1, int(math.ceil(weg / EILGANG_SCHRITT - 1e-9))))
+        stellen_i.extend([i] * n)
+        stellen_t.extend((k + 1) / n for k in range(n))
+    if not stellen_i:
+        return punkte, 0
+    idx = np.asarray(stellen_i, dtype=np.int64)
+    t = np.asarray(stellen_t, dtype=float)
+
+    def feld(name):
+        werte = np.array([getattr(p, name) for p in punkte], dtype=float)
+        return werte[idx - 1] + t * (werte[idx] - werte[idx - 1])
+
+    hoehe = feld("r")
+    unten = hoehe < oben
+    grenze = np.full(len(hoehe), -math.inf)
+    if unten.any():
+        grenze[unten] = np.asarray(
+            tiefst(feld("a")[unten], feld("q")[unten], feld("phi")[unten]), dtype=float
+        )
+    zu_tief = hoehe < grenze - EILGANG_GENAU
+    if not zu_tief.any():
+        return punkte, 0
+    schlecht = {}  # Index des Eilgangs: (höchste Grenze an seinen Stellen, Grenze am Ende)
+    for i in np.unique(idx[zu_tief]).tolist():
+        seine = idx == i
+        schlecht[i] = (float(grenze[seine].max()), float(grenze[seine][-1]))
+    neu = [punkte[0]]
+    for i in range(1, len(punkte)):
+        p1 = punkte[i]
+        if i not in schlecht:
+            neu.append(p1)
+            continue
+        p0 = punkte[i - 1]
+        hoch, am_ende = schlecht[i]
+        senkrecht = (
+            math.hypot(p1.a - p0.a, p1.q - p0.q) <= GLEICH and abs(p1.phi - p0.phi) <= GLEICH
+        )
+        hinauf = p0.r
+        if not senkrecht and hoch > p0.r + EILGANG_GENAU:
+            # quer: erst hinauf, dann in der Höhe hinüber, die überall Abstand hält
+            hinauf = max(hoch, p1.r)
+            neu.append(Punkt(True, p0.a, hinauf, p0.phi, q=p0.q))
+            neu.append(Punkt(True, p1.a, hinauf, p1.phi, q=p1.q))
+        elif not senkrecht:
+            neu.append(Punkt(True, p1.a, max(p0.r, p1.r), p1.phi, q=p1.q))
+            hinauf = max(p0.r, p1.r)
+        if p1.r >= am_ende - EILGANG_GENAU:
+            if hinauf > p1.r + GLEICH or not senkrecht:
+                neu.append(p1)
+            continue
+        bis = min(hinauf, am_ende)
+        if bis < hinauf - GLEICH:
+            neu.append(Punkt(True, p1.a, bis, p1.phi, q=p1.q))
+        neu.append(Punkt(False, p1.a, p1.r, p1.phi, True, p1.q))  # der Rest im Vorschub
+    # doppelte Punkte (hinüber in der Höhe, in der er schon war) weg
+    sauber = [neu[0]]
+    for p in neu[1:]:
+        if p != sauber[-1]:
+            sauber.append(p)
+    return sauber, len(schlecht)
+
+
+def eilgaenge_am_teil(punkte, netz, laengs, radial, form, sicherheit, ohne=()):
+    """eilgaenge_sichern gegen das Netz (eilgang_tiefst) – für die Bahnen, deren Eilgänge nur das
+    Teil mit dem Schutz kennen müssen (Rundum schruppen, schlichten, entgraten): Gibt (Punkte, so
+    viele Eilgänge geändert)."""
+    tiefst, oben = eilgang_tiefst(netz, laengs, radial, form, sicherheit)
+    return eilgaenge_sichern(punkte, tiefst, ohne, oben)
+
+
 def _ohne_luft_hinab(rechnen):
-    """schruppen() und schlichten(): danach _vor_der_stange_hinab über die ganze Bahn, beim
-    Schlichten mit dem Rest nach dem Schruppen auch _ueber_dem_rest_hinab; darf der Fräser längs
-    seiner Achse frei hinauf (hinauf_frei), _hinauf_frei."""
+    """schruppen() und schlichten(): vorher die sichere Höhe auch über dem Netz (mit_netz_hoehe:
+    mit Reitstock über dem Schutz), danach _vor_der_stange_hinab über die ganze Bahn, beim
+    Schlichten mit dem Rest nach dem Schruppen auch _ueber_dem_rest_hinab, zuletzt die allgemeine
+    Prüfung der Eilgänge gegen das Teil (eilgaenge_am_teil); darf der Fräser längs seiner Achse
+    frei hinauf (hinauf_frei), _hinauf_frei."""
 
     @functools.wraps(rechnen)
     def ohne(netz, laengs, radial, werte, *args, **kwargs):
+        werte = mit_netz_hoehe(werte, netz, laengs, radial)
         bahn = rechnen(netz, laengs, radial, werte, *args, **kwargs)
         form = getattr(werte, "form", None)
         radius = float(form.radius) if form is not None else float(werte.fraeser_radius)
@@ -662,6 +838,18 @@ def _ohne_luft_hinab(rechnen):
         rest = getattr(werte, "rest", None)
         if rest is not None:
             _ueber_dem_rest_hinab(bahn.punkte, rest, radius, werte.sicherheit)
+        # Vor der Stirn der Stange hinab im Eilgang (_vor_der_stange_hinab) ging es mit Reitstock
+        # bis auf den Schutz (Stange Ø 60: 0,33 mm über ihm, das Schlichten 0 mm). Ohne Netz
+        # (eine Bahn ohne Teil) gibt es nichts zu prüfen.
+        if netz is not None:
+            bahn.punkte, _geaendert = eilgaenge_am_teil(
+                bahn.punkte,
+                netz,
+                laengs,
+                radial,
+                form if form is not None else ff.scheibe(radius),
+                werte.sicherheit,
+            )
         if getattr(werte, "hinauf_frei", False):
             _hinauf_frei(bahn.punkte)
         return bahn
@@ -815,7 +1003,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         # 1 × 15 und 1 × 5 kann man machen, aber 2 × 10 braucht dieselbe Zeit und schont die
         # Last“): alle Lagen bis zum tiefsten Punkt gleich, keine dünne zuletzt.
         w = replace(w, zustellung=(w.stange_radius - r_min) / lagen)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
 
     def boden_bei(stellen, j):
@@ -1980,7 +2168,7 @@ def _einfahrt(punkte, a, r, phi, oben, offen, w):
     hinein: senkrecht mit dem Eintauchvorschub, wo es `offen` ist, nichts zu fräsen ist oder
     die ganze Fahrt für eine Rampe zu kurz ist – sonst über die Rampe längs der Fahrt (auch
     über den Schritt zur nächsten Zeile, wenn die erste kurz ist)."""
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     a0, r0, p0 = float(a[0]), float(r[0]), float(phi[0])
     _eilgang(punkte, a0, sicher, p0)
     knapp = min(sicher, oben + w.sicherheit)
@@ -2109,7 +2297,7 @@ def _helix(punkte, mitte, rh, anfang, oben, steil, w):
 
     hinab = max(1, math.ceil((oben - r0) / (steil * bogen) - 1e-9))
     beginn = -(hinab % HELIX_PUNKTE)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     knapp = min(sicher, oben + w.sicherheit)
     a_k, phi_k = auf_dem_kreis(drehen * beginn * schritt)
     _eilgang(punkte, a_k, sicher, phi_k)
@@ -2148,7 +2336,7 @@ def _schruppen_zeilen(
         fahrten = _einzeln(drin, steigend == bool(w.gleichlauf))
     else:
         fahrten = _fahrten(drin)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     spiel = schrupp_spiel(w.aufmass)
     nah = np.concatenate([[False], np.diff(-zeilen_a) <= w.fraeser_radius + GLEICH])
@@ -2211,7 +2399,7 @@ def _schlichten_zeilen(
     geformt = form.mit_aufmass(zugabe)
     phi = vh.raster_phi(schritt_phi)
     n = len(phi)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     ringe = _ringe(w.waende, radius + zugabe + RING_LUFT, a_ende, a_anfang)
@@ -2393,7 +2581,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     a, r, winkel, anzahl, je_umdrehung, drehung = spirale
     # Eine Spirale, von vorne nach hinten, mit der Schrittweite – was das Schruppen stehen
     # ließ, nimmt sie in einem Zug (rest_ueber sagt, wie viel das höchstens ist).
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     rest_ueber = _rest_ueber(w, form, r, a, np.radians(winkel))
@@ -2707,7 +2895,7 @@ def wendel_stueck(
     steigung = abs(wendel.steigung)
     drehung = _wendel_drehung(wendel)
     mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     je_umdrehung = int(round(360.0 / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
@@ -3129,7 +3317,7 @@ def wendel_schrupp_stueck(
     steigung = abs(wendel.steigung)
     drehung = _wendel_drehung(wendel)
     mitte = wendel.mitte_bei(0.5 * (teil_vorne + teil_hinten))
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     je_umdrehung = int(round(360.0 / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
@@ -3261,7 +3449,7 @@ def _schlichten_linien(
     s = w.schrittweite
     zugabe = w.aufmass + netz.toleranz
     geformt = form.mit_aufmass(zugabe)
-    sicher = w.stange_radius + w.sicherheit
+    sicher = sicher_radius(w)
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     # Die Linien: im Winkelabstand s ÷ r_max – r_max der größte Radius des Teils plus Aufmaß.
     _l, u_, v_ = vh.rahmen(laengs, radial)

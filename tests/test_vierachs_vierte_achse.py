@@ -675,7 +675,7 @@ for name, teilform, durchmesser, luecke in FAELLE:
 vp.planen = _planen_echt
 FreeCAD.closeDocument(asm.Document.Name)
 
-# --- Die allgemeine Prüfung der Eilgänge (B-038, vierachs_planbahn._eilgaenge_sichern) ----------
+# --- Die allgemeine Prüfung der Eilgänge (B-038, vierachs_bahn.eilgaenge_sichern) ----------
 # Vor a 10 steht etwas bis 20 hoch: Ein Eilgang darf dort nur bis 22 hinab. Senkrecht bis 12: im
 # Eilgang bis 22, der Rest im Eintauchvorschub; quer in der Höhe 12 hinüber: erst hinauf auf 22,
 # dann hinüber, hinab im Vorschub. Ein Eilgang im ausgelassenen Bereich (Bohren in Hüben) bleibt.
@@ -699,7 +699,7 @@ roh = [
     P(True, 5.0, 30.0, 0.0),
     P(True, 5.0, 12.0, 0.0),  # ausgelassen
 ]
-gesichert, anzahl = vp._eilgaenge_sichern(roh, tiefst_wand, [(10, 11)])
+gesichert, anzahl = vb.eilgaenge_sichern(roh, tiefst_wand, [(10, 11)])
 soll = [
     P(True, 20.0, 30.0, 0.0),
     P(True, 5.0, 30.0, 0.0),
@@ -720,7 +720,7 @@ pruefe(
     anzahl == 2 and gesichert == soll,
     f"Eilgänge gesichert ({anzahl}): {[(p.eilgang, p.a, p.r) for p in gesichert]}",
 )
-nichts, null = vp._eilgaenge_sichern(roh[:2], tiefst_wand)
+nichts, null = vb.eilgaenge_sichern(roh[:2], tiefst_wand)
 pruefe(null == 0 and nichts == roh[:2], "Eilgang in der Höhe 30 geändert")
 
 # --- Das Material über der Fläche für die Eilgänge (B-038 Nacharbeit, vierachs_planbahn._Stand) ---
@@ -738,7 +738,7 @@ w_stand = vp.Planwerte(
 )  # fmt: skip
 ebene_0 = vp.Ebene("Face1", 0.0, 10.0, -20.0, 0.0, -20.0, 20.0)
 st = vp._Stand(w_stand, ebene_0, -60.0, -40.0, 40.0)
-s_e = 2.0 - vp.EILGANG_SPIEL
+s_e = 2.0 - vb.EILGANG_SPIEL
 vorher = float(st.tiefst([-30.0], [0.0], [0.0])[0])
 pruefe(abs(vorher - (25.0 + s_e)) < 0.02, f"Stand: über der Stange {vorher:.3f}")
 pruefe(
