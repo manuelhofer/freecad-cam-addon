@@ -3239,7 +3239,14 @@ Daraus (Lesart, nach der gebaut wird):
    oder geschlossen (die ringförmige Nut kennt `nut_bahn` schon; `kontur_bahn.konturen` und der Versatz
    dort liefern Wandzüge). Ablehnen mit Satz: spitze Ecke, wechselnde Breite, Radius zu klein für die
    Klinge (Eindringen der Innenflanke ≈ L² ÷ 2R gegen das Spiel Nutbreite − Klingenbreite).
-2. *Spindelwinkel in der Bahn* – `camaddon/bahn.py`: `Punkt` bekommt einen Winkel (None: wie bisher);
+2. *Spindelwinkel in der Bahn* – **gebaut (2026-11-15):** `hobeln_bahn.planen` (`Hobelwerte`,
+   `Hobelbahn`): die Mittellinie in Sätzen von SCHRITT (0,5 mm), je Satz der Spindelwinkel als Notiz
+   „(SPINDEL …)“ (Richtung + Versatz, fortlaufend); Umläufe mit über den Umlauf verteilter Zustellung,
+   ein ebener Umlauf, Leerumläufe; ist die Klinge schmaler, Spuren nebeneinander, die in Kurven so weit
+   nach innen ausweichen, dass die hintere Ecke vor der Außenwand bleibt (weich, höchstens 2°). Geprüft
+   unabhängig: die Klinge als Rechteck in jeder Stellung ganz im Grund. Statt eines neuen Felds am
+   `bahn.Punkt` (Plan unten) trägt die Notiz den Winkel – das Programm (Schritt 5) liest sie. Der Plan
+   war – `camaddon/bahn.py`: `Punkt` bekommt einen Winkel (None: wie bisher);
    `bahn.befehle` gibt ihn weiter. Neue Bahn `camaddon/hobeln_bahn.py`: tangential in der Luft anfahren,
    Umläufe mit Zustellung je Umlauf (als Rampe über einen Umlauf, damit kein Absatz bleibt), Leerumläufe
    am Ende, bei offener Nut der Rückweg abgehoben; Winkel = Richtung der Bahn + Versatz des Werkzeugs.

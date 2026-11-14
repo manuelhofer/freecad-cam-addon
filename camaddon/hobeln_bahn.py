@@ -22,8 +22,19 @@ Schritt 1 des Bauplans – **die Nut und ihre Mittellinie**:
   darf in der engsten Kurve nicht an die Außenwand stoßen – die Schneide vorn auf der
   Mittellinie, der Körper um `laenge` dahinter.
 
+Schritt 2 – **die Bahn** (planen()): Die Schneide läuft auf der Mittellinie (ist die Klinge schmaler
+als die Nut, in mehreren Spuren nebeneinander), in kleinen Schritten (SCHRITT, einstellbar), und die
+Spindel steht je Satz so, dass die Klinge in Fahrtrichtung zeigt: Winkel = Richtung der Bahn +
+Versatz des Werkzeugs (bei welchem Spindelwinkel die Schneide nach +X zeigt – beim Einrichten
+gemessen). Der Winkel steht als Kommentar „(SPINDEL …)“ vor jedem Satz; das Programm (Schritt 5)
+macht daraus je Steuerung den Spindelwinkel im Satz. Die Nut ist davor gefräst, bis auf `rest` über dem
+Grund: Die Klinge taucht im Freien der Nut ein, dann Umläufe, jeder um `zustellung` tiefer (über den
+ganzen Umlauf verteilt – kein Absatz), bis auf das Aufmaß; dort ein ebener Umlauf und die
+Leerumläufe. Gefahren wird nur vorwärts (die Klinge schneidet nur nach vorn); zwischen zwei Spuren
+heraus und wieder hinein.
+
 Noch nicht: Nuten mit Enden (Langloch, zum Rand offen) – dort kommt der Hub mit Abheben dazu.
-Die Bahn, das Werkzeug, die Operation und das Programm folgen in den Schritten 2 bis 5.
+Das Werkzeug, die Operation und das Programm folgen in den Schritten 3 bis 5.
 
 Läuft ohne Oberfläche.
 """
@@ -32,6 +43,7 @@ import math
 from collections import OrderedDict
 from dataclasses import dataclass
 
+from . import bahn as bn
 from . import kontur_bahn as kb
 from .sprache import tr
 
@@ -41,6 +53,11 @@ NETZ = 0.001  # mm – so fein werden Kurven der Wände abgetastet (Ecken von Ru
 PROBEN = 0.5  # mm – so dicht wird die Breite an der inneren Wand gemessen
 SPIEL = 0.005  # mm – so viel Luft braucht die hintere Ecke der Klinge zur Außenwand
 FORMEN_GEMERKT = 8
+SCHRITT = 0.5  # mm – so lang ist ein Satz der Hobelbahn (die Spindel dreht je Satz nach)
+SPUR_UEBERLAPP = 0.2  # so viel der Klingenbreite überlappen zwei Spuren
+SPUR_REST = 0.05  # mm – so schmal darf der Rand am Grund je Seite ungehobelt bleiben: eine Spur
+SPUR_SCHRAEG = math.radians(2.0)  # so schräg darf die Spur seitlich ausweichen (weich, nicht quer)
+SPINDEL = "SPINDEL"  # der Kommentar mit dem Spindelwinkel vor jedem Satz: „(SPINDEL 123.456)“
 
 
 @dataclass(frozen=True)
@@ -302,3 +319,213 @@ def klinge_pruefen(nut, breite, laenge):
             "hn.grund.klinge_radius", r=_mm(nut.r_min), noetig=_mm(noetig), laenge=_mm(laenge)
         )
     return ""
+
+
+# --- Die Bahn ---------------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Hobelwerte:
+    """Was das Hobeln braucht; Längen in mm, Winkel in Grad, z nach oben im Job."""
+
+    breite: float  # der Klinge (quer zur Fahrt)
+    laenge: float  # der Klinge hinter der Schneide
+    versatz: float  # bei diesem Spindelwinkel zeigt die Schneide nach +X
+    zustellung: float  # je Umlauf tiefer (Horn: höchstens 0,3 je Hub)
+    rest: float  # so viel steht nach dem Fräsen noch über dem Grund
+    sicher: float  # z für den Eilgang über allem
+    vorschub: float  # mm/min – die Schnittgeschwindigkeit
+    eintauchen: float = 0.0  # mm/min – hinab in die gefräste Nut; 0: wie der Vorschub
+    aufmass: float = 0.0  # bleibt auf dem Grund stehen
+    leerumlaeufe: int = 1  # Umläufe auf Endtiefe ohne Zustellung
+    sicherheit: float = 2.0  # so weit über der Oberkante endet der Eilgang hinab
+    schritt: float = SCHRITT
+
+
+@dataclass
+class Hobelbahn:
+    """Ergebnis von planen()."""
+
+    punkte: list  # [bahn.Punkt], je Satz der Spindelwinkel als Notiz „SPINDEL …“
+    winkel: list  # je Punkt der Spindelwinkel (Grad, fortlaufend) – None im Eilgang
+    spuren: int
+    umlaeufe: int  # je Spur, mit den Leerumläufen
+    laenge: float  # mm im Vorschub
+    zeit: float  # Minuten
+
+
+def _stellen(nut, schritt):
+    """[(x, y, Richtung rad)] längs der Mittellinie, höchstens `schritt` auseinander, der erste
+    Punkt am Anfang, ohne Wiederholung am Ende (geschlossen)."""
+    ergebnis = []
+    for s in nut.segmente:
+        anzahl = max(1, int(math.ceil(s.laenge / schritt - 1e-9)))
+        for i in range(anzahl):
+            t = i / anzahl
+            x, y = s.bei(t)
+            if s.bogen is None:
+                richtung = math.atan2(s.nach[1] - s.von[1], s.nach[0] - s.von[0])
+            else:
+                radial = math.atan2(y - s.mitte[1], x - s.mitte[0])
+                richtung = radial - math.pi / 2 if s.uhr else radial + math.pi / 2
+            ergebnis.append((float(x), float(y), richtung))
+    return ergebnis
+
+
+def _spuren(nut, breite):
+    """Die Versätze der Spuren quer zur Mittellinie (mm, + nach links): eine, wenn die Klinge die
+    Nut füllt; sonst so viele, dass sie mit SPUR_UEBERLAPP überlappen und die äußeren an den
+    Wänden laufen."""
+    frei = max(nut.breite - breite - 2 * SPIEL, 0.0) / 2.0
+    if frei <= SPUR_REST + 1e-9:
+        return [0.0]
+    abstand = breite * (1.0 - SPUR_UEBERLAPP)
+    anzahl = int(math.ceil(2 * frei / abstand - 1e-9)) + 1
+    return [-frei + 2 * frei * k / (anzahl - 1) for k in range(anzahl)]
+
+
+def _kruemmung(stellen, laenge):
+    """Je Stelle der kleinste Krümmungsradius (mit Vorzeichen: + Linkskurve) über die Länge der
+    Klinge dahinter – dort schwenkt ihre hintere Ecke aus; inf auf Geraden."""
+    n = len(stellen)
+    radien = []
+    for i in range(n):
+        x0, y0, r0 = stellen[i - 1]
+        x1, y1, r1 = stellen[i]
+        ds = math.hypot(x1 - x0, y1 - y0)
+        dr = (r1 - r0 + math.pi) % (2 * math.pi) - math.pi
+        radien.append(ds / dr if abs(dr) > 1e-9 else math.inf)
+    ergebnis = []
+    for i in range(n):
+        kleinster, weg, k = math.inf, 0.0, i
+        while weg <= laenge + 1e-9 and k > i - n:
+            r = radien[k % n]
+            if abs(r) < abs(kleinster):
+                kleinster = r
+            x0, y0, _r = stellen[(k - 1) % n]
+            x1, y1, _r = stellen[k % n]
+            weg += math.hypot(x1 - x0, y1 - y0)
+            k -= 1
+        ergebnis.append(kleinster)
+    return ergebnis
+
+
+def _weich(stellen, versaetze, d_spur):
+    """Die Versätze je Stelle so geglättet, dass die Spur höchstens um SPUR_SCHRAEG seitlich
+    ausweicht – nur in die sichere Richtung (weiter weg von d_spur), nie zurück: Sonst spränge die
+    Klinge am Anfang einer Kurve quer (am Rechteck R 10 um 19°)."""
+    n = len(versaetze)
+    s = [d - d_spur for d in versaetze]
+    k = math.tan(SPUR_SCHRAEG)
+    wege = []
+    for i in range(n):
+        x0, y0, _r = stellen[i - 1]
+        x1, y1, _r = stellen[i]
+        wege.append(math.hypot(x1 - x0, y1 - y0))
+    for _ in range(4 * n):
+        geaendert = False
+        for i in list(range(n)) + list(range(n - 1, -1, -1)):
+            for j, weg in ((i - 1, wege[i]), ((i + 1) % n, wege[(i + 1) % n])):
+                nachbar = s[j % n]
+                grenze = abs(nachbar) - k * weg
+                if grenze > abs(s[i]) + 1e-12 and (s[i] == 0 or (s[i] > 0) == (nachbar > 0)):
+                    s[i] = math.copysign(grenze, nachbar)
+                    geaendert = True
+        if not geaendert:
+            break
+    return [d_spur + v for v in s]
+
+
+def _versatz_erlaubt(nut, breite, laenge, radius):
+    """So weit darf die Spur in einer Kurve mit `radius` zur Außenwand hin liegen, damit die hintere
+    äußere Ecke der Klinge vor ihr bleibt: √((R + d + b/2)² + L²) ≤ R + B/2 − SPIEL."""
+    r = abs(radius)
+    if not math.isfinite(r):
+        return math.inf
+    aussen = r + nut.breite / 2.0 - SPIEL
+    if aussen <= laenge:
+        return -math.inf
+    return math.sqrt(aussen * aussen - laenge * laenge) - r - breite / 2.0
+
+
+def planen(nut, werte):
+    """Die Hobelbahn (Hobelbahn) für die Nut `nut` (Hobelnut) mit den Werten `werte`
+    (Hobelwerte). ValueError mit einem Satz, wenn es nicht geht."""
+    w = werte
+    grund = klinge_pruefen(nut, w.breite, w.laenge)
+    if grund:
+        raise ValueError(grund)
+    if w.zustellung <= 0 or w.vorschub <= 0:
+        raise ValueError(tr("hn.fehler.werte"))
+    z_ende = nut.z_boden + max(w.aufmass, 0.0)
+    z_start = min(nut.z_boden + max(w.rest, 0.0), nut.z_oben)
+    if z_start < z_ende:
+        z_start = z_ende
+    stellen = _stellen(nut, max(w.schritt, 0.05))
+    hoch = nut.z_oben + w.sicherheit
+    punkte, winkel_ = [], []
+    letzter_winkel = None
+
+    def winkel_bei(richtung):
+        """Der Spindelwinkel (Grad) zur Fahrtrichtung, fortlaufend – ohne Sprung um 360°."""
+        nonlocal letzter_winkel
+        wert = math.degrees(richtung) + w.versatz
+        if letzter_winkel is not None:
+            wert += 360.0 * round((letzter_winkel - wert) / 360.0)
+        letzter_winkel = wert
+        return wert
+
+    def setze(punkt, winkel):
+        notiz = None if winkel is None else f"{SPINDEL} {winkel:.3f}"
+        punkte.append(bn.Punkt(punkt[0], punkt[1], punkt[2], punkt[3], punkt[4], None, 1.0, notiz))
+        winkel_.append(winkel)
+
+    tiefe = z_start - z_ende
+    umlaeufe = max(1, int(math.ceil(tiefe / w.zustellung - 1e-9))) if tiefe > 1e-9 else 0
+    spuren = _spuren(nut, w.breite)
+    kruemmung = _kruemmung(stellen, w.laenge) if len(spuren) > 1 else None
+    for d_spur in spuren:
+        reihe = []
+        for i in range(len(stellen)):
+            d = d_spur
+            if kruemmung is not None:
+                # In der Kurve schwenkt die hintere Ecke zur Außenwand aus: Die Spur rückt dort
+                # so weit nach innen (am Rechteck R 10 mit der Klinge 2,6 × 2 sonst 0,11 mm² über
+                # die Wand).
+                erlaubt = _versatz_erlaubt(nut, w.breite, w.laenge, kruemmung[i])
+                if kruemmung[i] > 0:  # Linkskurve: die Außenwand liegt rechts (−)
+                    d = max(d, -erlaubt)
+                elif kruemmung[i] < 0:
+                    d = min(d, erlaubt)
+            reihe.append(d)
+        reihe = _weich(stellen, reihe, d_spur)
+        reihe = [
+            (x + d * -math.sin(richtung), y + d * math.cos(richtung), richtung)
+            for (x, y, richtung), d in zip(stellen, reihe, strict=True)
+        ]
+        x0, y0, r0 = reihe[0]
+        a0 = winkel_bei(r0)
+        # Über dem Anfang, die Spindel schon in Richtung; im Eilgang hinab bis über die Nut, in
+        # die gefräste Nut im Eintauchvorschub bis auf den Rest.
+        setze((True, x0, y0, w.sicher, False), None)
+        setze((True, x0, y0, hoch, False), None)
+        setze((False, x0, y0, z_start, True), a0)
+        z = z_start
+        anzahl = len(reihe)
+        for _u in range(umlaeufe):
+            z_neu = max(z - w.zustellung, z_ende)
+            for k in range(1, anzahl + 1):
+                x, y, richtung = reihe[k % anzahl]
+                z_k = z + (z_neu - z) * k / anzahl
+                setze((False, x, y, z_k, False), winkel_bei(richtung))
+            z = z_neu
+        for _u in range(1 + max(int(w.leerumlaeufe), 0)):  # eben auf Endtiefe, dann leer
+            for k in range(1, anzahl + 1):
+                x, y, richtung = reihe[k % anzahl]
+                setze((False, x, y, z_ende, False), winkel_bei(richtung))
+        setze((True, x0, y0, w.sicher, False), None)  # senkrecht hinaus
+    laenge = bn.laenge(punkte)
+    zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None)
+    return Hobelbahn(
+        punkte, winkel_, len(spuren), umlaeufe + 1 + max(int(w.leerumlaeufe), 0), laenge, zeit
+    )

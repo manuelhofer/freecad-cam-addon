@@ -2588,6 +2588,7 @@
     "ba.schlichten_danach.boden_name": "Finish floor {werkzeug}",
     "hn.text": "{breite} wide, {tiefe} deep, {laenge} long{radius}",
     "hn.radius": ", smallest radius {r}",
+    "hn.fehler.werte": "Infeed and feed of the blade must be greater than 0.",
     "hn.grund.breite": "The groove is not the same width everywhere ({von} to {bis}).",
     "hn.grund.ecke": "At X {x} Y {y} the groove has a corner without a radius – the blade cannot turn there.",
     "hn.grund.mittellinie": "The centre line of the groove cannot be computed as one path.",
