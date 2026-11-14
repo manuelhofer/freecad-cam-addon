@@ -532,6 +532,19 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Auftrag vom 2026-11-14 (Manuels Antworten auf die Fragen 1 bis 4, wörtlich im Verlauf
+P-2026-11-14-06) – in dieser Reihenfolge:**
+1. *3D-Schlichten nie unter den Teilboden* (B-033): Die Spitze bleibt auf der Endtiefe, der Rest an der
+   Unterkante bleibt stehen und wird gezeigt. „Das Fertigteil darf NIEMALS beschädigt werden.“
+2. *„Weiter bearbeiten“ mit Messen dazwischen:* das letzte Aufmaß in zwei gleichen Schnitten (Haken,
+   angehakt ab 1 mm Aufmaß davor), dazu **Leerfahrten** (derselbe Schnitt noch einmal ohne Zustellung –
+   vorschlichten, Leerfahrt, messen, fertigschlichten, Leerfahrt), die Aufmaße frei einstellbar.
+3. *Dichtnut schaben* (neu, Manuels Wunsch): eine Nut im Deckel mit stehendem Stech-/Schabwerkzeug, die
+   Spindel folgt dem Verlauf – Riefen längs der Nut, am Grund eine Dichtfläche. Erst nachlesen, wie die
+   Steuerungen das können (Spindel als Achse, tangential nachgeführt), dann Vorschlag mit Bild.
+4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
+   „Ringnut fräsen“ bleibt als Option, wie gebaut.
+
 **Stand 2026-10-30 (0.313.0) – offen, in dieser Reihenfolge:**
 - *Geprüft (2026-10-30):* Wochen-Build weekly-2026.10.28 (27.1 dev, Git 20261027) geladen, voller
   Lauf darin: 134/134 Prüfungen; Szenarien grün bis auf szenario_flanke_halter (die Erwartung von

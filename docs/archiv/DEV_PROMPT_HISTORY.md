@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-06 antworten-fragen-1-bis-4
+
+### EINGELESEN
+- `docs/OFFENE_FRAGEN.md`, Fragen 1 bis 4; Manuels Antworten vom 2026-11-14 (wörtlich unten).
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (die vier Fragen heraus), `docs/STATUS_SNAPSHOT.md` („Nächster Schritt“).
+
+### ERGEBNIS
+- **Frage 1** (letztes Aufmaß in zwei gleichen Schnitten, Messen dazwischen) – Manuel: „1. a <-- aber
+  es muss auch die möglichkeit geben das man leerfahrten eingeben kann .. also beispielsweise schruppen
+  .. erstes vorschlichten ... und danach nochmal erstes vorschlichten .... dann messsen ... dann
+  vertigschlichten ... und dann nochmal vertig schlichten ... dann hat man immer 100 % das richtige
+  mass ... aber klar alles als option und auch die 0.3 sind optionen ja .. es gibt ja menschen die
+  wollen vll 0.5 aufmass lassen ..“ – Zu bauen: Haken „in zwei gleichen Schnitten“ (angehakt ab 1 mm
+  Aufmaß davor), dazu je Gang „Leerfahrt“ (derselbe Schnitt noch einmal ohne Zustellung), Aufmaße frei.
+- **Frage 2** (vorgedreht) – Manuel: „also wenn ich ein rundes teil bearbeite .. und ich bin auf der clx
+  ... dann drehe ich natürlich plan und ausen drüber auch der innendruchmesser wird von mir gebohrt und
+  gedreht meistens .. und wens eine nut ist wird die auch gestochen das ist alles viel viel viel
+  schneller als fräsen .... darum gehts aber bei den testteilen ja nicht .. es geht ja darum strategien
+  zu finden die das schnellst möglich bearbeiten und wir daran testen können ob das was berechnet wird
+  sinnvoll ist ... freecad kann glaube ich nicht drehen ... ich weis nicht wie viel du nun ins addon
+  eingebaut hast .. was die drehtechnik angeht aber ich denke fürs drehen ist ein cam eher nicht nötig
+  oder? so komplexe konturen kann man auf der maschine auch programmieren .. das ist eher kein problem
+  ... abzeilen schwenken auf der 5 achs usw .. das geht eher als mensch deutlich langsamer !“ – Es
+  bleibt wie heute (d): kein Haken „vorgedreht“, keine Drehkontur, kein Dreh-CAM. Die runden Testteile
+  bleiben Prüfsteine für Frässtrategien.
+- **Frage 3** (3D-Schlichten neben dem Teil unter den Teilboden) – Manuel: „natürlich darf das
+  fertigteil NIEMALS irgendwie beschädigt werden !!! also ja der teilboden darf nicht überfahren werden
+  es müssen dann reste bleiben logisch ?? dumme frage !!“ – a): Die Spitze bleibt auf der Endtiefe, der
+  Rest an der Unterkante bleibt stehen (B-033). Solche Fragen werden nicht mehr gestellt.
+- **Frage 4** (Ringnut fräsen) – Manuel: „also da sind wir beim gleichen thma wie bei 2. natürlich wüde
+  ich an einer welle ein nut eher stechdrehen .. als sie zu fräsen .. aber ich bin der meinung wenn du
+  es gebaut hast ists gut und als option gut wens da ist !! geht ja auch auf der 5 achs theoretisch
+  oder auf einer 4 achs fräse somit richtig ? .. was mich eher interessieren würde währe sowas wie
+  scraping ... also eine nut in einem deckel die mit einem "stech" oder "scharb" werkzeug sozusagen
+  rausgekratzt wird ... das wäre was was mich interessieren würde da man dadurch unten am grund auch ne
+  dichtfläche hinbekommen würde und nicht wie beim fräse querrillen in de nut hat und somit nur schlecht
+  eine dichtfläche hinbekommt ...“ – „Ringnut fräsen“ bleibt, wie gebaut (ein Haken im Schritt
+  „Schlichten“, abwählbar). Neu als Vorhaben: eine Dichtnut **schaben** (stehendes Stech-/Schabwerkzeug,
+  die Spindel folgt dem Verlauf der Nut – Riefen längs statt quer).
 ## P-2026-11-14-05 ringnut-fraesen
 
 ### EINGELESEN
