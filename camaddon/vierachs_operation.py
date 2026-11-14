@@ -789,11 +789,11 @@ def setze_achse(obj, achse, quer_auf_null=None):
     text = va.schwenk_text(achse)
     anzeige = (getattr(achse, "anzeige", "") or text) if text else ""
     for name, wert, modus, hilfe in (
-        (SCHWENK_GELENK, text, 2, "vo.eigenschaft.schwenk_gelenk"),
-        (SCHWENKSTELLUNG, anzeige, 1, "vo.eigenschaft.schwenk"),  # nur lesen: kommt mit der Achse
+        (SCHWENK_GELENK, text, 2, tr("vo.eigenschaft.schwenk_gelenk")),
+        (SCHWENKSTELLUNG, anzeige, 1, tr("vo.eigenschaft.schwenk")),  # nur lesen: mit der Achse
     ):
         if text and name not in obj.PropertiesList:
-            obj.addProperty("App::PropertyString", name, GRUPPE, tr(hilfe))
+            obj.addProperty("App::PropertyString", name, GRUPPE, hilfe)
             obj.setEditorMode(name, modus)
         if name in obj.PropertiesList and getattr(obj, name) != wert:
             setattr(obj, name, wert)
