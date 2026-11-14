@@ -37,7 +37,10 @@ from . import werkzeuge as wz
 # Faktoren auf vc und fz je Klasse, bezogen auf Stahl bis 750 N/mm² (P1) – wie sie sich in den
 # Katalogen für Vollhartmetall/Hartmetall und für HSS ungefähr verhalten.
 HOBELN_VC = 6.0  # m/min Hub des Stoßwerkzeugs in P1 (Spezifikation Strategien 13.10)
-HOBELN_AP = 0.05  # mm Zustellung je Umlauf
+# mm Zustellung je Umlauf in P1 – Manuel, 2026-11-14: „0.08 mm span ist da angesagt beim Nut
+# räumen“; je Klasse mit ihrem Faktor auf fz (wie der Span beim Fräsen), höchstens HOBELN_AP_MAX.
+HOBELN_AP = 0.08
+HOBELN_AP_MAX = 0.3  # mm – Horns Grenze je Hub
 FAKTOREN_HM = {
     "P1": (1.0, 1.0),
     "P2": (0.67, 0.8),
@@ -1017,8 +1020,9 @@ def _geschaetzt(werkzeug, art, klasse):
     faktor_vc, faktor_fz = (FAKTOREN_HSS if hss else FAKTOREN_HM)[klasse]
     d = werkzeug.durchmesser
     if art == wz.HOBELN:
-        # Vorsichtig: ein Zehntel von Horns Hub 60 m/min, 0,05 je Umlauf (Grenze 0,3 je Hub).
-        return _runden(wz.Einsatz(art=art, ap=HOBELN_AP, vc=HOBELN_VC * faktor_vc))
+        # Vorsichtig: ein Zehntel von Horns Hub 60 m/min; die Zustellung wie der Span je Klasse.
+        ap = min(HOBELN_AP * faktor_fz, HOBELN_AP_MAX)
+        return _runden(wz.Einsatz(art=art, ap=ap, vc=HOBELN_VC * faktor_vc))
     if art == wz.BOHREN:
         f = _f_bohrer(d, F_BOHRER if hss else F_BOHRER_HM) * faktor_fz
         vc = (BOHREN_VC_HSS if hss else BOHREN_VC_HM) * faktor_vc

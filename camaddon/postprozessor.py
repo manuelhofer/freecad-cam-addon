@@ -2191,6 +2191,7 @@ def programm(
             ebene = "G17"
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
         spindel_winkel = None  # beim Hobeln: der Winkel der stehenden Spindel für den nächsten Satz
+        spindel_davor = None  # … der Winkel (fortlaufend, Grad) aus der Notiz davor
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
@@ -2213,9 +2214,17 @@ def programm(
                     continue
                 if text_.startswith(SPINDEL_NOTIZ):  # Hobeln: der Winkel kommt in den Satz
                     try:
-                        spindel_winkel = float(text_[len(SPINDEL_NOTIZ) :]) % 360.0
+                        roh = float(text_[len(SPINDEL_NOTIZ) :])
                     except ValueError:
-                        spindel_winkel = None
+                        roh = None
+                    spindel_winkel = None if roh is None else roh % 360.0
+                    if roh is not None and s.spindel_winkel_vor and spindel_davor is not None:
+                        # Wer vor dem Satz dreht, dreht am alten Punkt: auf die Mitte zwischen dem
+                        # Winkel davor und dem des Satzes – mit dem des Satzes schwenkte die Klinge
+                        # dort einen ganzen Satzschritt voraus (am Deckel, b 3,5 × 1,1, R 12: ihre
+                        # hintere Ecke 0,032 mm in der Wand; hobeln_bahn._klinge_luft rechnet so).
+                        spindel_winkel = ((spindel_davor + roh) / 2.0) % 360.0
+                    spindel_davor = roh
                     if not (s.spindel_winkel_vor or s.spindel_winkel_satz):
                         if s.kennung in SPINDEL_WINKEL_NIE:
                             hinweis = tr("pp.hinweis.spindel_winkel_nie", steuerung=s.name)

@@ -109,9 +109,13 @@ BEARBEITUNGSARTEN = {
     wz.REIBEN: "drill",
     wz.GEWINDEBOHREN: "drill",
     wz.AUSDREHEN: "drill",
-    wz.HOBELN: None,  # kommt nicht in FreeCADs Presets (presets_fuer: die Spindel steht)
+    # Hobeln (Stoßwerkzeug, stehende Spindel) kennt FreeCAD nicht. Fehlte es, brach die Übergabe
+    # mit KeyError ab, sobald ein Stoßwerkzeug Werte „Hobeln“ für alle Werkstoffe hatte – und mit
+    # ihr jedes „Anlegen“ im Assistenten (Zweifler 14.11.).
+    wz.HOBELN: None,
     wz.EIGEN: None,
 }
+# Jede Einsatzart braucht hier einen Eintrag (test_hobeln prüft es).
 
 SCHNEIDSTOFFE = {wz.VHM: "Carbide", wz.HSS: "HSS", wz.WSP: "Carbide"}
 VORSCHUBVERHAELTNIS_EINTAUCHEN = 0.33  # wie FreeCADs Vorgabe für neue Presets
@@ -456,11 +460,6 @@ def _presets(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, bericht):
             hinweis = {"uuid": uuid, "name": name}
         for einsatz in einsaetze:
             if not einsatz.vc and not einsatz.fz:
-                continue
-            if einsatz.art == wz.HOBELN:
-                # Beim Hobeln steht die Spindel – vc ist der Hub, kein Schnitt je Umdrehung: in
-                # FreeCADs Presets rechnete es daraus eine Drehzahl (bis 0.376.0: KeyError, und
-                # das Anlegen scheiterte für alle Strategien, sobald ein Stoßwerkzeug Werte hatte).
                 continue
             titel = wz.einsatz_name(einsatz)
             presets.append(

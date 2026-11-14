@@ -34,7 +34,11 @@ from . import vierachs_schlichten as vs
 from .sprache import tr
 
 GRUPPE = "Hobeln"
-ZUSTELLUNG = 0.05  # mm je Umlauf – vorsichtig unter Horns Grenze 0,3 je Hub
+# mm je Umlauf, wenn das Stoßwerkzeug keinen Wert hat (sonst das ap seines Einsatzes „Hobeln“ –
+# Manuel: „Die Zustellung ist ja Werkzeug abhängig“). Manuel, 2026-11-14: „Die Zustellung sind ja
+# eh sehr gering je Durchlauf ich glaube 0.08 mm span ist da angesagt beim Nut räumen“ – unter
+# Horns Grenze 0,3 je Hub.
+ZUSTELLUNG = 0.08
 REST = 0.2  # mm, die das Fräsen davor über dem Grund stehen lässt
 VORSCHUB = (
     6000.0  # mm/min Hub ohne Einsatz – ein Zehntel von Horns 60 m/min (werkzeugkiste.HOBELN_VC)
@@ -42,6 +46,16 @@ VORSCHUB = (
 # mm – so lang wird die Klinge des vorgeschlagenen Stoßwerkzeugs höchstens (wie die Beispielreihe
 # „beispiel-stosswerkzeug“ der Werkzeugkiste); kürzer, wenn die engste Kurve es verlangt.
 LAENGE_HOECHSTENS = 2.0
+LAENGE_MINDESTENS = 0.5  # mm – kürzer schlägt es keine Klinge vor (eine Klinge von 0,2 mm: 14.11.)
+# mm – so viel Luft je Seite lässt die vorgeschlagene Schneide wenigstens, über SPIEL hinaus: In
+# einer Nut 3,01 blieb mit 3,0 keine, und es gab keinen Vorschlag, obwohl 2,9 × 1,0 ginge.
+LUFT_MINDESTENS = 0.02
+# Nach dem Hobeln fährt der Fräser der Wände sie unten im Rest nach (gui_bearbeitung
+# ._hobeln_wand_unten): bis so hoch über dem gehobelten Grund – er berührt ihn nicht; so breit
+# neben der Wand (die Klinge lässt dort höchstens SPIEL + ihren Schwenk, am Deckel ≤ 0,05).
+WAND_UNTEN = 0.02
+WAND_UNTEN_BREITE = 0.1
+VORGEFRAEST = 0.95  # so viel der Mittellinie muss eine Operation davor bis auf den Rest fräsen
 
 
 class DichtnutHobeln(PathOp.ObjectOp):
@@ -73,6 +87,7 @@ class DichtnutHobeln(PathOp.ObjectOp):
             ("App::PropertyLength", "Zustellung", tr("ho.eigenschaft.zustellung")),
             ("App::PropertyLength", "Rest", tr("ho.eigenschaft.rest")),
             ("App::PropertyLength", "Aufmass", tr("ho.eigenschaft.aufmass")),
+            ("App::PropertyLength", "AufmassWand", tr("ho.eigenschaft.aufmass_wand")),
             ("App::PropertyInteger", "Leerumlaeufe", tr("ho.eigenschaft.leerumlaeufe")),
             ("App::PropertyLength", "Satzlaenge", tr("ho.eigenschaft.satzlaenge")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
@@ -114,6 +129,20 @@ def werkzeug_des_controllers(tc):
     if werkzeug is None or werkzeug.art != wz.STOSSWERKZEUG:
         return None
     return werkzeug
+
+
+def zustellung_fuer(werkzeug, werkstoff=""):
+    """Die Zustellung je Umlauf zum Stoßwerkzeug `werkzeug`: das ap seines Einsatzes „Hobeln“
+    (für `werkstoff`, sonst für alle) – ohne Wert ZUSTELLUNG."""
+    from . import werkzeuge as wz
+
+    if werkzeug is None:
+        return ZUSTELLUNG
+    einsatz = next(
+        (e for e in werkzeug.einsaetze(werkstoff or wz.ALLE) if e.art == wz.HOBELN and e.ap > 0),
+        None,
+    )
+    return float(einsatz.ap) if einsatz is not None else ZUSTELLUNG
 
 
 def controller(dokument, job, werkzeug, einsatz=None, werkstoff=""):
@@ -165,22 +194,122 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         float(obj.Zustellung), float(obj.Rest), float(obj.Aufmass), int(obj.Leerumlaeufe),
         float(obj.Satzlaenge), float(obj.Sicherheitsabstand),
     )  # fmt: skip
-    punkte = []
+    wand = float(getattr(obj, "AufmassWand", 0.0) or 0.0)
+    punkte, gehobelt, gruende = [], 0, []
     for nut in nuten:
-        punkte.extend(hb.planen(nut, w).punkte)
-    return punkte, len(nuten)
+        # Eine Nut, die nicht geht, nicht mit: Brach die ganze Operation ab, blieb an der, die
+        # geht, der Rest des Räumens stehen (Zweifler 14.11.).
+        grund = klinge_grund(nut, werkzeug, wand) or _nicht_vorgefraest(job, obj, nut, w.rest)
+        if not grund:
+            try:
+                bahn = hb.planen(nut, w)
+            except ValueError as fehler:
+                grund = str(fehler)
+        if grund:
+            gruende.append(f"{nut.name}: {grund}")
+            FreeCAD.Console.PrintWarning(f"{obj.Label}: {nut.name}: {grund}\n")
+            continue
+        punkte.extend(bahn.punkte)
+        gehobelt += 1
+    if not gehobelt:
+        raise ValueError(gruende[0])
+    return punkte, gehobelt
+
+
+def _stuecke(befehl, von, nach):
+    """[(x, y, z)] längs eines Satzes G1/G2/G3 alle 0,5 mm – Bögen um ihre Mitte (I, J)."""
+    bogen = befehl.Name in ("G2", "G02", "G3", "G03") and (
+        "I" in befehl.Parameters or "J" in befehl.Parameters
+    )
+    if not bogen:
+        teile = max(1, int(math.hypot(nach[0] - von[0], nach[1] - von[1]) / 0.5))
+        return [
+            tuple(von[k] + (nach[k] - von[k]) * t / teile for k in range(3))
+            for t in range(teile + 1)
+        ]
+    mx = von[0] + float(befehl.Parameters.get("I", 0.0))
+    my = von[1] + float(befehl.Parameters.get("J", 0.0))
+    r = math.hypot(von[0] - mx, von[1] - my)
+    a0 = math.atan2(von[1] - my, von[0] - mx)
+    a1 = math.atan2(nach[1] - my, nach[0] - mx)
+    uhr = befehl.Name in ("G2", "G02")
+    winkel = (a0 - a1) % (2 * math.pi) if uhr else (a1 - a0) % (2 * math.pi)
+    if winkel < 1e-9:
+        winkel = 2 * math.pi
+    teile = max(1, int(r * winkel / 0.5))
+    ergebnis = []
+    for t in range(teile + 1):
+        a = a0 - winkel * t / teile if uhr else a0 + winkel * t / teile
+        z = von[2] + (nach[2] - von[2]) * t / teile
+        ergebnis.append((mx + r * math.cos(a), my + r * math.sin(a), z))
+    return ergebnis
+
+
+def _schnitt_stellen(op, grenze):
+    """([x], [y]) der Schnittsätze von `op` (je 0,5 mm), die bis `grenze` hinab reichen."""
+    xs, ys = [], []
+    ort = [None, None, None]
+    for c in op.Path.Commands:
+        neu = list(ort)
+        for k, a in enumerate("XYZ"):
+            if a in c.Parameters:
+                neu[k] = float(c.Parameters[a])
+        schnitt = c.Name in ("G1", "G01", "G2", "G02", "G3", "G03") and None not in ort + neu
+        if schnitt and min(ort[2], neu[2]) <= grenze:
+            for x, y, z in _stuecke(c, ort, neu):
+                if z <= grenze:
+                    xs.append(x)
+                    ys.append(y)
+        ort = neu
+    return xs, ys
+
+
+def _nicht_vorgefraest(job, obj, nut, rest):
+    """ "" wenn eine Operation vor `obj` im Job die Nut bis auf den Rest fräst – sonst der Satz.
+    Gezählt wird die Mittellinie (je mm eine Stelle): Ein Schnittsatz einer aktiven Operation davor
+    kommt ihr näher als die halbe Breite und reicht bis Grund + Rest. Sonst tauchte die Klinge bei
+    stehender Spindel in volles Material (mit dem Ø 12 der Testkiste im Räumen bis 2,5 mm)."""
+    import numpy as np
+
+    from . import kontur_bahn as kb
+
+    if job is None or rest <= 0:
+        return ""
+    proben = kb._abtasten(nut.segmente, 1.0, True)
+    mx, my = proben.x, proben.y
+    gedeckt = np.zeros(len(mx), dtype=bool)
+    grenze = nut.z_boden + rest + 0.01
+    for op in job.Operations.Group:
+        if op.Name == obj.Name:
+            break
+        if not getattr(op, "Active", True) or getattr(op, "Path", None) is None:
+            continue
+        xs, ys = _schnitt_stellen(op, grenze)
+        if not xs:
+            continue
+        px, py = np.array(xs), np.array(ys)
+        nah = nut.breite / 2.0
+        for k in range(0, len(px), 2000):
+            stueck = slice(k, k + 2000)
+            d2 = (mx[:, None] - px[None, stueck]) ** 2 + (my[:, None] - py[None, stueck]) ** 2
+            gedeckt |= (d2 <= nah * nah).any(axis=1)
+    if gedeckt.mean() >= VORGEFRAEST:
+        return ""
+    return tr("ho.grund.nicht_vorgefraest", rest=hb._mm(rest))
 
 
 def klinge_grund(nut, werkzeug, wand_aufmass=0.0):
     """ "" wenn das Stoßwerkzeug `werkzeug` die Nut `nut` hobeln kann – sonst der Satz, warum
     nicht: die Klinge (hobeln_bahn.klinge_pruefen), oder die Wände stehen über dem Rest noch
-    `wand_aufmass` vor (das Fräsen davor ließ Aufmaß an der Wand) und die Klinge passt nicht
-    zwischen sie – sie tauchte senkrecht in das Aufmaß."""
+    `wand_aufmass` vor (das Fräsen davor ließ Aufmaß an der Wand)."""
     grund = hb.klinge_pruefen(nut, float(werkzeug.schneidenbreite), float(werkzeug.klingenlaenge))
     if grund:
         return grund
     a = max(float(wand_aufmass or 0.0), 0.0)
-    if a > 0 and float(werkzeug.schneidenbreite) > nut.breite - 2 * a - 2 * hb.SPIEL + 1e-9:
+    if a > 1e-6:
+        # Gehobelt wird erst zwischen fertigen Wänden: Die Klinge passte sonst nicht dazwischen,
+        # oder ihre äußeren Spuren führen seitlich ins Aufmaß (Nut 4,6, Aufmaß 0,3, Klinge 3,5:
+        # 0,295 mm, Zweifler 14.11.) – und unter dem Aufmaß bliebe der Rest am Grund stehen.
         return tr("ho.grund.waende", aufmass=hb._mm(a), b=hb._mm(float(werkzeug.schneidenbreite)))
     return ""
 
@@ -197,10 +326,11 @@ class Hobelvorschau:
 
 
 def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1,
-             vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0):  # fmt: skip
-    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen() (am Deckel
-    unter 0,1 s: kein Nebenrechner). Nuten, die nicht gehen, mit ihrem Satz in `nicht_passend`;
-    geht keine, ValueError mit dem ersten Satz."""
+             vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0, vorgefraest=None):  # fmt: skip
+    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen() (kein
+    Nebenrechner). Nuten, die nicht gehen, mit ihrem Satz in `nicht_passend`; geht keine,
+    ValueError mit dem ersten Satz. `vorgefraest`: die Gründe, die ein Block davor bis auf den
+    Rest fräst (None: nicht prüfen) – die anderen gehen nicht."""
     form_teil = vs._teil(job.Model.Group)
     gewaehlt = list(flaechen)
     alle = [n for n in hb.alle_hobelnuten(form_teil) if set(n.flaechen) & set(gewaehlt)]
@@ -217,6 +347,8 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
         ohne_waende = nut.grund or klinge_grund(nut, werkzeug)
         grund = ohne_waende or klinge_grund(nut, werkzeug, wand_aufmass)
         waende = waende or (bool(grund) and not ohne_waende)
+        if not grund and vorgefraest is not None and nut.name not in vorgefraest:
+            grund = tr("ho.grund.nicht_vorgefraest", rest=hb._mm(rest))
         if not grund:
             try:
                 bahn = hb.planen(nut, w)
@@ -241,27 +373,24 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
 
 def werkzeug_vorschlag(nuten):
     """Ein Stoßwerkzeug (werkzeuge.Werkzeug, ohne Nummer) für die Nuten `nuten`: die Schneide so
-    breit, dass sie in die schmalste passt (Nutbreite − 2 · SPIEL, auf 0,1 abgerundet), die
-    Klinge so lang, dass sie den kleinsten Radius fährt (hobeln_bahn.kleinster_radius_fuer),
-    höchstens LAENGE_HOECHSTENS; None, wenn keine Klinge von wenigstens 0,1 mm Länge passt."""
+    breit, dass sie in die schmalste passt (Nutbreite − 2 · (SPIEL + LUFT_MINDESTENS), auf 0,1
+    abgerundet), die Klinge so lang, dass sie den kleinsten Radius jeder Nut fährt
+    (hobeln_bahn.kleinster_radius_fuer), höchstens LAENGE_HOECHSTENS. Wird sie kürzer als
+    LAENGE_MINDESTENS, die Schneide 0,1 schmaler (bis zu fünfmal); None, wenn nichts passt."""
     from . import werkzeuge as wz
 
     if not nuten:
         return None
     schmal = min(nuten, key=lambda n: n.breite)
-    b = math.floor((schmal.breite - 2 * hb.SPIEL) * 10.0 + 1e-6) / 10.0
-    if b <= 0:
-        return None
-    laenge = LAENGE_HOECHSTENS
-    for nut in nuten:
-        luft = (nut.breite - b) / 2.0 - hb.SPIEL
-        if luft <= 0:
+    b0 = math.floor((schmal.breite - 2 * (hb.SPIEL + LUFT_MINDESTENS)) * 10.0 + 1e-6) / 10.0
+    for k in range(6):
+        b = round(b0 - 0.1 * k, 1)
+        if b <= 0:
             return None
-        if math.isfinite(nut.r_min):
-            # √((R + b/2)² + L²) ≤ R + b/2 + luft  →  L² ≤ luft · (2 (R + b/2) + luft)
-            laenge = min(laenge, math.sqrt(luft * (2.0 * (nut.r_min + b / 2.0) + luft)))
-    laenge = math.floor(laenge * 10.0 + 1e-6) / 10.0
-    if laenge < 0.1:
+        laenge = _laenge_fuer(nuten, b)
+        if laenge >= LAENGE_MINDESTENS - 1e-9:
+            break
+    else:
         return None
     tiefe = max(n.tiefe for n in nuten)
     name = tr("ho.werkzeug_name", b=hb._mm(b))
@@ -272,9 +401,25 @@ def werkzeug_vorschlag(nuten):
     )  # fmt: skip
 
 
-def lege_an(job, tc, flaechen=(), name=None, zustellung=ZUSTELLUNG, rest=REST, aufmass=0.0,
-            leerumlaeufe=1):  # fmt: skip
-    """Legt „Dichtnut hobeln“ im Job an – ohne eigene Transaktion. Gibt die Operation zurück."""
+def _laenge_fuer(nuten, b):
+    """Die längste Klinge (auf 0,1 abgerundet, höchstens LAENGE_HOECHSTENS) der Breite `b`, mit
+    der jede Nut geht (hobeln_bahn.kleinster_radius_fuer ≤ ihr kleinster Radius); 0: keine."""
+
+    def geht(laenge):
+        return all(hb.kleinster_radius_fuer(n.breite, b, laenge) <= n.r_min + 1e-9 for n in nuten)
+
+    for zehntel in range(int(round(LAENGE_HOECHSTENS * 10)), 0, -1):
+        if geht(zehntel / 10.0):
+            return zehntel / 10.0
+    return 0.0
+
+
+def lege_an(job, tc, flaechen=(), name=None, zustellung=None, rest=REST, aufmass=0.0,
+            leerumlaeufe=1, aufmass_wand=0.0):  # fmt: skip
+    """Legt „Dichtnut hobeln“ im Job an – ohne eigene Transaktion. Gibt die Operation zurück.
+    Ohne `zustellung` die des Stoßwerkzeugs (zustellung_fuer, für den Werkstoff des Jobs)."""
+    if zustellung is None:
+        zustellung = zustellung_fuer(werkzeug_des_controllers(tc), _werkstoff(job, tc))
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "DichtnutHobeln")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -292,6 +437,7 @@ def lege_an(job, tc, flaechen=(), name=None, zustellung=ZUSTELLUNG, rest=REST, a
     obj.Zustellung = float(zustellung)
     obj.Rest = float(rest)
     obj.Aufmass = float(aufmass)
+    obj.AufmassWand = float(aufmass_wand)
     obj.Leerumlaeufe = int(leerumlaeufe)
     try:
         liste = hb.hobelnuten(vs._teil(job.Model.Group), list(flaechen) or None)
@@ -306,6 +452,18 @@ def lege_an(job, tc, flaechen=(), name=None, zustellung=ZUSTELLUNG, rest=REST, a
 
         gui_vierachs_operation.Ansicht(obj.ViewObject)
     return obj
+
+
+def _werkstoff(job, tc):
+    """Die Kennung des Werkstoffs, mit dem der Job rechnet ("" : alle)."""
+    from . import job_schnittwerte as js
+    from . import werkzeuge as wz
+
+    try:
+        werkstoff, _gemerkt = js.werkstoff_fuer(job, wz.Bibliothek.laden().alle_werkstoffe(), tc)
+    except Exception:  # noqa: BLE001 – ohne Werkzeugverwaltung: für alle Werkstoffe
+        return ""
+    return getattr(werkstoff, "kennung", "") if werkstoff is not None else ""
 
 
 def aendere(obj, tc, flaechen=None, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1):

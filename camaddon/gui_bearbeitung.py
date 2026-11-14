@@ -4853,6 +4853,7 @@ class _Hobeln(_Strategie):
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
             wand_aufmass=float(werte.get("wand_aufmass", 0.0) or 0.0),
+            vorgefraest=set(werte["vorgefraest"]) if "vorgefraest" in werte else None,
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -4884,6 +4885,7 @@ class _Hobeln(_Strategie):
             zustellung=werte["zustellung"],
             rest=werte["rest"],
             leerumlaeufe=self._leer(werte),
+            aufmass_wand=float(werte.get("wand_aufmass", 0.0) or 0.0),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -10498,10 +10500,14 @@ class BearbeitungPanel:
                 return list(getattr(block.vorschau, "namen", ()) or ())
             return [f for n in rnb.ringnuten(form, self._flaechen(block, form)) for f in n.flaechen]
         if block is self.hobeln:
-            # Der Grund der Nuten, die es hobelt (Hobelvorschau.namen) – die Wände nicht.
+            # Der Grund der Nuten, die es hobelt (Hobelvorschau.namen) – die Wände nicht; nur, was
+            # ein Block davor bis auf den Rest fräst (sonst tauchte die Klinge in volles Material).
+            vorgefraest = self._hobel_vorgefraest(form)
             if block.vorschau is not None:
-                return list(getattr(block.vorschau, "namen", ()) or ())
-            return [n for n, _r in self._hobel_reste(form)]
+                namen_ = list(getattr(block.vorschau, "namen", ()) or ())
+            else:
+                namen_ = [n for n, _r in self._hobel_reste(form)]
+            return [n for n in namen_ if n in vorgefraest]
         return []
 
     def _unfertige(self, form):
@@ -11435,7 +11441,10 @@ class BearbeitungPanel:
                 zusatz["boden_rest"] = reste
             return zusatz or None
         if block is self.hobeln:
-            return {"wand_aufmass": self._hobel_wand_aufmass(form)}
+            return {
+                "wand_aufmass": self._hobel_wand_aufmass(form),
+                "vorgefraest": tuple(sorted(self._hobel_vorgefraest(form))),
+            }
         if block is self.nut:
             liste = self._vorbohrer_liste(block.fraeser())
             return {"vorbohrer_liste": liste} if liste else None
@@ -11867,6 +11876,48 @@ class BearbeitungPanel:
                 aufmass = max(aufmass, float(block.werte().get("aufmass", 0.0) or 0.0))
         return aufmass
 
+    def _hobeln_wand_unten(self, tc, werte, gruende):
+        """[Kontur] nach dem Hobeln: die Wände der gehobelten Nuten unten, im Rest – bis
+        ho.WAND_UNTEN über den Grund. Die Klinge kommt nicht ganz an die Wand (SPIEL, ihr Schwenk
+        in der Kurve, WINKEL_FEHLER): Am Deckel blieb je Seite ein Streifen bis 0,05 breit und
+        so hoch wie der Rest (0,2) stehen, eine Stufe in der O-Ring-Nut; das Wandschlichten davor
+        endet über dem Rest (bis auf den Grund nähme ein Ø 3 in der 3,6 breiten Nut den ganzen
+        Grund mit). Danach fährt derselbe Fräser die Wände nur im Rest nach – über dem gehobelten
+        Grund, ohne ihn zu berühren."""
+        if not gruende or self.job is None:
+            return []
+        form = vr.modell(self.job).Shape
+        waende = [w for n in hbn.hobelnuten(form, list(gruende)) if n.name in gruende
+                  for w in n.flaechen if w != n.name]  # fmt: skip
+        if not waende:
+            return []
+        rest = float(werte.get("rest", hop.REST) or 0.0)
+        z_boden = min(n.z_boden for n in hbn.hobelnuten(form, list(gruende)))
+        op = ko.lege_an(
+            self.job, tc, rest + hop.WAND_UNTEN, hop.WAND_UNTEN_BREITE, 0.0, True,
+            hop.WAND_UNTEN_BREITE, tr("ho.wand_unten_name", werkzeug=f"T{tc.ToolNumber}"),
+            flaechen=waende, waende_rest=tuple((w, hop.WAND_UNTEN) for w in waende),
+        )  # fmt: skip
+        op.setExpression("StartDepth", None)
+        op.StartDepth = z_boden + rest + hop.WAND_UNTEN
+        self.doc.recompute()
+        return [op]
+
+    def _hobel_vorgefraest(self, form):
+        """{Grund} der gewählten Dichtnuten, die ein angehakter Block davor bis auf den Rest fräst
+        (Räumen, Rest räumen, Tauchfräsen: was sie fertig machen – das Räumen fährt dort um den
+        Rest höher). Nur dort darf gehobelt werden: Mit dem Ø 12 der Testkiste kommt das Räumen
+        nicht in die 3,6 breite Nut, die Klinge stieße bei stehender Spindel 2,5 mm in volles
+        Material (Zweifler 14.11.)."""
+        gruende = {n.name for n in self._hobelnuten(form)}
+        if not gruende:
+            return set()
+        fertig = set()
+        for block in self.bloecke:
+            if block.s.kennung in ("raeumen", "restraeumen", "tauchfraesen") and block.aktiv():
+                fertig |= set(self._fertige_flaechen(block, form))
+        return gruende & fertig
+
     def _hobel_reste(self, form):
         """((Grund, Rest) …) der Dichtnuten, die „Dichtnut hobeln“ hobelt – angehakt, mit einer
         Klinge, die hineinpasst: Dort lässt das Fräsen davor den Rest am Grund stehen
@@ -11945,8 +11996,8 @@ class BearbeitungPanel:
 
     def _stosswerkzeug_anlegen(self, vorschlag):
         """„Stoßwerkzeug b 3,5 × 1,1 anlegen“ (_hobeln_angebot): mit Richtwerten in die
-        Werkzeugverwaltung (und ins Magazin), dann die Blöcke neu – „Dichtnut hobeln“ ist dann
-        anzuhaken (von sich aus nicht: Strategiewahl nur von Hand)."""
+        Werkzeugverwaltung (und ins Magazin), dann die Blöcke neu und „Dichtnut hobeln“ angehakt:
+        Wer den Knopf drückt, will hobeln (von sich aus hakt es der Assistent nie an)."""
         if self.bibliothek is None:
             return
         werkzeug = wz.Werkzeug.aus_dict(vorschlag.als_dict())
@@ -11955,6 +12006,16 @@ class BearbeitungPanel:
         self.unfertig_angebot.hide()
         if self.job is not None:
             self._haken_vorschlagen(vr.modell(self.job).Shape)
+        block = self.hobeln
+        if block.moeglich and not block.aktiv():
+            # Wer den Knopf drückt, will hobeln – der Haken wie von Hand (wie bei der Ringnut).
+            self._fuellt = True
+            try:
+                block.haken.setChecked(True)
+            finally:
+                self._fuellt = False
+            block.von_hand = True
+            block.zustand_zeigen()
         self.vorschau_starten()
 
     def _restfraeser_waehlen(self):
@@ -12708,6 +12769,9 @@ class BearbeitungPanel:
         for name, anteil in self._erreicht(form, namen, werkzeug).items():
             if anteil < ZU_ENG:
                 ergebnis[name] = anteil
+        # Am Grund einer Nut, die gehobelt wird, fährt das Räumen um den Rest höher (boden_rest):
+        # erreicht ist er trotzdem.
+        reste = dict(self._hobel_reste(form)) if block is self.raeumen else {}
         vorschau = block.vorschau
         punkte = getattr(vorschau, "punkte", None) if vorschau is not None else None
         if not punkte or werkzeug is None:
@@ -12723,10 +12787,11 @@ class BearbeitungPanel:
             if name in ergebnis or not maske.any():
                 continue
             if name not in merk[2]:
+                hoch = z + hoeher + reste.get(name, 0.0) + 0.05
                 strecken = [
                     (a.x, a.y, b.x, b.y)
                     for a, b in zip(punkte, punkte[1:], strict=False)
-                    if not b.eilgang and a.z <= z + hoeher + 0.05 and b.z <= z + hoeher + 0.05
+                    if not b.eilgang and a.z <= hoch and b.z <= hoch
                 ]
                 ueber = zz.ueberstrichen(material, strecken, werkzeug.durchmesser / 2)
                 # Ohne den Rand der Fläche: An der Wand bleibt das Aufmaß, und dort misst das
@@ -13413,6 +13478,7 @@ class BearbeitungPanel:
                     fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
                     js.controller_weg(self.doc, fremde)
                 tc_davor = None
+                tc_wand = None  # der Fräser an den Wänden der Dichtnut (_hobeln_wand_unten)
                 # Derselbe Fräser mit demselben Einsatz: ein Controller (am C-Ring legten Räumen T3
                 # und Nut T3 je einen „T3 VHM 6 – Schruppen“ an).
                 controller = {}
@@ -13433,6 +13499,11 @@ class BearbeitungPanel:
                     flaechen = self._flaechen(block, form)
                     werte = dict(block.werte(), **(self._zusatz(block, form) or {}))
                     werte["eintauchwinkel"] = _eintauchwinkel(block.fraeser())
+                    if block is self.hobeln and block.vorschau is not None:
+                        # Nur die Gründe, die die Vorschau hobelt: Bekäme die Operation auch die,
+                        # die nicht gehen, hätte sie ganz ohne Bahn – und das Räumen ließ an der,
+                        # die geht, den Rest stehen (Zweifler 14.11.).
+                        flaechen = list(getattr(block.vorschau, "namen", ()) or ())
                     if block is self.schlichten_danach:
                         neue = self._schlichten_danach_anlegen(tc, tc_davor or tc, werte)
                         ops.append(neue[0])
@@ -13445,6 +13516,14 @@ class BearbeitungPanel:
                         ops.append(neue_op)
                         if block is self.bohren:
                             folge.extend(self._nebenbohrer_anlegen(werte))
+                        if block is self.hobeln and tc_wand is not None:
+                            self.doc.recompute()
+                            folge.extend(self._hobeln_wand_unten(tc_wand, werte, flaechen))
+                    if block is self.schlichten_danach or (
+                        block in (self.raeumen, self.restraeumen)
+                        and not self.schlichten_danach.aktiv()
+                    ):
+                        tc_wand = tc
                     tc_davor = tc
                     uhren.atmen()
                     # Gleich rechnen: Die nächste rechnet mit dem Material, das diese lässt
