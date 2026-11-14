@@ -104,6 +104,11 @@ class Konturwerte:
     # So viel bleibt nach dem Schlichtzug an der Wand stehen – der erste von zwei gleichen
     # Schlichtschnitten mit Messen dazwischen (gangfolge; Manuel, 2026-11-14). 0: auf Maß.
     rest: float = 0.0
+    # Je Wand: so viel über ihrer Unterkante endet die Kontur ((Wand, mm) …) – die Wände einer
+    # Dichtnut, deren Grund danach gehobelt wird (Spezifikation Strategien 13.10): Der Fräser
+    # nähme sonst den Rest am Grund mit (Ø 3 an beiden Wänden der 3,6 breiten Nut: den ganzen
+    # Grund). Leer: bis auf die Unterkante.
+    waende_rest: tuple = ()
 
 
 @dataclass
@@ -1333,6 +1338,9 @@ def _kontur(
     der fürs Schlichten, die Hüllfläche über allem, dann die Lagen – mit `stand` (W-012) nur,
     wo noch Material steht."""
     ziel = k.z_unten - max(w.tiefer, 0.0)
+    rest = max((float(r) for n, r in w.waende_rest or () if n in k.waende), default=0.0)
+    if rest > 0:
+        ziel = max(ziel, k.z_unten + rest)  # nie tiefer: der Rest am Grund bleibt
     oben = w.oben
     if w.breite > 0:
         # Mit der Breite sagt man: Daneben ist schon geräumt (eine Tasche, das Räumen davor) –

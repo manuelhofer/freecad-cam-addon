@@ -57,6 +57,7 @@ EINSATZ_NACH_OPERATION = {
     "vierachs_entgraten": (wz.FASEN, wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Rundum entgraten“ (V4d)
     "bohrung": (wz.SCHRUPPEN, wz.SCHLICHTEN, wz.PLANEN),  # „Bohrung fräsen“ (W-006 S3g)
     "ringnut": (wz.VOLLNUT,),  # „Ringnut fräsen“: Scheiben-/T-Nutenfräser (Spezifikation 13.7)
+    "hobeln": (wz.HOBELN,),  # „Dichtnut hobeln“: Stoßwerkzeug, Hub (Spezifikation 13.10)
     "gewindefraesen": (wz.GEWINDEFRAESEN,),  # „Gewinde fräsen“ (W-006 S3g)
     "planfraesen": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Planfräsen“ (W-006 S3)
     "raeumen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Räumen“ (W-006 S3f)

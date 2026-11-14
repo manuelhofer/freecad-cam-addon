@@ -194,12 +194,21 @@ pruefe(not hb.alle_hobelnuten(tasche), "eine Tasche gilt als Nut")
 
 
 # --- Die Operation im Job und das Programm (Schritte 4 und 5) -----------------------------------
-# Die Spindel steht (kein M3); vor jedem Satz der Winkel – Siemens SPOS=DC im Satz, Heidenhain
-# Zyklus 13 mit M19, LinuxCNC M19 R; GRBL kann es nicht und sagt das.
+# Das Räumen (Ø 1,5) lässt am Grund der Nut den Rest 0,2 stehen (boden_rest, Schritt 4 im Assistenten),
+# dann ein Messstopp, dann das Hobeln. Die Spindel steht beim Hobeln (kein M3, kein S – auch nicht
+# nach dem Messstopp); vor jedem Satz der Winkel – Siemens SPOS=DC im Satz, Heidenhain Zyklus 13
+# mit M19, LinuxCNC M19 R; GRBL kann es nicht und sagt das.
+import re  # noqa: E402
+
 import Path.Main.Job as PathJob  # noqa: E402
 
+from camaddon import fraeserform as ff  # noqa: E402
 from camaddon import hobeln as hop  # noqa: E402
+from camaddon import job_schnittwerte as js  # noqa: E402
+from camaddon import kontur as ko  # noqa: E402
+from camaddon import messstopp as ms  # noqa: E402
 from camaddon import postprozessor as pp  # noqa: E402
+from camaddon import raeumen as ra  # noqa: E402
 from camaddon import uebergabe_werkzeuge as ue  # noqa: E402
 from camaddon import werkzeuge as wz  # noqa: E402
 
@@ -208,13 +217,11 @@ if not profil_ordner or not FreeCAD.getUserAppDataDir().startswith(profil_ordner
     raise AssertionError("Kein Testprofil – die Werkzeugverwaltung würde überschrieben.")
 stoss = wz.Werkzeug(nummer=9, art=wz.STOSSWERKZEUG, name="Hobel 2,6", schneidenbreite=2.6,
                     klingenlaenge=2.0, spindelwinkel=30.0, stechtiefe=4.0)  # fmt: skip
-# Mit Richtwerten (Einsatz „Hobeln“): Die Übergabe an FreeCAD darf daran nicht scheitern (bis 0.376.0
-# KeyError – dann scheiterte das Anlegen für alle Strategien).
-from camaddon import werkzeugkiste as wk  # noqa: E402
-
-wk.richtwerte_eintragen(stoss)
-stoss.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.HOBELN, ap=0.05, vc=6.0)]
-bibliothek = wz.Bibliothek([stoss])
+fraeser = wz.Werkzeug(nummer=2, name="VHM 1,5", durchmesser=1.5, schneiden=2, schneidenlaenge=6.0,
+                      eintauchwinkel=3.0)  # fmt: skip
+einsatz = wz.Einsatz(art=wz.SCHRUPPEN, ae=0.3, ap=2.0, vc=60.0, fz=0.02)
+fraeser.schnittwerte[wz.ALLE] = [einsatz]
+bibliothek = wz.Bibliothek([fraeser, stoss])
 bibliothek.speichern()
 ue.uebergeben(bibliothek)
 doc = FreeCAD.newDocument("Hobeln")
@@ -224,7 +231,80 @@ objekt.Shape = teil
 doc.recompute()
 job = PathJob.Create("Job", [objekt])
 doc.recompute()
+nut = hb.hobelnuten(objekt.Shape)[0]
+grund, waende = nut.name, [f for f in nut.flaechen if f != nut.name]
+
+
+def tiefste(bahn):
+    return min(p.z for p in bahn.punkte if not p.eilgang)
+
+
+# Räumen und Kontur ohne Rest wie bisher; mit Rest nur am Grund der Nut 0,2 höher; ein Rest für eine
+# andere Fläche ändert keinen Satz. Genau gerechnet: Die grobe Vorschau des Räumens findet in der
+# 3 mm breiten Nut keinen Platz (ihr Raster), auch nicht mit Ø 2.
+form = ff.von_werkzeug(fraeser)
+ohne = ra.bahn_fuer(job, job.Model.Group, form, 2.0, 0.3, 0.0, [grund])
+mit = ra.bahn_fuer(job, job.Model.Group, form, 2.0, 0.3, 0.0, [grund], boden_rest=((grund, 0.2),))
+fremd = ra.bahn_fuer(job, job.Model.Group, form, 2.0, 0.3, 0.0, [grund],
+                    boden_rest=(("Face1", 0.2),))  # fmt: skip
+print(f"Räumen: tiefste Spitze ohne Rest {tiefste(ohne):.3f}, mit Rest {tiefste(mit):.3f}")
+pruefe(abs(tiefste(ohne) - 8.0) < 1e-6, f"Räumen ohne Rest: {tiefste(ohne)}")
+pruefe(abs(tiefste(mit) - 8.2) < 1e-6, f"Räumen mit Rest: {tiefste(mit)}")
+pruefe(
+    [(p.x, p.y, p.z, p.eilgang) for p in fremd.punkte]
+    == [(p.x, p.y, p.z, p.eilgang) for p in ohne.punkte],
+    "ein Rest auf einer anderen Fläche ändert das Räumen",
+)
+k_ohne = ko.vorschau(job, job.Model.Group, form, 2.0, 0.3, 0.1, True, waende, breite=0.1)
+k_mit = ko.vorschau(job, job.Model.Group, form, 2.0, 0.3, 0.1, True, waende, breite=0.1,
+                    waende_rest=tuple((w, 0.2) for w in waende))  # fmt: skip
+print(f"Kontur: tiefste Spitze ohne Rest {tiefste(k_ohne):.3f}, mit Rest {tiefste(k_mit):.3f}")
+pruefe(abs(tiefste(k_ohne) - 8.0) < 1e-6, f"Kontur ohne Rest: {tiefste(k_ohne)}")
+pruefe(abs(tiefste(k_mit) - 8.2) < 1e-6, f"Kontur mit Rest: {tiefste(k_mit)}")
+
+# Die Vorschau im Assistenten: die Nut, ihr Grund ist danach fertig. Stehen die Wände noch 0,3 vor,
+# passt die Klinge 2,6 nicht dazwischen (3 − 0,6) – ein Satz, der „Schlichten danach“ anbietet.
+hv = hop.vorschau(job, stoss, [waende[0]], vorschub=6000.0)
+pruefe(hv.namen == [grund] and len(hv.je_nut) == 1 and not hv.nicht_passend, f"Vorschau: {hv}")
+pruefe(hv.zeit > 0 and len(hv.punkte) > 100, f"Vorschau: {hv.zeit} min, {len(hv.punkte)} Sätze")
+try:
+    hop.vorschau(job, stoss, [grund], wand_aufmass=0.3)
+    pruefe(False, "Klinge 2,6 zwischen Wänden mit 0,3 Aufmaß")
+except ValueError as satz:
+    print(ascii(f"Wände mit Aufmaß: {satz}"))
+    pruefe(getattr(satz, "daten", {}).get("waende"), f"ohne Hinweis auf die Wände: {satz}")
+pruefe(hop.vorschau(job, stoss, [grund], wand_aufmass=0.1).namen == [grund], "Aufmaß 0,1 geht")
+# Das vorgeschlagene Stoßwerkzeug: die Schneide 3 − 2 · 0,005 auf 0,1 abgerundet, die Klinge so
+# lang, dass sie R 10 fährt (1,016 → 1,0).
+vorschlag = hop.werkzeug_vorschlag([nut])
+print(
+    ascii(f"Vorschlag: {vorschlag.name} b {vorschlag.schneidenbreite} L {vorschlag.klingenlaenge}")
+)
+pruefe(
+    vorschlag.art == wz.STOSSWERKZEUG
+    and abs(vorschlag.schneidenbreite - 2.9) < 1e-9
+    and abs(vorschlag.klingenlaenge - 1.0) < 1e-9
+    and not hb.klinge_pruefen(nut, vorschlag.schneidenbreite, vorschlag.klingenlaenge),
+    f"Vorschlag: {vorschlag}",
+)
+
+tc_fraeser = js.controller_ohne_transaktion(doc, job, fraeser, einsatz)
+raeumen = ra.lege_an(job, tc_fraeser, 2.0, 0.3, 0.0, flaechen=[grund], boden_rest=((grund, 0.2),))
+doc.recompute()
+z_raeumen = min(
+    float(c.Parameters["Z"])
+    for c in raeumen.Path.Commands
+    if c.Name in ("G1", "G01", "G2", "G02", "G3", "G03") and "Z" in c.Parameters
+)
+pruefe(
+    list(raeumen.RestFlaechen) == [grund]
+    and abs(float(raeumen.RestBoden) - 0.2) < 1e-9
+    and abs(float(raeumen.FinalDepth) - 8.2) < 1e-6
+    and abs(z_raeumen - 8.2) < 1e-6,
+    f"Räumen: {list(raeumen.RestFlaechen)}, {raeumen.RestBoden}, {raeumen.FinalDepth}, {z_raeumen}",
+)
 tc = hop.controller(doc, job, stoss)
+stopp = ms.lege_an(job, tc_fraeser, tc)
 op = hop.lege_an(job, tc)
 doc.recompute()
 pruefe(hop.ist_hobeln(op) and op.Nuten == 1, f"Operation: {op.Label}, {op.Nuten} Nuten")
@@ -248,8 +328,16 @@ programme = {}
 for kennung in ("siemens", "heidenhain", "linuxcnc", "grbl", "fanuc", "mach", "mazak"):
     programme[kennung] = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), None, "Hobeln")
     zeilen = programme[kennung].zeilen
-    pruefe(not any("SPINDEL" in z for z in zeilen), f"{kennung}: Notiz im Programm")
-    pruefe(not any({"M3", "M03", "M4", "M04"} & set(z.split()) for z in zeilen), f"{kennung}: M3")
+    notiz = [z for z in zeilen if "(SPINDEL " in z.upper()]  # nicht „SPINDELNASE“ im Kopf
+    pruefe(not notiz, f"{kennung}: Notiz im Programm: {notiz[:3]}")
+    # Nach dem Halt des Messstopps (M0) kommt nur noch das Hobeln: keine Spindel an, kein S.
+    halt = [i for i, z in enumerate(zeilen) if {"M0", "M00"} & set(z.split())]
+    pruefe(halt, f"{kennung}: kein Halt")
+    danach = zeilen[halt[-1] + 1 :] if halt else zeilen
+    m3 = [z for z in danach if {"M3", "M03", "M4", "M04"} & set(z.split())]
+    # „M19 S…“ (Fanuc, Mach) ist der Winkel der stehenden Spindel, keine Drehzahl.
+    s_wort = [z for z in danach if re.search(r"(^|\s)S\d", z) and "M19" not in z.split()]
+    pruefe(not m3 and not s_wort, f"{kennung}: Spindel nach dem Messstopp: {(m3 + s_wort)[:3]}")
 si = programme["siemens"].zeilen
 spos = [z for z in si if "SPOS=DC(" in z]
 pruefe(len(spos) > 100 and all(z.split()[0] in ("G0", "G1") for z in spos), f"Siemens: {spos[:3]}")
@@ -267,10 +355,11 @@ pruefe("Befehle" in mazak, f"Mazak ohne Hinweis: {mazak[:200]}")
 print(ascii(f"Programm: Siemens {len(si)} Zeilen, {spos[0] if spos else ''}"))
 # Die Spindel dreht über der Nut in Richtung, nicht erst beim Eintauchen in die gefräste Nut.
 erster = next(i for i, z in enumerate(si) if "SPOS=DC(" in z)
+halt_si = max(i for i, z in enumerate(si) if {"M0", "M00"} & set(z.split()))
 unten = next(
     i
     for i, z in enumerate(si)
-    if "Z" in z and z.startswith("G") and float(z.split("Z")[1].split()[0]) < 10.5
+    if i > halt_si and "Z" in z and z.startswith("G") and float(z.split("Z")[1].split()[0]) < 10.5
 )
 pruefe(si[erster].startswith("G0") and erster < unten, f"erster Winkel: {si[erster]}, {si[unten]}")
 

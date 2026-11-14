@@ -251,6 +251,19 @@ class Raeumwerte:
     # dort als eng ausließ – sonst führe es auch um alles, was er schon geräumt hat (am C-Ring aus
     # der Platte einmal um den Mantel, wo im Raster ein Hauch stand). 0: alles.
     nur_eng: float = 0.0
+    # Je Fläche ein eigener Rest am Boden statt `aufmass_boden`: ((Fläche, mm) …) – der Grund einer
+    # Dichtnut, die danach gehobelt wird (Spezifikation Strategien 13.10; hobeln.REST 0,2), bleibt
+    # so hoch stehen, die anderen Böden kommen auf Maß. Leer: wie bisher.
+    boden_rest: tuple = ()
+
+
+def aufmass_boden_von(w, name):
+    """Was auf der Fläche `name` stehen bleibt: ihr Rest aus `w.boden_rest`, sonst das Aufmaß am
+    Boden (nie unter 0)."""
+    for flaeche, rest in w.boden_rest or ():
+        if flaeche == name:
+            return max(float(rest), 0.0)
+    return max(w.aufmass_boden, 0.0)
 
 
 @dataclass
@@ -2481,7 +2494,7 @@ def _huellen_vorab(netz, w, folge, r, schritt, huellen):
     die Varianten gleichzeitig rechnen (sonst rechnete jede sie selbst: am Testteil 81 s
     Rechenzeit auf allen Kernen für 9,7 s; P-2026-10-11-83)."""
     for ebene, tasche in folge:
-        if w.oben <= ebene.z + max(w.aufmass_boden, 0.0) + GLEICH or ebene.name in huellen:
+        if w.oben <= ebene.z + aufmass_boden_von(w, ebene.name) + GLEICH or ebene.name in huellen:
             continue
         _feld_der_flaeche(hf.netz_fuer(netz, ebene), w, ebene, tasche, r, schritt, huellen)
 
@@ -2505,7 +2518,7 @@ def _flaeche(
         # damit alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ;
         # P-2026-10-01-26). Die Morph-Spirale (morph_tasche) hat ihre eigene Art.
         variante = "inseln"
-    ziel = ebene.z + max(w.aufmass_boden, 0.0)
+    ziel = ebene.z + aufmass_boden_von(w, ebene.name)
     # Die Lagen beginnen am Rohteil – ob eine andere Operation es über der Fläche schon
     # weggefräst hat, weiß die Bahn nur aus dem Materialstand (P-2026-10-01-26); mit ihm am
     # höchsten Material, das der Fräser erreicht: in einer Tasche, um die diese Bahn schon

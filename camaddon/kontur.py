@@ -85,6 +85,8 @@ class Kontur(PathOp.ObjectOp):
             ("App::PropertyLength", "Schlichtrest", tr("ko.eigenschaft.schlichtrest")),
             ("App::PropertyLength", "Breite", tr("ko.eigenschaft.breite")),
             ("App::PropertyLength", "Tiefer", tr("ko.eigenschaft.tiefer")),
+            ("App::PropertyStringList", "RestWaende", tr("ko.eigenschaft.rest_waende")),
+            ("App::PropertyLength", "RestUnten", tr("ko.eigenschaft.rest_unten")),
             ("App::PropertyLength", "Einfahrradius", tr("ko.eigenschaft.einfahrradius")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
@@ -178,7 +180,25 @@ def rechne(obj, job, modell):
         schritt=au.wert(obj, kb.SCHRITT),
         korrektur=bool(getattr(obj, "Radiuskorrektur", False)),
         rest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
+        waende_rest=waende_rest_von(obj),
     )
+
+
+def waende_rest_von(obj):
+    """((Wand, mm) …) – die Wände, an denen die Kontur „RestUnten“ über der Unterkante endet
+    (kontur_bahn.Konturwerte.waende_rest); leer in alten Dateien und ohne Hobeln."""
+    waende = list(getattr(obj, "RestWaende", []) or [])
+    rest = float(getattr(obj, "RestUnten", 0.0) or 0.0)
+    return tuple((w, rest) for w in waende) if rest > 0 else ()
+
+
+def _rest_setzen(obj, waende_rest):
+    """„RestWaende“ und „RestUnten“ aus ((Wand, mm) …) – ein Rest für alle (hobeln.REST)."""
+    if "RestWaende" not in obj.PropertiesList:
+        Kontur._eigenschaften(obj)
+    paare = [(str(w), float(r)) for w, r in waende_rest or () if float(r) > 0]
+    obj.RestWaende = [w for w, _r in paare]
+    obj.RestUnten = max((r for _w, r in paare), default=0.0)
 
 
 def bahn_fuer(
@@ -206,6 +226,7 @@ def bahn_fuer(
     stand=None,
     korrektur=False,
     rest=0.0,
+    waende_rest=(),
 ):
     """Die Bahn „Kontur“ für Modell und Rohteil des Jobs an den Wänden `flaechen` („Face6“ …).
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
@@ -213,7 +234,8 @@ def bahn_fuer(
     nur, wo ein Fräser mit diesem Radius davor nicht hinkam (W-006 4.1 Punkt 5). `stand`: der
     Materialstand davor (materialstand, W-012) – nur, was die Operationen davor übrig ließen.
     `korrektur`: der Schlichtkreis trägt die Kontur für G41/G42 (Konturwerte.korrektur). `rest`:
-    so viel bleibt nach dem Schlichtzug stehen (Konturwerte.rest).
+    so viel bleibt nach dem Schlichtzug stehen (Konturwerte.rest). `waende_rest`: ((Wand, mm) …)
+    – dort endet die Kontur so viel über der Unterkante (Konturwerte.waende_rest).
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
@@ -249,6 +271,7 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
         korrektur=korrektur,
         rest=rest,
+        waende_rest=tuple((str(n), float(r)) for n, r in waende_rest or ()),
     )
     waende = kb.waende(form_teil, list(flaechen))
     netz_nah, netz_fern = hf.netze_ohne(
@@ -274,6 +297,7 @@ def vorschau(
     radius_davor=0.0,
     stand=None,
     rest=0.0,
+    waende_rest=(),
 ):
     """Die Bahn grob – für Lagen, Bahnen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weiter abgetastet. ValueError wie bahn_fuer()."""
@@ -293,6 +317,7 @@ def vorschau(
         radius_davor=radius_davor,
         stand=stand,
         rest=rest,
+        waende_rest=waende_rest,
     )
 
 
@@ -309,6 +334,7 @@ def lege_an(
     radius_davor=0.0,
     korrektur=False,
     rest=0.0,
+    waende_rest=(),
 ):
     """Legt „Kontur“ im Job an – mit `radius_davor` > 0 als „Restmaterial“ – ohne eigene
     Transaktion, die hält der Aufrufer. Tiefen und Höhen wie FreeCADs Operationen
@@ -335,6 +361,7 @@ def lege_an(
     obj.RadiusDavor = radius_davor
     obj.Radiuskorrektur = bool(korrektur)
     obj.Schlichtrest = float(rest)
+    _rest_setzen(obj, waende_rest)
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc, radius_davor), obj)

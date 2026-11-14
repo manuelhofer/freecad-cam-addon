@@ -99,6 +99,8 @@ class Raeumen(PathOp.ObjectOp):
             ("App::PropertySpeed", "Freivorschub", tr("ra.eigenschaft.freivorschub")),
             ("App::PropertyBool", "EngLassen", tr("ra.eigenschaft.eng_lassen")),
             ("App::PropertyLength", "NurEngVon", tr("ra.eigenschaft.nur_eng")),
+            ("App::PropertyStringList", "RestFlaechen", tr("ra.eigenschaft.rest_flaechen")),
+            ("App::PropertyLength", "RestBoden", tr("ra.eigenschaft.rest_boden")),
             ("App::PropertyLength", "Einfahrradius", tr("ko.eigenschaft.einfahrradius")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
@@ -224,7 +226,16 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         schritt=au.wert(obj, rb.SCHRITT),
         eng_lassen=bool(getattr(obj, "EngLassen", False)),
         nur_eng=float(getattr(obj, "NurEngVon", 0.0)),
+        boden_rest=boden_rest_von(obj),
     )
+
+
+def boden_rest_von(obj):
+    """((Fläche, mm) …) – die Böden, auf denen „RestBoden“ statt des Aufmaßes am Boden stehen
+    bleibt (raeumen_bahn.Raeumwerte.boden_rest); leer in alten Dateien und ohne Hobeln."""
+    flaechen = list(getattr(obj, "RestFlaechen", []) or [])
+    rest = float(getattr(obj, "RestBoden", 0.0) or 0.0)
+    return tuple((f, rest) for f in flaechen) if rest > 0 else ()
 
 
 def bahn_fuer(
@@ -253,6 +264,7 @@ def bahn_fuer(
     freivorschub=FREIVORSCHUB,
     eng_lassen=False,
     nur_eng=0.0,
+    boden_rest=(),
 ):
     """Die Bahn „Räumen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – geräumt werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
@@ -260,7 +272,8 @@ def bahn_fuer(
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
     für die Zeit, nach der die Variante fällt; `stand`: der Materialstand davor (materialstand)
     – was die Operationen davor weggenommen haben, fräst es nicht noch einmal. ValueError mit
-    einem Satz, wenn es nicht geht."""
+    einem Satz, wenn es nicht geht. `boden_rest`: ((Fläche, mm) …) – dort bleibt dieser Rest am
+    Boden statt `aufmass_boden` (der Grund einer Dichtnut fürs Hobeln danach)."""
     schnell_frei = variante == ADAPTIV_FREI
     if schnell_frei and (not math.isfinite(freivorschub) or freivorschub <= 0):
         raise ValueError(tr("ra.fehler.freivorschub"))
@@ -318,6 +331,7 @@ def bahn_fuer(
         nur_ueber=nur_ueber,
         eng_lassen=bool(eng_lassen),
         nur_eng=float(nur_eng or 0.0),
+        boden_rest=tuple((str(f), float(r)) for f, r in boden_rest or ()),
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     konturen = konturen_des_teils(form_teil)
@@ -595,6 +609,7 @@ def vorschau(
     freivorschub=FREIVORSCHUB,
     eng_lassen=False,
     nur_eng=0.0,
+    boden_rest=(),
 ):
     """Die Bahn grob – für Lagen, Ringe, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     gröberes Raster. ValueError wie bahn_fuer()."""
@@ -618,6 +633,7 @@ def vorschau(
         freivorschub=freivorschub,
         eng_lassen=eng_lassen,
         nur_eng=nur_eng,
+        boden_rest=boden_rest,
     )
 
 
@@ -766,6 +782,7 @@ def lege_an(
     freivorschub=FREIVORSCHUB,
     eng_lassen=False,
     nur_eng=0.0,
+    boden_rest=(),
 ):
     """Legt „Räumen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und
     Höhen wie FreeCADs Operationen (planfraesen._hoehen); die Endtiefe ist die tiefste Fläche
@@ -792,6 +809,7 @@ def lege_an(
     obj.Freivorschub = freivorschub / 60.0
     obj.EngLassen = bool(eng_lassen)
     obj.NurEngVon = float(nur_eng or 0.0)
+    _rest_setzen(obj, boden_rest)
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
@@ -810,14 +828,16 @@ def _endtiefe(obj, job):
     try:
         form_teil = vs._teil(job.Model.Group)
         namen = list(obj.Flaechen) or hf.oberseite(form_teil)
-        hoehen = [e.z for e in hf.ebenen_oben(form_teil, namen)]
+        rest = dict(boden_rest_von(obj))
+        boden = float(obj.AufmassBoden)
+        hoehen = [e.z + rest.get(e.name, boden) for e in hf.ebenen_oben(form_teil, namen)]
         if any(durchgehend(form_teil, n) for n in namen):
-            hoehen.append(form_teil.BoundBox.ZMin)  # bis durch (durch_ebenen)
+            hoehen.append(form_teil.BoundBox.ZMin + boden)  # bis durch (durch_ebenen)
     except ValueError:
         hoehen = []
     if hoehen:
         obj.setExpression("FinalDepth", None)
-        obj.FinalDepth = min(hoehen) + float(obj.AufmassBoden)
+        obj.FinalDepth = min(hoehen)
 
 
 def aendere(
@@ -833,10 +853,11 @@ def aendere(
     freivorschub=None,
     eng_lassen=None,
     nur_eng=None,
+    boden_rest=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
-    vorgeschlagene ist."""
+    Transaktion; `flaechen` und `boden_rest` ohne bleiben. Der Name folgt dem Werkzeug, solange
+    es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, tr("ra.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
@@ -854,11 +875,22 @@ def aendere(
         obj.EngLassen = bool(eng_lassen)
     if nur_eng is not None and "NurEngVon" in obj.PropertiesList:
         obj.NurEngVon = float(nur_eng)
+    if boden_rest is not None:
+        _rest_setzen(obj, boden_rest)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)
+
+
+def _rest_setzen(obj, boden_rest):
+    """„RestFlaechen“ und „RestBoden“ aus ((Fläche, mm) …) – ein Rest für alle (hobeln.REST)."""
+    if "RestFlaechen" not in obj.PropertiesList:
+        Raeumen._eigenschaften(obj)
+    paare = [(str(f), float(r)) for f, r in boden_rest or () if float(r) > 0]
+    obj.RestFlaechen = [f for f, _r in paare]
+    obj.RestBoden = max((r for _f, r in paare), default=0.0)
 
 
 def _vorgeschlagener_name(name):
