@@ -26,6 +26,7 @@ from camaddon import halter as hl
 from camaddon import kollision as kb
 from camaddon import maschine as m
 from camaddon import postprozessor as pp
+from camaddon import programm_rechnen as pr
 from camaddon import reichweite as rw
 from camaddon import sprache
 from camaddon import verfahren as vf
@@ -88,6 +89,12 @@ null_asm = p._lage(aufnahme_ws).multiply(FreeCAD.Placement(nullpunkt, FreeCAD.Ro
 neben = (null_asm - ursprung) - richtung * (null_asm - ursprung).dot(richtung)
 pruefe(neben.Length < 1e-6, f"Der Nullpunkt liegt {neben.Length:.3f} mm neben A")
 print(ascii(f"Nullpunkt ohne Maschine {tuple(ohne)}, mit {tuple(nullpunkt)}"))
+# „Programm schreiben“ prüft die Reichweite mit demselben Nullpunkt wie „Auf der Maschine prüfen“.
+programm_maschine = pr.maschine_je_operation(job, asm.Document)(op)
+pruefe(
+    programm_maschine is not None and (programm_maschine.nullpunkt - nullpunkt).Length < 1e-9,
+    f"Programm schreiben: Nullpunkt {getattr(programm_maschine, 'nullpunkt', None)}",
+)
 
 # --- Die Spitze, wenn die Maschine die Achswerte eines Satzes fährt (eigene Rechnung) ------------
 aufnahme = p.werkzeugaufnahme(1)

@@ -346,7 +346,7 @@ def vergleichen(
     ]
     if not controller:
         raise ValueError(tr("s5p.fehler.kugel"))
-    nullpunkt = rw.nullpunkt(job)
+    nullpunkt = rw.nullpunkt(job, pruefung)  # mit der Maschine, wie „Auf der Maschine prüfen“
     form = vs._teil(job.Model.Group)
     material = sa.Pruefstand(job, op, bibliothek, fortschritt=fortschritt)
     for name, messung in material.vorher:

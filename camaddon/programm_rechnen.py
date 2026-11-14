@@ -111,7 +111,10 @@ def maschine_je_operation(job, dok):
         from . import magazin as mg
 
         mg.des_jobs(job, werkzeuge, gefunden[0])
-    nullpunkt = rw.nullpunkt(job)
+    # Mit der Maschine: Eine Stange quer zu Z liegt auf ihrer Rundachse (B-037) – so wie
+    # „Auf der Maschine prüfen“; ohne lag sie für die Prüfung der Reichweite im Programm auf dem
+    # Tisch, 50 mm unter A (Zweifler 2026-11-14).
+    nullpunkt = rw.nullpunkt(job, pruefung)
     je_nummer = {}
 
     def fuer(op):
