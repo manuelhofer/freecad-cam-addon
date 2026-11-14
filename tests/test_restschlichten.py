@@ -119,7 +119,7 @@ for raster in (s3.RASTER, s3.VORSCHAU_RASTER):
     else:
         pruefe(False, f"ohne Kehle (Raster {raster}): eine Bahn")
 
-# --- (b2) Die Kuppel endet am Teilboden: der Rest an der Unterkante (B-033) ------------------------
+# --- (b2) Die Kuppel endet am Teilboden: der Rest an der Unterkante (B-033) ---------------------
 # Fuß r 20, dort 53° steil (n_z 0,6). Unter den Boden fährt keine Kugel; die Kugel r berührt die
 # Fläche zuletzt bei z = r (1 − 0,6) ÷ (1 + r/25): Ø 6 bis 1,07 mm, Ø 2 bis 0,38. Bis 0.372.1 rollte
 # Ø 6 über die Kante (kein Rest), danach maß das Restschlichten den Rest ohne den Boden und fuhr

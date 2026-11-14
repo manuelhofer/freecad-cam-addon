@@ -447,7 +447,7 @@ for richtung, radius in (("auto", 3.0), ("auto", 6.0), ("x", 3.0), ("aequidistan
     gerechnet = radius / 2 / (1 + radius / 40)
     pruefe(
         uk is not None and gerechnet - 0.05 < uk.hoehe < gerechnet + 0.25 and uk.dicke > 0.1,
-        f"Unterkante, {richtung}, R {radius:g}: {uk and (uk.hoehe, uk.dicke)} statt {gerechnet:.2f}",
+        f"Unterkante, {richtung}, R {radius:g}: {uk and (uk.hoehe, uk.dicke)}, {gerechnet:.2f}",
     )
     if uk is not None:
         ecken = [e for linie in uk.linien for e in linie]
@@ -455,7 +455,7 @@ for richtung, radius in (("auto", 3.0), ("auto", 6.0), ("x", 3.0), ("aequidistan
         pruefe(
             uk.linien and min(r_l) > 30.0 and max(r_l) < 34.64 + 0.55
             and all(-1e-9 <= e[2] <= uk.hoehe + 1e-9 for e in ecken),
-            f"Unterkante, {richtung}: Linien r {min(r_l, default=0):.2f} … {max(r_l, default=0):.2f}",
+            f"Unterkante, {richtung}: Linien r {min(r_l, default=0):.2f}…{max(r_l, default=0):.2f}",
         )  # fmt: skip
 # Ohne die Grenze (boden weit unten) ginge sie darunter – die Prüfung prüft etwas.
 b_ohne = s3.planen(
