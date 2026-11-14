@@ -3205,8 +3205,62 @@ Quelle selbst gelesen.
   oder Winkel je Satz) – vorher mit dem Fräser geschruppt, Grund und Flanken in Umläufen.
 - **Nicht belegt:** die Belastung der stehenden Spindel (keine Herstellerangabe), Schnittdaten in Kurven,
   der kleinste fahrbare Radius (Überlegung: Eindringen der Innenflanke ≈ L² ÷ 2R).
-- Offen bei Manuel: Verlauf, Maschine, Werkzeug (Frage 1 in `OFFENE_FRAGEN.md`, Bild
-  `docs/bilder/vorschlaege/dichtnut_drei_wege.png`).
+- Bild der drei Wege: `docs/bilder/vorschlaege/dichtnut_drei_wege.png`.
+
+**Manuels Vorgaben (2026-11-14, wörtlich):** „zu der dichtnut .. form muss egal sein wenn ich in einem
+teil eine nut zeichne soll diese nachgefahren werden ... (natürlich wenn man spitze ecken hat geht das
+nicht man braucht schon rundungen sonst klappt das nicht) am liebsten wäre mir es einfach mit xyz und
+winkel der spindel ... man muss natürlich vorher das werkzeug einstellen so das es die richtige richtung
+.. die vorschläge die du da gegeben hast mit den funktionen finde ich dennoch wichtig das du die einbaust
+und als option beim generieren des programs mit anbietest .. aber ich brauch das auch für heidenhein für
+eigentlich alle steuerrungen .. daher ists immer sinnvoll das auch in minischritten ausgeben zu können“.
+
+Daraus (Lesart, nach der gebaut wird):
+
+1. **Jede gezeichnete Nut** wird nachgefahren – rund, Rechteck mit Radien, der Kontur nach, offen oder
+   geschlossen. Spitze Ecken gehen nicht: Dann sagt der Block, welcher Radius fehlt.
+2. **Der Grundweg der Ausgabe ist X, Y, Z und der Winkel der Spindel je Satz**, in kleinen Schritten
+   (Bögen in kurze Stücke geteilt, Schrittlänge einstellbar) – das geht auf jeder Steuerung, auch
+   Heidenhain.
+3. **Die Funktionen der Steuerungen als Option beim Programm schreiben:** Siemens TANG/TANGON (die
+   Steuerung führt nach), bei runden Nuten Interpolationsdrehen (Siemens M70 + SP=, Heidenhain Zyklus
+   291), Fanuc G41.1/G42.1.
+4. **Das Werkzeug wird vorher eingestellt**, sodass die Schneide richtig steht: ein Wert am Werkzeug
+   (bei welchem Spindelwinkel zeigt die Schneide nach +X).
+
+**Bauplan – „Dichtnut hobeln“ (nächste Woche, in dieser Reihenfolge; je Schritt eine Prüfdatei):**
+
+1. *Mittellinie und Maße der Nut* – neben `camaddon/nut_bahn.py`: aus den zwei Wänden und dem Boden
+   einer beliebigen Nut die Mittellinie als Strecken und Bögen, Breite, Tiefe, kleinster Radius, offen
+   oder geschlossen (die ringförmige Nut kennt `nut_bahn` schon; `kontur_bahn.konturen` und der Versatz
+   dort liefern Wandzüge). Ablehnen mit Satz: spitze Ecke, wechselnde Breite, Radius zu klein für die
+   Klinge (Eindringen der Innenflanke ≈ L² ÷ 2R gegen das Spiel Nutbreite − Klingenbreite).
+2. *Spindelwinkel in der Bahn* – `camaddon/bahn.py`: `Punkt` bekommt einen Winkel (None: wie bisher);
+   `bahn.befehle` gibt ihn weiter. Neue Bahn `camaddon/hobeln_bahn.py`: tangential in der Luft anfahren,
+   Umläufe mit Zustellung je Umlauf (als Rampe über einen Umlauf, damit kein Absatz bleibt), Leerumläufe
+   am Ende, bei offener Nut der Rückweg abgehoben; Winkel = Richtung der Bahn + Versatz des Werkzeugs.
+   Zahlen fürs Fenster: Umläufe, Zustellung, Bahnlänge, Zeit – neben der Fräszeit derselben Nut.
+3. *Werkzeug* – `camaddon/werkzeuge.py`: Art „Hobelklinge“ (Breite, Länge hinter der Schneide,
+   Winkelversatz); Schnittwerte ohne Drehzahl: Zustellung je Umlauf (Vorgabe aus Horns Grenze 0,3 mm,
+   vorsichtig 0,05) und Vorschub.
+4. *Operation und Block* – `camaddon/hobeln.py`, Block im Assistenten nach der Nut (Vorbild `_Ringnut`):
+   Die Nut-Strategie schruppt vorher mit Aufmaß an Grund und Flanken; Messstopp und Leerumläufe wie in
+   13.9. Fehlt das Werkzeug: Knopf zum Anlegen.
+5. *Programm* – `camaddon/postprozessor.py`, `klartext.py`: Spindel **steht** (kein M3, auch nicht nach
+   dem Messstopp), vor dem ersten Schnitt orientieren; je Satz der Winkel. **Vorher je Steuerung im
+   Handbuch nachlesen, wie der Winkel im Bewegungssatz mitfährt, ohne dass die Bahn je Satz anhält**
+   (Siemens: Spindel im Achsbetrieb als Rundachse im Satz; Heidenhain: nachlesen – M19/Zyklus 13 halten
+   an, und die Steuerung kann Vorschub bei stehender Spindel sperren; Fanuc: Cs-Achse). Wo das nicht
+   geht: Halt je Satz, und der Block sagt es. Optionen im Fenster „Programm schreiben“: TANG-Verband
+   (Siemens), Interpolationsdrehen bei runder Nut, Fanuc-Normalenrichtung. Schrittlänge einstellbar.
+6. *Prüfen* – eigene Prüfung „Klinge gegen Nutwände“ (Vorbild `ringnut_bahn.pruefen`); Materialstand,
+   Abfahren und Kollision behandeln die Klinge nicht als Rotationskörper (wie bei der Ringnut: ehrlich
+   ausnehmen, eigene Prüfung zählt). Vorschau: die Klinge als Strich an einigen Stellen.
+7. *Rest* – Beispielteil (Deckel mit umlaufender Nut, Radien), Hilfe de/en, Szenario, Bild.
+
+**Vorsicht (nicht belegt):** wie viel die stehende Spindel aushält – in die Hilfe schreiben, nicht
+verschweigen. Ob die 840D powerline TANG hat und die Spindel als Folgeachse nimmt, zeigt nur die
+Maschine; der Grundweg (Winkel je Satz) braucht beides nicht.
 
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 

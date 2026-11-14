@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-10 dichtnut-hobeln-vorgaben
+
+### EINGELESEN
+- Manuels Antwort auf die Frage zur Dichtnut (2026-11-14, wörtlich unten); Recherche P-2026-11-14-09.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (13.10: Vorgaben, Lesart, Bauplan in sieben Schritten),
+  `docs/OFFENE_FRAGEN.md` (Frage heraus), `docs/STATUS_SNAPSHOT.md` („Nächster Schritt“).
+
+### ERGEBNIS
+- Manuel: „so folgendes nur aufschreiben für später ... : zu der dichtnut .. form muss egal sein wenn ich
+  in einem teil eine nut zeichne soll diese nachgefahren werden ... (natürlich wenn man spitze ecken hat
+  geht das nicht man braucht schon rundungen sonst klappt das nicht) am liebsten wäre mir es einfach mit
+  xyz und winkel der spindel ... man muss natürlich vorher das werkzeug einstellen so das es die richtige
+  richtung .. die vorschläge die du da gegeben hast mit den funktionen finde ich dennoch wichtig das du
+  die einbaust und als option beim generieren des programs mit anbietest .. aber ich brauch das auch für
+  heidenhein für eigentlich alle steuerrungen .. daher ists immer sinnvoll das auch in minischritten
+  ausgeben zu können is ja klar ...“ – und: nächste Woche weitermachen, bis dahin nichts mehr.
+- Nichts gebaut. Weiter mit Schritt 1 des Bauplans (Mittellinie und Maße einer beliebigen Nut).
 ## P-2026-11-14-09 dichtnut-hobeln-recherche
 
 ### EINGELESEN

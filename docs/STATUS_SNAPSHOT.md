@@ -539,10 +539,12 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
 2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
    über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). Offen: „Bohrung fräsen“ und die Nut als
    zwei gleiche Schnitte.
-3. *Dichtnut hobeln* (neu, Manuels Wunsch): **recherchiert** (Spezifikation Strategien 13.10) – es heißt
-   Hobeln bzw. bei runden Nuten Interpolationsdrehen; für eine nicht runde Nut braucht es die mitgedrehte
-   Spindel (Siemens TANG, eine Option). Gebaut wird nach Manuels Antwort auf Frage 1 (Verlauf, Maschine,
-   Werkzeug).
+3. *Dichtnut hobeln* (neu, Manuels Wunsch) – **hier geht es nächste Woche weiter.** Recherchiert, Manuels
+   Vorgaben vom 14.11. liegen vor: jede gezeichnete Nut nachfahren (Rundungen vorausgesetzt), Ausgabe als
+   X, Y, Z und Spindelwinkel je Satz in kleinen Schritten für alle Steuerungen (auch Heidenhain), die
+   Funktionen der Steuerungen (TANG, Interpolationsdrehen, Zyklus 291) als Option beim Programm schreiben,
+   das Werkzeug vorher ausgerichtet. **Bauplan in sieben Schritten: Spezifikation Strategien 13.10** –
+   mit Schritt 1 (Mittellinie und Maße der Nut) anfangen. Noch nichts gebaut.
 4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
    „Ringnut fräsen“ bleibt als Option, wie gebaut.
 
