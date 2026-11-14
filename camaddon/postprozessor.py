@@ -1106,14 +1106,20 @@ STEUERUNGEN["woodwop_weeke"] = Steuerung("woodwop_weeke", "Weeke woodWOP (MPR)",
 # Der Spindelwinkel je Satz beim Hobeln (Spezifikation Strategien 13.10, Recherche vom 14.11.):
 # Siemens – SPOS im Bewegungssatz, „DC“ der kürzeste Weg (Programmierhandbuch 03/2013, 7.4: der
 # nächste Satz erst, wenn die Position steht); Heidenhain – Zyklus 13 ORIENTIERUNG mit M19
-# (TNC-640-Zyklenhandbuch); LinuxCNC und Haas – M19 R (orientieren, Winkel in Grad). Fanuc, Mazak
-# und Mach orientieren je Maschine anders (Parameter, Makro): Dort trägt man es unter „Befehle“ ein,
-# bis dahin sagt das Programm es (pp.hinweis.spindel_winkel). GRBL kennt keine Spindelorientierung.
+# (TNC-640-Zyklenhandbuch); LinuxCNC und Haas – M19 R (orientieren, Winkel in Grad); Fanuc –
+# M19 S mit dem Winkel in ganzen Grad (Option „Spindelorientierung mit Winkel“, 18i-Handbuch: „the
+# stopping angle is programmed through the optional address S“; ohne die Option nur über einen
+# Parameter); Mach4 – M19 S in Grad (MachMotion, Mach4 Advanced M-Code Reference). Mazak: M19 fährt
+# je Maschine eine feste Lage (Parameter) – kein belegter Satz, dort trägt man es unter „Befehle“
+# ein (pp.hinweis.spindel_winkel). GRBL und woodWOP können es nicht (pp.hinweis.spindel_winkel_nie).
+# {w} der Winkel mit Nachkommastellen, {w0} in ganzen Grad.
 _HH_ORIENTIEREN = "CYCL DEF 13.0 ORIENTIERUNG\nCYCL DEF 13.1 WINKEL {w}\nL M19"
 _SPINDEL_WINKEL = {
     "siemens": ("", " SPOS=DC({w})"),
     "linuxcnc": ("M19 R{w}", ""),
     "haas": ("M19 R{w}", ""),
+    "fanuc": ("M19 S{w0}", ""),
+    "mach": ("M19 S{w}", ""),
     "heidenhain": (_HH_ORIENTIEREN, ""),
     "heidenhain_tnc640": (_HH_ORIENTIEREN, ""),
 }
@@ -1121,6 +1127,7 @@ for _kennung, (_vor, _satz) in _SPINDEL_WINKEL.items():
     STEUERUNGEN[_kennung] = dataclasses.replace(
         STEUERUNGEN[_kennung], spindel_winkel_vor=_vor, spindel_winkel_satz=_satz
     )
+SPINDEL_WINKEL_NIE = ("grbl", "woodwop", "woodwop_weeke")  # ohne Spindelorientierung
 SPINDEL_NOTIZ = "SPINDEL "  # der Kommentar mit dem Winkel vor einem Satz (hobeln_bahn.SPINDEL)
 
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
@@ -2198,7 +2205,10 @@ def programm(
                     except ValueError:
                         spindel_winkel = None
                     if not (s.spindel_winkel_vor or s.spindel_winkel_satz):
-                        hinweis = tr("pp.hinweis.spindel_winkel", steuerung=s.name)
+                        if s.kennung in SPINDEL_WINKEL_NIE:
+                            hinweis = tr("pp.hinweis.spindel_winkel_nie", steuerung=s.name)
+                        else:
+                            hinweis = tr("pp.hinweis.spindel_winkel", steuerung=s.name)
                         if hinweis not in hinweise:
                             hinweise.append(hinweis)
                     continue
@@ -2477,10 +2487,11 @@ def programm(
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert, stellen)))
             if spindel_winkel is not None and bewegung:
                 w_text = _zahl(spindel_winkel, 3)
+                w_ganz = str(int(round(spindel_winkel)) % 360)
                 if s.spindel_winkel_vor:
-                    zeilen.extend(_zeilen(_fuellen(s.spindel_winkel_vor, w=w_text)))
+                    zeilen.extend(_zeilen(_fuellen(s.spindel_winkel_vor, w=w_text, w0=w_ganz)))
                 if s.spindel_winkel_satz:
-                    woerter.append(_fuellen(s.spindel_winkel_satz, w=w_text).strip())
+                    woerter.append(_fuellen(s.spindel_winkel_satz, w=w_text, w0=w_ganz).strip())
                 spindel_winkel = None
             zeile = " ".join(woerter)
             if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:

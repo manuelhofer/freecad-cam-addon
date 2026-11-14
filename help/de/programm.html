@@ -223,8 +223,11 @@ hat 0 U/min, kein M3) und dreht sich je Satz in Fahrtrichtung. Wie der Winkel in
 steht in zwei Befehlen: <b>Spindelwinkel vor dem Satz</b> (Zeilen davor) und <b>Spindelwinkel im
 Satz</b> (hängt am Bewegungssatz); <code>{w}</code> ist der Winkel in Grad. Vorbelegt: Siemens
 „SPOS=DC({w})“ im Satz, Heidenhain Zyklus 13 ORIENTIERUNG mit „L M19“ davor, LinuxCNC und Haas
-„M19 R{w}“ davor. Fanuc, Mazak und Mach orientieren je Maschine anders (Parameter, Makro) – dort
-trägst du es ein; sonst sagt das Programm, dass es fehlt. So wartet jeder Satz, bis die Spindel
+„M19 R{w}“ davor, Fanuc „M19 S{w0}“ (ganze Grad; die Option „Spindelorientierung mit Winkel“ muss
+da sein – sonst stellt die Maschine nur über einen Parameter), Mach4 „M19 S{w}“. Mazak stellt mit
+M19 eine feste Lage aus einem Parameter – dort trägst du ein, wie deine Maschine es kann; sonst sagt
+das Programm, dass es fehlt. GRBL und woodWOP können die Spindel nicht auf einen Winkel stellen. Für
+eine Steuerung, die nicht in der Liste steht, nimm die nächstverwandte und trag den Befehl ein. So wartet jeder Satz, bis die Spindel
 steht – die Bahn hält je Satz kurz an. Kann deine Maschine die Spindel als Rundachse in der Bahn
 mitfahren (Siemens nach M70, je nach Maschine „C“), trägst du das im Satz ein, etwa
 „C=DC({w})“, und das Umschalten beim Werkzeugwechsel. Die Spindel dreht schon über der Nut in

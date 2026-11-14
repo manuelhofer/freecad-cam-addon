@@ -239,7 +239,7 @@ pruefe(abs(float(op.FinalDepth) - 8.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)}
 notizen = [b.Name for b in op.Path.Commands if b.Name.startswith("(SPINDEL ")]
 pruefe(len(notizen) > 100, f"nur {len(notizen)} Spindelwinkel")
 programme = {}
-for kennung in ("siemens", "heidenhain", "linuxcnc", "grbl"):
+for kennung in ("siemens", "heidenhain", "linuxcnc", "grbl", "fanuc", "mach", "mazak"):
     programme[kennung] = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), None, "Hobeln")
     zeilen = programme[kennung].zeilen
     pruefe(not any("SPINDEL" in z for z in zeilen), f"{kennung}: Notiz im Programm")
@@ -251,7 +251,13 @@ hh = programme["heidenhain"].zeilen
 pruefe(sum("CYCL DEF 13.1 WINKEL " in z for z in hh) > 100, "Heidenhain: kein Zyklus 13")
 pruefe(sum("M19 R" in z for z in programme["linuxcnc"].zeilen) > 100, "LinuxCNC: kein M19 R")
 hinweise = " ".join(programme["grbl"].hinweise)
-pruefe("orientieren" in hinweise, f"GRBL ohne Hinweis: {hinweise[:200]}")
+pruefe("hobeln geht damit nicht" in hinweise, f"GRBL ohne Hinweis: {hinweise[:200]}")
+# Fanuc: M19 S in ganzen Grad davor; Mach4: M19 S; Mazak ohne belegten Satz – der Hinweis.
+fanuc = [z for z in programme["fanuc"].zeilen if z.startswith("M19 S")]
+pruefe(len(fanuc) > 100 and all(z.split("S")[1].isdigit() for z in fanuc), f"Fanuc: {fanuc[:3]}")
+pruefe(sum(z.startswith("M19 S") for z in programme["mach"].zeilen) > 100, "Mach: kein M19 S")
+mazak = " ".join(programme["mazak"].hinweise)
+pruefe("Befehle" in mazak, f"Mazak ohne Hinweis: {mazak[:200]}")
 print(ascii(f"Programm: Siemens {len(si)} Zeilen, {spos[0] if spos else ''}"))
 # Die Spindel dreht über der Nut in Richtung, nicht erst beim Eintauchen in die gefräste Nut.
 erster = next(i for i, z in enumerate(si) if "SPOS=DC(" in z)

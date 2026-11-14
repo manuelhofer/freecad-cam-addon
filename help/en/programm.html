@@ -220,8 +220,12 @@ shaping tool has 0 rpm, no M3) and turns into the direction of travel with every
 angle gets into the block is set by two commands: <b>Spindle angle before the block</b> (lines
 before it) and <b>Spindle angle in the block</b> (appended to the move); <code>{w}</code> is the angle in
 degrees. Preset: Siemens “SPOS=DC({w})” in the block, Heidenhain cycle 13 ORIENTATION with “L M19”
-before, LinuxCNC and Haas “M19 R{w}” before. Fanuc, Mazak and Mach orient differently on every
-machine (parameter, macro) – enter it there; otherwise the program says it is missing. Every block
+before, LinuxCNC and Haas “M19 R{w}” before, Fanuc “M19 S{w0}” (whole degrees; the option
+“spindle orientation with angle” must be present – otherwise the machine only orients via a
+parameter), Mach4 “M19 S{w}”. Mazak orients to a fixed position from a parameter with M19 – enter
+what your machine can do there; otherwise the program says it is missing. GRBL and woodWOP cannot set
+the spindle to an angle. For a control that is not in the list, take the closest relative and enter
+the command. Every block
 then waits until the spindle is in position – the path stops briefly at each block. If your
 machine can move the spindle as a rotary axis along the path (Siemens after M70, depending on the
 machine “C”), enter that in the block, e.g. “C=DC({w})”, and the switch at the tool change. The
