@@ -54,6 +54,7 @@ from camaddon import restmaterial as rm
 from camaddon import sprache
 from camaddon import verfahren as vf
 from camaddon import vierachs_achsen as va
+from camaddon import vierachs_bahn as vb
 from camaddon import vierachs_huelle as vh
 from camaddon import vierachs_operation as vo
 from camaddon import vierachs_plan as vplan
@@ -496,36 +497,134 @@ FreeCAD.closeDocument(doc.Name)
 # --- Plan indexiert: eine vorn offene Fläche bis an die Stirn ------------------------------------
 # Welle Ø 50 × 100, oben eine Fläche bei z 10 über die vorderen 40 mm (Zweifler: mit Reitstock
 # fräste die Bahn sie bis 0.377 nur bis X −8,25 – 8,25 mm blieben 15 mm hoch stehen).
-doc = FreeCAD.newDocument("FlaecheVorn")
+# B-038 (Zweifler 2026-11-14): Vorn kann die Bahn mit Reitstock nicht ausfahren (die Pinole), sie
+# taucht hinten neben der Schulter ein – bis 0.379 im Eilgang 0,37 mm neben der Wand, „Auf der
+# Maschine prüfen“ meldete es. Geprüft, mit und ohne Reitstock (T1 Ø 16 mit Halter ER32/SK40):
+# jeder Eilgang mindestens den Sicherheitsabstand vom Fertigteil (der Fräser als Zylinder, je
+# Satz), die Kollision ohne Befund, der Rest wie ohne Reitstock.
 eben = Part.makeCylinder(25.0, 100.0, V(), V(1, 0, 0)).cut(Part.makeBox(40, 60, 30, V(60, -30, 10)))
 eben = eben.removeSplitter()
-mit_flaeche = doc.addObject("Part::Feature", "Teil")
-mit_flaeche.Shape = eben
-doc.recompute()
-stirn = next(
-    f for f in eben.Faces if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+t1.durchmesser, t1.schneidenlaenge = 16.0, 30.0
+reste = {}
+for mit in (True, False):
+    doc = FreeCAD.newDocument(f"FlaecheVorn{int(mit)}")
+    mit_flaeche = doc.addObject("Part::Feature", "Teil")
+    mit_flaeche.Shape = eben
+    doc.recompute()
+    stirn = next(
+        f for f in eben.Faces if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+    )
+    lage = vr.berechne(eben, stirn, achse, durchmesser=50)
+    job = vr.richte_ein(doc, mit_flaeche, lage, vr.Stange(50.0, reitstock=mit), achse)
+    tc = job.Tools.Group[0]
+    tc.Tool.Diameter, tc.ToolNumber, tc.HorizFeed, tc.SpindleSpeed = 16, 1, "800 mm/min", 4000
+    modell = vr.modell(job).Shape
+    flaeche = next(
+        f"Face{i + 1}"
+        for i, f in enumerate(modell.Faces)
+        if vr.ist_eben(f) and abs(f.normalAt(0, 0).z - 1.0) < 1e-6 and f.BoundBox.ZMax < 11
+    )
+    plan = vplan.lege_an(
+        job, tc, achse, 4.0, 8.0, aufmass=0.0, flaechen=[flaeche], halter=hl.seitlich(halter)
+    )
+    doc.recompute()
+    sicherheit = float(plan.Sicherheitsabstand)
+    stand, auf_der_flaeche = {"X": 0.0, "Y": 0.0, "Z": 0.0, "A": 0.0}, []
+    naechster = (math.inf, None)
+    for i, b in enumerate(plan.Path.Commands):
+        stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZA"})
+        if b.Name == "G1" and stand["Z"] < 11.0:
+            auf_der_flaeche.append(stand["X"])
+        if b.Name == "G0":
+            dreh = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * stand["A"])
+            spitze = dreh.multVec(V(stand["X"], stand["Y"], stand["Z"]))
+            fraeser = Part.makeCylinder(8.0, 60.0, spitze, dreh.multVec(V(0, 0, 1)))
+            naechster = min(naechster, (fraeser.distToShape(modell)[0], i))
+    print(
+        ascii(
+            f"Plan vorn offen, Reitstock {mit}: G1 auf der Fläche bis X "
+            f"{max(auf_der_flaeche, default=None)}; nächster Eilgang {naechster[0]:.3f} mm "
+            f"vom Teil (Satz {naechster[1]})"
+        )
+    )
+    pruefe(
+        auf_der_flaeche and max(auf_der_flaeche) >= 0.0,
+        f"Reitstock {mit}: Fläche bis X {max(auf_der_flaeche, default=None)}",
+    )
+    pruefe(
+        naechster[0] >= sicherheit - 0.05,
+        f"Reitstock {mit}: Eilgang {naechster[0]:.3f} mm am Teil (Satz {naechster[1]})",
+    )
+    rs.anstellen(asm, ma, job)
+    p = rw.Pruefung(asm, ma)
+    nullpunkt = rw.nullpunkt(job, p)
+    fahrt = ab.abfahrt(p, job, nullpunkt, bib)
+    texte = [b.text() for b in kb.kollision(fahrt, job, nullpunkt, bib).befunde]
+    abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
+    abtrag.bis_station(len(fahrt.stationen) - 1)
+    reste[mit] = abtrag.vergleich()
+    print(
+        ascii(
+            f"  Kollision {texte[:3]}; Rest {reste[mit].kleinster:.3f} … "
+            f"{reste[mit].groesster:.3f} mm"
+        )
+    )
+    pruefe(not texte, f"Plan vorn offen, Reitstock {mit}: {texte[:3]}")
+    pruefe(reste[mit].kleinster > -rm.BLAU_AB, f"ins Teil: {reste[mit].kleinster:.3f} mm")
+    FreeCAD.closeDocument(doc.Name)
+pruefe(
+    abs(reste[True].groesster - reste[False].groesster) < 0.05,
+    f"Rest mit Reitstock bis {reste[True].groesster:.3f}, ohne {reste[False].groesster:.3f}",
 )
-lage = vr.berechne(eben, stirn, achse, durchmesser=50)
-job = vr.richte_ein(doc, mit_flaeche, lage, vr.Stange(50.0, reitstock=True), achse)
-tc = job.Tools.Group[0]
-tc.Tool.Diameter, tc.ToolNumber, tc.HorizFeed, tc.SpindleSpeed = 16, 1, "800 mm/min", 4000
-modell = vr.modell(job).Shape
-flaeche = next(
-    f"Face{i + 1}"
-    for i, f in enumerate(modell.Faces)
-    if vr.ist_eben(f) and abs(f.normalAt(0, 0).z - 1.0) < 1e-6 and f.BoundBox.ZMax < 11
-)
-plan = vplan.lege_an(job, tc, achse, 4.0, 8.0, aufmass=0.0, flaechen=[flaeche])
-doc.recompute()
-stand, auf_der_flaeche = {"X": 0.0, "Y": 0.0, "Z": 0.0}, []
-for b in plan.Path.Commands:
-    stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZ"})
-    if b.Name == "G1" and stand["Z"] < 11.0:
-        auf_der_flaeche.append(stand["X"])
-print(ascii(f"Plan vorn offen: G1 auf der Fläche bis X {max(auf_der_flaeche, default=None)}"))
-pruefe(auf_der_flaeche and max(auf_der_flaeche) >= 0.0, f"Fläche bis X {max(auf_der_flaeche)}")
-FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)
+
+# --- Die allgemeine Prüfung der Eilgänge (B-038, vierachs_planbahn._eilgaenge_sichern) ----------
+# Vor a 10 steht etwas bis 20 hoch: Ein Eilgang darf dort nur bis 22 hinab. Senkrecht bis 12: im
+# Eilgang bis 22, der Rest im Eintauchvorschub; quer in der Höhe 12 hinüber: erst hinauf auf 22,
+# dann hinüber, hinab im Vorschub. Ein Eilgang im ausgelassenen Bereich (Bohren in Hüben) bleibt.
+
+
+def tiefst_wand(a, q, phi):
+    return np.where(np.asarray(a, dtype=float) < 10.0, 22.0, -math.inf)
+
+
+P = vb.Punkt
+roh = [
+    P(True, 20.0, 30.0, 0.0),
+    P(True, 5.0, 30.0, 0.0),
+    P(True, 5.0, 12.0, 0.0),  # senkrecht hinab, zu tief
+    P(False, 5.0, 10.0, 0.0, True),
+    P(True, 5.0, 30.0, 0.0),  # hinauf: frei
+    P(True, 20.0, 30.0, 0.0),
+    P(True, 20.0, 12.0, 0.0),  # hinab im Freien: bleibt
+    P(True, 5.0, 12.0, 0.0),  # quer an die Wand, zu tief
+    P(False, 5.0, 10.0, 0.0, True),
+    P(True, 5.0, 30.0, 0.0),
+    P(True, 5.0, 12.0, 0.0),  # ausgelassen
+]
+gesichert, anzahl = vp._eilgaenge_sichern(roh, tiefst_wand, [(10, 11)])
+soll = [
+    P(True, 20.0, 30.0, 0.0),
+    P(True, 5.0, 30.0, 0.0),
+    P(True, 5.0, 22.0, 0.0),
+    P(False, 5.0, 12.0, 0.0, True),
+    P(False, 5.0, 10.0, 0.0, True),
+    P(True, 5.0, 30.0, 0.0),
+    P(True, 20.0, 30.0, 0.0),
+    P(True, 20.0, 12.0, 0.0),
+    P(True, 20.0, 22.0, 0.0),
+    P(True, 5.0, 22.0, 0.0),
+    P(False, 5.0, 12.0, 0.0, True),
+    P(False, 5.0, 10.0, 0.0, True),
+    P(True, 5.0, 30.0, 0.0),
+    P(True, 5.0, 12.0, 0.0),
+]
+pruefe(
+    anzahl == 2 and gesichert == soll,
+    f"Eilgänge gesichert ({anzahl}): {[(p.eilgang, p.a, p.r) for p in gesichert]}",
+)
+nichts, null = vp._eilgaenge_sichern(roh[:2], tiefst_wand)
+pruefe(null == 0 and nichts == roh[:2], "Eilgang in der Höhe 30 geändert")
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
