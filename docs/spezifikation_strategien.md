@@ -3168,7 +3168,7 @@ dann messsen ... dann vertigschlichten ... und dann nochmal vertig schlichten ..
   „Leerfahrt nach jedem Schnitt“ aus. Alles einstellbar, auch das Ende.
 - Prüfung `tests/test_gangfolge.py`; im Fenster `tests/gui/szenario_beta_schritte.py`, Schritt 4c.
 
-### 13.10 Dichtnut hobeln – Recherche (2026-11-14, noch nicht gebaut)
+### 13.10 Dichtnut hobeln – Recherche und Bau (2026-11-14; Schritte 1–5 ohne Assistent gebaut)
 
 Manuel, 2026-11-14: „eine nut in einem deckel die mit einem "stech" oder "scharb" werkzeug sozusagen
 rausgekratzt wird … da man dadurch unten am grund auch ne dichtfläche hinbekommen würde und nicht wie
@@ -3251,13 +3251,27 @@ Daraus (Lesart, nach der gebaut wird):
    Umläufe mit Zustellung je Umlauf (als Rampe über einen Umlauf, damit kein Absatz bleibt), Leerumläufe
    am Ende, bei offener Nut der Rückweg abgehoben; Winkel = Richtung der Bahn + Versatz des Werkzeugs.
    Zahlen fürs Fenster: Umläufe, Zustellung, Bahnlänge, Zeit – neben der Fräszeit derselben Nut.
-3. *Werkzeug* – `camaddon/werkzeuge.py`: Art „Hobelklinge“ (Breite, Länge hinter der Schneide,
+3. *Werkzeug* – **gebaut (2026-11-14):** Art „Stoßwerkzeug (steht in der Spindel)“
+   (`werkzeuge.STOSSWERKZEUG`, Felder Schneidenbreite, `klingenlaenge`, `spindelwinkel`), an FreeCAD
+   als Schaftfräser in Schneidenbreite (für Materialstand und Abfahren von oben gesehen gleich); noch
+   ohne Einsatz – Zustellung und Vorschub stehen an der Operation. Der Plan war – `camaddon/werkzeuge.py`: Art „Hobelklinge“ (Breite, Länge hinter der Schneide,
    Winkelversatz); Schnittwerte ohne Drehzahl: Zustellung je Umlauf (Vorgabe aus Horns Grenze 0,3 mm,
    vorsichtig 0,05) und Vorschub.
-4. *Operation und Block* – `camaddon/hobeln.py`, Block im Assistenten nach der Nut (Vorbild `_Ringnut`):
+4. *Operation und Block* – **Operation gebaut (2026-11-14):** `camaddon/hobeln.py`
+   (`DichtnutHobeln`, `lege_an`, `controller` – Spindel „None“, 0 U/min, Vorschub = Hub 6000 mm/min;
+   Eigenschaften Zustellung 0,05, Rest 0,2, Aufmaß, Leerumläufe, Satzlänge); Beispielteil
+   `beispiele/dichtnut_deckel.FCStd`. **Offen: der Block im Assistenten** – er braucht einen Einsatz
+   „Hobeln“ fürs Stoßwerkzeug (heute zeigt der Assistent nur Werkzeuge mit Einsätzen). Der Plan: `camaddon/hobeln.py`, Block im Assistenten nach der Nut (Vorbild `_Ringnut`):
    Die Nut-Strategie schruppt vorher mit Aufmaß an Grund und Flanken; Messstopp und Leerumläufe wie in
    13.9. Fehlt das Werkzeug: Knopf zum Anlegen.
-5. *Programm* – `camaddon/postprozessor.py`, `klartext.py`: Spindel **steht** (kein M3, auch nicht nach
+5. *Programm* – **Grundweg gebaut (2026-11-14):** je Satz der Winkel aus der Notiz „(SPINDEL w)“,
+   je Steuerung zwei neue Befehle (`spindel_winkel_vor`: Zeilen vor dem Satz, `spindel_winkel_satz`:
+   am Satz), im Fenster „Befehle“ änderbar: Siemens `SPOS=DC(w)` im Bewegungssatz, Heidenhain Zyklus 13
+   ORIENTIERUNG + `L M19` davor, LinuxCNC und Haas `M19 R` davor; Fanuc, Mazak, Mach und GRBL ohne
+   Vorgabe – dann sagt das Programm, dass sie fehlt. Die Spindel dreht schon über der Nut in Richtung
+   (nicht erst in der gefrästen Nut, wo die Klinge an die Wände stieße). **So hält die Bahn je Satz
+   an** (der nächste Satz erst, wenn die Spindel steht) – die Optionen ohne Halt (TANG, Spindel als
+   Rundachse, Interpolationsdrehen) sind noch offen. Der Plan war – `camaddon/postprozessor.py`, `klartext.py`: Spindel **steht** (kein M3, auch nicht nach
    dem Messstopp), vor dem ersten Schnitt orientieren; je Satz der Winkel. **Vorher je Steuerung im
    Handbuch nachlesen, wie der Winkel im Bewegungssatz mitfährt, ohne dass die Bahn je Satz anhält**
    (Siemens: Spindel im Achsbetrieb als Rundachse im Satz; Heidenhain: nachlesen – M19/Zyklus 13 halten
