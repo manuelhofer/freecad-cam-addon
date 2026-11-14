@@ -549,7 +549,7 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
 5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – **gebaut in 0.376.0**
    („C, A −90° – Rohr im Futter auf dem Rundtisch“), B-037 behoben; Kopf/Tisch geht schon. **Offen:** die
    4. Achse auf einer 3-Achs-Fräse – **gebaut in 0.379.0** (Beispielmaschine „3-Achs-Fräse mit 4. Achse“,
-   Teilapparat A längs X mit Dreibackenfutter, Reitstock als Haken). Offen: B-038.
+   Teilapparat A längs X mit Dreibackenfutter, Reitstock als Haken); B-038 behoben in 0.379.2.
 4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
    „Ringnut fräsen“ bleibt als Option, wie gebaut.
 
@@ -3060,8 +3060,11 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   klären – kinematisch ist es dieselbe Lage wie eine 4. Achse längs X mit Werkzeug von oben.
   Nächste freie Nummer B-038.
 
-- B-038 **Plan indexiert mit Reitstock: Eilgang 0,37 mm neben einer Schulter** (offen, vom Zweifler am
-  2026-11-14 gefunden): Ist die Fläche vorn offen und steht dort der Reitstock, kann die Bahn vorn nicht
+- B-038 **Plan indexiert mit Reitstock: Eilgang 0,37 mm neben einer Schulter** (**behoben in 0.379.2**,
+  P-2026-11-15-10: der Eilgang hinab hält jetzt den Sicherheitsabstand zum Fertigteil UND zum stehenden
+  Rohteil – je Stelle im Umkreis Fräserradius + Abstand, mit einem eigenen Materialraster der Plan-Bahn;
+  eine allgemeine Prüfung am Ende jeder Plan-Bahn; Zweifler-Fund dabei: vorher bis 0,12 mm neben
+  Rohteil, auch ohne Reitstock 0,145 mm an einer Schulter; vom Zweifler am 2026-11-14 gefunden): Ist die Fläche vorn offen und steht dort der Reitstock, kann die Bahn vorn nicht
   ausfahren und taucht im Eilgang neben der Schulter ein (Satz 176/177); „Auf der Maschine prüfen“ meldet
   es (Kollision). Behebung in `vierachs_planbahn`: Eintauchstelle mit Radius + Sicherheit zur Wand oder
   im Vorschub eintauchen. Nachstellen: `~/freecad_cam/wip/strategien/vierte_achse/nach/zw_eng.py`.

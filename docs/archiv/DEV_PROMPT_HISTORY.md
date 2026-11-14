@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-10 b038-eilgang-plan-indexiert
+
+### EINGELESEN
+- B-038 (Zweifler der 4. Achse, 2026-11-14): Plan indexiert taucht mit Reitstock im Eilgang 0,37 mm neben
+  einer Schulter ein. Grundsatz (Manuel): Fertigteil nie beschädigen, Eilgang nie im oder dicht am Material.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py` (_frei_ab, _abwaerts, _hinaus, _Stand, _eilgaenge_sichern,
+  _im_stand_sichern); `tests/test_vierachs_vierte_achse.py`; `docs/STATUS_SNAPSHOT.md`; `package.xml`
+  0.379.2.
+
+### ERGEBNIS
+- Ursache: Die Helix prüfte nur, ob ihr Kreis im Feld liegt, nicht den Eilgang hinab zu ihrem Anfang; der
+  Materialstand wurde nur unter der Spitze gelesen. Jetzt: Eilgang hinab nur bis Sicherheitsabstand über
+  Teil (mit Reitstock-Schutz) und stehendem Rohteil im Umkreis Fräserradius + Abstand, den Rest im
+  Eintauchvorschub; allgemeine Prüfung jeder Plan-Bahn am Ende. Workflow Bauer + Zweifler (Fund:
+  Rohteil-Schulter 0,12 mm, auch ohne Reitstock 0,145 mm) + Nacharbeit; Gegenprobe auf altem Code rot.
+- Zeiten test_vierachs_plan (30 Bahnen): 2404,96 → 2312,44 s zusammen (14 Bahnen länger, wo der Eilgang zu
+  nah kam; die anderen kürzer durch schnellen Eilgang vor der Stange).
+- Geprüft: test_vierachs_vierte_achse, _plan, _geschwenkt, _kurvennut, _achsen, _pruefen, _a_achse,
+  test_restmaterial, test_sprache, test_goldene_bahnen; Szenarien vierachs_vierte_achse, vierachs_plan.
 ## P-2026-11-15-09 voller-lauf-141126
 
 ### EINGELESEN
