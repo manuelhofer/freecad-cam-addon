@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-11 eilgang-alle-vierachs-bahnen
+
+### EINGELESEN
+- Aus B-038 (Bauer): Rundum-Bahnen fahren im Eilgang auf Stangenradius + Sicherheitsabstand; mit Reitstock
+  liegt der Pinolen-Schutz höher. Grundsatz (Manuel): Eilgang nie im oder dicht am Material.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (gemeinsame Eilgangsprüfung, sichere Höhe über dem Netz, vor_der_stange),
+  `vierachs_planbahn.py`, `vierachs_entgraten*.py` u. a.; `tests/test_vierachs_eilgang.py` (neu),
+  `tests/test_vierachs_entgraten.py`, `tests/test_vierachs_hinauf.py`; `docs/STATUS_SNAPSHOT.md`;
+  `package.xml` 0.379.3.
+
+### ERGEBNIS
+- Drei Funde des Bauers (Eilgang durch den Reitstock-Schutz bis 2,45 mm, vor der Stirn bis 1,9 mm zu nah,
+  Entgraten 1,37 statt 2 mm) und einer des Zweiflers (Querachse/Sektoren-Y 1,13 mm am stehenden
+  Planaufmaß) behoben; Gegenprobe auf dem alten Stand rot. Zeiten praktisch unverändert.
+- Geprüft (Workflow): alle test_vierachs_*, test_restmaterial, test_goldene_bahnen, test_materialstand,
+  test_rest, test_raeumen, test_postprozessor, test_sprache; Szenarien vierachs_vierte_achse, mantelnut.
+  Nach dem Übernehmen: test_vierachs_eilgang, test_testteil.
 ## P-2026-11-15-10 b038-eilgang-plan-indexiert
 
 ### EINGELESEN

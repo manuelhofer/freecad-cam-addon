@@ -618,6 +618,13 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Sicherheit (0.379.3):* **Eilgänge aller 4-Achs-Bahnen mit Abstand** (nach B-038 gemessen, nicht
+  gemeldet): Mit Reitstock lag die sichere Höhe unter dem Schutz der Pinole – Rundum schruppen, schlichten,
+  entgraten und die Anfahrt der Querbohrung fuhren im Eilgang bis 2,45 mm hinein (dünne Stange Ø 30: 5,5);
+  Entgraten tauchte bis 1,37 statt 2 mm an die Rundung; Rundum schruppen mit Querachse/Sektoren-Y fuhr vor
+  der Stange 1,13 mm am stehenden Planaufmaß hinab (Zweifler). Jetzt: sichere Höhe über allem (auch dem
+  Schutz), eine gemeinsame Eilgangsprüfung für alle 4-Achs-Bahnen (`vierachs_bahn`), vor der Stange mit
+  Sicherheitsabstand. Zeiten praktisch gleich; Prüfung `tests/test_vierachs_eilgang.py`.
 - *Neu (0.379.0):* **4. Achse auf der 3-Achs-Fräse** (Manuel, 2026-11-15: Futter horizontal längs X,
   Z von oben, „vll sogar mit einem reitstock stützen“). Neue Beispielmaschine „3-Achs-Fräse mit 4. Achse“
   (unter „Neue Maschine …“): Teilapparat A längs X, Achse 125 über dem Tisch, Dreibackenfutter Ø 160,
