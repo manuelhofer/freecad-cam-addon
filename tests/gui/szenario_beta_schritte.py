@@ -422,9 +422,12 @@ def schritte(h):
     h.pruefe("noch einmal" in frage.wahl[beta.SCHRUPPEN].text(), frage.wahl[beta.SCHRUPPEN].text())
     # Was am Messstopp gemessen wird (Plan C3b): die Tasche um das Aufmaß kleiner; an LinuxCNC kein
     # Messzyklus – es hält. Mit einem Zyklus (hier von Hand gesetzt) das Feld für den Taster.
+    # Davor stehen 0,3, das Ende ist 0: „zwei gleiche Schnitte“ sind angehakt, der Messstopp steht
+    # zwischen ihnen und misst nach dem ersten (0,15): 59,7 × 39,7 (bis 0.379 stand hier das Soll
+    # vor dem ersten, 59,4 × 39,4).
     satz = frage.messen_text.text()
     print(ascii(f"Messen: {satz}"))
-    h.pruefe("Tasche 59,4 × 39,4" in satz and "Messzyklus" in satz, f"Messen: {satz!r}")
+    h.pruefe("Tasche 59,7 × 39,7" in satz and "Messzyklus" in satz, f"Messen: {satz!r}")
     h.pruefe(not frage.taster.isVisible(), "Taster-Feld ohne Zyklus")
     frage._zyklus = True
     frage.taster.setText("99")
@@ -447,6 +450,9 @@ def schritte(h):
     h.pruefe(frage.aufmass.text() == "0", f"Vorschlag nach 0,3: {frage.aufmass.text()!r}")
     h.pruefe(frage.aufmass.isVisible(), "kein Feld „Aufmaß dieses Gangs“ beim Schlichten")
     frage.aufmass.setText("0,5")
+    # Mehr als davor: keine zwei Schnitte – der Messstopp davor misst, was das Schruppen ließ.
+    satz = frage.messen_text.text()
+    h.pruefe("Tasche 59,4 × 39,4" in satz, f"Messen davor: {satz!r}")
     frage.accept()
     yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen not in (None, panel), 60000)
     weiter = beta.BearbeitungPanel.offen

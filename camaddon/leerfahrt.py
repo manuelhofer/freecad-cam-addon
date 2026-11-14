@@ -37,23 +37,39 @@ def gang_feld(op):
     """Der Name der Eigenschaft, in der bei `op` steht, was nach ihrem Schlichtgang stehen
     bleibt – None, wenn sie keine hat: der Schlichtzug der Kontur, von „Bohrung fräsen“ und der
     Nut („Schlichtrest“; ihr „Aufmass“ ist das des Schruppens davor), der Boden des Räumens
-    („AufmassBoden“), sonst „Aufmass“. „Bohrung fräsen“ ohne Schlichtzug: „Aufmass“ – die Bohrung
-    misst man am Ø, also an der Wand, nicht am Boden."""
+    („AufmassBoden“), sonst „Aufmass“. Die Nut ohne Schlichtgang: „Aufmass“ (ihre Bögen lassen
+    es an der Wand). „Bohrung fräsen“ ohne Schlichtzug: None – ihre Helix fräst dann auf Maß
+    (bohrung_bahn._bohrung: das Aufmaß nur mit Schlichten), keine Eigenschaft sagt, was bleibt;
+    gang_aufmass() gibt 0. Bis 0.379 hieß es hier „Aufmass“, und der Messstopp danach erwartete
+    an der Bohrung Ø 30 nur Ø 29,4 (Gegenprüfung 2026-11-14)."""
     felder = getattr(op, "PropertiesList", ())
     schlichtzug = getattr(op, "Schlichten", False) or getattr(op, "NurSchlichten", False)
     if "Schlichtrest" in felder and schlichtzug:
         return "Schlichtrest"
-    if "NurSchlichten" in felder:  # „Bohrung fräsen“, Nut: ohne Schlichtzug bleibt das Aufmaß
+    if "NurSchlichten" in felder:  # „Bohrung fräsen“, Nut ohne Schlichtzug
+        if _bohrung_auf_mass(op):
+            return None
         return "Aufmass" if "Aufmass" in felder else None
     if "AufmassBoden" in felder:
         return "AufmassBoden"
     return "Aufmass" if "Aufmass" in felder else None
 
 
+def _bohrung_auf_mass(op):
+    """„Bohrung fräsen“ ohne Schlichtzug: Die Helix fräst die Wand auf Maß."""
+    from . import bohrung as bo
+
+    schlichtzug = getattr(op, "Schlichten", False) or getattr(op, "NurSchlichten", False)
+    return bo.ist_bohrungsfraesen(op) and not schlichtzug
+
+
 def gang_aufmass(op):
-    """So viel bleibt nach dem Schlichtgang `op` stehen (mm) – None ohne Angabe (gang_feld)."""
+    """So viel bleibt nach dem Schlichtgang `op` stehen (mm) – None ohne Angabe (gang_feld);
+    „Bohrung fräsen“ ohne Schlichtzug 0."""
     feld = gang_feld(op)
-    return None if feld is None else float(getattr(op, feld))
+    if feld is None:
+        return 0.0 if _bohrung_auf_mass(op) else None
+    return float(getattr(op, feld))
 
 
 def _schlichtzug_modul(op):
@@ -69,6 +85,20 @@ def _schlichtzug_modul(op):
     if nu.ist_nut(op):
         return nu
     return None
+
+
+def _leer_modul(quelle):
+    """Das Modul, dessen schlichtzug() die Leerfahrt hinter `quelle` fährt – None: ihre ganze
+    Bahn noch einmal. Wie _schlichtzug_modul, dazu die Nut, die nur schlichtet (der zweite der
+    zwei gleichen Schnitte, „Schlichten danach“): dieselben Züge, aber in der eben geschlichteten
+    Nut im Eilgang hinab statt 8 mm im Vorschub (Nut 16 × 8, Gegenprüfung 2026-11-14)."""
+    modul = _schlichtzug_modul(quelle)
+    if modul is None and getattr(quelle, "NurSchlichten", False):
+        from . import nut as nu
+
+        if nu.ist_nut(quelle):
+            return nu
+    return modul
 
 
 def nur_schlichtzug(op):
@@ -106,7 +136,7 @@ class Leerfahrt(PathOp.ObjectOp):
     def opExecute(self, obj):
         quelle = getattr(obj, "Quelle", None)
         befehle = list(quelle.Path.Commands) if quelle is not None else []
-        modul = _schlichtzug_modul(quelle) if befehle else None
+        modul = _leer_modul(quelle) if befehle else None
         if modul is not None:
             befehle = self._schlichtzug(obj, quelle, modul)
         fahrten = [b for b in befehle if b.Name in FAHREN]

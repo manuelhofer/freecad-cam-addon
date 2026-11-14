@@ -188,6 +188,11 @@ class Nutwerte:
     # mit Messen dazwischen (gangfolge; Manuel, 2026-11-14: „erstes vorschlichten ... dann messsen
     # ... dann vertigschlichten“): der erste mit 0,15, der zweite auf Maß.
     schlichtrest: float = 0.0
+    # Die Nut ist eben geräumt (die Leerfahrt hinter ihrer Quelle, nut.schlichtzug): Die
+    # geschlossene Nut geht in der Mitte des Endes im Eilgang bis knapp über den ersten Zug hinab
+    # – sonst im Vorschub von der Oberkante (8 mm durch die Luft an der Nut 16 × 8, Gegenprüfung
+    # 2026-11-14).
+    kern_frei: bool = False
 
 
 @dataclass
@@ -1167,16 +1172,21 @@ def _rundum(punkte, nut, r_w, z, ende, uhr):
     return weg
 
 
-def _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr):
-    """Die Wand rundum in Zügen von höchstens der Schneidenlänge, von oben. Gibt die Länge
-    zurück."""
+def _zuege(nut, w, oben, z_ende):
+    """Die Höhen der Schlichtzüge an der Wand, von oben nach unten – höchstens die Schneidenlänge
+    je Zug."""
     hoehe = min(oben, nut.z_oben) - z_ende
     anzahl = 1
     if 0 < w.schneidenlaenge < hoehe - GLEICH:
         anzahl = max(1, int(math.ceil(hoehe / w.schneidenlaenge - 1e-9)))
+    return [min(oben, nut.z_oben) - hoehe * i / anzahl for i in range(1, anzahl + 1)]
+
+
+def _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr):
+    """Die Wand rundum in Zügen von höchstens der Schneidenlänge, von oben. Gibt die Länge
+    zurück."""
     weg = 0.0
-    for i in range(1, anzahl + 1):
-        z = min(oben, nut.z_oben) - hoehe * i / anzahl
+    for z in _zuege(nut, w, oben, z_ende):
         weg += _hin(punkte, ende[0], ende[1], z)
         weg += _rundum(punkte, nut, r_w, z, ende, uhr)
     return weg
@@ -1667,9 +1677,14 @@ def _nur_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp):
     else:
         a = nut.a
         punkte.append(bn.Punkt(True, a[0], a[1], w.sicher))
-        punkte.append(bn.Punkt(True, a[0], a[1], knapp))
-        punkte.append(bn.Punkt(False, a[0], a[1], oben, True))
-        weg = bn.weg(punkte[-2], punkte[-1])
+        if w.kern_frei:
+            erster = _zuege(nut, w, oben, z_ende)[0]
+            punkte.append(bn.Punkt(True, a[0], a[1], min(knapp, erster + w.sicherheit)))
+            weg = 0.0
+        else:
+            punkte.append(bn.Punkt(True, a[0], a[1], knapp))
+            punkte.append(bn.Punkt(False, a[0], a[1], oben, True))
+            weg = bn.weg(punkte[-2], punkte[-1])
         weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, a, uhr)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))

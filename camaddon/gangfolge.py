@@ -151,9 +151,40 @@ def wand_rest(op):
         return 0.0
     if lf.ist_leerfahrt(op) and getattr(op, "Quelle", None) is not None:
         return wand_rest(op.Quelle)
-    feld = "Schlichtrest" if lf.gang_feld(op) == "Schlichtrest" else "Aufmass"
+    feld = lf.gang_feld(op)
+    if feld is None and lf.gang_aufmass(op) is not None:
+        return 0.0  # „Bohrung fräsen“ ohne Schlichtzug: die Helix auf Maß
+    feld = "Schlichtrest" if feld == "Schlichtrest" else "Aufmass"
     wert = getattr(op, feld, 0.0)
     return max(0.0, float(getattr(wert, "Value", wert) or 0.0))
+
+
+def ist_bohrungsgang(op):
+    """„Bohrung fräsen“ oder ihre Leerfahrt? Ihr Gang ist der der Bohrung (gemessen am Ø
+    zwischen ihren zwei Schnitten), nicht der der Wände."""
+    from . import bohrung as bo
+
+    if lf.ist_leerfahrt(op):
+        op = getattr(op, "Quelle", None)
+    return bo.ist_bohrungsfraesen(op)
+
+
+def davor_messen(ops):
+    """Nach welcher der Operationen `ops` (in der Folge des Jobs) ein Messstopp „davor“ die Wände
+    misst: die letzte mit Werkzeug, die schneidet – kein Messstopp, nicht „Bohrung fräsen“ und
+    ihre Leerfahrt (ist_bohrungsgang; sonst maß der Messstopp beim Schlichten nach den Löchern
+    die fertige Bohrung Ø 30 statt der Tasche 39,4 × 19,4, Gegenprüfung 2026-11-14). None, wenn
+    keine."""
+    return next(
+        (
+            op
+            for op in reversed(list(ops))
+            if getattr(op, "ToolController", None) is not None
+            and not ms.ist_messstopp(op)
+            and not ist_bohrungsgang(op)
+        ),
+        None,
+    )
 
 
 def mess_flaechen(op, flaechen):

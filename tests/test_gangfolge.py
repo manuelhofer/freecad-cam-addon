@@ -381,6 +381,79 @@ if len(folge.fertig) == 2 and len(folge.leer_vor) == 2 and len(folge.leer_fertig
 
     rest_h = mst.fuer(job).hoechste_bei(MX, MY, D / 2 - 0.4)
     pruefe(rest_h < 0.5, f"in der Bohrung steht noch Material bis z {rest_h:.2f}")
+    # Die Leerfahrten der Nut gehen in der eben geräumten Nut im Eilgang bis knapp über den Zug
+    # (z 12), nicht im Vorschub von der Oberkante z 20 (Gegenprüfung 2026-11-14: 8 mm Luft).
+    for name, op in (("Nut Leerfahrt", leer_n), ("Nut Leerfahrt 2", leer2_n)):
+        pruefe(tiefster_eilgang(op) < 15.0, f"{name}: Eilgang nur bis z {tiefster_eilgang(op)}")
+    # Ein Messstopp „davor“ misst nicht nach „Bohrung fräsen“ und ihrer Leerfahrt (die misst man
+    # zwischen ihren zwei Schnitten) und nicht nach einem Messstopp – er misst nach dem, was die
+    # Wände zuletzt geschnitten hat.
+    pruefe(gf.davor_messen([nut_op, bohrung, leer_b]) is nut_op, "davor_messen: nach der Bohrung")
+    pruefe(gf.davor_messen([bohrung, leer_b]) is None, "davor_messen: nur die Bohrung")
+    pruefe(gf.davor_messen([nut_op, folge.stopp]) is nut_op, "davor_messen: nach einem Messstopp")
+    pruefe(gf.ist_bohrungsgang(leer_b) and not gf.ist_bohrungsgang(leer_n), "ist_bohrungsgang")
+
+# „Bohrung fräsen“ ohne Schlichtzug: Die Helix fräst auf Maß – es bleibt 0 an der Wand, gemessen
+# wird Ø 30 (bis 0.379: Ø 29,4 aus ihrem Aufmaß 0,3), und zwei Schnitte gibt es dort nicht (die
+# ganze Helix noch einmal ginge durch die Luft).
+ohne = bo.lege_an(job, tc_r, 2.0, 1.5, aufmass=0.3, schlichten=False, flaechen=[bohrung_flaeche])
+pruefe(lf.gang_feld(ohne) is None, f"ohne Schlichtzug: gang_feld {lf.gang_feld(ohne)}")
+pruefe(lf.gang_aufmass(ohne) == 0.0, f"ohne Schlichtzug: gang_aufmass {lf.gang_aufmass(ohne)}")
+pruefe(gf.wand_rest(ohne) == 0.0, f"ohne Schlichtzug: wand_rest {gf.wand_rest(ohne)}")
+m_ohne = gf.messmerkmal(form, [bohrung_flaeche], ohne)
+pruefe(m_ohne is not None and abs(m_ohne.durchmesser - D) < 1e-6, f"ohne Schlichtzug: {m_ohne}")
+stopps.clear()
+keine = gf.folge(job, [ohne], 0.0, stopp_anlegen=stopp_bohrung)
+pruefe(not keine.alle and not stopps, f"ohne Schlichtzug: Folge {[o.Label for o in keine.alle]}")
+pruefe(not gf.teilen(ohne, 0.0), "ohne Schlichtzug geteilt")
+print(f"Bohrung ohne Schlichtzug: Soll {m_ohne}")
+FreeCAD.closeDocument(doc.Name)
+
+# Offene Nut, hinter deren Ende noch Rohteil steht (10 mm): Die Nut geht dort wie geschlossen
+# hinein – ihre Leerfahrt auch, nicht draußen im Eilgang ins Rohteil (ohne den Materialstand
+# G0 bis z 14 bei x 87, nachgestellt 2026-11-14).
+doc = FreeCAD.newDocument("GangfolgeNutOffen")
+objekt = doc.addObject("Part::Feature", "Block")
+offen_form = Part.makeBox(40, 16, 8, V(51, 22, 12)).fuse(Part.makeCylinder(8, 8, V(51, 30, 12)))
+objekt.Shape = Part.makeBox(80, 60, 20).cut(offen_form).removeSplitter()
+doc.recompute()
+job = PathJob.Create("Job", [objekt])
+job.Stock.ExtZpos = 0.0
+job.Stock.ExtXpos = 10.0
+doc.recompute()
+tc_r = js.controller_ohne_transaktion(doc, job, fraeser, schruppen)
+form = job.Model.Group[0].Shape
+grund = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(form.Faces)
+    if isinstance(f.Surface, Part.Plane) and abs(f.BoundBox.ZMax - 12.0) < 1e-6
+    and abs(f.BoundBox.ZMin - 12.0) < 1e-6
+)  # fmt: skip
+offen = nu.lege_an(job, tc_r, 4.0, 1.5, aufmass=0.3, schlichten=True, flaechen=[grund])
+doc.recompute()
+leer_offen = lf.lege_an(job, offen)
+doc.recompute()
+
+
+def eilgang_im_rohteil(op):
+    """Eilgänge, bei denen der Fräser rechts vom Teil (dort steht Rohteil bis x 90) unter z 20
+    steht."""
+    funde, x, y, z = [], None, None, None
+    for b in op.Path.Commands:
+        p = b.Parameters
+        x, y, z = p.get("X", x), p.get("Y", y), p.get("Z", z)
+        drin = None not in (x, y, z) and x + fraeser.durchmesser / 2 > 80.0 and z < 20.0 - 1e-6
+        if b.Name in ("G0", "G00") and drin:
+            funde.append((round(x, 2), round(y, 2), round(z, 2)))
+    return funde
+
+
+pruefe(len(fahrten(leer_offen)) > 4, f"offene Nut: Leerfahrt {len(fahrten(leer_offen))} Sätze")
+pruefe(not eilgang_im_rohteil(offen), f"offene Nut: Eilgang im Rohteil {eilgang_im_rohteil(offen)}")
+pruefe(
+    not eilgang_im_rohteil(leer_offen),
+    f"offene Nut: Leerfahrt im Eilgang ins Rohteil {eilgang_im_rohteil(leer_offen)}",
+)
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

@@ -2067,9 +2067,10 @@ class BetaPanel(BearbeitungPanel):
         folge = getattr(self, "_beta_folge", None)
         davor_namen = {o.Name for o in ops}
         if getattr(self, "_beta_messstopp", False) and ops:
+            from . import gangfolge as gf
             from . import messstopp as ms
 
-            davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
+            davor = gf.davor_messen(ops)
             tc = getattr(davor, "ToolController", None)
             if tc is not None:
                 stopp = ms.lege_an(self.job, tc, tc, messmerkmal(self.job, davor))
@@ -2122,10 +2123,33 @@ class BetaPanel(BearbeitungPanel):
                 tc = getattr(mit, "ToolController", None)
                 if tc is not None:
                     ms.korrektur_setzen(ergebnis.stopp, int(tc.ToolNumber))
+            if folge.get("messstopp") and ergebnis.stopp is None:
+                self._stopp_dahinter(davor_namen)
             if ergebnis.alle:
                 self.job.Document.recompute()
         except Exception as fehler:  # noqa: BLE001 – die angelegten Operationen bleiben
             FreeCAD.Console.PrintWarning(f"Beta: Folge nicht angelegt: {fehler}\n")
+
+    def _stopp_dahinter(self, davor_namen):
+        """Der angehakte Messstopp, wenn die Folge keinen Platz für ihn hatte – bei den Löchern,
+        wenn keine „Bohrung fräsen“ mit Schlichtzug entstand („Wand schlichten“ aus, oder nur
+        Bohren, Senken, Gewinde): hinter den neuen Operationen, wo er mit zwei Schnitten auch
+        gestanden hätte. Er misst die zuletzt gefräste Bohrung (ohne Schlichtzug auf Maß: Ø 30),
+        ohne sie, was die Flächen am Job nach dem letzten Schnitt sind (gangfolge.davor_messen).
+        Bis 0.379 fiel er dann still weg (Gegenprüfung 2026-11-14)."""
+        from . import bohrung as bo
+        from . import gangfolge as gf
+        from . import messstopp as ms
+
+        alle = list(self.job.Operations.Group)
+        neu = [o for o in alle if o.Name not in davor_namen]
+        davor = next((o for o in reversed(neu) if bo.ist_bohrungsfraesen(o)), None)
+        if davor is None:
+            davor = gf.davor_messen(alle)
+        tc = getattr(davor, "ToolController", None)
+        if tc is None:
+            return None
+        return ms.lege_an(self.job, tc, tc, messmerkmal(self.job, davor))
 
     def _nur_diese_anlegen(self, aktive):
         bis = self._beta_bis
@@ -2460,9 +2484,10 @@ class WeiterFrage(QtGui.QDialog):
         """Was vor dem gewählten Schritt an der Wand steht (mm): bei den Löchern das Aufmaß, das
         die Helix von „Bohrung fräsen“ lässt, sonst was der letzte Gang ließ (gang_davor)."""
         if self.abschnitt() == LOECHER:
-            from . import bohrung as bo
+            from .gui_bearbeitung import _Bohrung
 
-            return bo.AUFMASS
+            # Was der Block „Bohrung fräsen“ im Feld vorschlägt (bohrung.AUFMASS, 0,3).
+            return float(_Bohrung().vorschlag("aufmass", None, None))
         return self._davor
 
     def _ende(self):
@@ -2535,6 +2560,7 @@ class WeiterFrage(QtGui.QDialog):
         from . import postprozessor as pp
 
         self._merkmal_job = self.merkmal = messmerkmal(job)
+        self._merkmal_roh = messmerkmal_roh(job)
         self._kennung = gp.steuerung_des_jobs(job)
         s = pp.steuerung(self._kennung, gp.gespeicherte_aenderungen(self._kennung))
         self._steuerung = s
@@ -2573,11 +2599,19 @@ class WeiterFrage(QtGui.QDialog):
         ersten (Ø um das halbe Aufmaß kleiner, Messzyklus Bohrung), sonst das Merkmal der Flächen
         am Job (messmerkmal). Ändert es sich, auch ob die Steuerung dafür einen Zyklus hat."""
         merkmal = self._merkmal_job
-        if self.abschnitt() == LOECHER and self.zwei_wert():
+        if self.zwei_wert():
             from . import gangfolge as gf
 
-            halb = gf.halbes_aufmass(self._davor_hier(), 0.0)
-            merkmal = bohrung_messmerkmal(self._job, halb)
+            halb = gf.halbes_aufmass(self._davor_hier(), self._ende())
+            if self.abschnitt() == LOECHER:
+                merkmal = bohrung_messmerkmal(self._job, halb)
+            elif self._merkmal_roh is not None:
+                # Beim Schlichten misst er nach dem ersten Schnitt: um dessen Rest (0,5 → 0,25),
+                # nicht um das, was davor stand – bis 0.379 stand hier „Tasche 59 × 39“, gemessen
+                # wurde 59,5 × 39,5.
+                from . import messen
+
+                merkmal = messen.soll(self._merkmal_roh, halb)
         if merkmal == self.merkmal:
             return
         self.merkmal = merkmal
@@ -2723,21 +2757,33 @@ def _vorschlag_zeile(v, namen=None):
 def messmerkmal(job, davor=None):
     """Was ein Taster am Messstopp messen würde (messen.merkmal, Plan C3b): das Merkmal der am Job
     gemerkten Flächen – nach „Bohrung fräsen“ ihrer Bohrung (der Ø) –, um das, was die Operation
-    `davor` (ohne: die letzte mit Werkzeug) an der Wand lässt (gangfolge.messmerkmal) – None, wenn
-    sie keins ergeben."""
+    `davor` (ohne: die letzte mit Werkzeug, die keine Bohrung fräst – gangfolge.davor_messen) an
+    der Wand lässt (gangfolge.messmerkmal) – None, wenn sie keins ergeben."""
     from . import gangfolge as gf
 
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
     if not flaechen:
         return None
     if davor is None:
-        ops = list(job.Operations.Group)
-        davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
+        davor = gf.davor_messen(job.Operations.Group)
     try:
         form = vr.modell(job).Shape
     except Exception:  # noqa: BLE001 – kein Modell am Job
         return None
     return gf.messmerkmal(form, flaechen, davor)
+
+
+def messmerkmal_roh(job):
+    """Das Merkmal der am Job gemerkten Flächen auf Maß (ohne Rest) – None, wenn sie keins
+    ergeben."""
+    from . import gangfolge as gf
+
+    flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
+    try:
+        form = vr.modell(job).Shape
+    except Exception:  # noqa: BLE001 – kein Modell am Job
+        return None
+    return gf.messmerkmal(form, flaechen, None) if flaechen else None
 
 
 def bohrung_messmerkmal(job, rest):
@@ -2787,15 +2833,14 @@ def gang_davor(job):
     „Bohrung fräsen“ (und ihre Leerfahrt) zählt nicht: Ihr Gang ist der der Bohrung (Abschnitt
     „Löcher“, gemessen am Ø), nicht der der Wände – seit sie ihren Schlichtrest kennt, stünde nach
     den Löchern sonst 0 da, und „zwei gleiche Schnitte“ fehlte beim Schlichten."""
-    from . import bohrung as bo
+    from . import gangfolge as gf
     from . import leerfahrt as lf
     from . import messstopp as ms
 
     for op in reversed(list(job.Operations.Group)):
         if getattr(op, "ToolController", None) is None or ms.ist_messstopp(op):
             continue
-        quelle = getattr(op, "Quelle", None) if lf.ist_leerfahrt(op) else op
-        if bo.ist_bohrungsfraesen(quelle):
+        if gf.ist_bohrungsgang(op):
             continue
         aufmass = lf.gang_aufmass(op)
         if aufmass is None:

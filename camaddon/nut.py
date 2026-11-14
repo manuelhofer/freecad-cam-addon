@@ -166,7 +166,10 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
 def schlichtzug(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     """Nur der Schlichtgang der Operation `obj` (Nutbahn, Nutwerte.nur_schlichten) – für ihre
     Leerfahrt (leerfahrt.py): Die Bögen noch einmal führen durch die Luft. None, wenn `obj` keinen
-    Schlichtgang hat."""
+    Schlichtgang hat. Mit dem Materialstand vor `obj`, wie `obj` ihn hatte: Steht hinter einem
+    offenen Ende noch Rohteil, ging `obj` dort wie geschlossen hinein – ohne Stand führe die
+    Leerfahrt draußen im Eilgang ins Rohteil (Nut 16 offen, Rohteil 10 mm dahinter: G0 bis z 14
+    bei x 87, nachgestellt 2026-11-14)."""
     if not bool(getattr(obj, "Schlichten", False)) and not bool(getattr(obj, "NurSchlichten", 0)):
         return None
     form = vs.form_des_controllers(obj.ToolController)
@@ -191,7 +194,9 @@ def schlichtzug(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchwinkel=float(obj.Eintauchwinkel),
         vorschub=vorschub,
         eintauchen=eintauchen,
+        stand=mst.fuer(job, vor=obj),
         schlichtrest=float(getattr(obj, "Schlichtrest", 0.0) or 0.0),
+        kern_frei=True,
     )
 
 
@@ -218,6 +223,7 @@ def bahn_fuer(
     eintauchen_bei=None,
     nur_schlichten=False,
     schlichtrest=0.0,
+    kern_frei=False,
 ):
     """Die Bahn „Nut“ für Modell und Rohteil des Jobs. `flaechen`: Wände oder Grund der Nuten
     („Face7“ …); `stand`: der Materialstand davor (materialstand) – die Lagen beginnen dann,
@@ -250,6 +256,7 @@ def bahn_fuer(
         eintauchen_bei=eintauchen_bei or None,
         nur_schlichten=bool(nur_schlichten),
         schlichtrest=max(float(schlichtrest), 0.0),
+        kern_frei=bool(kern_frei),
     )
     return nb.planen(werte, liste, stand)
 
