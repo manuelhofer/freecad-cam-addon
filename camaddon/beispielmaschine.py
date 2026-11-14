@@ -739,7 +739,7 @@ def fraesmaschine(masse=None, spanneisen=True, art=FRAESE_3):
 # y MITTE_Y, z 250 + ACHSHOEHE (die Tischplatte endet oben bei z 250): links der Teilapparat, sein
 # Dreibackenfutter Ø 160 mit der Spannfläche (Stirn der Backen) bei x SPANNFLAECHE_X, rechts der
 # Reitstock. Ein Rohr Ø 60 × 150 ragt mit Planaufmaß, Lücke und dem Zapfen für die Spitze rund
-# 165 mm aus den Backen – so weit steht die Spitze gebaut (Stellung 0 des Reitstocks).
+# 165 mm aus den Backen (Stellung −40 des Reitstocks; gebaut steht die Spitze 40 mm weiter).
 ACHSHOEHE = 125.0  # mm über dem Tisch – das Futter Ø 160 bleibt 45 mm darüber
 SPANNFLAECHE_X = 260.0
 FUTTER_RADIUS = 80.0
@@ -749,8 +749,11 @@ PINOLE_RADIUS = 17.5  # mm – wie reitstock.PINOLE_RADIUS (die Bahn rechnet dam
 PINOLE_LANG = 60.0  # so weit steht die Pinole aus dem Reitstock
 SPITZE_FUSS, SPITZE_KUPPE = 12.0, 2.0  # Radien der Spitze (60°): am Fuß, an der Kuppe
 ZENTRIER_RAND = 4.25  # mm – Rand der Zentrierbohrung DIN 332-1 A 4 × 8,5 (Ø 8,5 / 2)
-REITSTOCK_X = 500.0  # gebaut: dort beginnt der Körper des Reitstocks
-REITSTOCK_WEG = (-120.0, 180.0)  # mm, so weit lässt er sich längs schieben (Stange 46 … 346)
+# Gebaut: dort beginnt der Körper des Reitstocks – so weit rechts, dass Pinole und Spitze in der
+# Grundstellung nicht unter dem Spindelkörper (Ø 90 bei x MITTE_X) liegen (bis 0.379.0 bei 500: dort
+# berührten sie ihn, und die Kollision prüfte das Paar Spindel – Reitstock nicht).
+REITSTOCK_X = 540.0
+REITSTOCK_WEG = (-160.0, 140.0)  # mm, so weit lässt er sich längs schieben (Stange 46 … 346)
 
 
 def _teilapparat_und_reitstock(b, tisch):

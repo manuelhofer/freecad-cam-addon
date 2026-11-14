@@ -7,6 +7,11 @@
    "sha256": "d91683b264ebd861244cd9e39e68c770f8a90490748f049415480388b052c0ff"
   },
   {
+   "pfad": "beispiele/dichtnut_deckel.FCStd",
+   "bytes": 5469,
+   "sha256": "53e9d889872512190994ba570691700c6ea9a1c4f7652b8fcb6d8e398075ade7"
+  },
+  {
    "pfad": "beispiele/geist_stl/Geist1_v2.stl",
    "bytes": 3412184,
    "sha256": "ddca2f8dea838ffa9b5a6312f4a8248afe18b4491a31b56089292b64d36d3f64"

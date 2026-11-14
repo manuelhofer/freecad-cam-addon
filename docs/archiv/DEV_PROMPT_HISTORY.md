@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-09 voller-lauf-141126
+
+### EINGELESEN
+- Voller Lauf am Tagesende (Arbeitsregeln: einmal am Tag) auf 0.379.0: 146 von 154 grün.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (REITSTOCK_X 540, REITSTOCK_WEG −160 … 140); `daten/beispiele.json`;
+  `tests/test_cam_formen.py`; `tests/golden/simultan_bereiche.json`, `raum_bahn.json`,
+  `freiform_simultan_nc.json`, `kuppel_simultan_gesamt.json`, `kuppel_simultan_gesamt_nc.json`,
+  `simultan_folge.json`; `package.xml` 0.379.1.
+
+### ERGEBNIS
+- Echter Fehler: An der neuen „3-Achs-Fräse mit 4. Achse“ berührten sich Spindel und Reitstock schon in der
+  Grundstellung – die Kollision prüfte das Paar dann nicht. Reitstock 40 mm weiter rechts gebaut, sein Weg
+  gleich verschoben (Stange 46 … 346 wie vorher).
+- Referenzen: neue Beispielmaschine in den Maschinenlisten (simultan_bereiche, raum_bahn); NC-Prüfsummen
+  der Simultan-Prüfungen nach M5 (0.376.1) – nachgewiesen: das ganze Programm alt (0.375.0) gegen neu
+  unterscheidet sich nur in der doppelten M5-Zeile am Ende; Bahnzeiten gleich. Beispielliste (Deckel),
+  test_cam_formen (Nummern verschoben durch das Stoßwerkzeug, das als Schaftfräser genähert wird).
+- Geprüft nach den Änderungen: die 8 roten grün; test_vierachs_vierte_achse, szenario_vierachs_vierte_achse.
 ## P-2026-11-15-08 vierte-achse-reitstock
 
 ### EINGELESEN

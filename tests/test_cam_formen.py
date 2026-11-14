@@ -60,7 +60,8 @@ zu_kurz = [
 ]
 bericht = ue.uebergeben(wz.Bibliothek(beispiele + schaft_wie_d + zu_kurz))
 pruefe(
-    bericht.ohne_form == ["T23 Drehwerkzeug", "T24 Einstechwerkzeug", "T25 Gewindedrehwerkzeug"],
+    # T24 ist das Stoßwerkzeug (seit 0.376.0) – an FreeCAD als Schaftfräser, also mit Form.
+    bericht.ohne_form == ["T23 Drehwerkzeug", "T25 Einstechwerkzeug", "T26 Gewindedrehwerkzeug"],
     f"ohne Form: {bericht.ohne_form}",
 )
 genaehert = [kurz for kurz, _form in bericht.naeherungen if int(kurz.split()[0][1:]) < 100]
@@ -74,6 +75,7 @@ pruefe(
         "T19 Flachsenker",
         "T21 Bohrstange",
         "T22 Ausspindelwerkzeug",
+        "T24 Stoßwerkzeug (steht in der Spindel)",  # als Schaftfräser in Schneidenbreite
     ],
     f"Näherungen: {bericht.naeherungen}",
 )
