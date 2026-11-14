@@ -386,6 +386,9 @@ class Planwerte:
     # Die Stirnseite, die hinten an eine Ebene grenzt, in derselben Stellung mit dem Umfang – die
     # Ebene mit der Stirn (vierachs_stirnkombi; Auftrag 2, an der Nase Face3 mit Face8).
     stirnseite: bool = False
+    # So oft fährt der letzte Umlauf einer Nut im Mantel noch einmal, ohne Zustellung (Manuel,
+    # 2026-11-15: „vorarbeiten auf 0.3 … und leer durchfahrten je arbeitsgang“).
+    leerfahrten: int = 0
 
 
 @dataclass
@@ -887,6 +890,17 @@ def _kurvennut_punkte(nut, w, oben, sicher):
     if 2 * radius > nut.breite + 2 * NUT_LUFT + bh_gleich():
         fraeser = einheiten.text(2 * radius, einheiten.LAENGE)
         raise ValueError(tr("vp.fehler.mantel_breit", fraeser=fraeser, breite=breit_text))
+    # Mit Aufmaß bleibt es an den Wänden stehen – dafür muss der Fräser schmaler sein als die Nut
+    # weniger zweimal das Aufmaß (vorarbeiten auf 0,3, dann ein zweiter Gang auf 0).
+    aufmass_wand = max(float(w.aufmass), 0.0)
+    if aufmass_wand > vb.GLEICH and 2 * radius > nut.breite - 2 * aufmass_wand + bh_gleich():
+        raise ValueError(
+            tr(
+                "vp.fehler.kurve_aufmass",
+                aufmass=einheiten.text(aufmass_wand, einheiten.LAENGE),
+                hoechstens=einheiten.text(nut.breite - 2 * aufmass_wand, einheiten.LAENGE),
+            )
+        )
     mitte = _kurve_versetzt(nut, 0.0)
     m = np.array(nut.mitte, dtype=float)
     schritte = np.hypot(np.diff(m[:, 0]), np.radians(np.diff(m[:, 1])) * nut.r_aussen)
@@ -931,8 +945,9 @@ def _kurvennut_punkte(nut, w, oben, sicher):
         fahrt(z_ende, z_ende, vorn)  # unten einmal eben hinüber
         vorn = not vorn
         fahrten += 1
-    # Die Kontur: Runden um die Mittellinie bis an die Wände.
-    frei = max(nut.halb - radius - NUT_LUFT, 0.0)
+    # Die Kontur: Runden um die Mittellinie bis an die Wände (mit Aufmaß davor).
+    frei = max(nut.halb - radius - NUT_LUFT - aufmass_wand, 0.0)
+    letzte_runde = None
     if frei > vb.GLEICH:
         anzahl = max(1, int(math.ceil(frei / max(w.zeilenabstand, vb.GLEICH) - 1e-9)))
         for nummer in range(1, anzahl + 1):
@@ -947,8 +962,20 @@ def _kurvennut_punkte(nut, w, oben, sicher):
             for a, f, q in runde:
                 punkte.append(vb.Punkt(False, a, z_ende, f, q=q))
             fahrten += 1
+            letzte_runde = runde
+        # Leerfahrten: der letzte Umlauf noch einmal, ohne Zustellung.
+        for _ in range(max(int(w.leerfahrten), 0)):
+            for a, f, q in letzte_runde[1:]:
+                punkte.append(vb.Punkt(False, a, z_ende, f, q=q))
+            fahrten += 1
         ende = mitte[0] if vorn else mitte[-1]  # zurück in die Mitte, dann hinaus
         punkte.append(vb.Punkt(False, ende[0], z_ende, ende[1]))
+    else:
+        # Der Fräser so breit wie die Nut: die Leerfahrten durch die ganze Nut, hin und her.
+        for _ in range(max(int(w.leerfahrten), 0)):
+            fahrt(z_ende, z_ende, vorn)
+            vorn = not vorn
+            fahrten += 1
     letzter = punkte[-1]
     punkte.append(vb.Punkt(True, letzter.a, sicher, letzter.phi))
     lagen = max(1, int(math.ceil((oben - z_ende) / ap - 1e-9)))

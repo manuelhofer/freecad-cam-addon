@@ -86,6 +86,7 @@ class PlanIndexiert(PathOp.ObjectOp):
                 ("App::PropertyLength", "Zustellung", tr("vp.eigenschaft.zustellung")),
                 ("App::PropertyLength", "Zeilenabstand", tr("vp.eigenschaft.zeilenabstand")),
                 ("App::PropertyLength", "Aufmass", tr("vp.eigenschaft.aufmass")),
+                ("App::PropertyInteger", "Leerfahrten", tr("vp.eigenschaft.leerfahrten")),
             )
             + vo.abstand_eigenschaften()
             + vo.flaechen_eigenschaften()
@@ -174,6 +175,7 @@ def rechne(obj, job, modell):
         schneide=reicht_hinab(obj.ToolController, float(obj.Zustellung)),
         weg=weg_der_operation(obj),
         stirnseite=bool(getattr(obj, "Stirnseite", False)),
+        leerfahrten=int(getattr(obj, "Leerfahrten", 0) or 0),
     )
 
 
@@ -284,6 +286,7 @@ def bahn_fuer(
     schneide=0.0,
     weg=vp.WEG_ZEILEN,
     stirnseite=False,
+    leerfahrten=0,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -330,6 +333,7 @@ def bahn_fuer(
         nur_gleichlauf=nur_gleichlauf,
         weg=weg,
         stirnseite=bool(stirnseite) and not bohrer,
+        leerfahrten=max(int(leerfahrten or 0), 0),
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     nuten = vp.nuten(form_teil, laengs, radial, ebenen)
@@ -375,6 +379,7 @@ def vorschau(
     schruppen=(),
     weg=vp.WEG_ZEILEN,
     stirnseite=False,
+    leerfahrten=0,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: gröber vernetzt, vom Rest nach den Schruppbahnen `schruppen` aus ([(Bahn,
@@ -401,6 +406,7 @@ def vorschau(
         schneide=schneide,
         weg=weg,
         stirnseite=stirnseite,
+        leerfahrten=leerfahrten,
     )
 
 
@@ -434,6 +440,7 @@ def lege_an(
     schaft=False,
     weg=vp.WEG_ZEILEN,
     stirnseite=False,
+    leerfahrten=0,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -472,6 +479,7 @@ def lege_an(
     obj.Weg = weg_wert(weg)
     obj.Schaft = bool(schaft)
     obj.Stirnseite = bool(stirnseite)
+    obj.Leerfahrten = max(int(leerfahrten or 0), 0)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -495,6 +503,7 @@ def aendere(
     schaft=None,
     weg=None,
     stirnseite=None,
+    leerfahrten=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel`, `nur_gleichlauf` und
@@ -523,6 +532,8 @@ def aendere(
         obj.Schaft = bool(schaft)
     if weg is not None and weg != weg_der_operation(obj):
         obj.Weg = weg_wert(weg)
+    if leerfahrten is not None and int(leerfahrten) != int(getattr(obj, "Leerfahrten", 0) or 0):
+        obj.Leerfahrten = max(int(leerfahrten), 0)
     if stirnseite is not None and bool(stirnseite) != bool(getattr(obj, "Stirnseite", False)):
         obj.Stirnseite = bool(stirnseite)
 

@@ -168,6 +168,34 @@ pruefe(len(gleich) >= 3 and all(gleich), f"Ø 8: Gleichlauf {gleich}")
 gegen = vp._kurvennut_punkte(nut, werte(8.0, gleichlauf=False), RA, RA + 5.0)[0]
 pruefe([p.q for p in gegen] != [p.q for p in punkte8], "Ø 8: Gegenlauf fährt dieselbe Runde")
 
+# --- Vorarbeiten mit Aufmaß, dann Leerdurchfahrten (Manuel, 2026-11-15: „vorarbeiten auf 0.3
+# (einstellbar wenn der fräser ausreichend platz lässt) und leer durchfahrten je arbeitsgang“) ---
+vor = vp._kurvennut_punkte(nut, werte(8.0, aufmass=0.3), RA, RA + 5.0)[0]
+vor_letzte = [p for p in vor if not p.eilgang and abs(p.r - nut.radius) < 1e-6][
+    -len(nut.mitte) * 2 :
+]
+an_wand = [p for p in vor_letzte if abs(p.q) > 1e-6 and abs(p.a - mitte(p.phi)) > 0.5]
+stichprobe = an_wand[:: max(1, len(an_wand) // 14)]
+luft = min(teil.distToShape(fraeser(p.a, p.r, p.phi, p.q, 4.0))[0] for p in stichprobe)
+print(f"D8 mit 0,3 Aufmaß: kleinster Abstand zur Wand {luft:.3f} mm")
+pruefe(abs(luft - 0.3) < 0.06, f"Aufmaß 0,3: {luft:.3f} mm zur Wand")
+# Ø 12 in der Nut 12 lässt keinen Platz für ein Aufmaß an den Wänden: Satz, keine Bahn.
+try:
+    vp._kurvennut_punkte(nut, werte(12.0, aufmass=0.3), RA, RA + 5.0)
+    pruefe(False, "Ø 12 mit Aufmaß 0,3 in der Nut 12")
+except ValueError as e:
+    pruefe("Aufmaß" in str(e), f"Ø 12 mit Aufmaß: {e}")
+# Leerdurchfahrten: der letzte Umlauf noch einmal, Satz für Satz derselbe, ohne Zustellung.
+ohne, _l, f_ohne = vp._kurvennut_punkte(nut, werte(8.0), RA, RA + 5.0)
+mit, _l, f_mit = vp._kurvennut_punkte(nut, werte(8.0, leerfahrten=2), RA, RA + 5.0)
+runde = len([p for p in ohne if not p.eilgang and abs(p.q) > 1e-9]) // 2  # zwei Kontur-Runden
+dazu = len(mit) - len(ohne)
+print(f"Leerdurchfahrten: {f_ohne} → {f_mit} Fahrten, {dazu} Punkte mehr")
+pruefe(f_mit == f_ohne + 2 and dazu > 0, f"Leerfahrten: {f_ohne} → {f_mit}, {dazu} Punkte")
+pruefe(min(p.r for p in mit if not p.eilgang) >= nut.radius - 1e-9, "Leerfahrt stellt zu")
+mit12, _l, f12 = vp._kurvennut_punkte(nut, werte(12.0, leerfahrten=1), RA, RA + 5.0)
+pruefe(f12 == 3 and all(abs(p.q) < 1e-9 for p in mit12), f"Ø 12 mit Leerfahrt: {f12} Fahrten")
+
 # --- Zu breiter Fräser ---------------------------------------------------------------------------
 try:
     vp._kurvennut_punkte(nut, werte(14.0), RA, RA + 5.0)

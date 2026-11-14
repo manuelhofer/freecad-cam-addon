@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-02 kurvennut-aufmass-leerfahrten
+
+### EINGELESEN
+- Manuel, 2026-11-15: „müsste aber auch mit jeder 5 achs maschine gehen richtig ?“; „übrigends sollte man
+  auch hier wieder die möglichkeit haben vorarbeiten auf 0.3 (einstellbar wenn der fräser ausreichend platz
+  lässt) und leer durchfahrten je arbeitsgang“; „und ja du kannst das schon als neue version raushauen ..
+  wens neu ist .. ;)“.
+- `vierachs_achsen.von_maschine` an den drei Beispiel-5-Achs-Maschinen; `vierachs_plan` (Eigenschaften,
+  rechne, bahn_fuer, vorschau, lege_an, aendere); `gui_vierachs` (Felder von „Plan indexiert“).
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`: `Planwerte.leerfahrten`; `_kurvennut_punkte` mit Aufmaß an den Wänden
+  (und dem Satz, wenn der Fräser keinen Platz dafür lässt) und Leerdurchfahrten.
+- `camaddon/vierachs_plan.py`: Eigenschaft „Leerfahrten“, durchgereicht bis in die Bahn.
+- `camaddon/gui_vierachs.py`: Feld „Leerdurchfahrten“ unter „Aufmaß“ bei „Plan indexiert“.
+- `tests/test_vierachs_kurvennut.py`, Übersetzungen de/en, `docs/STATUS_SNAPSHOT.md` (0.375.0, B-037),
+  `package.xml`.
+
+### ERGEBNIS
+- Ø 8 mit 0,3 Aufmaß: kleinster Abstand der Kontur zur Wand 0,283 mm; Ø 12 mit Aufmaß in der Nut 12:
+  abgelehnt mit Satz; zwei Leerdurchfahrten: 5 → 7 Fahrten, Ø 12 mit einer: 3 Fahrten, ohne Y.
+- 5-Achs (Beispielmaschinen, Ø 8, mit „Auf der Maschine prüfen“): Kopf/Tisch mit C – grün; Kopf/Kopf – keine
+  Rundachse im Tisch; Tisch/Tisch mit A – Anstöße gemeldet (B-037, offen, mit Nachstell-Anleitung).
+- Grün: `test_vierachs_kurvennut`, `test_vierachs_plan`, `test_sprache`; `szenario_vierachs_mantelnut`
+  (das neue Feld im Bild gesehen).
 ## P-2026-11-15-01 kurvennut-im-mantel
 
 ### EINGELESEN

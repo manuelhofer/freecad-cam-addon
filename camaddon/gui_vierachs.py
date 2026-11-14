@@ -1039,6 +1039,7 @@ class VierachsPanel:
                 ("zustellung_plan", op.Zustellung),
                 ("zeilenabstand", op.Zeilenabstand),
                 ("aufmass_plan", op.Aufmass),
+                ("leer_plan", float(getattr(op, "Leerfahrten", 0) or 0)),
             ]
             self.plan_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
             self.wahl_plan_weg.setCurrentIndex(
@@ -1861,6 +1862,7 @@ class VierachsPanel:
             ("zustellung_plan", tr("va.zustellung_plan"), tr("va.zustellung_plan.tooltip")),
             ("zeilenabstand", tr("va.zeilenabstand"), tr("va.zeilenabstand.tooltip")),
             ("aufmass_plan", tr("va.aufmass_plan"), tr("va.aufmass_plan.tooltip")),
+            ("leer_plan", tr("va.leer_plan"), tr("va.leer_plan.tooltip")),
         ):
             zahlenfeld(self.felder_plan, feld, text, tooltip, plan)
         zahlenfeld(  # die Auflösung (T-009): so fein wird das Teil vernetzt, leer der Vorschlag
@@ -4045,7 +4047,15 @@ class VierachsPanel:
             "stirnseite": self.plan_stirnseite_an() and not bohrer,
             "schneide": vplan.reicht_werkzeug(werkzeug, self._wert("zustellung_plan")),
             "schrupp": self._plan_schrupp(),
+            "leerfahrten": self._leerfahrten_plan(),
         }
+
+    def _leerfahrten_plan(self):
+        """Die Leerdurchfahrten von „Plan indexiert“ (ganze Zahl, nie unter 0)."""
+        try:
+            return max(int(round(self._wert("leer_plan") or 0)), 0)
+        except (TypeError, ValueError):
+            return 0
 
     def _plan_schrupp(self):
         """Wovon die Vorschau von „Plan indexiert“ ausgeht (vierachs_vorschau.plan): vom Schruppen,
@@ -4411,6 +4421,8 @@ class VierachsPanel:
             )
         if feld == "aufmass_plan":
             return vplan.AUFMASS
+        if feld == "leer_plan":
+            return 0.0
         if feld == "breite":
             return vent.BREITE
         if feld == "aufmass_schlichten":
@@ -6222,6 +6234,7 @@ class VierachsPanel:
                             nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                             schaft=self.plan_schaft_an(),
                             raster=self._aufloesung("aufloesung_plan"),
+                            leerfahrten=self._leerfahrten_plan(),
                             weg=self.plan_weg(),
                             stirnseite=self.plan_stirnseite_an(),
                         )
@@ -6353,6 +6366,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
+                        leerfahrten=self._leerfahrten_plan(),
                         weg=self.plan_weg(),
                         stirnseite=self.plan_stirnseite_an(),
                     )
@@ -6458,6 +6472,7 @@ class VierachsPanel:
                         nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                         schaft=self.plan_schaft_an(),
                         raster=self._aufloesung("aufloesung_plan"),
+                        leerfahrten=self._leerfahrten_plan(),
                         weg=self.plan_weg(),
                         stirnseite=self.plan_stirnseite_an(),
                     )

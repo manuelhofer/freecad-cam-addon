@@ -613,6 +613,18 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.375.0):* **Kurvennut: vorarbeiten mit Aufmaß und Leerdurchfahrten** (Manuel, 2026-11-15:
+  „vorarbeiten auf 0.3 (einstellbar wenn der fräser ausreichend platz lässt) und leer durchfahrten je
+  arbeitsgang“). Das Aufmaß von „Plan indexiert“ gilt jetzt auch an den Wänden der Kurvennut (Ø 8 mit 0,3:
+  die Kontur 0,28–0,30 mm vor der Wand); lässt der Fräser keinen Platz dafür (Ø 12 in der Nut 12), sagt
+  es der Block mit dem größten Ø, der ginge. Neues Feld **„Leerdurchfahrten“**: so oft fährt der letzte
+  Umlauf noch einmal ohne Zustellung (Ø 12: die mittige Fahrt). Für den zweiten Gang auf 0 legt man die
+  Operation noch einmal mit Aufmaß 0 an. Das Feld wirkt bisher nur bei der Kurvennut, nicht bei der
+  rechteckigen Nut auf dem Mantel und nicht bei ebenen Flächen.
+  **An 5-Achs-Maschinen nachgesehen** (Beispielmaschinen, Ø 8): *Kopf/Tisch* (B schwenkt den Kopf, C dreht
+  das Rohr) geht – Achsen in den Grenzen, nichts berührt sich, nirgends ins Teil. *Kopf/Kopf* hat keine
+  Rundachse im Tisch: kein 4-Achs. *Tisch/Tisch* mit A: das Programm entsteht, aber „Auf der Maschine
+  prüfen“ meldet Anstöße (B-037).
 - *Neu (0.374.0):* **Kurvennut im Mantel – eine Nut mit beliebigem Verlauf auf Rohr oder Welle, 4-Achs
   auf der Drehmaschine mit C** (Manuel, 2026-11-15, nach einem Bild aus dem Discord: ein Rohr mit einer
   gewundenen, durchgehenden Nut – „mit einer fräser … wenn die nur 12 ist .. ein 12 fräser mittig fertrig
@@ -2987,6 +2999,17 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   unter Boden und Endtiefe. Ins Teil geht nichts; gefährlich nur, wenn dort Unterlage oder Spannmittel
   stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – gestellt als Frage 3 in
   OFFENE_FRAGEN.md.
+
+- B-037 **4-Achs an der 5-Achs Tisch/Tisch mit A: „Auf der Maschine prüfen“ meldet Anstöße** (offen, gefunden
+  am 2026-11-15 an der Kurvennut, Beispielmaschine Tisch/Tisch, Ø 8, Halter ER32/SK40). (1) „Die Schneide
+  fährt ins fertige Teil“ (Satz 80, A −23,868) – in derselben Prüfung sagt der Rest aber „nirgends ins
+  Teil“, und das Programm trägt an der Stelle A +23,868: Kollisionsprüfung und Programm zählen A
+  gegensinnig, oder die Lage des Teils auf der A-Achse stimmt in einer der beiden Rechnungen nicht. (2)
+  Bei A um 100° berühren sich Spindel und Rundtisch – ein Rohr, das auf dem Tisch liegt, lässt sich unter
+  der senkrechten Spindel nicht um 200° drehen (das ist echt, nicht der Fehler). „Plan indexiert“ war
+  vorher nie an einer A-Achse geprüft. Nachstellen: `~/freecad_cam/wip/strategien/kurvennut/
+  szenario_kurvennut.py` mit `MASCHINE=tisch_tisch ACHSE=A FRAESER=8`, Sätze in `saetze_tisch_tisch.txt`.
+  Nächste freie Nummer B-038.
 
 Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben.
 
