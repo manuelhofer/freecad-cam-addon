@@ -539,15 +539,17 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
 2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
    über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). Offen: „Bohrung fräsen“ und die Nut als
    zwei gleiche Schnitte.
-3. *Dichtnut hobeln* (neu, Manuels Wunsch) – **hier geht es nächste Woche weiter.** Recherchiert, Manuels
-   Vorgaben vom 14.11. liegen vor: jede gezeichnete Nut nachfahren (Rundungen vorausgesetzt), Ausgabe als
-   X, Y, Z und Spindelwinkel je Satz in kleinen Schritten für alle Steuerungen (auch Heidenhain), die
-   Funktionen der Steuerungen (TANG, Interpolationsdrehen, Zyklus 291) als Option beim Programm schreiben,
-   das Werkzeug vorher ausgerichtet. **Bauplan in sieben Schritten: Spezifikation Strategien 13.10** –
-   mit Schritt 1 (Mittellinie und Maße der Nut) anfangen. Noch nichts gebaut.
-5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – Rohr im Dreibackenfutter
-   senkrecht auf C, A/B fest auf 90°, C dreht, Z von oben; Kopf/Tisch – Kopf auf 90° (geht schon); 4. Achse –
-   Futter horizontal längs X/Y, Werkzeug von oben, Reitstock als Option. Dazu B-037 (1) klären.
+3. *Dichtnut hobeln* (Manuels Wunsch; Bauplan Spezifikation Strategien 13.10): **Schritte 1–5 gebaut
+   (0.376.0)** – Erkennen jeder umlaufenden Nut, Hobelbahn mit Spindelwinkel je Satz, Werkzeugart
+   Stoßwerkzeug mit Einsatz „Hobeln“, Operation, Programm für alle Steuerungen (Siemens SPOS, Heidenhain
+   Zyklus 13, LinuxCNC/Haas M19 R, Fanuc/Mach4 M19 S; Mazak zum Eintragen; GRBL/woodWOP können es nicht).
+   **Weiter:** der Block im Assistenten – das Vorfräsen (heute Räumen) muss am Grund der gehobelten Nuten
+   den Rest stehen lassen, nur dort (Auftrag liegt bereit); danach Prüfung „Klinge gegen Nutwände“ in der
+   Vorschau, Optionen ohne Halt je Satz (TANG, Spindel als Rundachse).
+5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – **gebaut in 0.376.0**
+   („C, A −90° – Rohr im Futter auf dem Rundtisch“), B-037 behoben; Kopf/Tisch geht schon. **Offen:** die
+   4. Achse auf einer 3-Achs-Fräse – Futter horizontal längs X/Y, Werkzeug von oben, Reitstock als Option;
+   dafür fehlt eine Beispielmaschine „3-Achs-Fräse mit 4. Achse“ und der Reitstock als Spannmittel.
 4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
    „Ringnut fräsen“ bleibt als Option, wie gebaut.
 
@@ -616,6 +618,15 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.376.0):* **4-Achs an der Tisch/Tisch: das Rohr im Dreibackenfutter auf dem Rundtisch** (Manuel,
+  2026-11-15). Im 4-Achs-Assistenten steht an der Tisch/Tisch als erste Rundachse „C, A −90° – Rohr im Futter
+  auf dem Rundtisch, Werkzeug von oben“: Das Rohr steht mittig im Futter (Körper in Bild und Kollision), die
+  Stange um Spannlänge und Lücke länger; das Programm fährt über C, schwenkt A, fräst mit C, schwenkt am Ende
+  zurück auf A0. **Nullpunkt nach dem Schwenken** (A −90, C 0: Mitte Rohr, Stirn) – so hängt das Programm
+  nicht an der Futterhöhe (der Zweifler fand: mit G54 bei A0 hätten 5 mm Abweichung einen Eilgang 2 mm ins
+  Rohteil bedeutet); Programmkopf und Einrichtblatt sagen es; im Mischjob bekommt die Lage G55. B-037
+  behoben. Kurvennut-Rohr: Achsen in den Grenzen, nichts berührt sich, nirgends ins Teil. Dazu **Dichtnut
+  hobeln, Schritte 1–5** (ohne Assistent, siehe Nächster Schritt 3), 14 Hoffmann-Gewindebohrer-Reihen.
 - *Neu (0.375.0):* **Kurvennut: vorarbeiten mit Aufmaß und Leerdurchfahrten** (Manuel, 2026-11-15:
   „vorarbeiten auf 0.3 (einstellbar wenn der fräser ausreichend platz lässt) und leer durchfahrten je
   arbeitsgang“). Das Aufmaß von „Plan indexiert“ gilt jetzt auch an den Wänden der Kurvennut (Ø 8 mit 0,3:
@@ -3003,7 +3014,12 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   stehen. Ob unter die Endtiefe gefahren werden darf, ist eine Werkstattfrage – gestellt als Frage 3 in
   OFFENE_FRAGEN.md.
 
-- B-037 **4-Achs an der 5-Achs Tisch/Tisch mit A: „Auf der Maschine prüfen“ meldet Anstöße** (offen, gefunden
+- B-037 **4-Achs an der 5-Achs Tisch/Tisch mit A: „Auf der Maschine prüfen“ meldet Anstöße** (**behoben in
+  0.376.0**, P-2026-11-15-04: Falsch war nur der vorgeschlagene Nullpunkt der Prüfung – eine Stange quer zu Z
+  lag wie ein Quader auf dem Tisch, 50 mm unter A; das Programm war richtig, A steht dort nach DIN
+  umgedreht. Jetzt liegt die Stange auf der Rundachse, auch in „Programm schreiben“ und der
+  Simultanplanung; Spitze 0,000 mm neben der Bahn statt 20,7. (2) ist echt und mit der neuen Lage „C, A
+  −90°“ erledigt; gefunden
   am 2026-11-15 an der Kurvennut, Beispielmaschine Tisch/Tisch, Ø 8, Halter ER32/SK40). (1) „Die Schneide
   fährt ins fertige Teil“ (Satz 80, A −23,868) – in derselben Prüfung sagt der Rest aber „nirgends ins
   Teil“, und das Programm trägt an der Stelle A +23,868: Kollisionsprüfung und Programm zählen A

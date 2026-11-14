@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-04 rohr-im-futter-auf-dem-rundtisch
+
+### EINGELESEN
+- Manuel, 2026-11-15: „bauen !!!“, „arbeite durch bis morgen frueh“; zum Spannen am Rundtisch siehe
+  P-2026-11-15-03. Zum Spindelwinkel beim Hobeln: „Aber es gibt auch andere Steuerungen“.
+
+### DATEIEN
+- `camaddon/reichweite.py`, `abfahren.py`, `gui_reichweite.py`, `gui_schwenken.py`, `maschinenzugang.py`,
+  `programm_rechnen.py`, `simultan_planung.py`, `vierachs_*.py`, `schwenken.py`, `einrichtblatt.py`,
+  `gui_vierachs.py`, `postprozessor.py`, `spannung.py`; `tests/test_vierachs_a_achse.py`,
+  `tests/test_vierachs_geschwenkt.py`, `tests/gui/szenario_vierachs_geschwenkt.py`; Hilfe de/en.
+- Dichtnut hobeln: `camaddon/hobeln_bahn.py`, `hobeln.py`, `werkzeuge.py`, `werkzeugkiste.py`,
+  `schnittdaten.py`, `job_schnittwerte.py`, `uebergabe_werkzeuge.py`, `bahn.py`, `postprozessor.py`;
+  `tests/test_hobeln.py`, `tests/test_werkzeugkiste.py`; `beispiele/dichtnut_deckel.FCStd`; Hilfe Programm.
+- Hoffmann: `camaddon/werkzeugkiste_daten/hoffmann_rest.json`, `hoffmann_bohren.json`, `kataloge_index.json`.
+- `docs/STATUS_SNAPSHOT.md`, `docs/OFFENE_FRAGEN.md` (Frage 1), `docs/spezifikation_strategien.md` (13.10),
+  `package.xml` 0.376.0.
+
+### ERGEBNIS
+- B-037 behoben: falsch war der vorgeschlagene Nullpunkt der Prüfung (Stange quer zu Z 50 mm unter A),
+  nicht das Programm; Spitze 0,000 statt 20,7 mm neben der Bahn. Neu „C, A −90° – Rohr im Futter auf dem
+  Rundtisch“ an der Tisch/Tisch; Nullpunkt nach dem Schwenken (Zweifler-Fund: sonst hinge das Programm an
+  der Futterhöhe, 5 mm = Eilgang 2 mm ins Rohteil). Workflow Bauer + Zweifler + Nacharbeit.
+- Dichtnut hobeln Schritte 1–5 ohne Assistent; Spindelwinkel für alle elf Steuerungen geregelt.
+- Hoffmann: 14 Gewindebohrer-Reihen (240 Größen), 6 vollständigere Bohrer-Reihen.
+- Geprüft: test_vierachs_geschwenkt, test_vierachs_a_achse, test_vierachs_achsen/plan/kurvennut/pruefen,
+  test_restmaterial, test_postprozessor, test_schwenken, test_hobeln, test_werkzeuge, test_werkzeugkiste,
+  test_werkzeugkiste_datei, test_kataloge, test_kontur_korrektur, test_sprache; Szenarien
+  vierachs_geschwenkt und vierachs_mantelnut (Bilder angesehen, im Workflow).
 ## P-2026-11-15-03 rohr-spannen-an-der-fraese
 
 ### EINGELESEN
