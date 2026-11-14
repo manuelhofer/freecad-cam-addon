@@ -1114,6 +1114,32 @@ cutter.</li>
 reason.</li>
 </ul>
 
+<h3>21. Plane seal groove</h3>
+<p>For the <b>bottom of a closed groove</b> that an O-ring seals on (a lid): a <b>shaping
+tool</b> sits in the spindle, the spindle does not turn. The machine pulls the blade along the
+centre line of the groove and turns it into the direction of travel for each block – the marks run
+along the groove instead of across it as with milling. The shape does not matter (circle,
+rectangle with radii, following the outline); corners need a fillet.</p>
+<ul>
+<li><b>Click:</b> the bottom or a wall of the groove. The block is offered but not ticked by
+itself – whether to plane is your decision.</li>
+<li><b>A shaping tool</b> (type “shaping tool”) with edge width and blade length behind the edge.
+If there is none, a button at the bottom creates one: the edge as wide as fits into the groove,
+the blade short enough for the tightest curve.</li>
+<li><b>Align the edge:</b> the tool has a <b>spindle angle</b> at which the edge points to +X –
+measure it on the machine and enter it. The program positions the spindle for each block (Siemens
+SPOS, Heidenhain cycle 13, others M19); GRBL cannot do it and says so.</li>
+<li><b>Milled before:</b> clearing leaves the <b>stock</b> (0.2 mm) on the bottom of this groove –
+only there, other floors come to size. The walls must be finished before planing (otherwise the
+blade does not fit between them): if they still have stock, the block offers “Finish afterwards”.
+Planing only does the bottom; the walls stay as milled.</li>
+<li>The fields: <b>infeed per pass</b> (0.05 mm), <b>stock above the bottom</b>, <b>spring
+passes</b> at final depth.</li>
+</ul>
+<p><b>Caution:</b> how much load the <b>stationary spindle</b> takes is not documented – no
+manufacturer gives a value. Run slowly on the first part (feed override) and keep the infeed
+small.</p>
+
 <h3>An STL from a polygon bar</h3>
 <p>Click a mesh (STL) and <b>Machining (milling)</b>: the window “STL as part” has
 <b>From a polygon bar in the vise (re-clamping)</b> at the bottom – a fourth axis by hand on a

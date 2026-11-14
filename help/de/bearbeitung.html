@@ -1142,6 +1142,32 @@ Fräser anlegt.</li>
 <li>Ragt über der Nut etwas in die Bohrung (eine Nase), wird sie nicht angeboten – mit Grund.</li>
 </ul>
 
+<h3>21. Dichtnut hobeln</h3>
+<p>Für den <b>Grund einer umlaufenden Nut</b>, auf dem ein O-Ring dichten soll (ein Deckel): Ein
+<b>Stoßwerkzeug</b> steht in der Spindel, die Spindel dreht nicht. Die Maschine zieht die Klinge die
+Mittellinie der Nut entlang und dreht sie je Satz in Fahrtrichtung – die Riefen laufen längs der
+Nut statt quer wie beim Fräsen. Die Form ist egal (Kreis, Rechteck mit Radien, der Kontur nach),
+Ecken brauchen eine Rundung.</p>
+<ul>
+<li><b>Anklicken:</b> den Grund oder eine Wand der Nut. Der Block wird angeboten, aber nicht von sich
+aus angehakt – ob gehobelt wird, entscheidet man selbst.</li>
+<li><b>Ein Stoßwerkzeug</b> (Art „Stoßwerkzeug“) mit Schneidenbreite und Länge der Klinge hinter
+der Schneide. Fehlt eins, steht unten ein Knopf, der eins anlegt: die Schneide so breit, dass sie
+in die Nut passt, die Klinge so kurz, dass sie die engste Kurve fährt.</li>
+<li><b>Die Schneide ausrichten:</b> Am Werkzeug steht der <b>Spindelwinkel</b>, bei dem die
+Schneide nach +X zeigt – an der Maschine einmessen und eintragen. Das Programm stellt die Spindel
+je Satz (Siemens SPOS, Heidenhain Zyklus 13, andere M19); GRBL kann das nicht und sagt es.</li>
+<li><b>Vorgefräst:</b> Das Räumen lässt am Grund dieser Nut den <b>Rest</b> (0,2 mm) stehen – nur
+dort, andere Böden kommen auf Maß. Die Wände müssen fertig sein, bevor gehobelt wird (sonst passt
+die Klinge nicht dazwischen): Haben sie noch Aufmaß, bietet der Block „Schlichten danach“ an. Das
+Hobeln macht nur den Grund; die Wände bleiben, wie sie gefräst sind.</li>
+<li>Die Felder: <b>Zustellung je Umlauf</b> (0,05 mm), <b>Rest über dem Grund</b>,
+<b>Leerumläufe</b> auf Endtiefe.</li>
+</ul>
+<p><b>Vorsicht:</b> Wie viel Last die <b>stehende Spindel</b> aushält, ist nicht belegt – kein
+Hersteller nennt einen Wert. Am ersten Teil langsam fahren (Vorschub-Override) und die Zustellung
+klein lassen.</p>
+
 <h3>Ein STL aus einer N-Eck-Stange</h3>
 <p>Ein Netz (STL) anklicken und <b>Bearbeitung</b>: Im Fenster „STL als Teil“ steht unten
 <b>Aus einer N-Eck-Stange im Schraubstock (umspannen)</b> – eine vierte Achse von Hand an der
