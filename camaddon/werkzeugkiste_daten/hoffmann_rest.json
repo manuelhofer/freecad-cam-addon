@@ -23773,6 +23773,3469 @@
      }
     }
    ]
+  },
+  {
+   "kennung": "hg-garant-132150",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Maschinen-Gewindebohrer Form B vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132150 und Produktseiten 132150-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M2",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 6
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2",
+     "artikel": "132150 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M2",
+     "preis_netto": 26.2
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,5",
+     "artikel": "132150 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M2%2C5",
+     "preis_netto": 21.7
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,6",
+     "artikel": "132150 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M2%2C6",
+     "preis_netto": 31.2
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3",
+     "artikel": "132150 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M3",
+     "preis_netto": 17.3
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4",
+     "artikel": "132150 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M4",
+     "preis_netto": 17.3
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5",
+     "artikel": "132150 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M5",
+     "preis_netto": 17.9
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6",
+     "artikel": "132150 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M6",
+     "preis_netto": 17.9
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 24,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8",
+     "artikel": "132150 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M8",
+     "preis_netto": 22.8
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10",
+     "artikel": "132150 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M10",
+     "preis_netto": 27.8
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 31,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12",
+     "artikel": "132150 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M12",
+     "preis_netto": 37.3
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 33,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14",
+     "artikel": "132150 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M14",
+     "preis_netto": 56.0
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 35,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16",
+     "artikel": "132150 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M16",
+     "preis_netto": 56.4
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 37,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 3,
+     "name": "M20",
+     "artikel": "132150 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M20",
+     "preis_netto": 90.9
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 42,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 3,
+     "name": "M24",
+     "artikel": "132150 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132150-M24",
+     "preis_netto": 129.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-135450",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Maschinen-Gewindebohrer vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135450 und Produktseiten 135450-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M2",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 6
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2x0,4-6H",
+     "artikel": "135450 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M2",
+     "preis_netto": 26.2
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,5x0,45-6H",
+     "artikel": "135450 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M2%2C5",
+     "preis_netto": 21.8
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,6x0,45-6H",
+     "artikel": "135450 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M2%2C6",
+     "preis_netto": 32.5
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3x0,5-6H",
+     "artikel": "135450 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M3",
+     "preis_netto": 17.6
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 7,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4x0,7-6H",
+     "artikel": "135450 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M4",
+     "preis_netto": 17.6
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5x0,8-6H",
+     "artikel": "135450 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M5",
+     "preis_netto": 18.15
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 11,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6x1-6H",
+     "artikel": "135450 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M6",
+     "preis_netto": 18.15
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8x1,25-6H",
+     "artikel": "135450 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M8",
+     "preis_netto": 22.8
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10x1,5-6H",
+     "artikel": "135450 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M10",
+     "preis_netto": 27.6
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 15,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,75-6H",
+     "artikel": "135450 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M12",
+     "preis_netto": 37.2
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14x2-6H",
+     "artikel": "135450 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M14",
+     "preis_netto": 44.7
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 18,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16x2-6H",
+     "artikel": "135450 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M16",
+     "preis_netto": 56.0
+    },
+    {
+     "durchmesser": 18,
+     "steigung": 2.5,
+     "schneidenlaenge": 20,
+     "gesamtlaenge": 125,
+     "schaft": 14,
+     "schneiden": 4,
+     "name": "M18x2,5-6H",
+     "artikel": "135450 M18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M18",
+     "preis_netto": 75.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 20,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20x2,5-6H",
+     "artikel": "135450 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M20",
+     "preis_netto": 88.8
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24x3-6H",
+     "artikel": "135450 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M24",
+     "preis_netto": 154.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 3.5,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 180,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30x3,5-6H",
+     "artikel": "135450 M30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135450-M30",
+     "preis_netto": 256.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-132670",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Vap Tap Maschinen Gewindebohrer HSS-E extra lang vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132670 und Produktseiten 132670-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M3",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 13
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 11.6,
+     "gesamtlaenge": 113.2,
+     "schaft": 3.5,
+     "schneiden": 2,
+     "name": "M3x0,5-6H",
+     "artikel": "132670 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M3",
+     "preis_netto": 32.3
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 13.8,
+     "gesamtlaenge": 113.58,
+     "schaft": 4.5,
+     "schneiden": 2,
+     "name": "M4x0,7-6H",
+     "artikel": "132670 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M4",
+     "preis_netto": 32.3
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 16.9,
+     "gesamtlaenge": 127.02,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5x0,8-6H",
+     "artikel": "132670 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M5",
+     "preis_netto": 32.3
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 20.1,
+     "gesamtlaenge": 127.4,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6x1-6H",
+     "artikel": "132670 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M6",
+     "preis_netto": 32.3
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 23.6,
+     "gesamtlaenge": 140,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8x1,25-6H",
+     "artikel": "132670 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M8",
+     "preis_netto": 42.1
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 26.1,
+     "gesamtlaenge": 160,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10x1,5-6H",
+     "artikel": "132670 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M10",
+     "preis_netto": 63.4
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 28.9,
+     "gesamtlaenge": 180,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,75-6H",
+     "artikel": "132670 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M12",
+     "preis_netto": 83.5
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 35.7,
+     "gesamtlaenge": 220,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16x2-6H",
+     "artikel": "132670 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M16",
+     "preis_netto": 101.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 37.7,
+     "gesamtlaenge": 280,
+     "schaft": 16,
+     "schneiden": 3,
+     "name": "M20x2,5-6H",
+     "artikel": "132670 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132670-M20",
+     "preis_netto": 130.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-135960",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap Maschinen-Gewindebohrer HSS-E-PM Form C AlTiX",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135960 und Produktseiten 135960-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1",
+   "gemeinsam": {
+    "beschichtung": "AlTiX",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 10
+     }
+    },
+    "K": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1-4HX",
+     "artikel": "135960 M1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1",
+     "preis_netto": 47.8
+    },
+    {
+     "durchmesser": 1.1,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,1-4HX",
+     "artikel": "135960 M1,1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C1",
+     "preis_netto": 47.8
+    },
+    {
+     "durchmesser": 1.2,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,2-4HX",
+     "artikel": "135960 M1,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C2",
+     "preis_netto": 47.8
+    },
+    {
+     "durchmesser": 1.4,
+     "steigung": 0.3,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,4-4HX",
+     "artikel": "135960 M1,4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C4",
+     "preis_netto": 41.9
+    },
+    {
+     "durchmesser": 1.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 7,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,6-6HX",
+     "artikel": "135960 M1,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C6",
+     "preis_netto": 41.9
+    },
+    {
+     "durchmesser": 1.7,
+     "steigung": 0.35,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,7-6HX",
+     "artikel": "135960 M1,7",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C7",
+     "preis_netto": 39.8
+    },
+    {
+     "durchmesser": 1.8,
+     "steigung": 0.35,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,8-6HX",
+     "artikel": "135960 M1,8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M1%2C8",
+     "preis_netto": 39.8
+    },
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 4.1,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2-6HX",
+     "artikel": "135960 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M2",
+     "preis_netto": 40.4
+    },
+    {
+     "durchmesser": 2.2,
+     "steigung": 0.45,
+     "schneidenlaenge": 3.6,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,2-6HX",
+     "artikel": "135960 M2,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M2%2C2",
+     "preis_netto": 38.5
+    },
+    {
+     "durchmesser": 2.3,
+     "steigung": 0.4,
+     "schneidenlaenge": 3.6,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,3-6HX",
+     "artikel": "135960 M2,3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M2%2C3",
+     "preis_netto": 38.5
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 3.6,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,5-6HX",
+     "artikel": "135960 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M2%2C5",
+     "preis_netto": 39.2
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 3.6,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,6-6HX",
+     "artikel": "135960 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M2%2C6",
+     "preis_netto": 35.0
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 5.1,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3-6HX",
+     "artikel": "135960 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M3",
+     "preis_netto": 30.8
+    },
+    {
+     "durchmesser": 3.5,
+     "steigung": 0.6,
+     "schneidenlaenge": 4.8,
+     "gesamtlaenge": 56,
+     "schaft": 4,
+     "schneiden": 3,
+     "name": "M3,5-6HX",
+     "artikel": "135960 M3,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M3%2C5",
+     "preis_netto": 43.4
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 7.3,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4-6HX",
+     "artikel": "135960 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M4",
+     "preis_netto": 31.7
+    },
+    {
+     "durchmesser": 4.5,
+     "steigung": 0.75,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M4,5-6HX",
+     "artikel": "135960 M4,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M4%2C5",
+     "preis_netto": 41.1
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 8.3,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5-6HX",
+     "artikel": "135960 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M5",
+     "preis_netto": 32.2
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 10.4,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6-6HX",
+     "artikel": "135960 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M6",
+     "preis_netto": 37.6
+    },
+    {
+     "durchmesser": 7,
+     "steigung": 1,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 80,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M7-6HX",
+     "artikel": "135960 M7",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M7",
+     "preis_netto": 43.0
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 12.9,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8-6HX",
+     "artikel": "135960 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M8",
+     "preis_netto": 42.0
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 16.1,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10-6HX",
+     "artikel": "135960 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M10",
+     "preis_netto": 49.8
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 19.9,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12-6HX",
+     "artikel": "135960 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M12",
+     "preis_netto": 63.4
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14-6HX",
+     "artikel": "135960 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M14",
+     "preis_netto": 77.1
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 23.8,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16-6HX",
+     "artikel": "135960 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M16",
+     "preis_netto": 86.6
+    },
+    {
+     "durchmesser": 18,
+     "steigung": 2.5,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 125,
+     "schaft": 14,
+     "schneiden": 4,
+     "name": "M18-6HX",
+     "artikel": "135960 M18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M18",
+     "preis_netto": 116.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 32.8,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20-6HX",
+     "artikel": "135960 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M20",
+     "preis_netto": 143.0
+    },
+    {
+     "durchmesser": 22,
+     "steigung": 2.5,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 140,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M22-6HX",
+     "artikel": "135960 M22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M22",
+     "preis_netto": 150.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 41.6,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24-6HX",
+     "artikel": "135960 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M24",
+     "preis_netto": 192.0
+    },
+    {
+     "durchmesser": 27,
+     "steigung": 3,
+     "schneidenlaenge": 20,
+     "gesamtlaenge": 160,
+     "schaft": 20,
+     "schneiden": 4,
+     "name": "M27-6HX",
+     "artikel": "135960 M27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M27",
+     "preis_netto": 237.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 3.5,
+     "schneidenlaenge": 23,
+     "gesamtlaenge": 180,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30-6HX",
+     "artikel": "135960 M30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135960-M30",
+     "preis_netto": 282.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-132721",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap Maschinen-Gewindebohrer Form B AlTiX",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132721 und Produktseiten 132721-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1",
+   "gemeinsam": {
+    "beschichtung": "AlTiX",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 10
+     }
+    },
+    "K": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.365,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1x0,25-4HX",
+     "artikel": "132721 M1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 1.1,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.415,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,1x0,25-4HX",
+     "artikel": "132721 M1,1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C1",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 1.2,
+     "steigung": 0.25,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.465,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,2x0,25-4HX",
+     "artikel": "132721 M1,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C2",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 1.4,
+     "steigung": 0.3,
+     "schneidenlaenge": 7,
+     "gesamtlaenge": 40.5,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,4x0,3-4HX",
+     "artikel": "132721 M1,4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C4",
+     "preis_netto": 39.8
+    },
+    {
+     "durchmesser": 1.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 7.9,
+     "gesamtlaenge": 40.6,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,6x0,35-6HX",
+     "artikel": "132721 M1,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C6",
+     "preis_netto": 39.8
+    },
+    {
+     "durchmesser": 1.7,
+     "steigung": 0.35,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.6,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,7x0,35-6HX",
+     "artikel": "132721 M1,7",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C7",
+     "preis_netto": 37.5
+    },
+    {
+     "durchmesser": 1.8,
+     "steigung": 0.35,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.7,
+     "schaft": 2.5,
+     "schneiden": 3,
+     "name": "M1,8x0,35-6HX",
+     "artikel": "132721 M1,8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M1%2C8",
+     "preis_netto": 37.5
+    },
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 45.8,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2x0,4-6HX",
+     "artikel": "132721 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M2",
+     "preis_netto": 36.9
+    },
+    {
+     "durchmesser": 2.2,
+     "steigung": 0.45,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 45.8,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,2x0,45-6HX",
+     "artikel": "132721 M2,2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M2%2C2",
+     "preis_netto": 32.6
+    },
+    {
+     "durchmesser": 2.3,
+     "steigung": 0.4,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 45.9,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,3x0,4-6HX",
+     "artikel": "132721 M2,3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M2%2C3",
+     "preis_netto": 32.6
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 50.9,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,5x0,45-6HX",
+     "artikel": "132721 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M2%2C5",
+     "preis_netto": 32.1
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 51,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,6x0,45-6HX",
+     "artikel": "132721 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M2%2C6",
+     "preis_netto": 32.1
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 11.2,
+     "gesamtlaenge": 57.3,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3x0,5-6HX",
+     "artikel": "132721 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M3",
+     "preis_netto": 27.8
+    },
+    {
+     "durchmesser": 3.5,
+     "steigung": 0.6,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 57.3,
+     "schaft": 4,
+     "schneiden": 3,
+     "name": "M3,5x0,6-6HX",
+     "artikel": "132721 M3,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M3%2C5",
+     "preis_netto": 43.9
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 64.5,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4x0,7-6HX",
+     "artikel": "132721 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M4",
+     "preis_netto": 28.9
+    },
+    {
+     "durchmesser": 4.5,
+     "steigung": 0.75,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 71.8,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M4,5x0,75-6HX",
+     "artikel": "132721 M4,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M4%2C5",
+     "preis_netto": 37.3
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 71.9,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5x0,8-6HX",
+     "artikel": "132721 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M5",
+     "preis_netto": 30.2
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 19,
+     "gesamtlaenge": 82.2,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6x1-6HX",
+     "artikel": "132721 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M6",
+     "preis_netto": 34.3
+    },
+    {
+     "durchmesser": 7,
+     "steigung": 1,
+     "schneidenlaenge": 19,
+     "gesamtlaenge": 82.9,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M7x1-6HX",
+     "artikel": "132721 M7",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M7",
+     "preis_netto": 41.9
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 22,
+     "gesamtlaenge": 93.1,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8x1,25-6HX",
+     "artikel": "132721 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M8",
+     "preis_netto": 38.5
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 24,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10x1,5-6HX",
+     "artikel": "132721 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M10",
+     "preis_netto": 51.3
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 28,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,75-6HX",
+     "artikel": "132721 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M12",
+     "preis_netto": 62.4
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 30,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "name": "M14x2-6HX",
+     "artikel": "132721 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M14",
+     "preis_netto": 73.1
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 32,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "name": "M16x2-6HX",
+     "artikel": "132721 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M16",
+     "preis_netto": 82.8
+    },
+    {
+     "durchmesser": 18,
+     "steigung": 2.5,
+     "schneidenlaenge": 34,
+     "gesamtlaenge": 125,
+     "schaft": 14,
+     "schneiden": 4,
+     "name": "M18x2,5-6HX",
+     "artikel": "132721 M18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M18",
+     "preis_netto": 108.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 34,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20x2,5-6HX",
+     "artikel": "132721 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M20",
+     "preis_netto": 135.0
+    },
+    {
+     "durchmesser": 22,
+     "steigung": 2.5,
+     "schneidenlaenge": 34,
+     "gesamtlaenge": 140,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M22x2,5-6HX",
+     "artikel": "132721 M22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M22",
+     "preis_netto": 150.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 38,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24x3-6HX",
+     "artikel": "132721 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M24",
+     "preis_netto": 196.0
+    },
+    {
+     "durchmesser": 27,
+     "steigung": 3,
+     "schneidenlaenge": 38,
+     "gesamtlaenge": 160,
+     "schaft": 20,
+     "schneiden": 4,
+     "name": "M27x3-6HX",
+     "artikel": "132721 M27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M27",
+     "preis_netto": 229.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 3.5,
+     "schneidenlaenge": 45,
+     "gesamtlaenge": 180,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30x3,5-6HX",
+     "artikel": "132721 M30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132721-M30",
+     "preis_netto": 270.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-holex-132680",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Pro Tap Maschinen-Gewindebohrer Form B HSS-E TiN",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132680 und Produktseiten 132680-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M2",
+   "gemeinsam": {
+    "beschichtung": "TiN",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 24
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 7.39,
+     "gesamtlaenge": 46.3,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2",
+     "artikel": "132680 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M2",
+     "preis_netto": 19.05
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 9.6,
+     "gesamtlaenge": 51.73,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,5",
+     "artikel": "132680 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M2%2C5",
+     "preis_netto": 19.05
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 10.52,
+     "gesamtlaenge": 58.08,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3",
+     "artikel": "132680 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M3",
+     "preis_netto": 12.75
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 12.78,
+     "gesamtlaenge": 64.6,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4",
+     "artikel": "132680 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M4",
+     "preis_netto": 12.85
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 15.04,
+     "gesamtlaenge": 72,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5",
+     "artikel": "132680 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M5",
+     "preis_netto": 13.45
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 17.26,
+     "gesamtlaenge": 82.4,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6",
+     "artikel": "132680 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M6",
+     "preis_netto": 13.7
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 19.56,
+     "gesamtlaenge": 93.25,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8",
+     "artikel": "132680 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M8",
+     "preis_netto": 19.3
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 21.99,
+     "gesamtlaenge": 102.5,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10",
+     "artikel": "132680 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M10",
+     "preis_netto": 22.3
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 25.7,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 4,
+     "name": "M12",
+     "artikel": "132680 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M12",
+     "preis_netto": 28.9
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 26.7,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "name": "M14",
+     "artikel": "132680 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M14",
+     "preis_netto": 41.1
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 30.2,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "name": "M16",
+     "artikel": "132680 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M16",
+     "preis_netto": 45.1
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 34.2,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20",
+     "artikel": "132680 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M20",
+     "preis_netto": 77.5
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 39.25,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24",
+     "artikel": "132680 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M24",
+     "preis_netto": 109.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 3.5,
+     "schneidenlaenge": 44.3,
+     "gesamtlaenge": 180,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30",
+     "artikel": "132680 M30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132680-M30",
+     "preis_netto": 167.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-holex-135910",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Pro Tap Maschinen-Gewindebohrer HSS-E Form C TiN",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135910 und Produktseiten 135910-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M2",
+   "gemeinsam": {
+    "beschichtung": "TiN",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 24
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 5.39,
+     "gesamtlaenge": 46.3,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2",
+     "artikel": "135910 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M2",
+     "preis_netto": 21.3
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 6.98,
+     "gesamtlaenge": 51.73,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,5",
+     "artikel": "135910 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M2%2C5",
+     "preis_netto": 21.3
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 7.52,
+     "gesamtlaenge": 58.12,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3",
+     "artikel": "135910 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M3",
+     "preis_netto": 14.1
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 9.28,
+     "gesamtlaenge": 64.6,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4",
+     "artikel": "135910 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M4",
+     "preis_netto": 14.2
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 11.04,
+     "gesamtlaenge": 72,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5",
+     "artikel": "135910 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M5",
+     "preis_netto": 14.95
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 13.26,
+     "gesamtlaenge": 82.4,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6",
+     "artikel": "135910 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M6",
+     "preis_netto": 15.1
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 16.56,
+     "gesamtlaenge": 93.25,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8",
+     "artikel": "135910 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M8",
+     "preis_netto": 21.1
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 19.49,
+     "gesamtlaenge": 104.12,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10",
+     "artikel": "135910 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M10",
+     "preis_netto": 24.2
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 18.7,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12",
+     "artikel": "135910 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M12",
+     "preis_netto": 30.4
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 21.1,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "name": "M14",
+     "artikel": "135910 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M14",
+     "preis_netto": 39.5
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 21.6,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "name": "M16",
+     "artikel": "135910 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M16",
+     "preis_netto": 47.7
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 30.3,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20",
+     "artikel": "135910 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M20",
+     "preis_netto": 81.6
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 37,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24",
+     "artikel": "135910 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M24",
+     "preis_netto": 115.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 3.5,
+     "schneidenlaenge": 44.1,
+     "gesamtlaenge": 180,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30",
+     "artikel": "135910 M30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135910-M30",
+     "preis_netto": 167.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-holex-135855",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Maschinen-Gewindebohrer HSS-E Form C vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135855 und Produktseiten 135855-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M3",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 9,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 2,
+     "name": "M3",
+     "artikel": "135855 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M3",
+     "preis_netto": 12.3
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 11.1,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 2,
+     "name": "M4",
+     "artikel": "135855 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M4",
+     "preis_netto": 12.3
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 12.7,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 2,
+     "name": "M5",
+     "artikel": "135855 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M5",
+     "preis_netto": 12.9
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 16.2,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6",
+     "artikel": "135855 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M6",
+     "preis_netto": 13.45
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 19.2,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8",
+     "artikel": "135855 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M8",
+     "preis_netto": 15.8
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 22.9,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10",
+     "artikel": "135855 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M10",
+     "preis_netto": 17.95
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12",
+     "artikel": "135855 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M12",
+     "preis_netto": 21.2
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 23.4,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "name": "M14",
+     "artikel": "135855 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M14",
+     "preis_netto": 34.7
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 24.3,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "name": "M16",
+     "artikel": "135855 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M16",
+     "preis_netto": 46.8
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 29.3,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20",
+     "artikel": "135855 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M20",
+     "preis_netto": 68.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 33.5,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24",
+     "artikel": "135855 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135855-M24",
+     "preis_netto": 109.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-137160",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap Maschinen-Gewindebohrer HSS-E-PM 6HX AlTiX",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/137160 und Produktseiten 137160-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/137160-2%2C5X0%2C35",
+   "gemeinsam": {
+    "beschichtung": "AlTiX",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 30
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 10
+     }
+    },
+    "K": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 20
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.35,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 56,
+     "schaft": 1.8,
+     "schneiden": 3,
+     "name": "M2,5x0,35-6HX",
+     "artikel": "137160 2,5X0,35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-2%2C5X0%2C35",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 4,
+     "gesamtlaenge": 56,
+     "schaft": 1.8,
+     "schneiden": 3,
+     "name": "M2,6x0,35-6HX",
+     "artikel": "137160 2,6X0,35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-2%2C6X0%2C35",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.35,
+     "schneidenlaenge": 4.2,
+     "gesamtlaenge": 56,
+     "schaft": 2.2,
+     "schneiden": 3,
+     "name": "M3x0,35-6HX",
+     "artikel": "137160 3X0,35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-3X0%2C35",
+     "preis_netto": 48.0
+    },
+    {
+     "durchmesser": 3.5,
+     "steigung": 0.35,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 56,
+     "schaft": 2.2,
+     "schneiden": 3,
+     "name": "M3,5x0,35-6HX",
+     "artikel": "137160 3,5X0,35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-3%2C5X0%2C35",
+     "preis_netto": 53.5
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.35,
+     "schneidenlaenge": 5.6,
+     "gesamtlaenge": 63,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M4x0,35-6HX",
+     "artikel": "137160 4X0,35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-4X0%2C35",
+     "preis_netto": 50.3
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.5,
+     "schneidenlaenge": 5.8,
+     "gesamtlaenge": 63,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M4x0,5-6HX",
+     "artikel": "137160 4X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-4X0%2C5",
+     "preis_netto": 48.6
+    },
+    {
+     "durchmesser": 4.5,
+     "steigung": 0.5,
+     "schneidenlaenge": 6.2,
+     "gesamtlaenge": 70,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M4,5x0,5-6HX",
+     "artikel": "137160 4,5X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-4%2C5X0%2C5",
+     "preis_netto": 52.7
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.5,
+     "schneidenlaenge": 6.2,
+     "gesamtlaenge": 70,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M5x0,5-6HX",
+     "artikel": "137160 5X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-5X0%2C5",
+     "preis_netto": 48.6
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 0.5,
+     "schneidenlaenge": 8.3,
+     "gesamtlaenge": 80,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M6x0,5-6HX",
+     "artikel": "137160 6X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-6X0%2C5",
+     "preis_netto": 49.4
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 0.75,
+     "schneidenlaenge": 8.3,
+     "gesamtlaenge": 80,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M6x0,75-6HX",
+     "artikel": "137160 6X0,75",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-6X0%2C75",
+     "preis_netto": 49.4
+    },
+    {
+     "durchmesser": 6.5,
+     "steigung": 0.75,
+     "schneidenlaenge": 8.3,
+     "gesamtlaenge": 80,
+     "schaft": 5.5,
+     "schneiden": 3,
+     "name": "M6,5x0,75-6HX",
+     "artikel": "137160 6,5X0,75",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-6%2C5X0%2C75",
+     "preis_netto": 55.4
+    },
+    {
+     "durchmesser": 7,
+     "steigung": 0.5,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 80,
+     "schaft": 5.5,
+     "schneiden": 3,
+     "name": "M7x0,5-6HX",
+     "artikel": "137160 7X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-7X0%2C5",
+     "preis_netto": 57.6
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 0.75,
+     "schneidenlaenge": 8.3,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M8x0,75-6HX",
+     "artikel": "137160 8X0,75",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-8X0%2C75",
+     "preis_netto": 54.5
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1,
+     "schneidenlaenge": 10.5,
+     "gesamtlaenge": 90,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M8x1-6HX",
+     "artikel": "137160 8X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-8X1",
+     "preis_netto": 53.3
+    },
+    {
+     "durchmesser": 9,
+     "steigung": 1,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 90,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M9x1-6HX",
+     "artikel": "137160 9X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-9X1",
+     "preis_netto": 58.7
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 0.75,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 90,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M10x0,75-6HX",
+     "artikel": "137160 10X0,75",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-10X0%2C75",
+     "preis_netto": 54.5
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1,
+     "schneidenlaenge": 10.5,
+     "gesamtlaenge": 90,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M10x1-6HX",
+     "artikel": "137160 10X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-10X1",
+     "preis_netto": 68.4
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.25,
+     "schneidenlaenge": 12.5,
+     "gesamtlaenge": 100,
+     "schaft": 7,
+     "schneiden": 3,
+     "name": "M10x1,25-6HX",
+     "artikel": "137160 10X1,25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-10X1%2C25",
+     "preis_netto": 68.4
+    },
+    {
+     "durchmesser": 11,
+     "steigung": 1,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M11x1-6HX",
+     "artikel": "137160 11X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-11X1",
+     "preis_netto": 74.6
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 0.5,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 100,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x0,5-6HX",
+     "artikel": "137160 12X0,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-12X0%2C5",
+     "preis_netto": 72.5
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 0.75,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 100,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x0,75-6HX",
+     "artikel": "137160 12X0,75",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-12X0%2C75",
+     "preis_netto": 72.5
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1,
+     "schneidenlaenge": 12.5,
+     "gesamtlaenge": 100,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1-6HX",
+     "artikel": "137160 12X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-12X1",
+     "preis_netto": 73.1
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.25,
+     "schneidenlaenge": 12.5,
+     "gesamtlaenge": 100,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,25-6HX",
+     "artikel": "137160 12X1,25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-12X1%2C25",
+     "preis_netto": 73.1
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.5,
+     "schneidenlaenge": 14.5,
+     "gesamtlaenge": 100,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,5-6HX",
+     "artikel": "137160 12X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-12X1%2C5",
+     "preis_netto": 77.3
+    },
+    {
+     "durchmesser": 13,
+     "steigung": 1,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 100,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M13x1-6HX",
+     "artikel": "137160 13X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-13X1",
+     "preis_netto": 88.4
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 100,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14x1,5-6HX",
+     "artikel": "137160 14X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-14X1%2C5",
+     "preis_netto": 89.0
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 100,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16x1,5-6HX",
+     "artikel": "137160 16X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-16X1%2C5",
+     "preis_netto": 102.0
+    },
+    {
+     "durchmesser": 18,
+     "steigung": 1,
+     "schneidenlaenge": 16,
+     "gesamtlaenge": 110,
+     "schaft": 14,
+     "schneiden": 4,
+     "name": "M18x1-6HX",
+     "artikel": "137160 18X1",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-18X1",
+     "preis_netto": 118.0
+    },
+    {
+     "durchmesser": 18,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 110,
+     "schaft": 14,
+     "schneiden": 4,
+     "name": "M18x1,5-6HX",
+     "artikel": "137160 18X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-18X1%2C5",
+     "preis_netto": 119.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 125,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20x1,5-6HX",
+     "artikel": "137160 20X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-20X1%2C5",
+     "preis_netto": 134.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20x2-6HX",
+     "artikel": "137160 20X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-20X2",
+     "preis_netto": 134.0
+    },
+    {
+     "durchmesser": 22,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 125,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M22x1,5-6HX",
+     "artikel": "137160 22X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-22X1%2C5",
+     "preis_netto": 158.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 1.5,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 140,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24x1,5-6HX",
+     "artikel": "137160 24X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-24X1%2C5",
+     "preis_netto": 170.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 2,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 140,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24x2-6HX",
+     "artikel": "137160 24X2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-24X2",
+     "preis_netto": 180.0
+    },
+    {
+     "durchmesser": 26,
+     "steigung": 1.5,
+     "schneidenlaenge": 25,
+     "gesamtlaenge": 140,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M26x1,5-6HX",
+     "artikel": "137160 26X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-26X1%2C5",
+     "preis_netto": 218.0
+    },
+    {
+     "durchmesser": 30,
+     "steigung": 1.5,
+     "schneidenlaenge": 33,
+     "gesamtlaenge": 150,
+     "schaft": 22,
+     "schneiden": 4,
+     "name": "M30x1,5-6HX",
+     "artikel": "137160 30X1,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/137160-30X1%2C5",
+     "preis_netto": 317.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-135732",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap INOX Maschinen-Gewindebohrer HSS-E-PM Form C 6HX TiAlN",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135732 und Produktseiten 135732-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M1%2C6",
+   "gemeinsam": {
+    "beschichtung": "TiAlN",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 28
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 23
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,6-6HX",
+     "artikel": "135732 M1,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M1%2C6",
+     "preis_netto": 45.2
+    },
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 9.72,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2-6HX",
+     "artikel": "135732 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M2",
+     "preis_netto": 43.9
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 10.83,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,5-6HX",
+     "artikel": "135732 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M2%2C5",
+     "preis_netto": 43.9
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 10.83,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,6-6HX",
+     "artikel": "135732 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M2%2C6",
+     "preis_netto": 38.0
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3-6HX",
+     "artikel": "135732 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M3",
+     "preis_netto": 34.2
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 7.1,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4-6HX",
+     "artikel": "135732 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M4",
+     "preis_netto": 34.2
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 8.1,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5-6HX",
+     "artikel": "135732 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M5",
+     "preis_netto": 35.5
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 10.1,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6-6HX",
+     "artikel": "135732 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M6",
+     "preis_netto": 41.6
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 13.2,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8-6HX",
+     "artikel": "135732 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M8",
+     "preis_netto": 46.5
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 15.2,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10-6HX",
+     "artikel": "135732 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M10",
+     "preis_netto": 55.0
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 18.8,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 4,
+     "name": "M12-6HX",
+     "artikel": "135732 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M12",
+     "preis_netto": 68.6
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 21.1,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "name": "M14-6HX",
+     "artikel": "135732 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M14",
+     "preis_netto": 84.3
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 21.1,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "name": "M16-6HX",
+     "artikel": "135732 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M16",
+     "preis_netto": 95.2
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 25.8,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20-6HX",
+     "artikel": "135732 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M20",
+     "preis_netto": 158.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 31.5,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24-6HX",
+     "artikel": "135732 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135732-M24",
+     "preis_netto": 212.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-holex-132645",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "HOLEX",
+   "titel": "HOLEX Maschinen-Gewindebohrer Form B HSS-E vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132645 und Produktseiten 132645-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M3",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 8
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 4
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 12,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 2,
+     "name": "M3",
+     "artikel": "132645 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M3",
+     "preis_netto": 11.65
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 15.5,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 2,
+     "name": "M4",
+     "artikel": "132645 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M4",
+     "preis_netto": 11.95
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 17.7,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 2,
+     "name": "M5",
+     "artikel": "132645 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M5",
+     "preis_netto": 11.95
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 20.2,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6",
+     "artikel": "132645 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M6",
+     "preis_netto": 12.05
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 24.2,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8",
+     "artikel": "132645 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M8",
+     "preis_netto": 14.05
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 26.9,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10",
+     "artikel": "132645 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M10",
+     "preis_netto": 16.8
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 26,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12",
+     "artikel": "132645 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M12",
+     "preis_netto": 21.1
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 29.4,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14",
+     "artikel": "132645 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M14",
+     "preis_netto": 31.5
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 31.3,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16",
+     "artikel": "132645 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M16",
+     "preis_netto": 43.2
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 36.3,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 3,
+     "name": "M20",
+     "artikel": "132645 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M20",
+     "preis_netto": 62.8
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 40,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 3,
+     "name": "M24",
+     "artikel": "132645 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132645-M24",
+     "preis_netto": 99.4
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-135300",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Maschinen-Gewindebohrer vaporisiert",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/135300 und Produktseiten 135300-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M2",
+   "gemeinsam": {
+    "beschichtung": "vaporisiert",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Anschnittform C",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "P1": {
+     "gewindebohren": {
+      "vc": 15
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 6
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 5,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "artikel": "135300 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M2",
+     "preis_netto": 21.2
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 6,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "artikel": "135300 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M3",
+     "preis_netto": 13.4
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "artikel": "135300 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M4",
+     "preis_netto": 13.6
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 10,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "artikel": "135300 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M5",
+     "preis_netto": 13.7
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 13,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "artikel": "135300 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M6",
+     "preis_netto": 13.7
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 14,
+     "gesamtlaenge": 90,
+     "schaft": 8,
+     "schneiden": 3,
+     "artikel": "135300 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M8",
+     "preis_netto": 17.5
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 15,
+     "gesamtlaenge": 100,
+     "schaft": 10,
+     "schneiden": 3,
+     "artikel": "135300 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M10",
+     "preis_netto": 20.9
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 17,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 4,
+     "artikel": "135300 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M12",
+     "preis_netto": 28.1
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 4,
+     "artikel": "135300 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M14",
+     "preis_netto": 34.2
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 21,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 4,
+     "artikel": "135300 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M16",
+     "preis_netto": 42.5
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 23,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 4,
+     "artikel": "135300 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M20",
+     "preis_netto": 69.7
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 29,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 5,
+     "artikel": "135300 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/135300-M24",
+     "preis_netto": 101.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-134260",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap Alu Maschinen-Gewindebohrer DLC",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/134260 und Produktseiten 134260-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M1%2C6",
+   "gemeinsam": {
+    "beschichtung": "DLC",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Grundloch; Anschnittform E",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 32
+     }
+    },
+    "N2": {
+     "gewindebohren": {
+      "vc": 25
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 7,
+     "gesamtlaenge": 40,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,6x0,35-6HX",
+     "artikel": "134260 M1,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M1%2C6",
+     "preis_netto": 46.2
+    },
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 3.2,
+     "gesamtlaenge": 45,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2x0,4-6HX",
+     "artikel": "134260 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M2",
+     "preis_netto": 41.1
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 3.7,
+     "gesamtlaenge": 50,
+     "schaft": 2.8,
+     "schneiden": 2,
+     "name": "M2,5x0,45-6HX",
+     "artikel": "134260 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M2%2C5",
+     "preis_netto": 41.1
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 4.1,
+     "gesamtlaenge": 56,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3x0,5-6HX",
+     "artikel": "134260 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M3",
+     "preis_netto": 35.6
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 5.7,
+     "gesamtlaenge": 63,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4x0,7-6HX",
+     "artikel": "134260 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M4",
+     "preis_netto": 36.8
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 6.5,
+     "gesamtlaenge": 70,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5x0,8-6HX",
+     "artikel": "134260 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M5",
+     "preis_netto": 36.8
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 8.1,
+     "gesamtlaenge": 80,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6x1-6HX",
+     "artikel": "134260 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M6",
+     "preis_netto": 42.0
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 10.2,
+     "gesamtlaenge": 95,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8x1,25-6HX",
+     "artikel": "134260 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M8",
+     "preis_netto": 47.1
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 12.2,
+     "gesamtlaenge": 110,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10x1,5-6HX",
+     "artikel": "134260 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M10",
+     "preis_netto": 55.8
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 14.2,
+     "gesamtlaenge": 115,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12x1,75-6HX",
+     "artikel": "134260 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M12",
+     "preis_netto": 69.8
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 16.2,
+     "gesamtlaenge": 120,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14x2-6HX",
+     "artikel": "134260 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M14",
+     "preis_netto": 84.9
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 16.2,
+     "gesamtlaenge": 125,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16x2-6HX",
+     "artikel": "134260 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M16",
+     "preis_netto": 95.0
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 25.5,
+     "gesamtlaenge": 155,
+     "schaft": 16,
+     "schneiden": 4,
+     "name": "M20x2,5-6HX",
+     "artikel": "134260 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/134260-M20",
+     "preis_netto": 157.0
+    }
+   ]
+  },
+  {
+   "kennung": "hg-garant-132180",
+   "art": "gewindebohrer_rechts",
+   "hersteller": "Hoffmann Group",
+   "marke": "GARANT",
+   "titel": "GARANT Master Tap INOX Maschinen-Gewindebohrer HSS-E-PM Form B 6HX TiAlN",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/132180 und Produktseiten 132180-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
+   "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M1%2C6",
+   "gemeinsam": {
+    "beschichtung": "TiAlN",
+    "einsatzzweck": "Maschinengewindebohrer für die dynamische Bearbeitung; Durchgangsloch; Anschnittform B",
+    "flankenwinkel": 60,
+    "kuehlung_innen": false,
+    "schneidstoff": "hss"
+   },
+   "schnittwerte": {
+    "N1": {
+     "gewindebohren": {
+      "vc": 28
+     }
+    },
+    "P1": {
+     "gewindebohren": {
+      "vc": 23
+     }
+    },
+    "P2": {
+     "gewindebohren": {
+      "vc": 12
+     }
+    },
+    "M": {
+     "gewindebohren": {
+      "vc": 11
+     }
+    }
+   },
+   "groessen": [
+    {
+     "durchmesser": 1.6,
+     "steigung": 0.35,
+     "schneidenlaenge": 8,
+     "gesamtlaenge": 40.6,
+     "schaft": 2.5,
+     "schneiden": 2,
+     "name": "M1,6-6HX",
+     "artikel": "132180 M1,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M1%2C6",
+     "preis_netto": 42.9
+    },
+    {
+     "durchmesser": 2,
+     "steigung": 0.4,
+     "schneidenlaenge": 9.72,
+     "gesamtlaenge": 45.8,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2-6HX",
+     "artikel": "132180 M2",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M2",
+     "preis_netto": 40.4
+    },
+    {
+     "durchmesser": 2.5,
+     "steigung": 0.45,
+     "schneidenlaenge": 10.83,
+     "gesamtlaenge": 51,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,5-6HX",
+     "artikel": "132180 M2,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M2%2C5",
+     "preis_netto": 38.0
+    },
+    {
+     "durchmesser": 2.6,
+     "steigung": 0.45,
+     "schneidenlaenge": 10.83,
+     "gesamtlaenge": 51,
+     "schaft": 2.8,
+     "schneiden": 3,
+     "name": "M2,6-6HX",
+     "artikel": "132180 M2,6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M2%2C6",
+     "preis_netto": 30.8
+    },
+    {
+     "durchmesser": 3,
+     "steigung": 0.5,
+     "schneidenlaenge": 12.96,
+     "gesamtlaenge": 57.2,
+     "schaft": 3.5,
+     "schneiden": 3,
+     "name": "M3-6HX",
+     "artikel": "132180 M3",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M3",
+     "preis_netto": 30.8
+    },
+    {
+     "durchmesser": 4,
+     "steigung": 0.7,
+     "schneidenlaenge": 15.44,
+     "gesamtlaenge": 64.6,
+     "schaft": 4.5,
+     "schneiden": 3,
+     "name": "M4-6HX",
+     "artikel": "132180 M4",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M4",
+     "preis_netto": 31.9
+    },
+    {
+     "durchmesser": 5,
+     "steigung": 0.8,
+     "schneidenlaenge": 17.69,
+     "gesamtlaenge": 72,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M5-6HX",
+     "artikel": "132180 M5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M5",
+     "preis_netto": 33.1
+    },
+    {
+     "durchmesser": 6,
+     "steigung": 1,
+     "schneidenlaenge": 20.17,
+     "gesamtlaenge": 82.4,
+     "schaft": 6,
+     "schneiden": 3,
+     "name": "M6-6HX",
+     "artikel": "132180 M6",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M6",
+     "preis_netto": 38.0
+    },
+    {
+     "durchmesser": 8,
+     "steigung": 1.25,
+     "schneidenlaenge": 24.22,
+     "gesamtlaenge": 91.6,
+     "schaft": 8,
+     "schneiden": 3,
+     "name": "M8-6HX",
+     "artikel": "132180 M8",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M8",
+     "preis_netto": 42.9
+    },
+    {
+     "durchmesser": 10,
+     "steigung": 1.5,
+     "schneidenlaenge": 26.87,
+     "gesamtlaenge": 102,
+     "schaft": 10,
+     "schneiden": 3,
+     "name": "M10-6HX",
+     "artikel": "132180 M10",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M10",
+     "preis_netto": 56.2
+    },
+    {
+     "durchmesser": 12,
+     "steigung": 1.75,
+     "schneidenlaenge": 27.38,
+     "gesamtlaenge": 110,
+     "schaft": 9,
+     "schneiden": 3,
+     "name": "M12-6HX",
+     "artikel": "132180 M12",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M12",
+     "preis_netto": 68.6
+    },
+    {
+     "durchmesser": 14,
+     "steigung": 2,
+     "schneidenlaenge": 29.38,
+     "gesamtlaenge": 110,
+     "schaft": 11,
+     "schneiden": 3,
+     "name": "M14-6HX",
+     "artikel": "132180 M14",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M14",
+     "preis_netto": 79.5
+    },
+    {
+     "durchmesser": 16,
+     "steigung": 2,
+     "schneidenlaenge": 31.24,
+     "gesamtlaenge": 110,
+     "schaft": 12,
+     "schneiden": 3,
+     "name": "M16-6HX",
+     "artikel": "132180 M16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M16",
+     "preis_netto": 90.5
+    },
+    {
+     "durchmesser": 20,
+     "steigung": 2.5,
+     "schneidenlaenge": 36.24,
+     "gesamtlaenge": 140,
+     "schaft": 16,
+     "schneiden": 3,
+     "name": "M20-6HX",
+     "artikel": "132180 M20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M20",
+     "preis_netto": 149.0
+    },
+    {
+     "durchmesser": 24,
+     "steigung": 3,
+     "schneidenlaenge": 39.98,
+     "gesamtlaenge": 160,
+     "schaft": 18,
+     "schneiden": 4,
+     "name": "M24-6HX",
+     "artikel": "132180 M24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/132180-M24",
+     "preis_netto": 216.0
+    }
+   ]
   }
  ]
 }

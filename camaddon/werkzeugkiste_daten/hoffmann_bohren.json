@@ -159742,28 +159742,628 @@
    "hersteller": "Hoffmann Group",
    "marke": "GARANT",
    "titel": "GARANT Power Drill Wendeplatten-Vollbohrer mit Kombischaft, für Wendeschneidplatten SOGX",
-   "quelle": "hoffmann-group.com, Produktseiten 234015-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/234015 und Produktseiten 234015-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/234015-14",
    "gemeinsam": {
     "bohrtiefe_d": 5,
-    "gesamtlaenge": 133,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOGX 050204",
-    "schaft": 20,
     "schneiden": 1,
-    "schneidenlaenge": 79,
     "schneidstoff": "wsp",
     "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "schneidenlaenge": 79,
+     "gesamtlaenge": 133,
+     "schaft": 20,
+     "platte": "SOGX 050204",
      "artikel": "234015 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-14",
-     "preis_netto": 511
+     "preis_netto": 511.0
+    },
+    {
+     "durchmesser": 14.5,
+     "schneidenlaenge": 85,
+     "gesamtlaenge": 139,
+     "schaft": 20,
+     "platte": "SOGX 050204",
+     "artikel": "234015 14,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-14%2C5",
+     "preis_netto": 511.0
+    },
+    {
+     "durchmesser": 15,
+     "schneidenlaenge": 85,
+     "gesamtlaenge": 139,
+     "schaft": 20,
+     "platte": "SOGX 050204",
+     "artikel": "234015 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-15",
+     "preis_netto": 511.0
+    },
+    {
+     "durchmesser": 15.5,
+     "schneidenlaenge": 92,
+     "gesamtlaenge": 146,
+     "schaft": 20,
+     "platte": "SOGX 050204",
+     "artikel": "234015 15,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-15%2C5",
+     "preis_netto": 511.0
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 92,
+     "gesamtlaenge": 146,
+     "schaft": 20,
+     "platte": "SOGX 050204",
+     "artikel": "234015 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-16",
+     "preis_netto": 511.0
+    },
+    {
+     "durchmesser": 16.5,
+     "schneidenlaenge": 98,
+     "gesamtlaenge": 152,
+     "schaft": 20,
+     "platte": "SOGX 060305",
+     "artikel": "234015 16,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-16%2C5",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 98,
+     "gesamtlaenge": 152,
+     "schaft": 20,
+     "platte": "SOGX 060305",
+     "artikel": "234015 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-17",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 17.5,
+     "schneidenlaenge": 103,
+     "gesamtlaenge": 163,
+     "schaft": 25,
+     "platte": "SOGX 060305",
+     "artikel": "234015 17,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-17%2C5",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 103,
+     "gesamtlaenge": 163,
+     "schaft": 25,
+     "platte": "SOGX 060305",
+     "artikel": "234015 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-18",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 18.5,
+     "schneidenlaenge": 109,
+     "gesamtlaenge": 169,
+     "schaft": 25,
+     "platte": "SOGX 060305",
+     "artikel": "234015 18,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-18%2C5",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 109,
+     "gesamtlaenge": 169,
+     "schaft": 25,
+     "platte": "SOGX 060305",
+     "artikel": "234015 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-19",
+     "preis_netto": 526.0
+    },
+    {
+     "durchmesser": 19.5,
+     "schneidenlaenge": 114,
+     "gesamtlaenge": 174,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 19,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-19%2C5",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 114,
+     "gesamtlaenge": 174,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-20",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 20.5,
+     "schneidenlaenge": 120,
+     "gesamtlaenge": 180,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 20,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-20%2C5",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 120,
+     "gesamtlaenge": 180,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-21",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 21.5,
+     "schneidenlaenge": 125,
+     "gesamtlaenge": 185,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 21,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-21%2C5",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 22,
+     "schneidenlaenge": 125,
+     "gesamtlaenge": 185,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-22",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 22.5,
+     "schneidenlaenge": 131,
+     "gesamtlaenge": 191,
+     "schaft": 25,
+     "platte": "SOGX 070306",
+     "artikel": "234015 22,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-22%2C5",
+     "preis_netto": 558.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 131,
+     "gesamtlaenge": 191,
+     "schaft": 25,
+     "platte": "SOGX 080407",
+     "artikel": "234015 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-23",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 23.5,
+     "schneidenlaenge": 136,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 23,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-23%2C5",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 24,
+     "schneidenlaenge": 136,
+     "gesamtlaenge": 200,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-24",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 24.5,
+     "schneidenlaenge": 142,
+     "gesamtlaenge": 206,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 24,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-24%2C5",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 142,
+     "gesamtlaenge": 206,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-25",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 25.5,
+     "schneidenlaenge": 147,
+     "gesamtlaenge": 211,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 25,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-25%2C5",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 147,
+     "gesamtlaenge": 211,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-26",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 26.5,
+     "schneidenlaenge": 153,
+     "gesamtlaenge": 217,
+     "schaft": 32,
+     "platte": "SOGX 080407",
+     "artikel": "234015 26,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-26%2C5",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 27,
+     "schneidenlaenge": 153,
+     "gesamtlaenge": 217,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-27",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 27.5,
+     "schneidenlaenge": 158,
+     "gesamtlaenge": 222,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 27,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-27%2C5",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 28,
+     "schneidenlaenge": 158,
+     "gesamtlaenge": 222,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 28",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-28",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 28.5,
+     "schneidenlaenge": 164,
+     "gesamtlaenge": 228,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 28,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-28%2C5",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 29,
+     "schneidenlaenge": 164,
+     "gesamtlaenge": 228,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 29",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-29",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 29.5,
+     "schneidenlaenge": 169,
+     "gesamtlaenge": 233,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 29,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-29%2C5",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 169,
+     "gesamtlaenge": 233,
+     "schaft": 32,
+     "platte": "SOGX 100408",
+     "artikel": "234015 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-30",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 30.5,
+     "schneidenlaenge": 175,
+     "gesamtlaenge": 247,
+     "schaft": 40,
+     "platte": "SOGX 100408",
+     "artikel": "234015 30,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-30%2C5",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 31,
+     "schneidenlaenge": 175,
+     "gesamtlaenge": 247,
+     "schaft": 40,
+     "platte": "SOGX 100408",
+     "artikel": "234015 31",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-31",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 31.5,
+     "schneidenlaenge": 180,
+     "gesamtlaenge": 252,
+     "schaft": 40,
+     "platte": "SOGX 100408",
+     "artikel": "234015 31,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-31%2C5",
+     "preis_netto": 617.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 180,
+     "gesamtlaenge": 252,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-32",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 32.5,
+     "schneidenlaenge": 186,
+     "gesamtlaenge": 258,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 32,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-32%2C5",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 33,
+     "schneidenlaenge": 186,
+     "gesamtlaenge": 258,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 33",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-33",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 33.5,
+     "schneidenlaenge": 191,
+     "gesamtlaenge": 263,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 33,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-33%2C5",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 34,
+     "schneidenlaenge": 191,
+     "gesamtlaenge": 263,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 34",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-34",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 34.5,
+     "schneidenlaenge": 197,
+     "gesamtlaenge": 269,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 34,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-34%2C5",
+     "preis_netto": 675.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 197,
+     "gesamtlaenge": 269,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-35",
+     "preis_netto": 711.0
+    },
+    {
+     "durchmesser": 35.5,
+     "schneidenlaenge": 202,
+     "gesamtlaenge": 274,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 35,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-35%2C5",
+     "preis_netto": 711.0
+    },
+    {
+     "durchmesser": 36,
+     "schneidenlaenge": 202,
+     "gesamtlaenge": 274,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 36",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-36",
+     "preis_netto": 711.0
+    },
+    {
+     "durchmesser": 36.5,
+     "schneidenlaenge": 208,
+     "gesamtlaenge": 280,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 36,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-36%2C5",
+     "preis_netto": 711.0
+    },
+    {
+     "durchmesser": 37,
+     "schneidenlaenge": 208,
+     "gesamtlaenge": 280,
+     "schaft": 40,
+     "platte": "SOGX 110509",
+     "artikel": "234015 37",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-37",
+     "preis_netto": 711.0
+    },
+    {
+     "durchmesser": 37.5,
+     "schneidenlaenge": 213,
+     "gesamtlaenge": 285,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 37,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-37%2C5",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 38,
+     "schneidenlaenge": 213,
+     "gesamtlaenge": 285,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 38",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-38",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 38.5,
+     "schneidenlaenge": 219,
+     "gesamtlaenge": 291,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 38,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-38%2C5",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 39,
+     "schneidenlaenge": 219,
+     "gesamtlaenge": 291,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 39",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-39",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 39.5,
+     "schneidenlaenge": 224,
+     "gesamtlaenge": 296,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 39,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-39%2C5",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 224,
+     "gesamtlaenge": 296,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-40",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 40.5,
+     "schneidenlaenge": 230,
+     "gesamtlaenge": 302,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 40,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-40%2C5",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 41,
+     "schneidenlaenge": 230,
+     "gesamtlaenge": 302,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 41",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-41",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 41.5,
+     "schneidenlaenge": 235,
+     "gesamtlaenge": 307,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 41,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-41%2C5",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 42,
+     "schneidenlaenge": 235,
+     "gesamtlaenge": 307,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 42",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-42",
+     "preis_netto": 749.0
+    },
+    {
+     "durchmesser": 42.5,
+     "schneidenlaenge": 241,
+     "gesamtlaenge": 313,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 42,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-42%2C5",
+     "preis_netto": 813.0
+    },
+    {
+     "durchmesser": 43,
+     "schneidenlaenge": 241,
+     "gesamtlaenge": 313,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 43",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-43",
+     "preis_netto": 813.0
+    },
+    {
+     "durchmesser": 43.5,
+     "schneidenlaenge": 246,
+     "gesamtlaenge": 318,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 43,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-43%2C5",
+     "preis_netto": 813.0
+    },
+    {
+     "durchmesser": 44,
+     "schneidenlaenge": 246,
+     "gesamtlaenge": 318,
+     "schaft": 40,
+     "platte": "SOGX 130511",
+     "artikel": "234015 44",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234015-44",
+     "preis_netto": 813.0
     }
    ]
   },
@@ -159773,27 +160373,180 @@
    "hersteller": "Hoffmann Group",
    "marke": "GARANT",
    "titel": "GARANT Power Drill Wendeplatten-Vollbohrer ABS®-Schaft, für Wendeschneidplatten SOGX",
-   "quelle": "hoffmann-group.com, Produktseiten 234020-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/234020 und Produktseiten 234020-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/234020-14",
    "gemeinsam": {
     "bohrtiefe_d": 3,
-    "gesamtlaenge": 100,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOGX050204",
     "schneiden": 2,
-    "schneidenlaenge": 54,
     "schneidstoff": "wsp",
     "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "schneidenlaenge": 54,
+     "gesamtlaenge": 100,
+     "platte": "SOGX050204",
      "artikel": "234020 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-14",
-     "preis_netto": 452
+     "preis_netto": 452.0
+    },
+    {
+     "durchmesser": 15,
+     "schneidenlaenge": 58,
+     "gesamtlaenge": 104,
+     "platte": "SOGX050204",
+     "artikel": "234020 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-15",
+     "preis_netto": 452.0
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 63,
+     "gesamtlaenge": 109,
+     "platte": "SOGX050204",
+     "artikel": "234020 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-16",
+     "preis_netto": 452.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 67,
+     "gesamtlaenge": 113,
+     "platte": "SOGX060305",
+     "artikel": "234020 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-17",
+     "preis_netto": 463.0
+    },
+    {
+     "durchmesser": 17.5,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 116,
+     "platte": "SOGX060305",
+     "artikel": "234020 17,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-17%2C5",
+     "preis_netto": 463.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 116,
+     "platte": "SOGX060305",
+     "artikel": "234020 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-18",
+     "preis_netto": 463.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 74,
+     "gesamtlaenge": 120,
+     "platte": "SOGX060305",
+     "artikel": "234020 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-19",
+     "preis_netto": 474.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 77,
+     "gesamtlaenge": 123,
+     "platte": "SOGX070306",
+     "artikel": "234020 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-20",
+     "preis_netto": 474.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 80,
+     "gesamtlaenge": 126,
+     "platte": "SOGX070306",
+     "artikel": "234020 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-21",
+     "preis_netto": 489.0
+    },
+    {
+     "durchmesser": 22,
+     "schneidenlaenge": 83,
+     "gesamtlaenge": 129,
+     "platte": "SOGX070306",
+     "artikel": "234020 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-22",
+     "preis_netto": 489.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 86,
+     "gesamtlaenge": 132,
+     "platte": "SOGX080407",
+     "artikel": "234020 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-23",
+     "preis_netto": 489.0
+    },
+    {
+     "durchmesser": 24,
+     "schneidenlaenge": 89,
+     "gesamtlaenge": 135,
+     "platte": "SOGX080407",
+     "artikel": "234020 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-24",
+     "preis_netto": 502.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 93,
+     "gesamtlaenge": 139,
+     "platte": "SOGX080407",
+     "artikel": "234020 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-25",
+     "preis_netto": 502.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 96,
+     "gesamtlaenge": 142,
+     "platte": "SOGX080407",
+     "artikel": "234020 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-26",
+     "preis_netto": 502.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 110,
+     "gesamtlaenge": 156,
+     "platte": "SOGX100408",
+     "artikel": "234020 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-30",
+     "preis_netto": 564.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 117,
+     "gesamtlaenge": 173,
+     "platte": "SOGX110509",
+     "artikel": "234020 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-32",
+     "preis_netto": 588.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 128,
+     "gesamtlaenge": 184,
+     "platte": "SOGX110509",
+     "artikel": "234020 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-35",
+     "preis_netto": 625.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 145,
+     "gesamtlaenge": 201,
+     "platte": "SOGX130511",
+     "artikel": "234020 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234020-40",
+     "preis_netto": 656.0
     }
    ]
   },
@@ -159803,27 +160556,180 @@
    "hersteller": "Hoffmann Group",
    "marke": "GARANT",
    "titel": "GARANT Power Drill Wendeplatten-Vollbohrer ABS®-Schaft, für Wendeschneidplatten SOGX",
-   "quelle": "hoffmann-group.com, Produktseiten 234025-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/234025 und Produktseiten 234025-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/234025-14",
    "gemeinsam": {
     "bohrtiefe_d": 5,
-    "gesamtlaenge": 128,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOGX050204",
     "schneiden": 2,
-    "schneidenlaenge": 82,
     "schneidstoff": "wsp",
     "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "schneidenlaenge": 82,
+     "gesamtlaenge": 128,
+     "platte": "SOGX050204",
      "artikel": "234025 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-14",
-     "preis_netto": 575
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 15,
+     "schneidenlaenge": 88,
+     "gesamtlaenge": 134,
+     "platte": "SOGX050204",
+     "artikel": "234025 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-15",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 95,
+     "gesamtlaenge": 141,
+     "platte": "SOGX050204",
+     "artikel": "234025 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-16",
+     "preis_netto": 575.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 101,
+     "gesamtlaenge": 147,
+     "platte": "SOGX060305",
+     "artikel": "234025 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-17",
+     "preis_netto": 591.0
+    },
+    {
+     "durchmesser": 17.5,
+     "schneidenlaenge": 106,
+     "gesamtlaenge": 152,
+     "platte": "SOGX060305",
+     "artikel": "234025 17,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-17%2C5",
+     "preis_netto": 591.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 106,
+     "gesamtlaenge": 152,
+     "platte": "SOGX060305",
+     "artikel": "234025 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-18",
+     "preis_netto": 591.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 112,
+     "gesamtlaenge": 158,
+     "platte": "SOGX060305",
+     "artikel": "234025 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-19",
+     "preis_netto": 602.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 117,
+     "gesamtlaenge": 163,
+     "platte": "SOGX070306",
+     "artikel": "234025 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-20",
+     "preis_netto": 602.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 122,
+     "gesamtlaenge": 168,
+     "platte": "SOGX070306",
+     "artikel": "234025 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-21",
+     "preis_netto": 622.0
+    },
+    {
+     "durchmesser": 22,
+     "schneidenlaenge": 127,
+     "gesamtlaenge": 173,
+     "platte": "SOGX070306",
+     "artikel": "234025 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-22",
+     "preis_netto": 622.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 132,
+     "gesamtlaenge": 178,
+     "platte": "SOGX080407",
+     "artikel": "234025 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-23",
+     "preis_netto": 622.0
+    },
+    {
+     "durchmesser": 24,
+     "schneidenlaenge": 137,
+     "gesamtlaenge": 183,
+     "platte": "SOGX080407",
+     "artikel": "234025 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-24",
+     "preis_netto": 643.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 143,
+     "gesamtlaenge": 189,
+     "platte": "SOGX080407",
+     "artikel": "234025 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-25",
+     "preis_netto": 643.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 148,
+     "gesamtlaenge": 194,
+     "platte": "SOGX080407",
+     "artikel": "234025 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-26",
+     "preis_netto": 643.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 170,
+     "gesamtlaenge": 216,
+     "platte": "SOGX100408",
+     "artikel": "234025 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-30",
+     "preis_netto": 712.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 181,
+     "gesamtlaenge": 237,
+     "platte": "SOGX110509",
+     "artikel": "234025 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-32",
+     "preis_netto": 760.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 198,
+     "gesamtlaenge": 254,
+     "platte": "SOGX110509",
+     "artikel": "234025 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-35",
+     "preis_netto": 778.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 225,
+     "gesamtlaenge": 281,
+     "platte": "SOGX130511",
+     "artikel": "234025 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/234025-40",
+     "preis_netto": 798.0
     }
    ]
   },
@@ -159833,27 +160739,342 @@
    "hersteller": "Hoffmann Group",
    "marke": "HOLEX",
    "titel": "HOLEX Pro Drill Wendeplatten-Vollbohrer mit Kombischaft, für Wendeschneidplatten SOMT / XOMT",
-   "quelle": "hoffmann-group.com, Produktseiten 235000-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/235000 und Produktseiten 235000-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/235000-14",
    "gemeinsam": {
     "bohrtiefe_d": 2,
-    "gesamtlaenge": 96,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOMT05T204",
-    "schaft": 20,
     "schneiden": 1,
     "schneidstoff": "wsp",
-    "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "gesamtlaenge": 96,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
      "artikel": "235000 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-14",
-     "preis_netto": 301
+     "preis_netto": 301.0
+    },
+    {
+     "durchmesser": 15,
+     "gesamtlaenge": 99,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-15",
+     "preis_netto": 301.0
+    },
+    {
+     "durchmesser": 16,
+     "gesamtlaenge": 101,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-16",
+     "preis_netto": 301.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 46,
+     "gesamtlaenge": 109,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-17",
+     "preis_netto": 315.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 49,
+     "gesamtlaenge": 112,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-18",
+     "preis_netto": 315.0
+    },
+    {
+     "durchmesser": 18.5,
+     "schneidenlaenge": 49,
+     "gesamtlaenge": 112,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 18,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-18%2C5",
+     "preis_netto": 315.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 51,
+     "gesamtlaenge": 114,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235000 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-19",
+     "preis_netto": 315.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 55,
+     "gesamtlaenge": 118,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-20",
+     "preis_netto": 330.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 57,
+     "gesamtlaenge": 120,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-21",
+     "preis_netto": 330.0
+    },
+    {
+     "durchmesser": 22,
+     "gesamtlaenge": 122,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-22",
+     "preis_netto": 330.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 63,
+     "gesamtlaenge": 126,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-23",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 24,
+     "gesamtlaenge": 133,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-24",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 24.5,
+     "schneidenlaenge": 66,
+     "gesamtlaenge": 133,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 24,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-24%2C5",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 68,
+     "gesamtlaenge": 135,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-25",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 137,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-26",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 26.5,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 137,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 26,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-26%2C5",
+     "preis_netto": 348.0
+    },
+    {
+     "durchmesser": 27,
+     "schneidenlaenge": 73,
+     "gesamtlaenge": 140,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-27",
+     "preis_netto": 368.0
+    },
+    {
+     "durchmesser": 28,
+     "schneidenlaenge": 76,
+     "gesamtlaenge": 143,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 28",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-28",
+     "preis_netto": 368.0
+    },
+    {
+     "durchmesser": 29,
+     "schneidenlaenge": 78,
+     "gesamtlaenge": 145,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235000 29",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-29",
+     "preis_netto": 368.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 83,
+     "gesamtlaenge": 150,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-30",
+     "preis_netto": 368.0
+    },
+    {
+     "durchmesser": 31,
+     "schneidenlaenge": 85,
+     "gesamtlaenge": 152,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 31",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-31",
+     "preis_netto": 368.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 87,
+     "gesamtlaenge": 154,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-32",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 33,
+     "schneidenlaenge": 90,
+     "gesamtlaenge": 157,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 33",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-33",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 34,
+     "schneidenlaenge": 92,
+     "gesamtlaenge": 159,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 34",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-34",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 94,
+     "gesamtlaenge": 161,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-35",
+     "preis_netto": 413.0
+    },
+    {
+     "durchmesser": 36,
+     "schneidenlaenge": 99,
+     "gesamtlaenge": 176,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 36",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-36",
+     "preis_netto": 413.0
+    },
+    {
+     "durchmesser": 37,
+     "schneidenlaenge": 101,
+     "gesamtlaenge": 178,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 37",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-37",
+     "preis_netto": 413.0
+    },
+    {
+     "durchmesser": 38,
+     "schneidenlaenge": 104,
+     "gesamtlaenge": 181,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 38",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-38",
+     "preis_netto": 440.0
+    },
+    {
+     "durchmesser": 39,
+     "schneidenlaenge": 106,
+     "gesamtlaenge": 183,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 39",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-39",
+     "preis_netto": 440.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 109,
+     "gesamtlaenge": 186,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235000 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235000-40",
+     "preis_netto": 440.0
     }
    ]
   },
@@ -159863,28 +161084,402 @@
    "hersteller": "Hoffmann Group",
    "marke": "HOLEX",
    "titel": "HOLEX Pro Drill Wendeplatten-Vollbohrer mit Kombischaft, für Wendeschneidplatten SOMT / XOMT",
-   "quelle": "hoffmann-group.com, Produktseiten 235005-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/235005 und Produktseiten 235005-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/235005-14",
    "gemeinsam": {
     "bohrtiefe_d": 3,
-    "gesamtlaenge": 110,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOMT05T204",
-    "schaft": 20,
     "schneiden": 1,
-    "schneidenlaenge": 53,
     "schneidstoff": "wsp",
-    "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "schneidenlaenge": 53,
+     "gesamtlaenge": 110,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
      "artikel": "235005 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-14",
-     "preis_netto": 316
+     "preis_netto": 316.0
+    },
+    {
+     "durchmesser": 15,
+     "schneidenlaenge": 57,
+     "gesamtlaenge": 114,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-15",
+     "preis_netto": 316.0
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 60,
+     "gesamtlaenge": 117,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-16",
+     "preis_netto": 316.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 63,
+     "gesamtlaenge": 126,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-17",
+     "preis_netto": 334.0
+    },
+    {
+     "durchmesser": 17.5,
+     "schneidenlaenge": 63,
+     "gesamtlaenge": 126,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 17,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-17%2C5",
+     "preis_netto": 334.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 67,
+     "gesamtlaenge": 130,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-18",
+     "preis_netto": 334.0
+    },
+    {
+     "durchmesser": 18.5,
+     "schneidenlaenge": 67,
+     "gesamtlaenge": 130,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 18,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-18%2C5",
+     "preis_netto": 334.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 133,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-19",
+     "preis_netto": 334.0
+    },
+    {
+     "durchmesser": 19.5,
+     "schneidenlaenge": 70,
+     "gesamtlaenge": 133,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235005 19,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-19%2C5",
+     "preis_netto": 350.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 75,
+     "gesamtlaenge": 138,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-20",
+     "preis_netto": 350.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 78,
+     "gesamtlaenge": 141,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-21",
+     "preis_netto": 350.0
+    },
+    {
+     "durchmesser": 22,
+     "schneidenlaenge": 81,
+     "gesamtlaenge": 144,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-22",
+     "preis_netto": 350.0
+    },
+    {
+     "durchmesser": 22.5,
+     "schneidenlaenge": 81,
+     "gesamtlaenge": 144,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 22,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-22%2C5",
+     "preis_netto": 350.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 86,
+     "gesamtlaenge": 149,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-23",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 24,
+     "schneidenlaenge": 90,
+     "gesamtlaenge": 157,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-24",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 24.5,
+     "schneidenlaenge": 90,
+     "gesamtlaenge": 157,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 24,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-24%2C5",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 93,
+     "gesamtlaenge": 160,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-25",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 96,
+     "gesamtlaenge": 163,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-26",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 26.5,
+     "schneidenlaenge": 96,
+     "gesamtlaenge": 163,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 26,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-26%2C5",
+     "preis_netto": 366.0
+    },
+    {
+     "durchmesser": 27,
+     "schneidenlaenge": 100,
+     "gesamtlaenge": 167,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-27",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 28,
+     "schneidenlaenge": 104,
+     "gesamtlaenge": 171,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 28",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-28",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 29,
+     "schneidenlaenge": 107,
+     "gesamtlaenge": 174,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 29",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-29",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 29.5,
+     "schneidenlaenge": 107,
+     "gesamtlaenge": 174,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235005 29,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-29%2C5",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 113,
+     "gesamtlaenge": 180,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-30",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 31,
+     "schneidenlaenge": 116,
+     "gesamtlaenge": 183,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 31",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-31",
+     "preis_netto": 389.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 119,
+     "gesamtlaenge": 186,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-32",
+     "preis_netto": 408.0
+    },
+    {
+     "durchmesser": 33,
+     "schneidenlaenge": 123,
+     "gesamtlaenge": 190,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 33",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-33",
+     "preis_netto": 408.0
+    },
+    {
+     "durchmesser": 34,
+     "schneidenlaenge": 126,
+     "gesamtlaenge": 193,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 34",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-34",
+     "preis_netto": 408.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 129,
+     "gesamtlaenge": 196,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-35",
+     "preis_netto": 436.0
+    },
+    {
+     "durchmesser": 36,
+     "schneidenlaenge": 135,
+     "gesamtlaenge": 212,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 36",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-36",
+     "preis_netto": 436.0
+    },
+    {
+     "durchmesser": 37,
+     "schneidenlaenge": 138,
+     "gesamtlaenge": 215,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 37",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-37",
+     "preis_netto": 436.0
+    },
+    {
+     "durchmesser": 38,
+     "schneidenlaenge": 142,
+     "gesamtlaenge": 219,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 38",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-38",
+     "preis_netto": 466.0
+    },
+    {
+     "durchmesser": 39,
+     "schneidenlaenge": 145,
+     "gesamtlaenge": 222,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 39",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-39",
+     "preis_netto": 466.0
+    },
+    {
+     "durchmesser": 39.5,
+     "schneidenlaenge": 145,
+     "gesamtlaenge": 222,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 39,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-39%2C5",
+     "preis_netto": 466.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 149,
+     "gesamtlaenge": 226,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235005 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235005-40",
+     "preis_netto": 466.0
     }
    ]
   },
@@ -159894,28 +161489,402 @@
    "hersteller": "Hoffmann Group",
    "marke": "HOLEX",
    "titel": "HOLEX Pro Drill Wendeplatten-Vollbohrer mit Kombischaft, für Wendeschneidplatten SOMT / XOMT",
-   "quelle": "hoffmann-group.com, Produktseiten 235010-<Größe> (Technische Daten, Anwendertabelle), abgerufen 2026-10-31",
+   "quelle": "hoffmann-group.com, Variantentabelle /vlp/235010 und Produktseiten 235010-<Größe> (Technische Daten, Anwendertabelle), abgerufen bis 2026-11-14",
    "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/235010-14",
    "gemeinsam": {
     "bohrtiefe_d": 4,
-    "gesamtlaenge": 124,
+    "einsatzzweck": "HPC; Bohren ins Volle (BVB)",
     "kuehlung_innen": true,
-    "platte": "SOMT05T204",
-    "schaft": 20,
     "schneiden": 1,
-    "schneidenlaenge": 67,
     "schneidstoff": "wsp",
-    "seitlich_versetzt": 0.25,
     "spitzenwinkel": 180,
-    "wendeplatten": true,
-    "einsatzzweck": "HPC; Bohren ins Volle (BVB)"
+    "wendeplatten": true
    },
    "groessen": [
     {
      "durchmesser": 14,
+     "schneidenlaenge": 67,
+     "gesamtlaenge": 124,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
      "artikel": "235010 14",
      "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-14",
-     "preis_netto": 347
+     "preis_netto": 347.0
+    },
+    {
+     "durchmesser": 15,
+     "schneidenlaenge": 72,
+     "gesamtlaenge": 129,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 15",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-15",
+     "preis_netto": 347.0
+    },
+    {
+     "durchmesser": 16,
+     "schneidenlaenge": 76,
+     "gesamtlaenge": 133,
+     "schaft": 20,
+     "platte": "SOMT05T204",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 16",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-16",
+     "preis_netto": 347.0
+    },
+    {
+     "durchmesser": 17,
+     "schneidenlaenge": 80,
+     "gesamtlaenge": 143,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 17",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-17",
+     "preis_netto": 355.0
+    },
+    {
+     "durchmesser": 17.5,
+     "schneidenlaenge": 80,
+     "gesamtlaenge": 143,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 17,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-17%2C5",
+     "preis_netto": 355.0
+    },
+    {
+     "durchmesser": 18,
+     "schneidenlaenge": 85,
+     "gesamtlaenge": 148,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 18",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-18",
+     "preis_netto": 355.0
+    },
+    {
+     "durchmesser": 18.5,
+     "schneidenlaenge": 85,
+     "gesamtlaenge": 148,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 18,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-18%2C5",
+     "preis_netto": 355.0
+    },
+    {
+     "durchmesser": 19,
+     "schneidenlaenge": 89,
+     "gesamtlaenge": 152,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 19",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-19",
+     "preis_netto": 355.0
+    },
+    {
+     "durchmesser": 19.5,
+     "schneidenlaenge": 89,
+     "gesamtlaenge": 152,
+     "schaft": 25,
+     "platte": "SOMT06T205",
+     "seitlich_versetzt": 0.25,
+     "artikel": "235010 19,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-19%2C5",
+     "preis_netto": 376.0
+    },
+    {
+     "durchmesser": 20,
+     "schneidenlaenge": 95,
+     "gesamtlaenge": 158,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 20",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-20",
+     "preis_netto": 376.0
+    },
+    {
+     "durchmesser": 21,
+     "schneidenlaenge": 99,
+     "gesamtlaenge": 162,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 21",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-21",
+     "preis_netto": 376.0
+    },
+    {
+     "durchmesser": 22,
+     "schneidenlaenge": 103,
+     "gesamtlaenge": 166,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 22",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-22",
+     "preis_netto": 376.0
+    },
+    {
+     "durchmesser": 22.5,
+     "schneidenlaenge": 103,
+     "gesamtlaenge": 166,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 22,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-22%2C5",
+     "preis_netto": 376.0
+    },
+    {
+     "durchmesser": 23,
+     "schneidenlaenge": 109,
+     "gesamtlaenge": 172,
+     "schaft": 25,
+     "platte": "SOMT070308",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 23",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-23",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 24,
+     "schneidenlaenge": 114,
+     "gesamtlaenge": 181,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 24",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-24",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 24.5,
+     "schneidenlaenge": 114,
+     "gesamtlaenge": 181,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 24,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-24%2C5",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 25,
+     "schneidenlaenge": 118,
+     "gesamtlaenge": 185,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 25",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-25",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 26,
+     "schneidenlaenge": 122,
+     "gesamtlaenge": 189,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 26",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-26",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 26.5,
+     "schneidenlaenge": 122,
+     "gesamtlaenge": 189,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 26,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-26%2C5",
+     "preis_netto": 390.0
+    },
+    {
+     "durchmesser": 27,
+     "schneidenlaenge": 127,
+     "gesamtlaenge": 194,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 27",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-27",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 28,
+     "schneidenlaenge": 132,
+     "gesamtlaenge": 199,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 28",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-28",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 29,
+     "schneidenlaenge": 136,
+     "gesamtlaenge": 203,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 29",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-29",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 29.5,
+     "schneidenlaenge": 136,
+     "gesamtlaenge": 203,
+     "schaft": 32,
+     "platte": "SOMT093608",
+     "seitlich_versetzt": 0.3,
+     "artikel": "235010 29,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-29%2C5",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 30,
+     "schneidenlaenge": 143,
+     "gesamtlaenge": 210,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 30",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-30",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 31,
+     "schneidenlaenge": 147,
+     "gesamtlaenge": 214,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 31",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-31",
+     "preis_netto": 418.0
+    },
+    {
+     "durchmesser": 32,
+     "schneidenlaenge": 151,
+     "gesamtlaenge": 218,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 32",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-32",
+     "preis_netto": 456.0
+    },
+    {
+     "durchmesser": 33,
+     "schneidenlaenge": 156,
+     "gesamtlaenge": 223,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 33",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-33",
+     "preis_netto": 456.0
+    },
+    {
+     "durchmesser": 34,
+     "schneidenlaenge": 160,
+     "gesamtlaenge": 227,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 34",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-34",
+     "preis_netto": 456.0
+    },
+    {
+     "durchmesser": 35,
+     "schneidenlaenge": 164,
+     "gesamtlaenge": 231,
+     "schaft": 32,
+     "platte": "SOMT110408",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 35",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-35",
+     "preis_netto": 482.0
+    },
+    {
+     "durchmesser": 36,
+     "schneidenlaenge": 171,
+     "gesamtlaenge": 248,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 36",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-36",
+     "preis_netto": 482.0
+    },
+    {
+     "durchmesser": 37,
+     "schneidenlaenge": 175,
+     "gesamtlaenge": 252,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 37",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-37",
+     "preis_netto": 482.0
+    },
+    {
+     "durchmesser": 38,
+     "schneidenlaenge": 180,
+     "gesamtlaenge": 257,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 38",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-38",
+     "preis_netto": 507.0
+    },
+    {
+     "durchmesser": 39,
+     "schneidenlaenge": 184,
+     "gesamtlaenge": 261,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 39",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-39",
+     "preis_netto": 507.0
+    },
+    {
+     "durchmesser": 39.5,
+     "schneidenlaenge": 184,
+     "gesamtlaenge": 261,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 39,5",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-39%2C5",
+     "preis_netto": 507.0
+    },
+    {
+     "durchmesser": 40,
+     "schneidenlaenge": 189,
+     "gesamtlaenge": 266,
+     "schaft": 40,
+     "platte": "SOMT13M510",
+     "seitlich_versetzt": 0.35,
+     "artikel": "235010 40",
+     "link": "https://www.hoffmann-group.com/DE/de/hom/p/235010-40",
+     "preis_netto": 507.0
     }
    ]
   }

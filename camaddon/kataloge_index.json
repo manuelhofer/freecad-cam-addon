@@ -37,16 +37,16 @@
    "sha256": "e2c74529d734bafe86f23bfd8c0d823c3ee2c544c761d10783e6ed99dae2ed12"
   },
   "werkzeugkiste_daten/hoffmann_bohren.json": {
-   "groesse": 4197428,
-   "sha256": "6f93d46a0ae0de9ff5a551f3598aacfacc4da7d5da3441fc2c308aa1de034c52"
+   "groesse": 4250809,
+   "sha256": "7c5be12e97f1b7c882b4ade6519251d07f80f27299b56f232366b8f6baa5daef"
   },
   "werkzeugkiste_daten/hoffmann_fraeser.json": {
    "groesse": 129551,
    "sha256": "55b3a763045748b53df2f70e23c89618824be2eab587aa607cf192878f67f2d5"
   },
   "werkzeugkiste_daten/hoffmann_rest.json": {
-   "groesse": 424880,
-   "sha256": "b9d7dbdc363c855019101e1f867e6e47d41f61266396d80752007ed7124a7a83"
+   "groesse": 511820,
+   "sha256": "1103ca6a0f654008e30b853eb47418bc5a203131cee87de3a5e31df4d4bfc082"
   },
   "werkzeugkiste_daten/inovatools_nachi.json": {
    "groesse": 4771490,
