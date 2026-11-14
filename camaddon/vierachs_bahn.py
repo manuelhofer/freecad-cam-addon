@@ -153,7 +153,7 @@ QUER_SPRUNG = 4
 QUER_SPRUNG_MITTE = 3.0
 QUER_UEBERGANG = 0.05  # mm
 QUER_UMGEBUNG = 3  # Schritte davor und danach
-QUER_MEHR_LAGEN = 3
+QUER_MEHR_LAGEN = 3  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
 ATMEN_JE_PUNKTE = 2000  # befehle(): so oft darf das Fenster dazwischen neu zeichnen (uhren.atmen)
 # Grad – so weit darf ein Sektor-Stück mit Y um die Mitte reichen (Schruppwerte.sektoren_y): Die
 # Werkzeugachse bleibt parallel zum Strahl auf die Mitte, am Rand steht sie um so viel schräg zur
@@ -163,7 +163,9 @@ SEKTOR_Y_HALB = 45.0
 # Segmente; am Ring 13 … 19°); ist einer breiter, fährt sie die Spirale.
 SEKTOR_Y_BREIT = 120.0
 QUER_PROBE = 0.25  # mm – so dicht prüft der Schritt quer zwischen zwei Y-Zeilen die Hüllfläche
-VOR_STANGE = 0.5  # mm – so weit vor der Stirn der Stange steht die Flanke beim Eintauchen im Eilgang  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
+# mm – so weit vor der Stirn der Stange steht die Flanke beim Eintauchen im Eilgang wenigstens,
+# auch bei kleinerem Sicherheitsabstand (vor_der_stange)
+VOR_STANGE = 0.5
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
 # zwei bleibenden Punkten nach innen (zum Teil) und seitlich (an eine andere Stelle derselben
 # Bahn) von den ausgelassenen Punkten abweichen; nach außen BAHN_TOLERANZ.
@@ -556,15 +558,28 @@ def _drehung(a_anfang, a_ende, gleichlauf):
     return 1 if steigend == bool(gleichlauf) else -1
 
 
-def _vor_der_stange_hinab(punkte, a_stange_vorne, radius):
+def vor_der_stange(sicherheit):
+    """So weit vor der Stirn der Stange (mm) steht die Flanke mindestens, wenn der Fräser vor ihr
+    im Eilgang hinabfährt: der Sicherheitsabstand, wenigstens VOR_STANGE. Bis 0.379.2 waren es
+    0,5 mm – beim Schruppen mit der Querachse kam der Eilgang so dem Material vor dem Teil bis
+    1,13 mm nahe (Bund Ø 30/38/30 in der Stange Ø 40; Ø 60: 1,51 mm; Zweifler eilgang4)."""
+    return max(VOR_STANGE, float(sicherheit))
+
+
+def _vor_der_stange_hinab(punkte, a_stange_vorne, radius, sicherheit, stange_radius):
     """Senkrecht hinab vor der Stirn der Stange im Eilgang (Grundsatz 5; Manuel, 2026-10-18:
     „keine luftfahrten wenn luftfahren solten die schnell passeieren“): Folgt auf einen Eilgang ein
     Satz im Vorschub nur radial hinab (a, φ und q bleiben), und steht die Flanke des Fräsers dabei
-    vor der Stirn der Stange, ist der ganze Weg Luft – dann ist der Satz selbst ein Eilgang. Jede
-    Lage der Spirale begann so im Vorschub von der Sicherheitshöhe: am Geist 35 mm je Lage, beim
-    Schlichten 44 mm."""
-    vorne = a_stange_vorne + VOR_STANGE - GLEICH
-    for i in range(len(punkte) - 1):
+    den Sicherheitsabstand vor der Stirn der Stange (vor_der_stange), ist der ganze Weg Luft – dann
+    ist der Satz selbst ein Eilgang. Jede Lage der Spirale begann so im Vorschub von der
+    Sicherheitshöhe: am Geist 35 mm je Lage, beim Schlichten 44 mm. Steht die Flanke näher an der
+    Stirn (ab VOR_STANGE, so weit galt es bis 0.379.2 als Luft), geht der Eilgang nur bis den
+    Sicherheitsabstand über die Stange, der Rest bleibt im Vorschub."""
+    frei = a_stange_vorne + vor_der_stange(sicherheit) - GLEICH
+    knapp = a_stange_vorne + VOR_STANGE - GLEICH
+    ueber = float(stange_radius) + float(sicherheit)
+    i = 0
+    while i < len(punkte) - 1:
         oben, hinab = punkte[i], punkte[i + 1]
         if (
             oben.eilgang
@@ -573,9 +588,14 @@ def _vor_der_stange_hinab(punkte, a_stange_vorne, radius):
             and abs(hinab.a - oben.a) <= GLEICH
             and abs(hinab.phi - oben.phi) <= GLEICH
             and abs(hinab.q - oben.q) <= GLEICH
-            and min(oben.a, hinab.a) - radius >= vorne
         ):
-            punkte[i + 1] = Punkt(True, hinab.a, hinab.r, hinab.phi, q=hinab.q)
+            flanke = min(oben.a, hinab.a) - radius
+            if flanke >= frei or (flanke >= knapp and hinab.r >= ueber - GLEICH):
+                punkte[i + 1] = Punkt(True, hinab.a, hinab.r, hinab.phi, q=hinab.q)
+            elif flanke >= knapp and ueber < oben.r - GLEICH:
+                punkte.insert(i + 1, Punkt(True, hinab.a, ueber, hinab.phi, q=hinab.q))
+                i += 1
+        i += 1
 
 
 def _rest_oben(rest, a, phi, q, radius):
@@ -834,7 +854,9 @@ def _ohne_luft_hinab(rechnen):
         bahn = rechnen(netz, laengs, radial, werte, *args, **kwargs)
         form = getattr(werte, "form", None)
         radius = float(form.radius) if form is not None else float(werte.fraeser_radius)
-        _vor_der_stange_hinab(bahn.punkte, werte.a_stange_vorne, radius)
+        _vor_der_stange_hinab(
+            bahn.punkte, werte.a_stange_vorne, radius, werte.sicherheit, werte.stange_radius
+        )
         rest = getattr(werte, "rest", None)
         if rest is not None:
             _ueber_dem_rest_hinab(bahn.punkte, rest, radius, werte.sicherheit)
@@ -1286,7 +1308,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
                 )  # fmt: skip
             return float(np.max(h))
 
-        luft_vorn = w.a_stange_vorne + radius + VOR_STANGE  # dort ist die Flanke vor der Stange
+        # Dort steht die Flanke den Sicherheitsabstand vor der Stange (vor_der_stange): Mit 0,5 mm
+        # kam der Eilgang hinab dem Material vor dem Teil bis 1,13 mm nahe (Bund in Ø 40).
+        luft_vorn = w.a_stange_vorne + radius + vor_der_stange(w.sicherheit)
         von = 0
         for psi0, richtung, reihen, stellen, m, n_s in stuecke_lage:
             if True:  # (Einrückung wie die Sammelschleife – je Stück seine Zeilen)

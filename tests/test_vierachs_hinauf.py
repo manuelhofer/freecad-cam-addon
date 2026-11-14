@@ -47,7 +47,14 @@ punkte = [
     P(True, 5.0, 45.0, 61.0, q=4.0),
 ]
 bahn = SimpleNamespace(punkte=list(punkte))
-werte = SimpleNamespace(a_stange_vorne=100.0, form=None, fraeser_radius=2.0, hinauf_frei=False)
+werte = SimpleNamespace(
+    a_stange_vorne=100.0,
+    form=None,
+    fraeser_radius=2.0,
+    hinauf_frei=False,
+    sicherheit=2.0,  # für _vor_der_stange_hinab (vor der Stirn hinab), hier weit hinter ihr
+    stange_radius=20.0,
+)
 ohne = vb._ohne_luft_hinab(lambda netz, laengs, radial, w: bahn)
 ohne(None, (1, 0, 0), (0, 0, 1), werte)
 pruefe(

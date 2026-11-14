@@ -330,6 +330,73 @@ for name, masse, d_stange, mit in FAELLE:
                 f"{name}, {art}: vor der Stange im Eilgang auf r {sicher:.2f}, Schutz {schutz}",
             )
     FreeCAD.closeDocument(doc.Name)
+
+# --- Rundum schruppen mit Querachse und Sektoren mit Y ------------------------------------------
+# Jede Lage tauchte im Eilgang mit der Flanke nur VOR_STANGE = 0,5 mm vor der Stirn der Stange
+# hinab (vierachs_bahn, luft_vorn): dem Material, das vor dem Teil noch steht, kam er bis 1,1 mm
+# nahe (Zweifler eilgang4: Bund Ø 30/38/30 in der Stange Ø 40, 1,13 mm; Ø 44/56 in der Stange
+# Ø 60 1,51 mm). Gemessen gegen das stehende Material, die Bahn allein in der vollen Stange, ohne
+# Reitstock (mit ihm hält der Schutz den Eilgang oben). Die Welle oben zeigt es nicht – ihre
+# Sektoren beginnen nicht an der Stirn.
+
+
+def sektor(r_innen, r_aussen, x0, breite, von_grad, winkel):
+    """Ein Ring r_innen … r_aussen längs X ab x0, `breite` breit, über `winkel` Grad ab von_grad."""
+    s = Part.makeCylinder(r_aussen, breite, V(x0, 0, 0), V(1, 0, 0), winkel)
+    s = s.cut(Part.makeCylinder(r_innen, breite, V(x0, 0, 0), V(1, 0, 0)))
+    s.rotate(V(), V(1, 0, 0), von_grad)
+    return s
+
+
+def bund():
+    """Ø 30 | Bund Ø 38 | Ø 30, 100 lang: oben je eine Abflachung vorn (zur Stirn offen) und hinten,
+    im Bund eine Nut über 120°."""
+    f = Part.makeCylinder(15, 100, V(), V(1, 0, 0))
+    f = f.fuse(Part.makeCylinder(19, 25, V(30, 0, 0), V(1, 0, 0)))
+    f = f.cut(Part.makeBox(36, 40, 20, V(65, -20, 11)))
+    f = f.cut(Part.makeBox(22, 40, 20, V(-1, -20, 11)))
+    return f.cut(sektor(16, 20, 38, 8, 200, 120)).removeSplitter()
+
+
+def schulter60():
+    """Ø 56 | Ø 44 vorn mit einer Abflachung oben bis an die Schulter, hinten eine Nut über 120°."""
+    f = Part.makeCylinder(28, 50, V(), V(1, 0, 0))
+    f = f.fuse(Part.makeCylinder(22, 60, V(50, 0, 0), V(1, 0, 0)))
+    f = f.cut(Part.makeBox(30, 60, 30, V(50, -30, 17)))
+    return f.cut(sektor(24, 29, 20, 8, 200, 120)).removeSplitter()
+
+
+for name, bauen, d_stange in (("Bund Ø 40 quer", bund, 40.0), ("Ø 60 quer", schulter60, 60.0)):
+    form_teil = bauen()
+    doc = FreeCAD.newDocument("EilgangQuer")
+    teil = doc.addObject("Part::Feature", "Teil")
+    teil.Shape = form_teil
+    doc.recompute()
+    stirn = next(
+        f
+        for f in form_teil.Faces
+        if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+    )
+    lage = vr.berechne(form_teil, stirn, achse, durchmesser=d_stange)
+    job = vr.richte_ein(doc, teil, lage, vr.Stange(d_stange, frei_hinten=15.0), achse)
+    tc = js.controller_ohne_transaktion(doc, job, schaft, schaft.einsaetze(wz.ALLE)[0])
+    doc.recompute()
+    bahnen.clear()
+    op = vo.lege_an(job, tc, achse, 5.0, 4.8, 0.3, querachse=True, sektoren_y=True)
+    op.recompute()
+    pruefe(len(bahnen) == 1 and len(op.Path.Commands) > 5, f"{name}: keine Bahn")
+    if bahnen:
+        _art, bahn, _netz, w = bahnen[0]
+        welt = Welt(vr.modell(job).Shape, job, laengs, radial, w)
+        tief = im_raster(welt, bahn.punkte, form_von(w), w.sicherheit)
+        print(
+            ascii(
+                f"{name}, schruppen quer: Eilgang zu nah {tief[0]:.3f} mm (Punkt {tief[1]}); "
+                f"Vorschub {vb.dauer(bahn, 1000.0, 300.0):.3f} min (F 1000)"
+            )
+        )
+        pruefe(tief[0] <= SPIEL, f"{name}: Eilgang {tief[0]:.3f} mm zu nah (Punkt {tief[1]})")
+    FreeCAD.closeDocument(doc.Name)
 for (modul, name), echt in echte.items():
     setattr(modul, name, echt)
 FreeCAD.closeDocument(asm.Document.Name)
