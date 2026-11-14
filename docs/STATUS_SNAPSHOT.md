@@ -597,6 +597,16 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.371.0):* **Zwischenlagen von unten auch nach vorangegangenen Operationen (Materialstand)** – bis
+  0.370.0 fiel das 3D-Schruppen auf den alten Weg zurück, sobald davor plangefräst oder geräumt war. Jetzt:
+  Kuppel nach Planfräsen 5,8 statt 6,3 min, Kuppel mit ringsum geräumter Platte 2,9 statt 3,4, Kegel 65°
+  nach Planfräsen 10,4 statt 12,9 min; überall gleich sicher (25 Gegenfälle des Zweiflers). **Dazu gilt die
+  Reihenfolge jetzt wie eine Variante:** Mit Haken rechnet das Addon von unten und von oben (parallel auf
+  den Nebenrechnern) und nimmt die schnellere – mit Haken nie langsamer als ohne. Das behebt die drei
+  Fälle, in denen von unten schlechter war (dünne Wände bei grober Auflösung, steile Wand 85°, kleine Kuppel
+  mit Rohteil darüber im Simultan-Beispiel). Die Mulde des Testteils bleibt bei 1,29 min (dort schützt die
+  Ausnahme „Höhlung“). Nicht gebaut: Höhlung/Spalt nur örtlich (Geist 30,9 statt 31,1 min, aber zwei
+  senkrechte Fahrten mehr – lohnt nicht). Spezifikation Strategien 4.2 und 13.7.
 - *Neu (0.370.0):* **3D-Schruppen: Zwischenlagen von unten mit voller Schneide** (Manuel, 13.11. abends,
   Antwort auf Frage 4: „a“) – neuer Haken beim 3D-Schruppen, angehakt; gespeicherte Jobs bleiben beim alten
   Weg. Jede Zwischenlage fräst nur den schmalen Streifen an der Wand, so tief wie die Hauptlage; eine Lage

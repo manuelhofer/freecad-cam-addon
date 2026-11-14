@@ -2952,9 +2952,15 @@ Gegenrechnung in den Ordnern daneben.
   bitgleich zum alten Stand (acht Fälle, Prüfsumme der Bahnpunkte). Aber der vorsichtige Weg ohne
   genaue Grenze wird an dünnen Wänden viel langsamer als von oben: ein Ring mit 1,5 mm Wand und
   eine dünne Spitze („Rippe“) im Raster 1,0 11,3 statt 5,4 min, 74 statt 17 Rampen, 52 % des
-  Vorschubwegs in der Luft; die Vorschau 11,3 gegen 4,6 min der fertigen Bahn. Darum rechnet
-  `planen` **ohne genaue Grenze beide Reihenfolgen und nimmt die schnellere** (im Raster der
-  fertigen Bahn gilt der Haken unverändert): dort nie langsamer als von oben. Rippe im Raster
+  Vorschubwegs in der Luft; die Vorschau 11,3 gegen 4,6 min der fertigen Bahn. Darum rechnete
+  `planen` zuerst ohne genaue Grenze beide Reihenfolgen und nahm die schnellere; **seit 0.371.0
+  zählt die Reihenfolge überall wie eine Variante** (beide rechnen, parallel auf den
+  Nebenrechnern, die schnellere gilt, bei Gleichstand von unten – `bahn.von_unten`): mit Haken
+  nie langsamer als ohne. Anlass war der Materialstand: Im Simultan-Beispiel (Kuppel 20 × 16 mit
+  Rohteil darüber; schon der Stand des Rohteils gilt dort als Materialstand) brauchte das
+  3D-Schruppen von unten 0,61 statt 0,52 min, die Folge 99,8 statt 94,4 s – jetzt wieder 94,4 s
+  ohne neue Referenz. (Der Bauer hatte gemeldet, die Prüfung sei schon vorher rot gewesen; das
+  stimmte nicht – von mir und vom Zweifler nachgerechnet.) Rippe im Raster
   0,75 und 1,0 und in der Vorschau jetzt wie von oben (6,88 / 5,35 / 5,40 min, der Prüfstand
   ohne Befund), im Raster 0,6 4,75 statt 5,40 min; die Vorschau der Rippe liegt damit 17 % über
   der fertigen Bahn. Bekannt und so belassen (fertige Bahn, feines Raster): steile Wand 85° +6 %

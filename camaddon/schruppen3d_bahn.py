@@ -356,7 +356,8 @@ def _stufe(p, treppe, erreichbar, voll, steht, feld, r, schritt, fehler=0.0, sta
 
     Mit `stand` (Materialstand, MIT_STAND): Wo die Treppe die Wand nicht kennt (ihr Abstand ist
     breiter als die Grenze aus dem Raster), zählt nur, was das Raster eine Zelle weniger weit sieht
-    – wie bei der Zwischenlage von oben. Über einer solchen Wand hat eine Operation davor das
+    (die obere Schranke fällt dort auf 0, es bleibt die untere aus `erreichbar`) – wie bei der
+    Zwischenlage von oben. Über einer solchen Wand hat eine Operation davor das
     Material genommen; was das Raster in der Zelle an der Wand noch sieht, ist ihr Aufmaß oder das
     großzügige Raster des Stands (hoehen_an: das Höchste der Zellen um den Knoten). In der Mulde des
     Testteils fuhr sonst auf −21,27 ein Ring ums ganze Teil (Stufe 0,85 nur aus diesem Rand, die
@@ -470,11 +471,6 @@ def _nach_davor(feld, netz, davor, aufmass, toleranz, ziel):
             teil = hoehe[ziel_i, ziel_j]
             np.minimum(teil, spitze[quelle_i, quelle_j], out=teil)
     return hoehe
-
-
-def _mit_genauer_grenze(schritt):
-    """Rechnet eine Bahn in diesem Raster mit der genauen Grenze (ringgrenze)?"""
-    return GENAUE_GRENZE and schritt <= GENAU_BIS_RASTER + 1e-9
 
 
 def _lagen(oben, ziel, zustellung, zwischen, von_unten=False):
@@ -1123,7 +1119,8 @@ def variante_rechnen(
 
 
 def _varianten_verteilt(argumente, varianten):
-    """{Variante: was variante_rechnen ergab} – die Varianten je auf einem Nebenrechner,
+    """{(Variante, von unten): was variante_rechnen ergab} – die Paare `varianten` je auf einem
+    Nebenrechner,
     gleichzeitig (sie hängen nicht voneinander ab; vorher nacheinander im Fenster, W-036). Das
     Fenster zeichnet beim Warten neu; in einem Nebenrechner (die Vorschau) als Unteraufträge. Leer
     mit einer Variante oder ohne Nebenrechner; was ein Arbeiter nicht lieferte, fehlt – das
@@ -1136,7 +1133,7 @@ def _varianten_verteilt(argumente, varianten):
         from . import nebenrechner as nr
     except ImportError:
         return {}
-    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, von_unten = argumente
+    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur = argumente
     auftraege, schluessel = {}, []
     try:
         pool = nr.pool()
@@ -1163,8 +1160,8 @@ def _varianten_verteilt(argumente, varianten):
                 davor,
                 gemeinsam[1],
                 gemeinsam[2],
-                v,
-                von_unten,
+                v[0],
+                v[1],
             )
         pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler:
@@ -1193,7 +1190,6 @@ def planen(
     nachbereiten=None,
     nur_ueber=False,
     von_unten=False,
-    _nur_diese=False,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
@@ -1201,20 +1197,11 @@ def planen(
     `stand` (materialstand, W-012) nur, was die Operationen davor im Job übrig ließen; mit
     `nur_ueber` gilt das Rohteil rings um die Freiformflächen als schon gefräst: nur über ihnen
     (nicht an einem Teil aus einem STL, nicht im Rest); mit `von_unten` die Zwischenlagen von unten
-    nach oben, je ein Streifen an der Wand mit voller Tiefe (VON_UNTEN; nicht im Rest). ValueError
-    mit einem Satz, wenn es nicht geht."""
+    nach oben, je ein Streifen an der Wand mit voller Tiefe (VON_UNTEN; nicht im Rest) – gerechnet
+    werden dann beide Reihenfolgen, die schnellere gilt (`bahn.von_unten`). ValueError mit einem
+    Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
-    if von_unten and not _nur_diese and davor is None and not _mit_genauer_grenze(schritt):
-        # Ohne genaue Grenze (die Vorschau, eine Auflösung gröber als GENAU_BIS_RASTER) fährt der
-        # Weg von unten vorsichtig (_RUECKFALL) – an dünnen Wänden viel langsamer als von oben
-        # (Zweifler, zweite Runde: ein Ring mit 1,5 mm Wand im Raster 1,0 11,3 statt 5,4 min, 52 %
-        # des Vorschubwegs in der Luft). Dort beide Reihenfolgen, die schnellere gilt: nie
-        # langsamer als von oben.
-        gemeinsam = (form_teil, namen, werte, zwischen, toleranz, schritt, davor, stand)
-        unten = planen(*gemeinsam, nachbereiten, nur_ueber, True, True)
-        oben = planen(*gemeinsam, nachbereiten, nur_ueber, False)
-        return unten if unten.zeit <= oben.zeit else oben
     w = werte
     r = float(w.form.radius)
     if r <= 0 or vp.ebener_radius(w.form) <= 0:
@@ -1238,13 +1225,22 @@ def planen(
         varianten = ("rohteil",)  # jede Lage wie eine Zwischenlage: keine Varianten
     ergebnisse = {}
     wer_davor = []  # wer vorher dort weggenommen hat (für den Satz, wenn nichts zu tun ist)
-    argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, bool(von_unten))
-    verteilt = _varianten_verteilt(argumente, varianten)
-    for variante in varianten:
-        if variante in verteilt:
-            gerechnet = verteilt[variante]
+    # Mit dem Haken „von unten“ zählt die Reihenfolge der Zwischenlagen wie eine weitere Variante:
+    # beide rechnen, die schnellere gilt (Grundsatz 0 – die Zeit entscheidet). Von unten ist meist
+    # schneller (Geist 31,1 statt 48,9 min), aber nicht immer: ohne genaue Grenze an dünnen Wänden
+    # (Rippe im Raster 1,0: 11,3 statt 5,4 min) und mit Materialstand an einer kleinen Kuppel mit
+    # Rohteil darüber (Simultan-Beispiel: 0,61 statt 0,52 min – die Folge 99,8 statt 94,4 s). So
+    # ist es mit Haken nie langsamer als ohne. Bei Gleichstand: von unten.
+    reihenfolgen = (True, False) if von_unten and davor is None else (False,)
+    paare = [(variante, unten) for unten in reihenfolgen for variante in varianten]
+    argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur)
+    verteilt = _varianten_verteilt(argumente, paare)
+    for paar in paare:
+        variante, unten = paar
+        if paar in verteilt:
+            gerechnet = verteilt[paar]
         else:
-            gerechnet = variante_rechnen(*argumente[:-1], variante, argumente[-1])
+            gerechnet = variante_rechnen(*argumente, variante, unten)
         if gerechnet is None:
             continue
         st, haupt, zwischenlagen = gerechnet
@@ -1273,7 +1269,8 @@ def planen(
             # Rampen und freie Verbindungen gehören zur gefahrenen Zeit: erst
             # danach vergleichen, statt den Sieger der Rohbahn zu verändern.
             nachbereiten(bahn)
-        ergebnisse[variante] = bahn
+        bahn.von_unten = unten
+        ergebnisse[paar] = bahn
     if not ergebnisse and wer_davor:
         from . import materialstand as mst  # erst hier: es bringt den Job mit
 
@@ -1287,5 +1284,8 @@ def planen(
         # Ebene der Kette hat oft die Ebene davor alles genommen, und „Anlegen“ ging sonst nicht.
         raise mst.SchonWeg(tr("r3.fehler.nichts"))
     bahn = min(ergebnisse.values(), key=lambda b: b.zeit)
-    bahn.zeiten = {v: b.zeit for v, b in ergebnisse.items()}
+    zeiten = {}
+    for (variante, _unten), b in ergebnisse.items():
+        zeiten[variante] = min(zeiten.get(variante, math.inf), b.zeit)
+    bahn.zeiten = zeiten
     return bahn

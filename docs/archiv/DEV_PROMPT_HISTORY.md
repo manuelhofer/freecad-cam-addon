@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-01 zwischenlagen-von-unten-materialstand
+
+### EINGELESEN
+- Stand 0.370.0: „von unten“ fiel mit Materialstand auf von oben zurück (`not mit_stand`).
+- Workflow mit Unteragenten (Bauer im eigenen Arbeitsbaum, Zweig `zl_stand`, Commit 4c0dccaa; Zweifler
+  dagegen, Urteil „nacharbeiten“): Messfälle in `~/freecad_cam/wip/strategien/geist_luft/stand_bau/` und
+  `stand_gegen/`.
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `MIT_STAND` – die Ausnahme für den Materialstand ist weg; in `_stufe`
+  zählt mit Stand an einer Wand, die die Treppe nicht kennt, nur, was das Raster eine Zelle weniger weit
+  sieht. Von mir: in `planen` ist die Reihenfolge der Zwischenlagen eine Variante – mit Haken werden von
+  unten und von oben gerechnet (`_varianten_verteilt` verteilt die Paare auf die Nebenrechner), die
+  schnellere gilt, bei Gleichstand von unten (`bahn.von_unten`). Der Sonderweg „ohne genaue Grenze beide“
+  aus 0.370.0 geht darin auf.
+- `tests/test_schruppen3d.py` (e): Kuppel mit ringsum geräumter Platte als Materialstand.
+- `docs/spezifikation_strategien.md` (4.2, 13.7), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.371.0).
+
+### ERGEBNIS
+- Mit Materialstand, von unten gegen von oben (auf dem Hauptzweig nachgerechnet): Kuppel auf 20
+  plangefräst 5,82 statt 6,30 min, Kuppel ringsum geräumt 2,95 statt 3,42, Kegel 65° auf 36 plangefräst
+  10,35 statt 12,94, Kuppel mit Tasche daneben 5,80 statt 6,27 min – je kein Einschnitt, nichts im
+  Eilgang, nicht öfter senkrecht, gleicher Eingriff, der Prüfstand ohne Befund.
+- **Fund (von mir und vom Zweifler, der Bauer hatte ihn dem Ausgangsstand zugeschrieben):** Im
+  Simultan-Beispiel „Kuppel“ (schon der Stand des Rohteils gilt dort als Materialstand) brauchte das
+  3D-Schruppen von unten 0,61 statt 0,52 min, `test_simultan_planung` und `test_simultan_gesamt` wurden
+  rot (99,8 statt 94,4 s). Mit der Reihenfolge als Variante wieder 94,40 s, ohne neue Referenz.
+- Unverändert: Geist 31,07 min (Rest 5,62 cm³), Mulde des Testteils 1,2945 min; „Haken aus“ bitgleich
+  (acht Prüfsummen).
+- Nicht gebaut: Höhlung und Spalt nur örtlich – am Geist 30,93 statt 31,07 min, aber 9 statt 7
+  senkrechte Fahrten; unter 30 min ginge es nur, wenn der Spalt von unten liefe (das hatte der Zweifler
+  als Verschlechterung gezeigt).
+- Offen: Die Mulde ist nur durch die Ausnahme „Höhlung“ geschützt (keine Prüfung im Repo, sie braucht
+  die Jobkopie); mit Materialstand räumt jede Lage wie eine Zwischenlage – ein nur plangefräster Stand
+  kostet 5,82 statt 4,93 min gegenüber einem gleich hohen Rohteil.
+- Grün: `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_restschruppen`, `test_materialstand`,
+  `test_testteil`, `test_goldene_bahnen` (nichts bewegt), `test_pruefstand` (keine Bestmarke bewegt),
+  `test_raeumen`, `test_simultan_folge`, `test_simultan_planung`, `test_simultan_gesamt`, `test_sprache`.
+- Oberfläche: `szenario_mulde`, `szenario_bearbeitung_stl`, `szenario_bearbeitung`, `szenario_restschruppen`,
+  `szenario_kontur_materialstand` grün; Manuels Testteil durch den ganzen Weg unverändert 13,82 min, nichts
+  im Teil (sein 3D-Schruppen ist die Mulde – dort gewinnt weiter der Weg von oben).
 ## P-2026-11-13-19 zwischenlagen-von-unten
 
 ### EINGELESEN
