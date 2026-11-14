@@ -61,8 +61,9 @@ def zeilen(sicher, drehzahl, rueckwaerts=False, kuehlung=None):
 
 def merkmal_zeile(m, toleranz, korrigieren=None):
     """„(MESSEN tasche X50.000 Y40.000 LX58.000 LY38.000 Z32.500 OBEN40.000 TOL0.020)“ – rund mit
-    D statt LX/LY, die Nut mit B (Breite) und W (Messrichtung, Grad: 0 in X, 90 in Y); mit `korrigieren` (die Werkzeugnummer des Schlichtwerkzeugs danach) dazu
-    „KORR3“: Der Messzyklus trägt die Abweichung als dessen Radius-Verschleiß ein."""
+    D statt LX/LY, die Nut mit B (Breite) und W (Messrichtung, Grad: 0 in X, 90 in Y); mit
+    `korrigieren` (die Werkzeugnummer des Schlichtwerkzeugs danach) dazu „KORR3“: Der Messzyklus
+    trägt die Abweichung als dessen Radius-Verschleiß ein."""
     if m.rund:
         masse = f"D{m.durchmesser:.3f}"
     elif m.art == "nut":

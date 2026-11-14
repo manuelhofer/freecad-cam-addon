@@ -5,8 +5,8 @@
 # 3. Bohrung Ø 20 und Welle Ø 16: rund, innen bzw. außen.
 # 4. Soll nach einem Gang mit Aufmaß 1: Tasche 58 × 38, Bohrung 18, Zapfen 32 × 22, Welle 18.
 # 5. Eine schräge Wand ergibt kein Merkmal, zwei Taschen nebeneinander auch nicht.
-# 8. Die Nut: Breite quer (16, nach 0,15 Rest 15,7), längs X in Y gemessen, längs Y in X, schräg ohne
-#    Zyklus, die Ringnut radial bei +X. 9. Die Zyklen je Steuerung im Programm.
+# 8. Die Nut: Breite quer (16, nach 0,15 Rest 15,7), längs X in Y gemessen, längs Y in X,
+#    schräg ohne Zyklus, die Ringnut radial bei +X. 9. Die Zyklen je Steuerung im Programm.
 import os
 import sys
 
@@ -305,7 +305,7 @@ for kennung, erwartet in (
     z_k = programm(kennung, s_nut)
     pruefe(
         any(x.endswith(erwartet) for x in z_k),
-        f"{kennung}: „{erwartet}“ fehlt: {[x for x in z_k if 'P98' in x or 'CYCLE' in x or 'Q' in x]}",
+        f"{kennung}: „{erwartet}“ fehlt: {[x for x in z_k if 'P98' in x or 'Q' in x]}",
     )
     pruefe("M0" not in z_k or kennung == "siemens", f"{kennung}: Halt trotz Taster")
 # Die Nut längs Y: in X (Siemens S_MA 1, Renishaw X, Heidenhain Q272=+1).

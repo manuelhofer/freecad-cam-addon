@@ -2057,6 +2057,26 @@ class BetaPanel(BearbeitungPanel):
         self._tasche_pruefen()
         self._beta_knoepfe()
 
+    def _schlichten_danach_einrichten(self, form):
+        """Wie im Assistenten – nur mit zwei gleichen Schnitten aus „Weiter bearbeiten“ ohne den
+        Messstopp, den „Schlichten danach“ nach einer Nut von sich aus anhakt: Gemessen wird
+        zwischen den Schnitten (gangfolge). Mit ihm stand im Szenario vor dem ersten Wandzug ein
+        zweiter Messstopp (Nut 15,4 nach dem Schruppen), den keiner verlangt hatte. Von Hand
+        angehakt bleibt er."""
+        block = self.schlichten_danach
+        haken = block.haken_felder.get("messstopp")
+        vorher = bool(haken is not None and haken.isChecked())
+        super()._schlichten_danach_einrichten(form)
+        folge = getattr(self, "_beta_folge", None) or {}
+        if haken is None or vorher or folge.get("ende") is None or not haken.isChecked():
+            return
+        alt = (self._fuellt, self._ruhig)
+        self._fuellt = self._ruhig = True
+        try:
+            haken.setChecked(False)
+        finally:
+            self._fuellt, self._ruhig = alt
+
     # --- Anlegen ----------------------------------------------------------------------------
 
     def _anlegen(self):
@@ -2480,6 +2500,13 @@ class WeiterFrage(QtGui.QDialog):
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
 
+    def showEvent(self, ereignis):
+        """Nach dem Zeigen die Größe noch einmal: Vorher kennt Qt die Höhe der umbrochenen Sätze
+        nicht – stand der Messstopp schon beim Öffnen an, war der Satz darunter halb von den
+        Knöpfen verdeckt (Szenario zwei_schnitte_nut, Bild 1)."""
+        super().showEvent(ereignis)
+        QtCore.QTimer.singleShot(0, self.adjustSize)
+
     def _davor_hier(self):
         """Was vor dem gewählten Schritt an der Wand steht (mm): bei den Löchern das Aufmaß, das
         die Helix von „Bohrung fräsen“ lässt, sonst was der letzte Gang ließ (gang_davor)."""
@@ -2622,9 +2649,8 @@ class WeiterFrage(QtGui.QDialog):
         mit_zyklus = an and self._zyklus
         self.taster.setVisible(mit_zyklus)
         self.taster_beschriftung.setVisible(mit_zyklus)
-        # Bei den Löchern nicht: „Bohrung fräsen“ fährt ohne Radiuskorrektur (die Bahn der Mitte).
         self.korrigieren.setVisible(
-            mit_zyklus and bool(self.taster.text().strip()) and self.abschnitt() != LOECHER
+            mit_zyklus and bool(self.taster.text().strip()) and self._korrigieren_moeglich()
         )
         if not an:
             self.messen_text.setText("")
@@ -2644,7 +2670,7 @@ class WeiterFrage(QtGui.QDialog):
             )
         elif self.taster.text().strip():
             werte = {"was": _merkmal_text(self.merkmal), "t": self.taster.text().strip()}
-            if self.korrigieren.isChecked() and self.abschnitt() != LOECHER:
+            if self.korrigieren.isChecked() and self._korrigieren_moeglich():
                 self.messen_text.setText(tr("beta.weiter.messen.mit_korrektur", **werte))
             else:
                 self.messen_text.setText(tr("beta.weiter.messen.mit", **werte))
@@ -2655,11 +2681,21 @@ class WeiterFrage(QtGui.QDialog):
         self.messen_text.setVisible(an)
         self.adjustSize()
 
+    def _korrigieren_moeglich(self):
+        """Kann der Messzyklus hier den Schlichtfräser korrigieren? Nicht bei den Löchern: „Bohrung
+        fräsen“ fährt ohne Radiuskorrektur (die Bahn der Mitte). Nicht an der Nut: Ihre Wände
+        schlichtet „Schlichten danach“ meist mit einer Nut „nur schlichten“, ebenfalls ohne
+        Radiuskorrektur (die Nut 16 mit dem Ø 12 im Szenario zwei_schnitte_nut) – der Satz
+        „trägt eine Abweichung … ein“ stimmte dort nicht; gemessen wird nur."""
+        from . import messen
+
+        return self.abschnitt() != LOECHER and getattr(self.merkmal, "art", None) != messen.NUT
+
     def korrigieren_wert(self):
         """Soll der Messzyklus den Schlichtfräser korrigieren? (nur mit Taster und Zyklus, nicht
-        bei den Löchern)"""
+        bei den Löchern und nicht an der Nut: _korrigieren_moeglich)"""
         return bool(
-            self.abschnitt() != LOECHER
+            self._korrigieren_moeglich()
             and self.messstopp.isChecked()
             and self._zyklus
             and self.taster.text().strip()

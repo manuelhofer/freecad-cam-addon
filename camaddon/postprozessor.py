@@ -675,7 +675,8 @@ def _hh_nut(korr=False):
     return _HH_KOPF + (
         "TCH PROBE 425 MESSEN BREITE INNEN ~\nQ328={x_vz} ;STARTPUNKT 1. ACHSE ~\n"
         "Q329={y_vz} ;STARTPUNKT 2. ACHSE ~\nQ310=+0 ;VERSATZ 2. MESSUNG ~\n"
-        "Q272=+{achse_nr} ;MESSACHSE ~\nQ261={z_vz} ;MESSHOEHE ~\nQ260={sicher_vz} ;SICHERE HOEHE ~\n"
+        "Q272=+{achse_nr} ;MESSACHSE ~\nQ261={z_vz} ;MESSHOEHE ~\n"
+        "Q260={sicher_vz} ;SICHERE HOEHE ~\n"
         f"Q311={{b_vz}} ;SOLL-LAENGE ~\nQ288={{b_max{k}}} ;GROESSTMASS ~\n"
         f"Q289={{b_min{k}}} ;KLEINSTMASS ~\nQ281=+1 ;MESSPROTOKOLL ~\n"
         f"Q309=+1 ;PGM-STOP BEI FEHLER ~\nQ330={werkzeug} ;WERKZEUG ~\n"
