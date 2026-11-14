@@ -15,6 +15,20 @@
 # Dazu „Rundum schruppen“ an einer Welle Ø 30 (dünner als die Pinole) in der Stange Ø 40: Die
 # Bahn hält vor der Stange Abstand zur Spitze; mit einem zu kurzen Abstand meldet die Kollision
 # den Reitstock.
+#
+# Nacharbeit nach dem Zweifler (2026-11-14):
+# - Anfahrt: Nach „T1 M6“ fährt das Programm oben über den ersten Punkt und erst dann Z hinunter
+#   (postprozessor._erst_ueber_den_punkt) – aus einer Startstellung über Reitstock oder Futter
+#   geht der erste Eilgang nicht hinein (Gegenprobe: die Bahn selbst, Z zuerst, ginge hinein); das
+#   Abfahren beginnt am Wechselpunkt oben.
+# - Rest vorn: Die Welle wird bis an ihre Stirn gefräst wie in der Mitte (bis 0.377 blieben dort
+#   vorn 5 mm am Radius stehen); eine vorn offene Fläche fräst „Plan indexiert“ bis vor ihre Stirn
+#   (bis 0.377 8,25 mm zu kurz). Der Zapfen bleibt so dick wie das Teil vorn, mindestens Ø 17.
+# - Einrichtblatt: X 0 mit der Zahl (Zapfen hinter der Stirn der Stange) und der Ausspannlänge;
+#   der Zapfen wie die Stange ihn hat (mit Planaufmaß 15 15 mm).
+# - Reicht der Reitstock nicht: Anstellung.reicht ist falsch, mit fehlt und zu_lang (für das rote
+#   Urteil); „Ohne Reitstock“ schaltet den Job um.
+# - Zeigt X der Werkstückaufnahme ins Futter, sagt es die Prüfung (Gegenprobe: LCS umgedreht).
 import math
 import os
 import re
@@ -40,6 +54,7 @@ from camaddon import restmaterial as rm
 from camaddon import sprache
 from camaddon import verfahren as vf
 from camaddon import vierachs_achsen as va
+from camaddon import vierachs_huelle as vh
 from camaddon import vierachs_operation as vo
 from camaddon import vierachs_plan as vplan
 from camaddon import vierachs_planbahn as vp
@@ -201,6 +216,18 @@ print(ascii(f"Spitze an {len(saetze)} Sätzen: höchstens {groesste:.6f} mm nebe
 pruefe(len(saetze) >= 5 and groesste < 1e-6, f"Spitze {groesste:.4f} mm neben der Bahn")
 reich = p.pruefe_job(job, nullpunkt, bib)
 pruefe(not reich.ueberschreitungen, f"über: {[u.text() for u in reich.ueberschreitungen][:2]}")
+pruefe(not rw._laengs_ins_futter(p, job), "X der Spannfläche zeigt ins Futter")
+# Gegenprobe: das LCS der Spannfläche um Z gedreht – X zeigt ins Futter, die Prüfung sagt es.
+lcs = p.werkstueckaufnahme.Lcs
+alt_lage = FreeCAD.Placement(lcs.Placement)
+lcs.Placement = lcs.Placement.multiply(FreeCAD.Placement(V(), FreeCAD.Rotation(V(0, 0, 1), 180)))
+asm.Document.recompute()
+umgedreht = rw.Pruefung(asm, ma)
+satz = [h for h in umgedreht.pruefe_job(job, None, bib).hinweise if "Futter" in h]
+print(ascii(f"Gegenprobe LCS umgedreht: {satz}"))
+pruefe(rw._laengs_ins_futter(umgedreht, job) and satz, "LCS umgedreht: nichts gesagt")
+lcs.Placement = alt_lage
+asm.Document.recompute()
 
 # --- Das Programm: A wie die Bahn (nach DIN 66217 umgedreht, wenn die Prüfung es sagt) ------------
 # Die Fräse zählt X wie die Steuerung (der Tisch fährt mit X plus nach links): Nach DIN dreht +A
@@ -232,13 +259,103 @@ for kennung, muster in (
     pruefe(len(werte) >= len(set(in_der_bahn)) // 2, f"{kennung}: nur {len(werte)} A-Wörter")
     pruefe(len(gleich) >= len(werte) - 2, f"{kennung}: A nicht wie die Bahn ({werte[:5]})")
 
+# --- Die erste Anfahrt: oben über den Punkt, dann Z hinunter ----------------------------------
+# Wo Teilapparat, Futter und Reitstock im Job stehen (Hüllboxen; Z oben, X von – bis).
+welt_job = m.globale_platzierung(p.werkstueckaufnahme.Lcs).multiply(
+    FreeCAD.Placement(nullpunkt, FreeCAD.Rotation())
+)
+kisten = {}
+for o in asm.Document.Objects:
+    if o.Label in ("Teilapparat", "Futterkoerper", "Reitstockkoerper"):
+        lage_im_job = (
+            welt_job.inverse().multiply(m.globale_platzierung(o)).multiply(o.Placement.inverse())
+        )
+        kisten[o.Label] = o.Shape.transformGeometry(lage_im_job.toMatrix()).BoundBox
+pruefe(len(kisten) == 3, f"Spannmittel: {sorted(kisten)}")
+RADIUS_T1 = 4.0
+
+
+def hinein(zeilen, start):
+    """Fährt der erste Eilgang nach dem Wechsel (Z oben, X/Y wie `start`) in ein Spannmittel?
+    Die Sätze nach „M6“/„TOOL CALL“ bis zum ersten mit Z: ändert sich Z, fährt die Spindel an der
+    X/Y-Stelle dieses Satzes hinunter (ohne X/Y im Satz: an der alten). Gibt den Namen oder ""."""
+    x, y = start
+    nach = False
+    for zeile in zeilen:
+        roh = re.sub(r"\(.*?\)", "", zeile.split(";")[0])
+        if not nach:
+            nach = bool(re.search(r"\bM0?6\b|TOOL CALL", roh))
+            continue
+        worte = dict(re.findall(r"\b([XYZ])([+-]?\d+(?:\.\d*)?)", roh))
+        x, y = float(worte.get("X", x)), float(worte.get("Y", y))
+        if "Z" in worte:
+            z = float(worte["Z"])
+            for name, k in kisten.items():
+                ueber = k.XMin - RADIUS_T1 < x < k.XMax + RADIUS_T1
+                ueber = ueber and k.YMin - RADIUS_T1 < y < k.YMax + RADIUS_T1
+                if ueber and z < k.ZMax:
+                    return name
+            return ""
+    return "kein Satz mit Z"
+
+
+starts = {
+    "über dem Reitstock": (kisten["Reitstockkoerper"].Center.x, 0.0),
+    "über dem Futter": (kisten["Futterkoerper"].Center.x, 0.0),
+}
+for kennung in ("siemens", "heidenhain", "linuxcnc"):
+    zeilen = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), info, "Rohr").zeilen
+    for wo, start in starts.items():
+        getroffen = hinein(zeilen, start)
+        pruefe(not getroffen, f"{kennung}: der erste Eilgang {wo} fährt in {getroffen}")
+# Gegenprobe: in der Reihenfolge der Bahn (G0 Z allein zuerst, wie bis 0.377 im Programm).
+bahn_zeilen = ["M6"] + [
+    " ".join([b.Name] + [f"{k}{float(w):.3f}" for k, w in b.Parameters.items()]) for b in befehle
+]
+gegen = hinein(bahn_zeilen, starts["über dem Reitstock"])
+print(ascii(f"Gegenprobe Z zuerst über dem Reitstock: {gegen}"))
+pruefe(gegen == "Reitstockkoerper", f"Gegenprobe: {gegen}")
+
 # --- Einrichtblatt -----------------------------------------------------------------------------
 text = eb.spannung_text(job, sprache.tr)
 print(ascii(f"Einrichtblatt: {text}"))
 pruefe("Reitstock" in text and "DIN 332" in text, f"Einrichtblatt: {text}")
+pruefe(f"Zapfen {eb._zahl(vr.REITSTOCK_ZAPFEN)}" in text, f"Zapfen im Einrichtblatt: {text}")
+null_text = eb.nullpunkt_text(job, sprache.tr)
+print(ascii(f"Nullpunkt: {null_text}"))
+raus = laenge - vr.SPANNLAENGE
+pruefe(
+    f"{eb._zahl(vr.REITSTOCK_ZAPFEN)} " in null_text and f"{eb._zahl(raus)} " in null_text,
+    f"Nullpunkt ohne Zapfen {vr.REITSTOCK_ZAPFEN} oder Ausspannlänge {raus}: {null_text}",
+)
+# Mit Planaufmaß 15 ist der Zapfen 15 lang – nicht „mindestens 10“.
+doc15 = FreeCAD.newDocument("RohrPlan15")
+teil15 = doc15.addObject("Part::Feature", "Rohr")
+teil15.Shape = form
+doc15.recompute()
+job15 = vr.richte_ein(doc15, teil15, lage, vr.Stange(60.0, 15.0, reitstock=True), achse)
+text15 = eb.spannung_text(job15, sprache.tr) + " | " + eb.nullpunkt_text(job15, sprache.tr)
+print(ascii(f"Planaufmaß 15: {text15}"))
+pruefe(
+    f"Zapfen {eb._zahl(15.0)}" in text15 and f"{eb._zahl(15.0)} " in text15.split(" | ")[1],
+    f"Planaufmaß 15: {text15}",
+)
+FreeCAD.closeDocument(doc15.Name)
 
 # --- Kollision und Rest: Futter und Reitstock nicht getroffen, nirgends ins Teil ------------------
 fahrt = ab.abfahrt(p, job, nullpunkt, bib)
+# Die erste Operation kommt vom Wechselpunkt oben: erst über den ersten Punkt, dann hinunter.
+erste_bahn = next(i for i, st in enumerate(fahrt.stationen) if not st.ziel)
+davor = fahrt.stationen[erste_bahn - 1] if erste_bahn else None
+pruefe(
+    fahrt.stationen[0].ziel == ab.WECHSEL
+    and davor is not None
+    and davor.ziel == ab.WECHSEL
+    and abs(davor.punkt[0] - fahrt.stationen[erste_bahn].punkt[0]) < 1e-6
+    and abs(davor.punkt[1] - fahrt.stationen[erste_bahn].punkt[1]) < 1e-6
+    and davor.punkt[2] > fahrt.stationen[erste_bahn].punkt[2] + 50.0,
+    f"Anfahrt: {[(st.ziel, tuple(round(x, 1) for x in st.punkt)) for st in fahrt.stationen[:4]]}",
+)
 kollision = kb.kollision(fahrt, job, nullpunkt, bib)
 texte = [b.text() for b in kollision.befunde]
 print(ascii(f"Kollision: {len(fahrt.stationen)} Stationen, {texte[:3]}"))
@@ -279,6 +396,44 @@ for b in befehle:
 schutz = rs.schutz_radius(float(schruppen.AbstandFutter))
 print(ascii(f"Schruppen: {len(befehle)} Sätze, vor der Stirn höchstens bis r {min(r_vorn):.2f}"))
 pruefe(r_vorn and min(r_vorn) >= schutz - 1e-6, f"vor der Stirn bis r {min(r_vorn):.2f}")
+# Der Rest vorn an der Welle (Zweifler: bis 0.377 r 22,82 in den letzten 6 mm vor ihrer Stirn,
+# 5 mm am Radius stehen geblieben): dort wie in der Mitte; im Zapfen nicht dünner als die Welle.
+r_bereich = {"vorn": [], "mitte": [], "zapfen": []}
+stand = {"X": 0.0, "Y": 0.0, "Z": 0.0}
+for b in befehle:
+    stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZ"})
+    if b.Name != "G1":
+        continue
+    r = math.hypot(stand["Y"], stand["Z"])
+    if -6.0 <= stand["X"] <= 0.0:
+        r_bereich["vorn"].append(r)
+    elif -50.0 <= stand["X"] <= -30.0:
+        r_bereich["mitte"].append(r)
+    elif 0.0 < stand["X"] <= a_vorne:
+        r_bereich["zapfen"].append(r)
+kleinste = {k: min(v) if v else math.inf for k, v in r_bereich.items()}
+print(ascii(f"Schruppen, kleinster Radius der Bahn: {kleinste}"))
+pruefe(
+    kleinste["vorn"] < kleinste["mitte"] + 0.01,
+    f"vorn an der Welle bis r {kleinste['vorn']:.3f}, in der Mitte {kleinste['mitte']:.3f}",
+)
+pruefe(kleinste["zapfen"] >= 15.0, f"Zapfen bis r {kleinste['zapfen']:.3f} (Welle r 15)")
+# Der Schutz: im Zapfen so dick wie die Welle, an einer Welle Ø 12 mindestens Ø 17 – mit Satz.
+geschuetzt = rs.schutz(job, achse.laengs, 5.0, vh.vernetze(vr.modell(job).Shape))
+pruefe(
+    geschuetzt is not None
+    and abs(float(geschuetzt.radien.min()) - 15.0) < 0.01
+    and geschuetzt.zu_duenn == 0.0,
+    f"Zapfen der Welle Ø 30: {geschuetzt and (geschuetzt.radien.min(), geschuetzt.zu_duenn)}",
+)
+duenn_welle = Part.makeCylinder(6.0, 80.0, V(-80.0, 0, 0), V(1, 0, 0))  # im Job, Stirn bei 0
+duenn = rs.schutz(job, achse.laengs, 5.0, vh.vernetze(duenn_welle))
+pruefe(
+    duenn is not None
+    and abs(float(duenn.radien.min()) - rs.ZAPFEN_RADIUS_MIN) < 1e-9
+    and abs(duenn.zu_duenn - (rs.ZAPFEN_RADIUS_MIN - 6.0)) < 0.01,
+    f"Zapfen der Welle Ø 12: {duenn and (duenn.radien.min(), duenn.zu_duenn)}",
+)
 pruefe(rs.anstellen(asm, ma, job).meldung == "", "Reitstock an die Welle")
 p = rw.Pruefung(asm, ma)
 nullpunkt = rw.nullpunkt(job, p)
@@ -313,7 +468,62 @@ weg = rs.anstellen(asm, ma, job)
 nachher_x = m.globale_platzierung(gefunden.lcs).Base.x
 print(ascii(f"Ohne Reitstock: {weg}, Spitze von x {vorher_x:.1f} nach {nachher_x:.1f}"))
 pruefe(weg.bewegt and nachher_x > vorher_x + 100.0, f"ohne Reitstock: {weg}")
+FreeCAD.closeDocument(doc.Name)
 
+# --- Reicht der Reitstock nicht: für das rote Urteil, „Ohne Reitstock“ ---------------------------
+doc = FreeCAD.newDocument("WelleLang")
+lang = doc.addObject("Part::Feature", "Welle")
+lang.Shape = Part.makeCylinder(25.0, 340.0, V(), V(1, 0, 0))
+doc.recompute()
+stirn = next(
+    f
+    for f in lang.Shape.Faces
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+)
+lage = vr.berechne(lang.Shape, stirn, achse, durchmesser=60)
+job = vr.richte_ein(doc, lang, lage, vr.Stange(60.0, reitstock=True), achse)
+zu_lang = rs.anstellen(asm, ma, job)
+print(ascii(f"Stange {float(job.Stock.Height):.0f} lang: {zu_lang}"))
+pruefe(
+    not zu_lang.reicht and zu_lang.zu_lang and zu_lang.gestuetzt and zu_lang.fehlt > 1.0,
+    f"zu lang: {zu_lang}",
+)
+pruefe(rs.ohne_reitstock(job) and not vr.mit_reitstock(job), "„Ohne Reitstock“ schaltet nicht um")
+danach = rs.anstellen(asm, ma, job)
+pruefe(danach.reicht and not danach.gestuetzt, f"ohne Reitstock: {danach}")
+FreeCAD.closeDocument(doc.Name)
+
+# --- Plan indexiert: eine vorn offene Fläche bis an die Stirn ------------------------------------
+# Welle Ø 50 × 100, oben eine Fläche bei z 10 über die vorderen 40 mm (Zweifler: mit Reitstock
+# fräste die Bahn sie bis 0.377 nur bis X −8,25 – 8,25 mm blieben 15 mm hoch stehen).
+doc = FreeCAD.newDocument("FlaecheVorn")
+eben = Part.makeCylinder(25.0, 100.0, V(), V(1, 0, 0)).cut(Part.makeBox(40, 60, 30, V(60, -30, 10)))
+eben = eben.removeSplitter()
+mit_flaeche = doc.addObject("Part::Feature", "Teil")
+mit_flaeche.Shape = eben
+doc.recompute()
+stirn = next(
+    f for f in eben.Faces if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+)
+lage = vr.berechne(eben, stirn, achse, durchmesser=50)
+job = vr.richte_ein(doc, mit_flaeche, lage, vr.Stange(50.0, reitstock=True), achse)
+tc = job.Tools.Group[0]
+tc.Tool.Diameter, tc.ToolNumber, tc.HorizFeed, tc.SpindleSpeed = 16, 1, "800 mm/min", 4000
+modell = vr.modell(job).Shape
+flaeche = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(modell.Faces)
+    if vr.ist_eben(f) and abs(f.normalAt(0, 0).z - 1.0) < 1e-6 and f.BoundBox.ZMax < 11
+)
+plan = vplan.lege_an(job, tc, achse, 4.0, 8.0, aufmass=0.0, flaechen=[flaeche])
+doc.recompute()
+stand, auf_der_flaeche = {"X": 0.0, "Y": 0.0, "Z": 0.0}, []
+for b in plan.Path.Commands:
+    stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZ"})
+    if b.Name == "G1" and stand["Z"] < 11.0:
+        auf_der_flaeche.append(stand["X"])
+print(ascii(f"Plan vorn offen: G1 auf der Fläche bis X {max(auf_der_flaeche, default=None)}"))
+pruefe(auf_der_flaeche and max(auf_der_flaeche) >= 0.0, f"Fläche bis X {max(auf_der_flaeche)}")
 FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 if fehler:

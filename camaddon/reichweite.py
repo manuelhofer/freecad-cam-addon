@@ -369,6 +369,30 @@ def _auf_der_rundachse(pruefung, rohteil, mittig, spannlaenge=0.0):
     return None
 
 
+def _laengs_ins_futter(pruefung, job):
+    """Zeigt die Stange von der Werkstückaufnahme aus ins Futter statt zum Reitstock? Liegt die
+    Aufnahme auf der Rundachse (_auf_der_rundachse), steckt die Stange hinter ihr – längs ist +X
+    der Aufnahme (vierachs_achsen). An einer eigenen Maschine mit dem Teilapparat rechts und dem
+    LCS wie links gebaut lag sie im Futter, und nichts sagte warum (Zweifler 2026-11-14). Geprüft
+    an der Spitze des Reitstocks: Sie muss vor der Aufnahme liegen. Ohne Reitstock: False."""
+    from . import reitstock as rs
+
+    rohteil = getattr(job, "Stock", None)
+    if pruefung.werkstueckaufnahme is None or not vr.ist_stange(job, rohteil):
+        return False
+    assembly = pruefung.verfahren.assembly
+    try:
+        gefunden = rs.finde(assembly, pruefung.kette)
+    except Exception:  # eine halb eingerichtete Maschine: nichts zu sagen
+        return False
+    if gefunden is None:
+        return False
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    in_aufnahme = pruefung._lage(pruefung.werkstueckaufnahme).inverse()
+    spitze = assembly.Placement.inverse().multVec(m.globale_platzierung(gefunden.lcs).Base)
+    return in_aufnahme.multVec(spitze).dot(laengs) < 0.0
+
+
 def _stange_laengs_z(rohteil):
     """Die Mitte des hinteren Endes, wenn das Rohteil ein Zylinder längs +Z ist – sonst
     None. Die Hüllbox eines Zylinders ist nicht genau: Sie lag in einem Versuch 0,043 mm
@@ -1173,6 +1197,8 @@ class Pruefung:
             bibliothek.aufnahme_vorschlag = m.werkzeugaufnahme(self.maschine)
             mg.des_jobs(job, bibliothek, self.maschine)  # die Halter aus dem Magazin (W-024)
         sammler = _Sammler(self, ergebnis)
+        if _laengs_ins_futter(self, grundjob_von(job)):
+            sammler.hinweis(tr("rw.stange_ins_futter", aufnahme=self.werkstueckaufnahme.Lcs.Label))
         self._bestueckung_pruefen(job, bibliothek, sammler)
         for op, ebene in operationen_mit_ebene(job):
             yield from self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)

@@ -419,6 +419,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             )
         )
     zuerst = _rueckzug(pruefung.maschine, ergebnis.achsen)
+    fraese = not m.x_im_durchmesser(pruefung.maschine)  # an der Drehmaschine zieht X weg
 
     def anfahren(stellungen, nummer, ziel):
         """Eine Station außerhalb des Programms: die Maschine im Eilgang auf `stellungen`
@@ -483,9 +484,16 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 versatz,
             )
         )
+        anflug_von = WECHSEL if nummer else HOME  # woher die erste Station kommt (ziel)
         if nummer == 0 and any(h is not None for h in home):
             anfahren(home, nummer, HOME)
             anflug = True
+        elif nummer == 0 and fraese and _von_oben(op, geschwenkt, wechsel_wks, wechsel, zuerst):
+            # Eine 4-Achs-Operation zuerst: Das Programm fährt vor dem ersten Wechsel zum
+            # Wechselpunkt und kommt von dort oben an den ersten Punkt (postprozessor.
+            # _erst_ueber_den_punkt) – so auch hier, damit die Kollision das Hinunterfahren sieht.
+            anfahren(wechsel, nummer, WECHSEL)
+            anflug, anflug_von = True, WECHSEL
         if ms.ist_messstopp(op) and vorher is not None:
             # Zum Messen weg vom Teil: an den Wechselpunkt, wie der Postprozessor ihn schreibt
             # (Spezifikation Strategien 12.4, an Manuels Siemens F_HOME) – statt nur Z hoch.
@@ -520,7 +528,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                                 None if z else s for s, z in zip(stellungen, zuerst, strict=True)
                             ),
                             nummer,
-                            HOME if nummer == 0 else WECHSEL,
+                            anflug_von,
                         )
                     anflug = False
                     wirksam = _wirksam(vorher, stellungen, len(index))
@@ -803,6 +811,18 @@ def _wechsel_ziel(mks, wks, vorher, davor, index):
         if achse in wks and achse in index:
             werte[index[achse]] = wert
     return tuple(werte)
+
+
+def _von_oben(op, geschwenkt, wechsel_wks, wechsel, zuerst):
+    """Kommt `op` als erste Operation vom Wechselpunkt oben (abfahrt)? Wie im Programm
+    (postprozessor._erst_ueber_den_punkt): eine 4-Achs-Operation ohne Schwenken, der Wechselpunkt
+    in MKS mit der Achse, die wegzieht (an der Fräse Z). Andere Operationen beginnen wie bisher an
+    ihrem ersten Punkt – ihr Programm fährt Z zuerst."""
+    from . import vierachs_operation as vo
+
+    if geschwenkt or wechsel_wks or vo.schwenk(op) or not vo.ist_rundum(op):
+        return False
+    return any(w is not None and z for w, z in zip(wechsel, zuerst, strict=True))
 
 
 def _rueckzug(maschine, achsen):

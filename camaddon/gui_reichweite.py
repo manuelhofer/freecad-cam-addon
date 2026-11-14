@@ -530,7 +530,7 @@ class PruefPanel:
         self.maschine = maschine
         self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
         self.pruefung = None  # reichweite.Pruefung für die gewählte Werkstückaufnahme
-        self._reitstock_meldung = ""  # reicht der Reitstock nicht an die Stange: der Satz dazu
+        self._reitstock = None  # reitstock.Anstellung der letzten Prüfung (None: kein Reitstock)
         self.ergebnis = None
         self.abfahrt = None  # abfahren.Abfahrt zum Ergebnis
         self._lauf = None  # ein großer Job rechnet im Takt (_lauf_starten); None: keiner
@@ -675,6 +675,10 @@ class PruefPanel:
         self.urteil_spannung = QtGui.QLabel()
         self.urteil_spannung.setToolTip(tr("sn.eigenschaft"))
         self.urteil_spannung.linkActivated.connect(lambda _ziel: blaettere_zu(self.hinweise))
+        # Mit Reitstock: liegt die Spitze an der Stange (_reitstock_zeigen)?
+        self.urteil_reitstock = QtGui.QLabel()
+        self.urteil_reitstock.setToolTip(tr("rs.urteil.tooltip"))
+        self.urteil_reitstock.linkActivated.connect(self.ohne_reitstock)
         self._beschriftung = {}
         for zeile, (text, urteil) in enumerate(
             (
@@ -683,6 +687,7 @@ class PruefPanel:
                 (tr("rw.urteil.laenge"), self.urteil_laenge),
                 (tr("rw.urteil.schnittwerte"), self.urteil_schnittwerte),
                 (tr("rw.urteil.spannung"), self.urteil_spannung),
+                (tr("rs.urteil"), self.urteil_reitstock),
                 (tr("rw.urteil.zeit"), self.urteil_zeit),
             )
         ):
@@ -690,6 +695,8 @@ class PruefPanel:
             self._beschriftung[urteil] = QtGui.QLabel(text)
             urteile.addWidget(self._beschriftung[urteil], zeile, 0, QtCore.Qt.AlignTop)
             urteile.addWidget(urteil, zeile, 1)
+        for widget in (self.urteil_reitstock, self._beschriftung[self.urteil_reitstock]):
+            widget.setVisible(False)  # bis _reitstock_zeigen weiß, ob der Job einen braucht
         # Unter der Zeit: wer sie braucht, als Balken (Zeitanteile) – ein Klick springt dorthin.
         self.zeitanteile = Zeitanteile()
         self.zeitanteile.geklickt.connect(self._zur_operation)
@@ -950,8 +957,6 @@ class PruefPanel:
         # das Fenster zeichnet dabei neu (an der Nocke in RC1 2,7 s; P-2026-10-11-82).
         with self.pruefung.schritte_teilen(), uhren.atmend():
             self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
-            if self._reitstock_meldung:
-                self.ergebnis.hinweise.append(self._reitstock_meldung)
             self._zeige()
             self._abfahrt_rechnen(job, nullpunkt)
         self.kollision.veraltet()
@@ -1057,8 +1062,6 @@ class PruefPanel:
             self.ergebnis = yield from self.pruefung.pruefe_job_schritte(
                 job, nullpunkt, self.bibliothek
             )
-            if self._reitstock_meldung:
-                self.ergebnis.hinweise.append(self._reitstock_meldung)
             self._zeige()
             abfahrt = yield from ab.abfahrt_schritte(self.pruefung, job, nullpunkt, self.bibliothek)
             yield from abfahrt.am_werkstueck_schritte()  # für das Bild, im Takt (P-66)
@@ -1334,6 +1337,7 @@ class PruefPanel:
             _zeige_urteil(self.urteil_spannung, frei, GRUEN)
         for widget in (self.urteil_spannung, self._beschriftung[self.urteil_spannung]):
             widget.setVisible(e.gespannt > 0)
+        self._reitstock_zeigen()
         self._schnittwerte_zeigen()
 
     def _schnittwerte_zeigen(self):
@@ -1518,10 +1522,10 @@ class PruefPanel:
     def _reitstock_anstellen(self, aufnahme):
         """Stellt den Reitstock der Maschine an die Stange des Jobs, mit Reitstock – sonst ans
         hintere Ende (reitstock.anstellen); ein Schritt Rückgängig in der Maschine. Gibt zurück,
-        ob er sich bewegt hat; was nicht passt, merkt _reitstock_meldung fürs Ergebnis."""
+        ob er sich bewegt hat; die Anstellung merkt _reitstock fürs Urteil (_reitstock_zeigen)."""
         from . import reitstock as rs
 
-        self._reitstock_meldung = ""
+        self._reitstock = None
         job = self.job()
         if job is None or self.assembly is None or not rs.hat_reitstock(self.assembly):
             return False
@@ -1532,7 +1536,7 @@ class PruefPanel:
             return False
         if plan is None:
             return False
-        self._reitstock_meldung = plan.meldung
+        self._reitstock = plan
         if not plan.bewegt:
             return False
         self._zurueckfahren()  # erst die Maschine zurück – ihre Grundstellung kennt ihn noch
@@ -1542,8 +1546,41 @@ class PruefPanel:
         dokument.commitTransaction()
         dokument.recompute()
         if ergebnis is not None:
-            self._reitstock_meldung = ergebnis.meldung
+            self._reitstock = ergebnis
         return True
+
+    def _reitstock_zeigen(self):
+        """Das Urteil „Reitstock“ (Zweifler 2026-11-14: bis 0.378 nur ein Hinweis unten, Achsen und
+        Kollision grün, obwohl die Bahn mit einer Stütze rechnet, die nicht anliegt): grün, wenn
+        die Spitze an der Stange liegt; rot, wenn er nicht hinreicht – mit „Ohne Reitstock“ als
+        nächstem Schritt. Nur, wenn der Job mit Reitstock rechnet."""
+        plan = self._reitstock
+        sichtbar = plan is not None and plan.gestuetzt
+        if sichtbar and plan.reicht:
+            _zeige_urteil(self.urteil_reitstock, tr("rs.urteil.an"), GRUEN)
+        elif sichtbar:
+            richtung = tr("rs.kuerzer") if plan.zu_lang else tr("rs.laenger")
+            satz = tr("rs.urteil.reicht_nicht", fehlt=rw.weg_text(plan.fehlt), richtung=richtung)
+            ohne = f'<a href="reitstock:ohne">{tr("rs.urteil.ohne")}</a>'
+            _zeige_urteil(self.urteil_reitstock, f"{satz} – {ohne}", ROT)
+        for widget in (self.urteil_reitstock, self._beschriftung[self.urteil_reitstock]):
+            widget.setVisible(sichtbar)
+
+    def ohne_reitstock(self, _ziel=""):
+        """„Ohne Reitstock“: Der Job rechnet ohne Stütze (reitstock.ohne_reitstock) – ein Schritt
+        Rückgängig im Dokument des Jobs; danach prüft das Fenster neu."""
+        from . import reitstock as rs
+
+        job = self.job()
+        if job is None:
+            return
+        self._zurueckfahren()  # dessen offener Schritt gehört nicht dazu
+        dokument = job.Document
+        dokument.openTransaction(tr("rs.urteil.ohne"))
+        rs.ohne_reitstock(job)
+        dokument.commitTransaction()
+        self.pruefung = None  # der Reitstock fährt aus dem Weg: neu anstellen
+        self.pruefe()
 
     def _zurueckfahren(self):
         """Die Maschine wieder so, wie sie beim Öffnen stand."""

@@ -131,18 +131,24 @@ length. It is ticked when the bar sticks out of the chuck more than 3 × its Ø 
 springs away under the cutter; you can switch it on or off at any time. With tailstock:</p>
 <ul>
 <li>The bar is at least <b>10 mm</b> longer at the front: a spigot for the <b>centre hole DIN 332-1
-A 4 × 8.5</b> the centre sits in. The setup sheet tells the setter; saw the spigot off after
-milling.</li>
+A 4 × 8.5</b> the centre sits in. The setup sheet tells the setter, with the number: X 0 lies as
+far behind the front face of the bar as the spigot is long; saw the spigot off after milling.</li>
 <li>The toolpaths keep their <b>distance from the centre</b> as from the chuck (the field
-“Chuck distance” applies to both): the cutter lifts over centre and quill (Ø 35), the spigot
-stays.</li>
+“Chuck distance” applies to both): the part is finished up to its front face, the spigot stays
+as thick as the front of the part (at least Ø 17); only in front of the bar, over centre and quill
+(Ø 35), does the cutter lift.</li>
 <li><b>“Check on machine”</b> slides the tailstock up to the front face of the bar (one undo step in
 the machine) – simulation and collision check take it along. Without the tick it moves to the end,
-out of the way. If it cannot reach the bar, a sentence says by how much.</li>
+out of the way. At the top the verdict <b>“Tailstock”</b>: green when the centre touches the bar,
+red when it cannot reach – with the button “Without tailstock”.</li>
+<li>After the tool change the program moves above the first point and only then down in Z – chuck,
+indexing head and tailstock stand higher than the toolpath.</li>
 </ul>
 <p>The tailstock of your own machine: a part on a slider joint without an operating mode, in it an
 LCS “Reitstockspitze” where the front face of the bar rests against the centre, its Z axis pointing
-away from the chuck.</p>
+away from the chuck. The workpiece mount lies on the axis at the front of the jaws, its X axis
+pointing towards the tailstock, X and Y parallel to the machine axes – if X points into the chuck,
+the check says so.</p>
 
 <h3>Step 2: kept short</h3>
 <p>Each strategy shows its tick, below it its <b>cutter</b> and its result (levels, time). <b>Change

@@ -589,11 +589,12 @@ def spannung_text(job, tr):
         )
     if vr.ist_stange(job, rohteil) and vr.mit_reitstock(grundjob(job)):
         # Vorn stützt der Reitstock: Die Stange braucht dort eine Zentrierbohrung.
+        # Der Zapfen, wie die Stange ihn hat (Stange.vorn): mit Planaufmaß 15 15 mm, nicht 10.
         return tr(
             "eb.spannung.reitstock",
             mm=_mm(),
             tiefe=_zahl(vr.spannlaenge(job)),
-            zapfen=_zahl(vr.REITSTOCK_ZAPFEN),
+            zapfen=_zahl(vr.vorn_laenge(grundjob(job))),
         )
     if vr.ist_stange(job, rohteil):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))
@@ -675,6 +676,16 @@ def nullpunkt_text(job, tr):
     rohteil = getattr(job if sw.ist_umspannen(job) else grundjob(job), "Stock", None)
     if vr.ist_stange(job, rohteil) and vr.im_tischfutter(grundjob(job)):
         return _nullpunkt_geschwenkt(grundjob(job), tr)
+    if vr.ist_stange(job, rohteil) and vr.mit_reitstock(grundjob(job)):
+        # Die Stirn des Teils liegt im Zapfen, man sieht sie nicht (Zweifler 2026-11-14): Wer an
+        # der Stirn der Stange antastet, braucht die Zahl – und wie weit die Stange herausragt.
+        laenge = float(rohteil.Height)
+        return tr(
+            "eb.nullpunkt.stange_reitstock",
+            mm=_mm(),
+            vorn=_zahl(vr.vorn_laenge(grundjob(job))),
+            raus=_zahl(laenge - vr.spannlaenge(grundjob(job))),
+        )
     if vr.ist_stange(job, rohteil):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)

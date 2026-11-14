@@ -840,6 +840,18 @@ def im_tischfutter(job):
     return bool(schwenk_text(job)) and ist_stange(job)
 
 
+def vorn_laenge(job):
+    """So weit reicht die Stange des Jobs vor die Stirn des Teils (mm) – Stange.vorn, wie der Job
+    sie hat: mit Reitstock der Zapfen für die Zentrierbohrung. Aus einstellung(); sieht der Job
+    nicht mehr so aus, ab a = 0 (dort legt richte_ein die Stirn des Teils hin)."""
+    eingestellt = einstellung(job)
+    if eingestellt is not None:
+        return eingestellt.stange.planaufmass
+    rohteil = job.Stock
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    return max(0.0, rohteil.Placement.Base.dot(laengs) + float(rohteil.Height))
+
+
 def mit_reitstock(job):
     """Stützt ein Reitstock die Stange des Jobs vorn (EIGENSCHAFT_REITSTOCK)?"""
     return bool(getattr(job, EIGENSCHAFT_REITSTOCK, False)) and ist_stange(job)

@@ -218,6 +218,12 @@ def schritte(h):
     vorne = job.Stock.Placement.multVec(V(0, 0, float(job.Stock.Height)))
     neben = p._job_lage(pruef.nullpunkt(), {}).multVec(vorne) - an_der_spitze
     h.pruefe(neben.Length < 1e-3, f"die Spitze steht {neben.Length:.2f} mm neben der Stange")
+    # Das Urteil „Reitstock“ oben: grün, die Spitze liegt an.
+    h.pruefe(
+        pruef.urteil_reitstock.isVisible()
+        and "liegt an der Stange" in pruef.urteil_reitstock.text(),
+        f"Urteil Reitstock: {pruef.urteil_reitstock.isVisible()} {pruef.urteil_reitstock.text()!r}",
+    )
     k = pruef.kollision
     pruef.urteil_kollision.linkActivated.emit("kollision:pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 300000)
@@ -244,6 +250,19 @@ def schritte(h):
     yield 1000
     h.bild("5_am_ende")
     h.bild("5b_pruefen", pruef.form)
+    # Reicht er nicht (wie an einer zu langen Stange): rot, mit „Ohne Reitstock“ als Knopf – der
+    # schaltet den Job um, und das Fenster prüft ohne ihn (die Zeile verschwindet).
+    pruef._reitstock = rs.Anstellung(0.0, 0.0, "x", 6.42, True, True)
+    pruef._reitstock_zeigen()
+    yield 300
+    text = pruef.urteil_reitstock.text()
+    h.pruefe("reicht nicht" in text and "reitstock:ohne" in text, f"Urteil rot: {text!r}")
+    h.bild("6_reitstock_reicht_nicht", pruef.form)
+    pruef.urteil_reitstock.linkActivated.emit("reitstock:ohne")
+    yield from h.warte_auf(lambda: not pruef.rechnet(), 300000)
+    yield 1000
+    h.pruefe(not vr.mit_reitstock(job), "„Ohne Reitstock“: der Job rechnet noch mit ihm")
+    h.pruefe(not pruef.urteil_reitstock.isVisible(), "„Ohne Reitstock“: das Urteil steht noch da")
     pruef.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)

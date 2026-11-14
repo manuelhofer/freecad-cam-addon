@@ -338,7 +338,10 @@ def bahn_fuer(
         leerfahrten=max(int(leerfahrten or 0), 0),
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
-    netz = rs.mit_schutz(netz, job, laengs, abstand_futter)  # mit Reitstock: Spitze dazu
+    # Mit Reitstock: Zapfen und Spitze dazu – das Teil vorn gemessen am ganzen Netz (dem hier
+    # fehlen die zu fräsenden Flächen; eine vorn offene Fläche sähe aus wie ein Loch).
+    ganz = vp.netz_ohne(form_teil, [], toleranz) if rs.hat_schutz(job) else None
+    netz = rs.mit_schutz(netz, job, laengs, abstand_futter, ganz=ganz)
     nuten = vp.nuten(form_teil, laengs, radial, ebenen)
     if schaft:
         mit_schaft = [

@@ -1239,6 +1239,9 @@ class Abschnitt:
     # die Befehle stehen schon im Programm ohne TCPM, mit den festen Rundachsen davor. Danach
     # schwenkt das Programm zurück, wenn es ohne sie weitergeht.
     fest: object = None
+    # Eine 4-Achs-Operation des Addons (vierachs_operation.ist_rundum) ohne Schwenken: Nach dem
+    # Wechselpunkt kommt sie von oben an ihren ersten Punkt (_erst_ueber_den_punkt).
+    von_oben: bool = False
 
 
 @dataclass
@@ -2195,6 +2198,9 @@ def programm(
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
+        erst_oben = gewechselt and abschnitt.von_oben and not info.drehmaschine
+        if erst_oben and _wechselpunkt_oben(s, info):  # nach dem Wechselpunkt oben (Z ganz oben)
+            befehle = _erst_ueber_den_punkt(befehle)
         folge = befehle
         if boegen_fassbar(s, abschnitt, info) and not any(
             n.startswith("(" + ROHZEILE) for n, _p in befehle  # mit Radiuskorrektur: die Kontur
@@ -2964,6 +2970,39 @@ def _wechselpunkt_oben(s, info):
     return not info.wechsel_wks and "Z" in info.wechselpunkt
 
 
+def _erst_ueber_den_punkt(befehle):
+    """Die Befehle einer 4-Achs-Operation, die vom Wechselpunkt oben kommt: Beginnt sie mit
+    „G0 Z…“ allein und dann dem Eilgang an ihren ersten Punkt, fährt der erste Satz stattdessen
+    X, Y und die Rundachse dorthin – Z bleibt oben –, der zweite dann Z hinunter (ohne die
+    Rundachse, die schon steht). So fährt auch abfahren() vom Wechselpunkt an. Das „G0 Z“ der
+    Bahn ging sonst an der Stelle hinunter, an der die Spindel beim Wechsel stand: An der
+    3-Achs-Fräse mit 4. Achse ragen Futter (Z 80 über der Achse), Teilapparat (85) und Reitstock
+    (45) über die sichere Höhe der Bahn (Achse + Radius + 2, am Rohr Ø 40 Z 22; Zweifler
+    2026-11-14)."""
+    bewegt = [i for i, (name, _w) in enumerate(befehle) if name.upper() in BEWEGUNG]
+    if len(bewegt) < 2:
+        return befehle
+    i, j = bewegt[:2]
+    (name_i, werte_i), (name_j, werte_j) = befehle[i], befehle[j]
+    if name_i.upper() not in ("G0", "G00") or name_j.upper() not in ("G0", "G00"):
+        return befehle
+    if "Z" not in werte_i or not set(werte_i) <= {"Z", "F"}:
+        return befehle
+    if "Z" not in werte_j or not set(werte_j) & {"X", "Y"}:
+        return befehle
+    ueber = {b: w for b, w in werte_j.items() if b not in ("Z", "F")}
+    # Die Rundachse steht danach schon: im Satz hinunter nicht noch einmal (ein A-Wort je Satz der
+    # Bahn, wie test_vierachs_a_achse es zählt).
+    hinunter = {b: w for b, w in werte_j.items() if b not in ROTATION}
+    return [
+        *befehle[:i],
+        (name_i, ueber),
+        *befehle[i + 1 : j],
+        (name_j, hinunter),
+        *befehle[j + 1 :],
+    ]
+
+
 def _wechselpunkt_saetze(s, info):
     """Die Sätze zum Wechselpunkt: zuerst die Achse, die das Werkzeug wegzieht (an der
     Drehmaschine X, sonst Z), dann die anderen – leer ohne Wechselpunkt oder Befehl. Ein Befehl
@@ -3185,6 +3224,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 masse=einspannung[2],
                 nullpunkte=nullpunkte,
                 fest=fest,
+                von_oben=bool(vo.ist_rundum(op) and not vo.schwenk(op) and schwenkung is None),
             )
         )
     return _nullpunkt_geschwenkt(ergebnis)
