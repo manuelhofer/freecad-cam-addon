@@ -2513,7 +2513,6 @@ class WeiterFrage(QtGui.QDialog):
         self.zwei = QtGui.QCheckBox(tr("beta.weiter.zwei"))
         self.zwei.setToolTip(tr("beta.weiter.zwei.tooltip"))
         self.zwei.setChecked(0.0 < self._davor_hier() <= ZWEI_AB + 1e-9)
-        self.zwei.clicked.connect(self._zwei_geklickt)
         aufbau.addWidget(self.zwei)
         self.zwei_text = _grau()
         self.zwei_text.setContentsMargins(22, 0, 0, 0)
@@ -2521,7 +2520,7 @@ class WeiterFrage(QtGui.QDialog):
         self.leerfahrt = QtGui.QCheckBox(tr("beta.weiter.leerfahrt"))
         self.leerfahrt.setToolTip(tr("beta.weiter.leerfahrt.tooltip"))
         aufbau.addWidget(self.leerfahrt)
-        self.zwei.toggled.connect(self._aufmass_zeigen)
+        self.zwei.toggled.connect(self._zwei_umgeschaltet)
         self.aufmass.textChanged.connect(self._aufmass_zeigen)
         for knopf_ in self.wahl.values():
             knopf_.toggled.connect(self._aufmass_zeigen)
@@ -2561,8 +2560,13 @@ class WeiterFrage(QtGui.QDialog):
         """Das Aufmaß nach dem zweiten Schnitt: bei den Löchern 0 (kein Feld), sonst das Feld."""
         return 0.0 if self.abschnitt() == LOECHER else self.aufmass_wert()
 
-    def _zwei_geklickt(self, *_):
+    def _zwei_umgeschaltet(self, *_):
+        """Der Haken „In zwei gleichen Schnitten“ umgeschaltet – von Hand (die Vorgabe setzt
+        _aufmass_zeigen mit blockierten Signalen): Er bleibt, wie man ihn setzt. Bis 0.381.0 hieß
+        „von Hand“ erst das Signal „clicked“, und Qt meldet „toggled“ davor – _aufmass_zeigen setzte
+        den Haken beim ersten Klick gleich wieder (gesehen 2026-11-15 im Szenario)."""
         self._zwei_von_hand = True
+        self._aufmass_zeigen()
 
     def _aufmass_zeigen(self, *_):
         an = self.abschnitt() in (SCHRUPPEN, SCHLICHTEN)
