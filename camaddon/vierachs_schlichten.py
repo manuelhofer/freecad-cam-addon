@@ -36,6 +36,7 @@ from . import aufloesung as au
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import namen, uhren
+from . import reitstock as rs
 from . import restmaterial as rm
 from . import spindel as sp
 from . import vierachs_bahn as vb
@@ -308,6 +309,7 @@ def bahn_fuer(
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     werte = _mit_wendel(werte, teil, laengs, radial)
+    teil = rs.mit_schutz(teil, job, laengs, werte.abstand_futter)  # mit Reitstock: Spitze dazu
     return vb.schlichten(teil, laengs, radial, werte, schritt_phi)
 
 
@@ -373,6 +375,7 @@ def vorschau(
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     werte = _mit_wendel(werte, teil, laengs, radial)
+    teil = rs.mit_schutz(teil, job, laengs, werte.abstand_futter)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
 
 

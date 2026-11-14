@@ -334,16 +334,21 @@ def vorschlag_nullpunkt(job, pruefung=None):
     box = form.BoundBox
     mittig = FreeCAD.Vector(-box.Center.x, -box.Center.y, -box.ZMin)
     if pruefung is not None and vr.ist_stange(job, rohteil):
-        auf_achse = _auf_der_rundachse(pruefung, rohteil, mittig)
+        auf_achse = _auf_der_rundachse(pruefung, rohteil, mittig, vr.spannlaenge(job))
         if auf_achse is not None:
             return auf_achse
     return mittig
 
 
-def _auf_der_rundachse(pruefung, rohteil, mittig):
+def _auf_der_rundachse(pruefung, rohteil, mittig, spannlaenge=0.0):
     """Der Nullpunkt (von der Werkstückaufnahme aus), mit dem die Achse der Stange `rohteil` auf
     der Rundachse der Maschine liegt, die das Werkstück um sie dreht – längs der Achse wie
-    `mittig`. None, wenn keine Rundachse im Tisch parallel zur Stange liegt."""
+    `mittig`. None, wenn keine Rundachse im Tisch parallel zur Stange liegt.
+
+    Liegt die Werkstückaufnahme selbst auf der Rundachse – die Stirn eines Futters, wie am
+    Teilapparat der 3-Achs-Fräse mit 4. Achse (beispielmaschine.fraese_vierte_achse) –, steckt
+    die Stange mit `spannlaenge` darin: das hintere Ende so weit hinter der Aufnahme, wie an der
+    Drehmaschine. Mittig säße sie zur Hälfte im Futter."""
     aufnahme = pruefung.werkstueckaufnahme
     if aufnahme is None:
         return None
@@ -356,7 +361,11 @@ def _auf_der_rundachse(pruefung, rohteil, mittig):
         if abs(abs(in_aufnahme.Rotation.multVec(richtung).dot(laengs)) - 1.0) > 1e-6:
             continue
         punkt = in_aufnahme.multVec(ursprung)
-        return punkt - laengs * punkt.dot(laengs) + laengs * mittig.dot(laengs)
+        quer = punkt - laengs * punkt.dot(laengs)
+        if quer.Length < 1e-6:  # die Aufnahme liegt auf der Achse: die Stange steckt im Futter
+            hinten = rohteil.Placement.Base.dot(laengs)
+            return quer - laengs * (hinten + spannlaenge)
+        return quer + laengs * mittig.dot(laengs)
     return None
 
 

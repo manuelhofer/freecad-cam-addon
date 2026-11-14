@@ -25,6 +25,7 @@ import Path.Op.Base as PathOp
 
 from . import aufloesung as au
 from . import namen, uhren
+from . import reitstock as rs
 from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_entgratbahn as ve
@@ -183,7 +184,7 @@ def bahn_fuer(
         halter=halter,
         gleichlauf=gleichlauf,
     )
-    netz = vh.vernetze(form_teil, toleranz)
+    netz = rs.mit_schutz(vh.vernetze(form_teil, toleranz), job, laengs, abstand_futter)
     return ve.entgraten(netz, laengs, radial, werte, kanten)
 
 

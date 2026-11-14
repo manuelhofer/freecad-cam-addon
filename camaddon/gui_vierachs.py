@@ -44,6 +44,7 @@ import contextlib
 import html
 import math
 import re
+from dataclasses import replace
 
 import FreeCAD
 import FreeCADGui
@@ -70,6 +71,7 @@ from . import job_schnittwerte as js
 from . import magazin as mg
 from . import maschine as m
 from . import messstopp as ms
+from . import reitstock as rs
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
@@ -716,6 +718,10 @@ class VierachsPanel:
         self._knoepfe = None  # FreeCADs Knopfleiste (modifyStandardButtons)
         self._sichtbar_vorher = None  # (Original, Sichtbarkeit) – für Abbrechen
         self._fuellt = False  # während Felder von hier aus gesetzt werden
+        # „Mit Reitstock“: None folgt der Vorgabe (vierachs_rohteil.reitstock_vorgabe), sonst wie
+        # angeklickt; die gewählte Maschine hat einen Reitstock (reitstock.hat_reitstock)?
+        self._reitstock_von_hand = None
+        self._maschine_mit_reitstock = False
         self._uhr = QtCore.QTimer()
         self._uhr.setSingleShot(True)
         self._uhr.setInterval(NACHZIEHEN_MS)
@@ -987,6 +993,7 @@ class VierachsPanel:
                 ("spannlaenge", stange.spannlaenge),
             ):
                 self.felder_laenge[feld].setText(groesse_zeigen(wert, laenge) or "0")
+            self._reitstock_von_hand = stange.reitstock  # wie der Job eingerichtet ist
         finally:
             self._fuellt = False
         self.lage = vr.lage(
@@ -1439,6 +1446,14 @@ class VierachsPanel:
             zeile += 1
         self.laenge_text = self._grau()
         raster.addWidget(self.laenge_text, zeile - 1, 2)
+        # Mit Reitstock (Manuel, 2026-11-15): nur an einer Maschine mit Reitstock; vorbelegt, wenn
+        # die Stange weiter als 3 × Ø aus dem Futter ragt – abschaltbar.
+        self.haken_reitstock = QtGui.QCheckBox(tr("va.reitstock"))
+        self.haken_reitstock.setToolTip(tr("va.reitstock.tooltip"))
+        self.haken_reitstock.toggled.connect(self._reitstock_umgeschaltet)
+        self.haken_reitstock.hide()
+        raster.addWidget(self.haken_reitstock, zeile, 1, 1, 2)
+        zeile += 1
         aufbau.addWidget(self.felder)
 
         self.urteil = QtGui.QLabel()
@@ -2296,6 +2311,10 @@ class VierachsPanel:
         else:
             self._achsen = [va.zugewiesen(b) for b in _achstexte()]
             self.maschine_text.setText(tr("va.maschine.ohne.text"))
+        self._maschine_mit_reitstock = isinstance(eintrag, va.Maschinenwahl) and rs.hat_reitstock(
+            eintrag.assembly
+        )
+        self.haken_reitstock.setVisible(self._maschine_mit_reitstock)
         vorher, self._fuellt = self._fuellt, True
         try:
             self.wahl_achse.clear()
@@ -5929,10 +5948,12 @@ class VierachsPanel:
         def mm(wert):
             return groesse_fest(wert, einheiten.LAENGE, 1)
 
-        teile = [
-            tr("va.ausspannen.planaufmass", wert=mm(stange.planaufmass)),
-            tr("va.ausspannen.teil", wert=mm(self.vermessung.laenge)),
-        ]
+        vorn = (
+            tr("va.ausspannen.zapfen", wert=mm(stange.vorn))
+            if stange.vorn > stange.planaufmass
+            else tr("va.ausspannen.planaufmass", wert=mm(stange.planaufmass))
+        )
+        teile = [vorn, tr("va.ausspannen.teil", wert=mm(self.vermessung.laenge))]
         bedarf = self._bedarf_hinten()
         if bedarf and stange.frei_hinten > stange.abstechbreite:
             ueberlauf, radius, halter, abstand = max(bedarf, key=self._hinten)
@@ -6565,13 +6586,30 @@ class VierachsPanel:
             durchmesser = 0.0
         if durchmesser <= 0:
             durchmesser = self.vorschlag_stange()
-        return vr.Stange(
+        stange = vr.Stange(
             durchmesser,
             self._laenge("planaufmass"),
             self._laenge("abstechbreite"),
             self._laenge("spannlaenge"),
             self._frei_hinten(),
         )
+        return replace(stange, reitstock=self._mit_reitstock(stange))
+
+    def _mit_reitstock(self, stange):
+        """Stützt der Reitstock die Stange? Nur an einer Maschine mit Reitstock – wie angeklickt,
+        sonst die Vorgabe (vierachs_rohteil.reitstock_vorgabe: weiter als 3 × Ø heraus)."""
+        if not self._maschine_mit_reitstock:
+            return False
+        if self._reitstock_von_hand is not None:
+            return bool(self._reitstock_von_hand)
+        return self.vermessung is not None and vr.reitstock_vorgabe(self.vermessung, stange)
+
+    def _reitstock_umgeschaltet(self, an):
+        """„Mit Reitstock“ angeklickt: gilt ab jetzt, auch wenn sich die Stange ändert."""
+        if self._fuellt:
+            return
+        self._reitstock_von_hand = bool(an)
+        self._eingabe()
 
     def _anwenden(self):
         """Rechnet die Lage und zieht Job und Stange nach. Gibt zurück, ob es geklappt hat."""
@@ -6788,6 +6826,7 @@ class VierachsPanel:
         gewaehlt = self.knopf_mitte_flaeche if self.lage.mitte == vr.MITTE_FLAECHE else None
         (gewaehlt or self.knopf_mitte_teil).setChecked(True)
         stange = self.stange()
+        self.haken_reitstock.setChecked(stange.reitstock)
         self.laenge_text.setText(
             tr("va.laenge", laenge=groesse_fest(vr.stangenlaenge(mess, stange), einheit_laenge, 1))
         )

@@ -71,6 +71,18 @@ EIGENSCHAFT_SCHWENK = "CamAddonSchwenk"
 # … und wie die Steuerung die feste Stellung zeigt („A −90°“, DIN 66217 – vierachs_achsen
 # Stangenachse.anzeige): für das Einrichtblatt, das die Maschine nicht kennt; ausgeblendet.
 EIGENSCHAFT_SCHWENK_ANZEIGE = "CamAddonSchwenkAnzeige"
+# Mit Reitstock (Manuel, 2026-11-15: „vll sogar mit einem reitstock stützen“): Die Spitze stützt
+# die Stange vorn in einer Zentrierbohrung; am Job, damit Bahnen (reitstock.mit_schutz),
+# Einrichtblatt und „Auf der Maschine prüfen“ (reitstock.anstellen) es wissen; ausgeblendet.
+EIGENSCHAFT_REITSTOCK = "CamAddonReitstock"
+# mm – so lang ist die Stange mit Reitstock mindestens vor dem Teil: die Zentrierbohrung
+# DIN 332-1 A 4 × 8,5 reicht 3,9 mm (Senkung 60°) plus die Bohrung Ø 4 rund 4 mm hinein, dazu
+# 2 mm Material bis zum Teil – sonst säße die Bohrung im fertigen Teil.
+REITSTOCK_ZAPFEN = 10.0
+# Ragt die Stange weiter als so viel mal ihr Ø aus dem Futter, ist „Mit Reitstock“ vorbelegt
+# (Auftrag 2026-11-15: „an, wenn die Stange länger als 3 × Ø aus dem Futter ragt“) – die übliche
+# Faustregel fürs Drehen und Fräsen zwischen Spitzen, sonst federt die Stange weg.
+REITSTOCK_AB = 3.0
 
 MIN_AUFMASS = 1.0  # mm am Radius, mindestens, beim Vorschlag für den Stangen-Ø
 STUFE_MM = 5.0  # Stangen-Ø in 5-mm-Schritten …
@@ -128,11 +140,20 @@ class Stange:
     abstechbreite: float = ABSTECHBREITE
     spannlaenge: float = SPANNLAENGE
     frei_hinten: float = 0.0
+    reitstock: bool = False  # vorn stützt ein Reitstock (EIGENSCHAFT_REITSTOCK)
 
     @property
     def luecke(self):
         """Vom hinteren Ende des Teils bis zur Spannfläche (mm)."""
         return max(self.abstechbreite, self.frei_hinten)
+
+    @property
+    def vorn(self):
+        """So weit reicht die Stange vor das Teil (mm): das Planaufmaß – mit Reitstock mindestens
+        der Zapfen für die Zentrierbohrung (REITSTOCK_ZAPFEN)."""
+        if self.reitstock:
+            return max(self.planaufmass, REITSTOCK_ZAPFEN)
+        return self.planaufmass
 
 
 def ist_eben(flaeche):
@@ -465,8 +486,22 @@ def stangenlaenge(vermessung, stange):
 
 
 def ausspannlaenge(vermessung, stange):
-    """So weit ragt die Stange aus dem Futter: Planaufmaß, Teil und Lücke."""
-    return stange.planaufmass + vermessung.laenge + stange.luecke
+    """So weit ragt die Stange aus dem Futter: Planaufmaß (mit Reitstock der Zapfen, Stange.vorn),
+    Teil und Lücke."""
+    return stange.vorn + vermessung.laenge + stange.luecke
+
+
+def reitstock_vorgabe(vermessung, stange):
+    """Ist „Mit Reitstock“ vorbelegt? Wenn die Stange weiter als REITSTOCK_AB × Ø aus dem Futter
+    ragt (ohne Reitstock gerechnet)."""
+    ohne = Stange(
+        stange.durchmesser,
+        stange.planaufmass,
+        stange.abstechbreite,
+        stange.spannlaenge,
+        stange.frei_hinten,
+    )
+    return ausspannlaenge(vermessung, ohne) > REITSTOCK_AB * stange.durchmesser + GENAU
 
 
 def stangen_placement(vermessung, stange, achse):
@@ -528,6 +563,7 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
         job.Stock = neu
     _merke(job, EIGENSCHAFT_SPANNLAENGE, stange.spannlaenge, tr("va.eigenschaft.spannlaenge"))
     _merke(job, EIGENSCHAFT_ABSTECHBREITE, stange.abstechbreite, tr("va.eigenschaft.abstechbreite"))
+    _merke_reitstock(job, stange.reitstock)
     _merke_schwenk(job, achse)
     dokument.recompute()
     return job
@@ -642,6 +678,7 @@ def einstellung(job):
         round(max(0.0, min(abstechbreite, luecke)), 6),
         spann,
         luecke if luecke > abstechbreite + GENAU else 0.0,
+        mit_reitstock(job),
     )
     return Einstellung(teil, flaeche, vermessung, laengs, mitte, drehlage, stange, umgedreht)
 
@@ -801,6 +838,25 @@ def im_tischfutter(job):
     """Steht die Stange des Jobs im Dreibackenfutter auf dem Rundtisch – in geschwenkter Lage
     („C, A auf 90°“)?"""
     return bool(schwenk_text(job)) and ist_stange(job)
+
+
+def mit_reitstock(job):
+    """Stützt ein Reitstock die Stange des Jobs vorn (EIGENSCHAFT_REITSTOCK)?"""
+    return bool(getattr(job, EIGENSCHAFT_REITSTOCK, False)) and ist_stange(job)
+
+
+def _merke_reitstock(job, an):
+    """Merkt am Job, ob ein Reitstock die Stange stützt – ohne Eigenschaft und ohne Reitstock legt
+    es keine an (Jobs ohne bleiben, wie sie waren)."""
+    if EIGENSCHAFT_REITSTOCK not in job.PropertiesList:
+        if not an:
+            return
+        job.addProperty(
+            "App::PropertyBool", EIGENSCHAFT_REITSTOCK, "CAM-Addon", tr("va.eigenschaft.reitstock")
+        )
+        job.setEditorMode(EIGENSCHAFT_REITSTOCK, 2)  # ausgeblendet – das Addon nutzt sie
+    if bool(getattr(job, EIGENSCHAFT_REITSTOCK)) != bool(an):
+        setattr(job, EIGENSCHAFT_REITSTOCK, bool(an))
 
 
 def _merke_schwenk(job, achse):

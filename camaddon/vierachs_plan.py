@@ -28,6 +28,7 @@ import Path.Op.Base as PathOp
 
 from . import aufloesung as au
 from . import namen, uhren
+from . import reitstock as rs
 from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
@@ -337,6 +338,7 @@ def bahn_fuer(
         leerfahrten=max(int(leerfahrten or 0), 0),
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
+    netz = rs.mit_schutz(netz, job, laengs, abstand_futter)  # mit Reitstock: Spitze dazu
     nuten = vp.nuten(form_teil, laengs, radial, ebenen)
     if schaft:
         mit_schaft = [

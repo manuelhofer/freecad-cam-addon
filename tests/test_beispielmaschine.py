@@ -100,6 +100,7 @@ App.closeDocument(doc.Name)
 ACHSEN = {
     beispielmaschine.DREHMASCHINE: ["C1", "C3", "S1", "S3", "T", "X1", "Y1", "Z1"],
     beispielmaschine.FRAESE_3: ["S1", "X1", "Y1", "Z1"],
+    beispielmaschine.FRAESE_4: ["A1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.PORTAL_3: ["S1", "X1", "Y1", "Z1"],
     beispielmaschine.TISCH_TISCH: ["A1", "C1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_KOPF: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
@@ -122,6 +123,7 @@ for art in beispielmaschine.ARTEN:
     # 5-Achs-Fräsen HSK-A63; an der Drehmaschine keine (der Revolver hat seine VDI-Größe).
     soll = {
         beispielmaschine.FRAESE_3: "SK40",
+        beispielmaschine.FRAESE_4: "SK40",
         beispielmaschine.PORTAL_3: "HSK-F63",
         beispielmaschine.DREHMASCHINE: "",
     }.get(art, "HSK-A63")

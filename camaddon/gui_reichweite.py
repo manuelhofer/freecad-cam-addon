@@ -530,6 +530,7 @@ class PruefPanel:
         self.maschine = maschine
         self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
         self.pruefung = None  # reichweite.Pruefung für die gewählte Werkstückaufnahme
+        self._reitstock_meldung = ""  # reicht der Reitstock nicht an die Stange: der Satz dazu
         self.ergebnis = None
         self.abfahrt = None  # abfahren.Abfahrt zum Ergebnis
         self._lauf = None  # ein großer Job rechnet im Takt (_lauf_starten); None: keiner
@@ -870,10 +871,8 @@ class PruefPanel:
         job_merken(self._job)
         eingetragen = rw.eingetragener_nullpunkt(self._job)
         aufnahme = self.werkstueckaufnahme()
-        if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
-            # Wie pruefe(): Der Vorschlag braucht die Maschine (eine Stange auf ihrer Rundachse).
-            self._zurueckfahren()
-            self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
+        # Wie pruefe(): Der Vorschlag braucht die Maschine (eine Stange auf ihrer Rundachse).
+        self._pruefung_bereit(aufnahme)
         vorschlag = rw.vorschlag_nullpunkt(self._job, self.pruefung)
         stellen = einheiten.stellen(einheiten.LAENGE, 3)
         for achse, feld in self.felder_nullpunkt.items():
@@ -940,9 +939,7 @@ class PruefPanel:
         self._uhr.stop()
         self._lauf_beenden()
         aufnahme = self.werkstueckaufnahme()
-        if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
-            self._zurueckfahren()
-            self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
+        self._pruefung_bereit(aufnahme)
         job, nullpunkt = self.job(), self.nullpunkt()
         if self._fuenfachs_vorrechnen(job, nullpunkt):
             return  # die Nebenrechner rechnen die 5-Achs-Programme; danach noch einmal
@@ -953,6 +950,8 @@ class PruefPanel:
         # das Fenster zeichnet dabei neu (an der Nocke in RC1 2,7 s; P-2026-10-11-82).
         with self.pruefung.schritte_teilen(), uhren.atmend():
             self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
+            if self._reitstock_meldung:
+                self.ergebnis.hinweise.append(self._reitstock_meldung)
             self._zeige()
             self._abfahrt_rechnen(job, nullpunkt)
         self.kollision.veraltet()
@@ -1058,6 +1057,8 @@ class PruefPanel:
             self.ergebnis = yield from self.pruefung.pruefe_job_schritte(
                 job, nullpunkt, self.bibliothek
             )
+            if self._reitstock_meldung:
+                self.ergebnis.hinweise.append(self._reitstock_meldung)
             self._zeige()
             abfahrt = yield from ab.abfahrt_schritte(self.pruefung, job, nullpunkt, self.bibliothek)
             yield from abfahrt.am_werkstueck_schritte()  # für das Bild, im Takt (P-66)
@@ -1504,6 +1505,45 @@ class PruefPanel:
         if self.bild is not None:
             self.bild.hinsehen()
             zeige_dokument(self.assembly.Document)
+
+    def _pruefung_bereit(self, aufnahme):
+        """Die Prüfung für die Werkstückaufnahme `aufnahme` – neu, wenn sie wechselt oder der
+        Reitstock an die Stange des Jobs fährt (_reitstock_anstellen)."""
+        if self._reitstock_anstellen(aufnahme):
+            self.pruefung = None
+        if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
+            self._zurueckfahren()
+            self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
+
+    def _reitstock_anstellen(self, aufnahme):
+        """Stellt den Reitstock der Maschine an die Stange des Jobs, mit Reitstock – sonst ans
+        hintere Ende (reitstock.anstellen); ein Schritt Rückgängig in der Maschine. Gibt zurück,
+        ob er sich bewegt hat; was nicht passt, merkt _reitstock_meldung fürs Ergebnis."""
+        from . import reitstock as rs
+
+        self._reitstock_meldung = ""
+        job = self.job()
+        if job is None or self.assembly is None or not rs.hat_reitstock(self.assembly):
+            return False
+        try:
+            plan = rs.anstellen(self.assembly, self.maschine, job, aufnahme, nur_rechnen=True)
+        except Exception as fehler:  # eine halb eingerichtete Maschine: ohne Reitstock prüfen
+            FreeCAD.Console.PrintWarning(f"CAM-Addon: Reitstock: {fehler}\n")
+            return False
+        if plan is None:
+            return False
+        self._reitstock_meldung = plan.meldung
+        if not plan.bewegt:
+            return False
+        self._zurueckfahren()  # erst die Maschine zurück – ihre Grundstellung kennt ihn noch
+        dokument = self.assembly.Document
+        dokument.openTransaction(tr("rs.schritt"))
+        ergebnis = rs.anstellen(self.assembly, self.maschine, job, aufnahme)
+        dokument.commitTransaction()
+        dokument.recompute()
+        if ergebnis is not None:
+            self._reitstock_meldung = ergebnis.meldung
+        return True
 
     def _zurueckfahren(self):
         """Die Maschine wieder so, wie sie beim Öffnen stand."""

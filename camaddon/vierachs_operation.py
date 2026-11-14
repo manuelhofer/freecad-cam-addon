@@ -31,6 +31,7 @@ from . import aufloesung as au
 from . import fraeserform as ff
 from . import freiwege as fw
 from . import namen, uhren
+from . import reitstock as rs
 from . import spindel as sp
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
@@ -462,6 +463,8 @@ def bahn_fuer(
         if erkannt is None:
             raise ValueError(tr("vw.fehler.keine"))
         werte = replace(werte, wendel=erkannt)
+    # Mit Reitstock: Spitze und Zapfen als Teil dazu – die Bahn hält Abstand wie zum Futter.
+    netz = rs.mit_schutz(netz, job, laengs, werte.abstand_futter)
     # Dieselbe Schruppbahn rechnet „Rundum schlichten“ nach (für den Rest darüber) – gemerkt, nach
     # allem, wovon sie abhängt: am 4-Achs-Testteil 3,8 s je Neuberechnen weniger.
     schluessel = (

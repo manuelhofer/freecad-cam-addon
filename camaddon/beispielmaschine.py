@@ -12,6 +12,8 @@ gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
   und S1/C1); wie das Werkzeug steht (radial, axial), sagt sein Halter aus der
   Werkzeugverwaltung (W-002 Stufe E);
 - 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
+- 3-Achs-Fräse mit 4. Achse: dieselbe Fräse, auf dem Tisch ein Teilapparat A (längs X) mit
+  Dreibackenfutter und gegenüber ein Reitstock – das Werkzeug kommt von oben auf die Stange;
 - Portalfräse (Router): fahrendes Portal X, Y-Schlitten, Z mit Frässpindel; der Tisch steht;
 - 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
 - 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
@@ -63,12 +65,22 @@ REVOLVER = (0.93, 0.93, 0.95)  # hell, damit er sich von Schlitten und Bett abhe
 # Die Bauarten, in der Reihenfolge der Auswahl (wie Manuel sie aufzählte).
 DREHMASCHINE = "drehmaschine"
 FRAESE_3 = "fraese3"
+FRAESE_4 = "fraese4"  # 3-Achs-Fräse mit 4. Achse: Teilapparat A längs X, Futter, Reitstock
 PORTAL_3 = "portal3"
 TISCH_TISCH = "tisch_tisch"
 KOPF_KOPF = "kopf_kopf"
 KOPF_TISCH = "kopf_tisch"
 GROB_G550 = "grob_g550"
-ARTEN = (DREHMASCHINE, FRAESE_3, PORTAL_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
+ARTEN = (
+    DREHMASCHINE,
+    FRAESE_3,
+    FRAESE_4,
+    PORTAL_3,
+    TISCH_TISCH,
+    KOPF_KOPF,
+    KOPF_TISCH,
+    GROB_G550,
+)
 FUENFACHS = (TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
 
 _ZULETZT = "Beispielmaschine"  # Schlüssel in den Einstellungen: zuletzt gewählte Bauart
@@ -105,6 +117,15 @@ class Baukasten:
         von unten nach oben, (1, 0, 0) etwa für einen liegenden; ohne steht er."""
         teil = self.assembly.newObject("Part::Cylinder", name)
         teil.Radius, teil.Height = radius, hoehe
+        teil.Placement = self._lage(x, y, z, achse)
+        _faerbe(teil, farbe)
+        return teil
+
+    def kegel(self, name, unten, oben, hoehe, x=0, y=0, z=0, farbe=None, achse=None):
+        """Ein Kegelstumpf mit der Mitte unten bei (x, y, z): Radius `unten` dort, `oben` am
+        anderen Ende; `achse` wie bei zylinder() – etwa die Spitze eines Reitstocks."""
+        teil = self.assembly.newObject("Part::Cone", name)
+        teil.Radius1, teil.Radius2, teil.Height = unten, oben, hoehe
         teil.Placement = self._lage(x, y, z, achse)
         _faerbe(teil, farbe)
         return teil
@@ -273,6 +294,7 @@ def titel(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine"),
         FRAESE_3: tr("beispiel.fraese3"),
+        FRAESE_4: tr("beispiel.fraese4"),
         PORTAL_3: tr("beispiel.portal3"),
         TISCH_TISCH: tr("beispiel.tisch_tisch"),
         KOPF_KOPF: tr("beispiel.kopf_kopf"),
@@ -286,6 +308,7 @@ def beschreibung(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine.beschreibung"),
         FRAESE_3: tr("beispiel.fraese3.beschreibung"),
+        FRAESE_4: tr("beispiel.fraese4.beschreibung"),
         PORTAL_3: tr("beispiel.portal3.beschreibung"),
         TISCH_TISCH: tr("beispiel.tisch_tisch.beschreibung"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.beschreibung"),
@@ -299,6 +322,7 @@ def _dokument(art):
     return {
         DREHMASCHINE: tr("beispiel.drehmaschine.dokument"),
         FRAESE_3: tr("beispiel.fraese3.dokument"),
+        FRAESE_4: tr("beispiel.fraese4.dokument"),
         PORTAL_3: tr("beispiel.portal3.dokument"),
         TISCH_TISCH: tr("beispiel.tisch_tisch.dokument"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.dokument"),
@@ -371,6 +395,16 @@ class FraesenMasse:
         if self.drehzahl <= 0:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
         return ergebnis
+
+
+@dataclass
+class VierteAchseMasse(FraesenMasse):
+    """Die Maße der 3-Achs-Fräse mit 4. Achse: X länger (der Tisch 800 lang trägt Teilapparat,
+    Stange und Reitstock), Z höher (die Achse liegt ACHSHOEHE über dem Tisch, das Werkzeug kommt
+    von oben auf die Stange)."""
+
+    weg_x: tuple = (-300.0, 300.0)
+    weg_z: tuple = (30.0, 450.0)
 
 
 @dataclass
@@ -538,7 +572,7 @@ def _fraesen_groessen(masse):
     )
 
 
-def fraesmaschine(masse=None, spanneisen=True):
+def fraesmaschine(masse=None, spanneisen=True, art=FRAESE_3):
     """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
@@ -551,11 +585,21 @@ def fraesmaschine(masse=None, spanneisen=True):
     über den Tisch und setzt auf der Schraube auf. Manuel (2026-10-01): „zwei
     viereckige Klötze – was ist das?“ – jetzt sieht man es.
     `masse` (FraesenMasse) ändert Wege, Drehzahl und Name; `spanneisen=False` lässt die
-    Spanneisen weg. Gibt (Assembly, Maschine) zurück.
+    Spanneisen weg. `art` FRAESE_4: dazu Teilapparat und Reitstock auf dem Tisch
+    (fraese_vierte_achse). Gibt (Assembly, Maschine) zurück.
     """
     masse = masse or FraesenMasse()
-    g = _fraesen_groessen(masse)
-    b = _neu(FRAESE_3)
+    # Mit 4. Achse zählen X und Y wie die Steuerung (DIN 66217): X plus fährt den Tisch nach links,
+    # Y plus zum Bediener – das Werkzeug fährt gegenüber dem Teil nach +X, +Y. Die 3-Achs-Fräse
+    # zählt ihre Gelenke andersherum (der Tisch fährt mit plus nach rechts und zum Ständer); für
+    # sie zählt das nicht, der Rundachse aber sagt diese Richtung, wie die Steuerung A zählt
+    # (verfahren._din_richtungen): Ohne die Umkehr schrieb das Programm A umgedreht, das
+    # Prüffenster nicht. Die Größen rechnen mit dem Weg zum Ständer, also Y gespiegelt.
+    din = art == FRAESE_4
+    vorzeichen = -1 if din else 1
+    gross = replace(masse, weg_y=(-masse.weg_y[1], -masse.weg_y[0])) if din else masse
+    g = _fraesen_groessen(gross)
+    b = _neu(art)
     bett = b.quader(
         "Bett", g.bett_x, g.bett_y, 120, x=MITTE_X - g.bett_x / 2, y=g.bett_vorn, farbe=GUSS
     )
@@ -637,10 +681,12 @@ def fraesmaschine(masse=None, spanneisen=True):
 
     b.fixieren(bett)
     b.gelenk_wie_gebaut("Staender_fest", "Fixed", bett, "Face6", staender, "Face5")
-    y = b.gelenk_wie_gebaut("Y", "Slider", bett, "Face6", sattel, "Face5", richtung=(0, 1, 0))
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", bett, "Face6", sattel, "Face5", richtung=(0, vorzeichen, 0)
+    )
     b.begrenze(y, *masse.weg_y)
     x = b.gelenk_wie_gebaut(
-        "X", "Slider", sattel, "Face6", tisch, "Tischplatte.Face5", richtung=(1, 0, 0)
+        "X", "Slider", sattel, "Face6", tisch, "Tischplatte.Face5", richtung=(vorzeichen, 0, 0)
     )
     b.begrenze(x, *masse.weg_x)
     for teil, eisen_koerper in eisen:
@@ -652,6 +698,7 @@ def fraesmaschine(masse=None, spanneisen=True):
             teil,
             f"{eisen_koerper.Name}.Face5",
         )
+    vierte = _teilapparat_und_reitstock(b, tisch) if art == FRAESE_4 else None
     z = b.gelenk_wie_gebaut(
         "Z",
         "Slider",
@@ -668,16 +715,174 @@ def fraesmaschine(masse=None, spanneisen=True):
     asm = b.fertig()
     _in_die_wege(b, asm, {z: masse.weg_z})
 
-    ma = _maschine(asm, FRAESE_3)
+    ma = _maschine(asm, art)
     _linear(ma, x, "X1", 20000, 10000, 3)
     _linear(ma, y, "Y1", 20000, 10000, 3)
     _linear(ma, z, "Z1", 15000, 10000, 3, wechsel=masse.weg_z[1])  # ganz oben
     s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5, masse.werkzeugaufnahme)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
-    m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    if vierte is None:
+        m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    else:
+        a, spannflaeche = vierte
+        # Wie die Rundtische der 5-Achs-Beispiele: positionieren, endlos.
+        _positionieren(ma, a, "A1", 50, endlos=True)
+        m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
+
+
+# Die 4. Achse auf dem Tisch der 3-Achs-Fräse (Manuel, 2026-11-15: „die 4te achse würde es eher in
+# ein drei backenfutter horizonal entlang der x oder y achse so das die z achse vertikal von oben
+# drauf schaut spannen ! und vll sogar mit einem reitstock stützen“). Gebaut um die Achse A bei
+# y MITTE_Y, z 250 + ACHSHOEHE (die Tischplatte endet oben bei z 250): links der Teilapparat, sein
+# Dreibackenfutter Ø 160 mit der Spannfläche (Stirn der Backen) bei x SPANNFLAECHE_X, rechts der
+# Reitstock. Ein Rohr Ø 60 × 150 ragt mit Planaufmaß, Lücke und dem Zapfen für die Spitze rund
+# 165 mm aus den Backen – so weit steht die Spitze gebaut (Stellung 0 des Reitstocks).
+ACHSHOEHE = 125.0  # mm über dem Tisch – das Futter Ø 160 bleibt 45 mm darüber
+SPANNFLAECHE_X = 260.0
+FUTTER_RADIUS = 80.0
+BACKE_INNEN, BACKE_AUSSEN = 30.0, 70.0  # mm von der Achse: die Backen fassen eine Stange Ø 60
+BACKE_LANG, BACKE_BREIT = 30.0, 20.0  # so weit stehen sie vor dem Futterkörper, so breit
+PINOLE_RADIUS = 17.5  # mm – wie reitstock.PINOLE_RADIUS (die Bahn rechnet damit)
+PINOLE_LANG = 60.0  # so weit steht die Pinole aus dem Reitstock
+SPITZE_FUSS, SPITZE_KUPPE = 12.0, 2.0  # Radien der Spitze (60°): am Fuß, an der Kuppe
+ZENTRIER_RAND = 4.25  # mm – Rand der Zentrierbohrung DIN 332-1 A 4 × 8,5 (Ø 8,5 / 2)
+REITSTOCK_X = 500.0  # gebaut: dort beginnt der Körper des Reitstocks
+REITSTOCK_WEG = (-120.0, 180.0)  # mm, so weit lässt er sich längs schieben (Stange 46 … 346)
+
+
+def _teilapparat_und_reitstock(b, tisch):
+    """Teilapparat mit Futter (A, Rundachse längs X) und Reitstock (längs verschiebbar) auf dem
+    Tisch `tisch` – gibt (Gelenk A, LCS „Spannflaeche“) zurück.
+
+    Das LCS „Spannflaeche“ liegt auf der Achse an der Stirn der Backen, Z nach oben, X längs der
+    Achse zum Reitstock: So liegt die Stange im Job längs X, das Werkzeug kommt von oben
+    (vierachs_achsen.von_maschine: A längs X), und die Spannlänge steckt hinter dem LCS in den
+    Backen (reichweite.vorschlag_nullpunkt). Das LCS „Reitstockspitze“ liegt dort, wo die Stirn
+    der Stange an der Spitze anliegt (am Rand der Zentrierbohrung), Z vom Futter weg – daran stellt
+    reitstock.anstellen() den Reitstock an die Stange. Das Gelenk „Reitstock_verschieben“ ist ein
+    Schiebegelenk ohne Betriebsart: keine NC-Achse, man schiebt ihn von Hand."""
+    achse_y, achse_z = MITTE_Y, 250.0 + ACHSHOEHE
+    teilapparat = b.quader(
+        "Teilapparat",
+        140,
+        170,
+        ACHSHOEHE + 85,
+        x=SPANNFLAECHE_X - BACKE_LANG - 60 - 140,
+        y=achse_y - 85,
+        z=250,
+        farbe=GUSS,
+    )
+    futter_x = SPANNFLAECHE_X - BACKE_LANG - 60  # dort sitzt der Futterkörper am Teilapparat
+    koerper = [
+        b.zylinder(
+            "Futterkoerper",
+            FUTTER_RADIUS,
+            60,
+            x=futter_x,
+            y=achse_y,
+            z=achse_z,
+            achse=(1, 0, 0),
+            farbe=SPINDEL,
+        )
+    ]
+    for nummer, winkel in enumerate((90.0, 210.0, 330.0), 1):
+        # Je Backe ein Quader über der Achse, um sie gedreht – 120° versetzt.
+        drehung = App.Placement(
+            App.Vector(),
+            App.Rotation(App.Vector(1, 0, 0), winkel - 90.0),
+            App.Vector(0, achse_y, achse_z),  # um die Achse A
+        )
+        koerper.append(
+            b.quader(
+                f"Backe{nummer}",
+                BACKE_LANG,
+                BACKE_BREIT,
+                BACKE_AUSSEN - BACKE_INNEN,
+                x=SPANNFLAECHE_X - BACKE_LANG,
+                y=achse_y - BACKE_BREIT / 2,
+                z=achse_z + BACKE_INNEN,
+                farbe=KOPF,
+                gedreht=drehung,
+            )
+        )
+    futter, _ = b.bauteil("Futter", koerper)
+    spannflaeche = b.lcs(
+        futter, "Spannflaeche", SPANNFLAECHE_X, achse_y, achse_z, (0, 0, 1), x_richtung=(1, 0, 0)
+    )
+    b.gelenk_wie_gebaut(
+        "Teilapparat_fest", "Fixed", tisch, "Tischplatte.Face6", teilapparat, "Face5"
+    )
+    a = b.gelenk_wie_gebaut(
+        "A", "Revolute", teilapparat, "Face2", futter, "Futterkoerper.Face2", richtung=(1, 0, 0)
+    )
+
+    # Der Reitstock: Körper, Pinole und Spitze (60°) zum Futter hin.
+    spitze_lang = (SPITZE_FUSS - SPITZE_KUPPE) / math.tan(math.radians(30.0))
+    fuss_x = REITSTOCK_X - PINOLE_LANG
+    reitstock, _ = b.bauteil(
+        "Reitstock",
+        [
+            b.quader(
+                "Reitstockkoerper",
+                120,
+                120,
+                ACHSHOEHE + 45,
+                x=REITSTOCK_X,
+                y=achse_y - 60,
+                z=250,
+                farbe=GUSS,
+            ),
+            b.zylinder(
+                "Pinole",
+                PINOLE_RADIUS,
+                PINOLE_LANG,
+                x=REITSTOCK_X,
+                y=achse_y,
+                z=achse_z,
+                achse=(-1, 0, 0),
+                farbe=SPINDEL,
+            ),
+            b.kegel(
+                "Spitze",
+                SPITZE_FUSS,
+                SPITZE_KUPPE,
+                spitze_lang,
+                x=fuss_x,
+                y=achse_y,
+                z=achse_z,
+                achse=(-1, 0, 0),
+                farbe=SPINDEL,
+            ),
+        ],
+    )
+    # Die Stirn der Stange liegt am Rand der Zentrierbohrung an der Spitze: von der Kuppe so weit
+    # zurück, wie der Kegel bis zu diesem Radius braucht.
+    kuppe_x = fuss_x - spitze_lang
+    anlage_x = kuppe_x + (ZENTRIER_RAND - SPITZE_KUPPE) / math.tan(math.radians(30.0))
+    b.lcs(reitstock, "Reitstockspitze", anlage_x, achse_y, achse_z, (1, 0, 0))
+    schieben = b.gelenk_wie_gebaut(
+        "Reitstock_verschieben",
+        "Slider",
+        tisch,
+        "Tischplatte.Face6",
+        reitstock,
+        "Reitstockkoerper.Face5",
+        richtung=(1, 0, 0),
+    )
+    b.begrenze(schieben, *REITSTOCK_WEG)
+    return a, spannflaeche
+
+
+def fraese_vierte_achse(masse=None):
+    """3-Achs-Fräse mit 4. Achse: die Fräse (fraesmaschine, ohne Spanneisen), auf ihrem Tisch ein
+    Teilapparat – A längs X, positionierend und endlos – mit Dreibackenfutter, gegenüber ein
+    Reitstock (_teilapparat_und_reitstock). Das Werkzeug kommt von oben auf die liegende Stange.
+    `masse` (FraesenMasse) wie bei fraesmaschine; ohne VierteAchseMasse. Gibt (Assembly,
+    Maschine) zurück."""
+    return fraesmaschine(masse or VierteAchseMasse(), spanneisen=False, art=FRAESE_4)
 
 
 @dataclass
@@ -1702,6 +1907,7 @@ def _in_die_wege(b, asm, wege):
 BAUPLAENE = {
     DREHMASCHINE: drehmaschine,
     FRAESE_3: fraesmaschine,
+    FRAESE_4: fraese_vierte_achse,
     PORTAL_3: portalfraese,
     TISCH_TISCH: fuenfachs_tisch_tisch,
     KOPF_KOPF: fuenfachs_kopf_kopf,

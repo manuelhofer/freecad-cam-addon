@@ -587,6 +587,14 @@ def spannung_text(job, tr):
             hoehe=_zahl(hoehe),
             tiefe=_zahl(vr.spannlaenge(grundjob(job))),
         )
+    if vr.ist_stange(job, rohteil) and vr.mit_reitstock(grundjob(job)):
+        # Vorn stützt der Reitstock: Die Stange braucht dort eine Zentrierbohrung.
+        return tr(
+            "eb.spannung.reitstock",
+            mm=_mm(),
+            tiefe=_zahl(vr.spannlaenge(job)),
+            zapfen=_zahl(vr.REITSTOCK_ZAPFEN),
+        )
     if vr.ist_stange(job, rohteil):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))
     from . import spannmittel as sm
