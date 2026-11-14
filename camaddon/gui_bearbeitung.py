@@ -51,6 +51,8 @@ from . import gewinde_bahn as gfb
 from . import gewindefraesen as gf
 from . import gleiche_flaechen as glf
 from . import hinterschnitt_bahn as hsb
+from . import hobeln as hop
+from . import hobeln_bahn as hbn
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
@@ -108,6 +110,7 @@ from .gui_zahlen import (
     groesse_fest,
     groesse_lesen,
     groesse_zeigen,
+    zahl_lesen,
     zahl_zeigen,
 )
 from .sprache import tr
@@ -126,6 +129,7 @@ GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_FLANKENFRAESER = "BaFlankenFraeser"  # … für die Flanke (5 Achsen simultan)
 GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
 GEMERKT_RINGNUTFRAESER = "BaRingnutFraeser"  # … für die Ringnut
+GEMERKT_STOSSWERKZEUG = "BaStosswerkzeug"  # … fürs Hobeln der Dichtnut
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
@@ -1509,6 +1513,7 @@ class _Strategie:
     bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
     # mm – das Raster, in dem die Operation ihre Bahn rechnet (aufloesung.py); None: hat keins.
     aufloesung = None
+    zaehler = ()  # Felder, die eine Anzahl sind (ohne Einheit) – die Leerumläufe beim Hobeln
 
     def aufloesung_erklaerung(self, vorschlag):
         """Die Erklärung zum Feld „Auflösung“ – Kanten haben eine eigene."""
@@ -1891,6 +1896,8 @@ class _Raeumen(_Strategie):
             "eng_lassen": bool(werte.get("eng_lassen", False)),
             "nur_eng": float(werte.get("nur_eng", 0.0)),
         }
+        if werte.get("boden_rest"):  # der Grund der Dichtnut fürs Hobeln (BearbeitungPanel._zusatz)
+            weiter["boden_rest"] = tuple(werte["boden_rest"])
         if werte.get("vorbohren") and werte.get("vorbohrer"):
             weiter["vorbohren"] = werte["vorbohrer"]  # raeumen.vorschau_fuer_assistent
         return (
@@ -1986,6 +1993,7 @@ class _Raeumen(_Strategie):
             freivorschub=werte.get("freivorschub", ra.FREIVORSCHUB),
             eng_lassen=bool(werte.get("eng_lassen", False)),
             nur_eng=float(werte.get("nur_eng", 0.0)),
+            boden_rest=tuple(werte.get("boden_rest") or ()),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -2393,6 +2401,7 @@ class _SchlichtenDanach(_Strategie):
                     aufmass_wand, boeden, aufmass_boden=gang_rest, gleichlauf=werte["gleichlauf"],
                     schneidenlaenge=schneide, vorschub=werte.get("vorschub", 0.0),
                     eintauchen=werte.get("eintauchen", 0.0), stand=stand,
+                    boden_rest=tuple(werte.get("boden_rest") or ()),
                 )  # fmt: skip
             except mst.SchonWeg:
                 boden = None
@@ -2401,7 +2410,7 @@ class _SchlichtenDanach(_Strategie):
                 wand = ko.vorschau(
                     job, job.Model.Group, form, werte["zustellung"], aufmass_wand, aufmass_wand,
                     True, waende, breite=aufmass_wand, schneidenlaenge=schneide, stand=stand,
-                    rest=gang_rest,
+                    rest=gang_rest, waende_rest=tuple(werte.get("waende_rest") or ()),
                 )  # fmt: skip
             except mst.SchonWeg:
                 wand = None
@@ -4761,6 +4770,143 @@ class _Ringnut(_Strategie):
         }
 
 
+class _Hobeln(_Strategie):
+    """„Dichtnut hobeln“ (hobeln, hobeln_bahn; Spezifikation Strategien 13.10): den Grund einer
+    umlaufenden Nut mit einem Stoßwerkzeug bei stehender Spindel in Umläufen hobeln – Riefen längs
+    der Nut statt quer. Vorgefräst ist sie bis auf den Rest über dem Grund (das Räumen lässt ihn
+    dort, BearbeitungPanel._zusatz). Nicht von sich aus angehakt: ob gehobelt wird, entscheidet
+    man selbst (Strategiewahl). Fehlt ein Stoßwerkzeug, legt es ein Knopf an (_hobeln_angebot).
+    Die Vorschau rechnet hier – am Deckel unter 0,1 s: kein Nebenrechner."""
+
+    kennung = "hobeln"
+    gemerkt = GEMERKT_STOSSWERKZEUG
+    zaehler = ("leerumlaeufe",)
+    einsatz_reihenfolge = (wz.HOBELN,)
+    bevorzugt = wz.STOSSWERKZEUG
+
+    def titel(self):
+        return tr("ba.hobeln")
+
+    def text(self):
+        return tr("ba.hobeln.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.hobeln.werkzeug.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.hobeln.einsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.hobeln.zustellung"), tr("ba.hobeln.zustellung.tooltip")),
+            ("rest", tr("ba.hobeln.rest"), tr("ba.hobeln.rest.tooltip")),
+            ("leerumlaeufe", tr("ba.hobeln.leer"), tr("ba.hobeln.leer.tooltip")),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.STOSSWERKZEUG
+
+    def passt(self, form, name):
+        return bool(hbn.hobelnuten(form, [name]))
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Je gewählte Nut ihr Grund – eine Wand meint die ganze Nut."""
+        namen = []
+        for nut in hbn.hobelnuten(form, [n for n in gewaehlte if self.passt(form, n)]):
+            if nut.name not in namen:
+                namen.append(nut.name)
+        return namen
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob gehobelt wird, entscheidet man selbst (Strategiewahl nur von Hand)
+
+    def unmoeglich_text(self):
+        return tr("ba.hobeln.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            ap = float(getattr(einsatz, "ap", 0.0) or 0.0)
+            return ap if ap > 0 else hop.ZUSTELLUNG
+        if feld == "rest":
+            return hop.REST
+        if feld == "leerumlaeufe":
+            return 1.0
+        return 0.0
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        if feld == "leerumlaeufe":
+            return "1"
+        return super().platzhalter(feld, werkzeug, einsatz)
+
+    @staticmethod
+    def _leer(werte):
+        return max(int(round(float(werte.get("leerumlaeufe", 1.0) or 0.0))), 0)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return hop.vorschau(
+            job,
+            werkzeug,
+            flaechen,
+            zustellung=werte["zustellung"],
+            rest=werte["rest"],
+            leerumlaeufe=self._leer(werte),
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+            wand_aufmass=float(werte.get("wand_aufmass", 0.0) or 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        """Je Nut eine Zeile – „Face19: 3,6 breit, 2,7 tief, 265 lang, kleinster Radius 12 – 6
+        Umläufe, 1,2 min“ –, dazu die gewählten, die nicht gehen, mit ihrem Grund."""
+        zeilen = []
+        for j in bahn.je_nut:
+            umlaeufe = j["umlaeufe"] * j["spuren"]
+            zeilen.append(
+                tr(
+                    "ba.ergebnis_hobeln",
+                    name=j["name"],
+                    nut=j["nut"].text(),
+                    umlaeufe=umlaeufe,
+                    zeit=_zeit_text(j["zeit"]),
+                )
+            )
+        for name, grund in bahn.nicht_passend:
+            zeilen.append(tr("ba.hobeln.nicht", name=name, grund=grund))
+        if len(bahn.je_nut) > 1:
+            zeilen.append(tr("ba.ringnut.zusammen", zeit=zeit))
+        return "<br>".join(html.escape(z, quote=False) for z in zeilen)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return hop.lege_an(
+            job,
+            tc,
+            flaechen,
+            zustellung=werte["zustellung"],
+            rest=werte["rest"],
+            leerumlaeufe=self._leer(werte),
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        hop.aendere(
+            op,
+            tc,
+            flaechen,
+            zustellung=werte["zustellung"],
+            rest=werte["rest"],
+            leerumlaeufe=self._leer(werte),
+        )
+
+    def ist(self, op):
+        return hop.ist_hobeln(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "rest": float(op.Rest),
+            "leerumlaeufe": float(op.Leerumlaeufe),
+        }
+
+
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
@@ -4784,6 +4930,8 @@ STRATEGIEN = (
     # Nach dem Fertigbearbeiten der Bohrungen (Bohrung fräsen, Schlichten danach, Reiben) – ihre
     # Scheibe fährt mittig im Eilgang durch die fertige Bohrung.
     _Ringnut,
+    # Nach allem, was die Nut fräst (Räumen, Schlichten danach): Dort bleibt der Rest am Grund.
+    _Hobeln,
     _Gewinde,
     _Gewindefraesen,
     _Fase,
@@ -4821,18 +4969,21 @@ SCHRUPPEN_ZUERST = {
     "restschlichten": 2,
     "bleistift": 2,
     "ringnut": 2,  # nach dem Schlichten der Bohrung, vor den Kanten
+    "hobeln": 2,  # nach dem Schlichten der Nutwände – zuletzt der Grund
     "fase": 3,
     "entgraten": 3,
     "entgraten3d": 3,
 }
 
 
-def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
+def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert, einheit=None):
     eingabe = QtGui.QLineEdit()
     eingabe.setValidator(Zahlenpruefer(eingabe))
     eingabe.textChanged.connect(lambda _text: geaendert())
     felder[name] = eingabe
-    reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
+    if einheit is None:
+        einheit = einheiten.einheit(einheiten.LAENGE)
+    reihen.reihe(text, tooltip, mit_einheit(eingabe, einheit))
     return eingabe
 
 
@@ -4968,7 +5119,10 @@ class _Block:
             self.wahl_bahn.currentIndexChanged.connect(lambda _i: self._raeumwahl_geaendert())
         self.felder = {}
         for feld, text, tooltip in strategie.felder():
-            _zahlenfeld(self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten)
+            _zahlenfeld(
+                self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten,
+                "" if feld in strategie.zaehler else None,  # eine Anzahl: ohne Einheit
+            )  # fmt: skip
         if strategie.aufloesung:  # T-009: die Auflösung je Strategie, leer = Vorschlag
             _zahlenfeld(
                 self.felder,
@@ -5051,6 +5205,8 @@ class _Block:
         """Wert eines Felds (mm); leer oder ungültig gilt der Vorschlag."""
         text = self.felder[feld].text()
         try:
+            if feld in self.s.zaehler:  # eine Anzahl: ohne Einheit, auch in Zoll
+                return zahl_lesen(text) if text.strip() else self.vorschlag(feld)
             return groesse_lesen(text, einheiten.LAENGE) if text.strip() else self.vorschlag(feld)
         except ValueError:
             return self.vorschlag(feld)
@@ -5282,7 +5438,8 @@ class _Block:
         passende = [
             w
             for w in mg.sortiert(bibliothek.werkzeuge, magazin, bibliothek)
-            if w.durchmesser > 0
+            # Ein Stoßwerkzeug hat keinen Durchmesser – seine Klinge hat eine Breite.
+            if (w.durchmesser > 0 or w.art == wz.STOSSWERKZEUG)
             and self.s.werkzeug_passt(w)
             and self._passende_einsaetze(w, werkstoff)
         ]
@@ -5598,6 +5755,19 @@ class _Block:
             dazu = self.panel._bohrfraeser_aus_katalog(self)
             if dazu:
                 text = f"{text if text is not satz else html.escape(satz, quote=False)}<br>{dazu}"
+        danach = self.panel.schlichten_danach
+        if (
+            self.s.kennung == "hobeln"
+            and isinstance(daten, dict)
+            and daten.get("waende")
+            and danach.moeglich
+            and not danach.aktiv()
+        ):
+            # Die Wände der Nut haben noch das Aufmaß des Räumens: der nächste Schritt als Verweis.
+            knopf_ = html.escape(tr("ba.hobeln.schlichten_anhaken"), quote=False)
+            text = (
+                f'{html.escape(satz, quote=False)} <a href="anhaken:schlichtendanach">{knopf_}</a>'
+            )
         return text
 
     def _ausspannen_oder_empfehlung(self, satz, ausspannen, empfehlung):
@@ -6017,6 +6187,12 @@ class _Block:
             if kasten is not None:
                 kasten.setChecked(True)
             return
+        if ziel.startswith("anhaken:"):  # eine andere Strategie anhaken (wie von Hand)
+            kennung = ziel.split(":", 1)[1]
+            anderer = next((b for b in self.panel.bloecke if b.s.kennung == kennung), None)
+            if anderer is not None and anderer.moeglich:
+                anderer.haken.setChecked(True)
+            return
         bibliothek = self.panel.bibliothek
         if (
             not ziel.startswith(("ausspannen:", "empfehlung:", "restschlichten:", "eckenwerkzeug:"))
@@ -6384,6 +6560,7 @@ class BearbeitungPanel:
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
         self.ringnut = next(b for b in self.bloecke if b.s.kennung == "ringnut")
+        self.hobeln = next(b for b in self.bloecke if b.s.kennung == "hobeln")
         self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
         self.flanke = next(b for b in self.bloecke if b.s.kennung == "flanke")
         self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
@@ -8467,6 +8644,9 @@ class BearbeitungPanel:
                     continue
                 wert = float(wert)
                 if abs(wert - block.vorschlag(feld)) > 1e-6:
+                    if feld in block.s.zaehler:
+                        block.felder[feld].setText(zahl_zeigen(wert) or "0")
+                        continue
                     block.felder[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
             if block is self.raeumen:
                 block.raeumwahl_von(op)
@@ -8956,6 +9136,9 @@ class BearbeitungPanel:
             elif self.ringnut.s.passt(form, name):
                 nut = rnb.ringnuten(form, [name])[0]
                 text, farbe = tr("ba.flaeche.ringnut_unter", name=name, nut=nut.text()), GRUEN
+            elif self.hobeln.s.passt(form, name):
+                nut = hbn.hobelnuten(form, [name])[0]
+                text, farbe = tr("ba.flaeche.hobelnut", name=name, nut=nut.text()), GRUEN
             elif self.fase.s.passt(form, name):
                 fase = fb.fasen(form, [name])[0]
                 text = tr(
@@ -9237,6 +9420,10 @@ class BearbeitungPanel:
                     # Kein Nutenfräser in der Werkzeugverwaltung: Was fehlt, sagt „Nicht fertig“
                     # mit dem Knopf, der einen anlegt (_ringnut_angebot).
                     moeglich, grund = False, tr("ba.ringnut.kein_fraeser")
+                if block is self.hobeln and moeglich and not block._fraeser:
+                    # Kein Stoßwerkzeug: Den Knopf, der eins anlegt, zeigt „Nicht fertig“
+                    # (_hobeln_angebot) – auch wenn sonst alles fertig wird.
+                    moeglich, grund = False, tr("ba.hobeln.kein_werkzeug")
                 if block is self.schlichten_danach:
                     # Mit dem Räumen oder der Nut (sie stehen davor in der Liste) – ein Haken von
                     # Hand bleibt.
@@ -9271,6 +9458,7 @@ class BearbeitungPanel:
         self._fase_fraeser_waehlen(form)
         self._bohrfraeser_waehlen(form)
         self._ringnutfraeser_waehlen(form)
+        self._hobelwerkzeug_waehlen(form)
         self._bloecke_ordnen()
 
     def _bloecke_ordnen(self):
@@ -10309,6 +10497,11 @@ class BearbeitungPanel:
             if block.vorschau is not None:
                 return list(getattr(block.vorschau, "namen", ()) or ())
             return [f for n in rnb.ringnuten(form, self._flaechen(block, form)) for f in n.flaechen]
+        if block is self.hobeln:
+            # Der Grund der Nuten, die es hobelt (Hobelvorschau.namen) – die Wände nicht.
+            if block.vorschau is not None:
+                return list(getattr(block.vorschau, "namen", ()) or ())
+            return [n for n, _r in self._hobel_reste(form)]
         return []
 
     def _unfertige(self, form):
@@ -10371,7 +10564,18 @@ class BearbeitungPanel:
         self._unfertig_liste = unfertig  # die Schritte färben sie im Teil (gui_bearbeitung_beta)
         if not unfertig:
             self.unfertig.hide()
-            self.unfertig_angebot.hide()
+            # Eine Dichtnut ist gewählt, aber kein Stoßwerkzeug da: Der Knopf, der eins anlegt,
+            # steht hier auch, wenn sonst alles fertig wird – Hobeln ist ein Angebot, kein Muss.
+            angebot = self._hobeln_angebot(form) if self.job is not None else None
+            if angebot is None:
+                self._unfertig_aktion = None
+                self.unfertig_angebot.hide()
+            else:
+                satz, knopf_text, self._unfertig_aktion = angebot
+                self.unfertig_satz.setText(satz)
+                self.unfertig_knopf.setText(knopf_text)
+                self.unfertig_knopf.setToolTip(tr("ba.hobeln.anlegen.tooltip"))
+                self.unfertig_angebot.show()
             return
         namen = [name for name, _k in unfertig]
         angebot = self._senken_angebot(form, namen)
@@ -10386,6 +10590,7 @@ class BearbeitungPanel:
             satz, knopf_text, self._unfertig_aktion = angebot
             self.unfertig_satz.setText(satz)
             self.unfertig_knopf.setText(knopf_text)
+            self.unfertig_knopf.setToolTip("")
             self.unfertig_angebot.show()
         flaechen = ", ".join(namen[:4]) + (" …" if len(namen) > 4 else "")
         bloecke = []
@@ -11196,8 +11401,10 @@ class BearbeitungPanel:
             dabei = anderer.aktiv() or anderer in mit
             if not dabei or anderer.vorschau is None or werkzeug is None:
                 continue
-            if anderer is self.ringnut:
-                continue  # unter dem Rand: von oben nimmt sie nichts weg (materialstand)
+            if anderer in (self.ringnut, self.hobeln):
+                # Die Ringnut unter dem Rand: von oben nimmt sie nichts weg (materialstand). Das
+                # Hobeln nimmt nur den Rest am Grund – die Blöcke danach (Kanten) stört er nicht.
+                continue
             if eigene & set(self._flaechen(anderer, form)):
                 continue
             fraeser = ff.von_werkzeug(werkzeug)
@@ -11223,7 +11430,12 @@ class BearbeitungPanel:
             bohrer = self._vorbohrer(block.fraeser())
             if bohrer is not None:
                 zusatz["vorbohrer"] = bohrer
+            reste = self._hobel_reste(form)
+            if reste:  # der Grund der Dichtnut bleibt fürs Hobeln stehen
+                zusatz["boden_rest"] = reste
             return zusatz or None
+        if block is self.hobeln:
+            return {"wand_aufmass": self._hobel_wand_aufmass(form)}
         if block is self.nut:
             liste = self._vorbohrer_liste(block.fraeser())
             return {"vorbohrer_liste": liste} if liste else None
@@ -11236,6 +11448,9 @@ class BearbeitungPanel:
             bohrer = self._tauch_vorbohrer(werkzeug)
             return {"vorbohrer": bohrer} if bohrer else None
         if block is self.restraeumen:
+            reste = self._hobel_reste(form)
+            if reste:  # wie das Räumen: der Grund der Dichtnut bleibt fürs Hobeln stehen
+                return dict(self._nur_eng() or {}, boden_rest=reste)
             return self._nur_eng()
         if block is self.bohren:
             zusatz = {"reiben": True} if self._gerieben(form) else {}
@@ -11259,7 +11474,20 @@ class BearbeitungPanel:
                 return {"aufmass": FLANKE_VOR_SPIRALE}
             return None
         if block is self.schlichten_danach:
-            return self._schlichten_danach_zusatz(form)
+            zusatz = self._schlichten_danach_zusatz(form)
+            reste = self._hobel_reste(form)
+            if reste and zusatz:
+                # Boden und Wände der Dichtnut: der Rest am Grund bleibt fürs Hobeln (ein Ø 3 an
+                # beiden Wänden der 3,6 breiten Nut nähme sonst den ganzen Grund mit).
+                rest = dict(reste)
+                waende = [w for n in self._hobelnuten(form) if n.name in rest for w in n.flaechen
+                          if w != n.name]  # fmt: skip
+                zusatz = dict(
+                    zusatz,
+                    boden_rest=reste,
+                    waende_rest=tuple((w, max(rest.values())) for w in waende),
+                )
+            return zusatz
         if block is self.restschruppen:
             return self._davor_3d(self.restschruppen, self.schruppen3d)
         if block is not self.kontur or self.kontur.felder["breite"].text().strip():
@@ -11605,6 +11833,120 @@ class BearbeitungPanel:
     def _ringnutfraeser_anlegen(self, vorschlag):
         """„Scheibenfräser Ø 19 × 2,15 anlegen“ (_ringnut_angebot): mit Richtwerten in die
         Werkzeugverwaltung (und ins Magazin), dann die Haken neu – „Ringnut fräsen“ fräst."""
+        if self.bibliothek is None:
+            return
+        werkzeug = wz.Werkzeug.aus_dict(vorschlag.als_dict())
+        werkzeug.nummer = self.bibliothek.naechste_nummer()
+        self._werkzeug_anlegen(werkzeug)
+        self.unfertig_angebot.hide()
+        if self.job is not None:
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+        self.vorschau_starten()
+
+    # --- Dichtnut hobeln (Spezifikation Strategien 13.10) -------------------------------------
+
+    def _hobelnuten(self, form):
+        """Die gewählten umlaufenden Nuten, deren Grund sich hobeln ließe (hobeln_bahn)."""
+        eigene = self._eigene(self.hobeln, form)
+        return hbn.hobelnuten(form, eigene) if eigene else []
+
+    def _hobel_wand_aufmass(self, form):
+        """So viel steht an den Wänden der Dichtnut über dem Rest noch vor, wenn das Hobeln
+        beginnt: nach „Schlichten danach“ (mit Wänden) dessen Rest, nach einer Kontur an ihren
+        Wänden deren Aufmaß (0 mit Schlichten), sonst das Aufmaß an der Wand des Räumens."""
+        danach = self.schlichten_danach
+        if danach.aktiv() and danach.werte().get("waende"):
+            return max(float(danach.werte().get("aufmass", 0.0) or 0.0), 0.0)
+        waende = {w for n in self._hobelnuten(form) for w in n.flaechen if w != n.name}
+        if self.kontur.aktiv() and waende & set(self._eigene(self.kontur, form)):
+            werte = self.kontur.werte()
+            return 0.0 if werte.get("schlichten") else max(float(werte.get("aufmass", 0.0)), 0.0)
+        aufmass = 0.0
+        for block in (self.raeumen, self.restraeumen):
+            if block.aktiv():
+                aufmass = max(aufmass, float(block.werte().get("aufmass", 0.0) or 0.0))
+        return aufmass
+
+    def _hobel_reste(self, form):
+        """((Grund, Rest) …) der Dichtnuten, die „Dichtnut hobeln“ hobelt – angehakt, mit einer
+        Klinge, die hineinpasst: Dort lässt das Fräsen davor den Rest am Grund stehen
+        (raeumen_bahn.Raeumwerte.boden_rest). Leer ohne Hobeln – dann ändert sich nichts."""
+        block = self.hobeln
+        werkzeug = block.fraeser()
+        if not block.aktiv() or werkzeug is None:
+            return ()
+        rest = float(block.wert("rest"))
+        if rest <= 0:
+            return ()
+        aufmass = self._hobel_wand_aufmass(form)
+        return tuple(
+            (n.name, rest)
+            for n in self._hobelnuten(form)
+            if not hop.klinge_grund(n, werkzeug, aufmass)
+        )
+
+    def _hobelwerkzeug_waehlen(self, form):
+        """Wählt für „Dichtnut hobeln“ das Stoßwerkzeug, das die meisten gewählten Nuten kann, von
+        denen das mit der breitesten Klinge (weniger Spuren) – solange keins von Hand gewählt
+        ist."""
+        block = self.hobeln
+        if not block.moeglich or not block._fraeser or block.fraeser_von_hand:
+            return
+        nuten = self._hobelnuten(form)
+        if not nuten:
+            return
+        beste = max(
+            block._fraeser,
+            key=lambda w: (
+                sum(not hop.klinge_grund(n, w) for n in nuten),
+                float(w.schneidenbreite),
+            ),
+        )
+        jetzt = block.fraeser()
+        if jetzt is not None and jetzt.kennung == beste.kennung:
+            return
+        block._setzt_selbst = True
+        try:
+            block.fraeser_setzen(beste)
+        finally:
+            block._setzt_selbst = False
+
+    def _hobeln_angebot(self, form):
+        """(Satz, Knopf, Aktion) unter „Nicht fertig“ – oder None: Ist eine Dichtnut gewählt, die
+        kein Stoßwerkzeug der Werkzeugverwaltung hobeln kann: ein Stoßwerkzeug, dem nur die
+        Schnittwerte fehlen, zum Öffnen – sonst der Knopf, der eins mit passender Klinge anlegt
+        (hobeln.werkzeug_vorschlag)."""
+        if self.bibliothek is None or self.zu_aendern is not None:
+            return None
+        nuten = self._hobelnuten(form)
+        if not nuten:
+            return None
+        if self.hobeln._fraeser and any(
+            not hop.klinge_grund(n, w) for n in nuten for w in self.hobeln._fraeser
+        ):
+            return None  # eins ist da und passt – angehakt hobelt es
+        vorhandene = [w for w in self.bibliothek.werkzeuge if w.art == wz.STOSSWERKZEUG]
+        for w in vorhandene:
+            if w.nummer > 0 and any(not hop.klinge_grund(n, w) for n in nuten):
+                # Es passt, hat aber keine Schnittwerte („Hobeln“): öffnen, nicht ein zweites.
+                return (
+                    tr("ba.hobeln.ohne_werte", werkzeug=f"T{w.nummer}"),
+                    tr("rw.werkzeug_oeffnen", werkzeug=f"T{w.nummer}"),
+                    lambda n=w.nummer: self.werkzeugverwaltung(n),
+                )
+        vorschlag = hop.werkzeug_vorschlag(nuten)
+        if vorschlag is None:
+            return tr("ba.hobeln.keins_passt"), tr("va.werkzeugverwaltung"), self.werkzeugverwaltung
+        b = groesse_zeigen(vorschlag.schneidenbreite, einheiten.LAENGE, 2) or "0"
+        laenge = groesse_zeigen(vorschlag.klingenlaenge, einheiten.LAENGE, 2) or "0"
+        satz = tr("ba.hobeln.angebot")
+        knopf_text = tr("ba.hobeln.anlegen", b=b, l=laenge)
+        return dezimal(satz), dezimal(knopf_text), lambda: self._stosswerkzeug_anlegen(vorschlag)
+
+    def _stosswerkzeug_anlegen(self, vorschlag):
+        """„Stoßwerkzeug b 3,5 × 1,1 anlegen“ (_hobeln_angebot): mit Richtwerten in die
+        Werkzeugverwaltung (und ins Magazin), dann die Blöcke neu – „Dichtnut hobeln“ ist dann
+        anzuhaken (von sich aus nicht: Strategiewahl nur von Hand)."""
         if self.bibliothek is None:
             return
         werkzeug = wz.Werkzeug.aus_dict(vorschlag.als_dict())
@@ -13345,6 +13687,7 @@ class BearbeitungPanel:
                     werte["aufmass_wand"], gang_rest, werte["gleichlauf"],
                     name=tr("ba.schlichten_danach.boden_name", werkzeug=werkzeug),
                     flaechen=werte["boden_flaechen"],
+                    boden_rest=tuple(werte.get("boden_rest") or ()),
                 )  # fmt: skip
             )
             self.doc.recompute()  # die Wände rechnen mit dem fertigen Boden
@@ -13359,7 +13702,7 @@ class BearbeitungPanel:
                 ko.lege_an(
                     self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass, name,
                     flaechen=bahn.kontur_waende, korrektur=bool(werte.get("korrektur")),
-                    rest=gang_rest,
+                    rest=gang_rest, waende_rest=tuple(werte.get("waende_rest") or ()),
                 )  # fmt: skip
             )
         if getattr(bahn, "ring", None) is not None:
