@@ -782,29 +782,37 @@ def setze_achse(obj, achse, quer_auf_null=None):
         if getattr(obj, name) != wert:
             setattr(obj, name, wert)
     # In geschwenkter Lage („C, A auf 90°“): die Rundachsen, die fest stehen – nur an Operationen,
-    # die so rechnen; an allen anderen gibt es die Eigenschaft nicht (sie bleiben, wie sie waren).
+    # die so rechnen; an allen anderen gibt es die Eigenschaften nicht (sie bleiben, wie sie waren).
+    # Gerechnet wird mit der Stellung wie das Gelenk („A90“, ausgeblendet); im Eigenschaftseditor
+    # steht sie, wie die Steuerung sie zeigt („A −90°“) – wie in der Liste des Assistenten, im
+    # Programm und im Einrichtblatt (Zweifler 2026-11-14: „A90“ hier, „A −90°“ dort).
     text = va.schwenk_text(achse)
-    if text and SCHWENKSTELLUNG not in obj.PropertiesList:
-        obj.addProperty(
-            "App::PropertyString", SCHWENKSTELLUNG, GRUPPE, tr("vo.eigenschaft.schwenk")
-        )
-        obj.setEditorMode(SCHWENKSTELLUNG, 1)  # nur lesen: sie kommt mit der Stangenachse
-    if SCHWENKSTELLUNG in obj.PropertiesList and getattr(obj, SCHWENKSTELLUNG) != text:
-        setattr(obj, SCHWENKSTELLUNG, text)
+    anzeige = (getattr(achse, "anzeige", "") or text) if text else ""
+    for name, wert, modus, hilfe in (
+        (SCHWENK_GELENK, text, 2, "vo.eigenschaft.schwenk_gelenk"),
+        (SCHWENKSTELLUNG, anzeige, 1, "vo.eigenschaft.schwenk"),  # nur lesen: kommt mit der Achse
+    ):
+        if text and name not in obj.PropertiesList:
+            obj.addProperty("App::PropertyString", name, GRUPPE, tr(hilfe))
+            obj.setEditorMode(name, modus)
+        if name in obj.PropertiesList and getattr(obj, name) != wert:
+            setattr(obj, name, wert)
 
 
-SCHWENKSTELLUNG = "Schwenkstellung"  # die festen Rundachsen in geschwenkter Lage („A90“)
+SCHWENK_GELENK = (
+    "SchwenkGelenk"  # die festen Rundachsen in geschwenkter Lage, wie das Gelenk („A90“)
+)
+SCHWENKSTELLUNG = "Schwenkstellung"  # … wie die Steuerung sie zeigt („A −90°“)
 
 
 def schwenk(op):
     """{Buchstabe: Stellung wie das Gelenk} der Rundachsen, die in geschwenkter Lage fest stehen,
     solange die Operation dreht („C, A auf 90°“, vierachs_achsen.geschwenkt) – leer sonst."""
-    return dict(va.schwenk_aus_text(getattr(op, SCHWENKSTELLUNG, "")))
+    return dict(va.schwenk_aus_text(getattr(op, SCHWENK_GELENK, "")))
 
 
-KOMMENTAR_GESCHWENKT = (
-    "(CAM-Addon:"  # so beginnt pfad_kommentar – das Programm des Addons lässt ihn aus
-)
+# So beginnt pfad_kommentar – das Programm des Addons lässt ihn aus.
+KOMMENTAR_GESCHWENKT = "(CAM-Addon:"
 
 
 def kommentar_vorn(op):
@@ -825,8 +833,8 @@ def pfad_kommentar(op):
 
 
 def schwenk_anzeige(op):
-    """Die festen Rundachsen der Operation als Text, wie sie an ihr stehen („A90“, wie das
-    Gelenk gezählt) – für Hinweise; leer in Grundstellung."""
+    """Die festen Rundachsen der Operation, wie die Steuerung sie zeigt („A −90°“) – für Hinweise
+    und Kommentare; leer in Grundstellung."""
     return str(getattr(op, SCHWENKSTELLUNG, "") or "")
 
 

@@ -123,7 +123,13 @@ op = vplan.lege_an(job, tc, achse, 4.0, 2.0, aufmass=0.0, flaechen=list(nut.name
 doc.recompute()
 befehle = list(op.Path.Commands)
 achsen_der_bahn = {k for b in befehle for k in b.Parameters}
-pruefe(op.Schwenkstellung == "A90" and op.Werkzeugrichtung == V(0, 1, 0), "Operation")
+# Gerechnet wie das Gelenk (A90), gezeigt wie die Steuerung (A −90°) – wie in der Liste.
+pruefe(
+    op.SchwenkGelenk == "A90"
+    and op.Schwenkstellung == "A −90°"
+    and op.Werkzeugrichtung == V(0, 1, 0),
+    f"Operation: {op.SchwenkGelenk!r} {op.Schwenkstellung!r} {op.Werkzeugrichtung}",
+)
 pruefe("C" in achsen_der_bahn and "A" not in achsen_der_bahn, f"Bahn: {achsen_der_bahn}")
 # Vorn in der Bahn: Nur über „Programm schreiben“ des Addons ist sie ein Maschinenprogramm.
 pruefe(
@@ -281,7 +287,7 @@ pruefe(f"Dreibackenfutter Ø {futter_d:g}" in futter_text, f"Einrichtblatt Spann
 pruefe("nach dem Schwenken auf A −90" in null_text, f"Einrichtblatt Nullpunkt: {null_text}")
 ohne = pp.abschnitte(job)  # ohne Maschine: nicht ins Programm
 pruefe(
-    ohne and not ohne[0].befehle and "geschwenkter Lage" in ohne[0].hinweis,
+    ohne and not ohne[0].befehle and "geschwenkter Lage (A −90°)" in ohne[0].hinweis,
     f"ohne Maschine: {[(a.hinweis, len(a.befehle)) for a in ohne]}",
 )
 

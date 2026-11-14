@@ -372,6 +372,7 @@ def achse_der_operation(operation):
         quer=bool(operation.QuerAufNull),
         schwenk=schwenk,
         von=FreeCAD.Vector(operation.Werkzeugrichtung) if schwenk else None,
+        anzeige=vo.schwenk_anzeige(operation) if schwenk else "",
     )
 
 
