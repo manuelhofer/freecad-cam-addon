@@ -80,6 +80,7 @@ nur_zeilen = s3.planen(teil, kugel, werte(grenzwinkel=0.0))
 pruefe(70 <= nur_zeilen.zeilen <= 100, f"Zeilen {nur_zeilen.zeilen}")
 pruefe(not nur_zeilen.spirale, "ohne Steil/Flach eine Spirale – sie hinterließe an Flanken mehr")
 pruefe(bahn.z_min >= 10.0 - 1e-6, f"unter der Platte: {bahn.z_min}")
+pruefe(bahn.unterkante is None, "Kuppel auf der Platte: Rest an der Unterkante gemeldet")
 nur_x = s3.planen(teil, kugel, werte(richtung="x"))
 nur_y = s3.planen(teil, kugel, werte(richtung="y"))
 spirale = s3.planen(teil, kugel, werte(richtung="spirale"))
@@ -438,6 +439,24 @@ for richtung, radius in (("auto", 3.0), ("auto", 6.0), ("x", 3.0), ("aequidistan
     pruefe(b_boden.z_min >= -1e-6, f"Teilboden, {richtung}: z_min {b_boden.z_min:.3f}")
     pruefe(tiefste_z <= 0.6, f"Teilboden, {richtung}: nur bis {tiefste_z:.3f} gefräst")
     pruefe(im_teil > -0.02, f"Teilboden, {richtung}: Kugel {im_teil:.4f} im Teil")
+    # Der Rest an der Unterkante, den der Assistent zeigt: Die Kugel r berührt die Kuppel (n_z am
+    # Fuß 0,5) zuletzt bei z = r/2 ÷ (1 + r/40) – Ø 6: 1,40 mm, Ø 12: 2,61; im Raster 0,25 bis
+    # 0,2 mm mehr. Die Linien um ihn liegen am Fuß (r 34,64; bis ein Rasterschritt daneben) zwischen
+    # Boden und dieser Höhe.
+    uk = b_boden.unterkante
+    gerechnet = radius / 2 / (1 + radius / 40)
+    pruefe(
+        uk is not None and gerechnet - 0.05 < uk.hoehe < gerechnet + 0.25 and uk.dicke > 0.1,
+        f"Unterkante, {richtung}, R {radius:g}: {uk and (uk.hoehe, uk.dicke)} statt {gerechnet:.2f}",
+    )
+    if uk is not None:
+        ecken = [e for linie in uk.linien for e in linie]
+        r_l = [math.hypot(e[0], e[1]) for e in ecken]
+        pruefe(
+            uk.linien and min(r_l) > 30.0 and max(r_l) < 34.64 + 0.55
+            and all(-1e-9 <= e[2] <= uk.hoehe + 1e-9 for e in ecken),
+            f"Unterkante, {richtung}: Linien r {min(r_l, default=0):.2f} … {max(r_l, default=0):.2f}",
+        )  # fmt: skip
 # Ohne die Grenze (boden weit unten) ginge sie darunter – die Prüfung prüft etwas.
 b_ohne = s3.planen(
     kappe, kappe_f,

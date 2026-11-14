@@ -100,6 +100,10 @@ UEBERLAPP = 3.0  # Grad – so weit überlappen Zeilen und Höhenlinien an der G
 RASTER = 0.25  # mm – das Raster der Hüllfläche für Neigung, Höhenlinien und die Spirale
 REST = 0.01  # mm – so viel mehr muss der Fräser davor stehen lassen, damit das Restschlichten fährt
 _TIEF = -1e6  # mm – wo die Spitze nichts trifft: für den Schnitt beliebig tief
+_FREI = 1e6  # mm – wo die Spitze nicht fährt (unter dem Teilboden): für den Schnitt so hoch, dass
+# sie nichts nimmt
+UNTERKANTE_LINIE = 0.05  # mm – so weit dürfen die Linien um den Rest an der Unterkante abweichen
+UNTERKANTE_SCHRITTE = 12.0  # so viele Rasterschritte je Radius misst _unterkante höchstens
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
 FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
@@ -162,6 +166,18 @@ class Schlichtbahn:
     flaeche: bool = False  # entlang der Fläche (dann `zeilen` die Kurven)
     aequidistant: bool = False  # Ringe im gleichen Abstand (dann `zeilen` die Ringe)
     winkel: float = None  # Zeilen im Winkel: Grad zu X (dann `laengs_x` im gedrehten Teil)
+    unterkante: object = None  # Unterkante: der Rest, den der Teilboden stehen lässt; None: keiner
+
+
+@dataclass
+class Unterkante:
+    """Der Rest an der Unterkante (B-033): Reicht eine gewählte Fläche bis an den Teilboden, kommt
+    die Kugel nicht ganz hinunter – tiefer als der Boden fährt die Spitze nie. Was dort stehen
+    bleibt, gemessen im Raster gegen dieselbe Bahn ohne Boden."""
+
+    hoehe: float  # mm über dem Teilboden: bis dort hinauf bleibt Rest auf der Fläche
+    dicke: float  # mm, senkrecht gemessen: das meiste, das stehen bleibt
+    linien: tuple = ()  # ((x, y, z), …) je Linienzug um den Rest – fürs Bild im Teil
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -394,6 +410,11 @@ class _Raster:
     neigung: np.ndarray  # rad; nan, wo es keine gibt
     innen: np.ndarray = None  # der Fräser berührt die gewählten Flächen innen (_beruehrt)
     genau: object = None  # _Genau: die Hüllfläche an einzelnen Stellen genau (B-014)
+    # Für den Rest an der Unterkante (_unterkante): die Hüllfläche ohne den Teilboden (Spitze
+    # ohne Aufmaß), wo die gewählten Flächen ohne ihn die Höhe bestimmten, und wo er sie nimmt.
+    roh: np.ndarray = None
+    ideal: np.ndarray = None
+    unter: np.ndarray = None
 
     def index(self, x, y):
         sx = self.xs[1] - self.xs[0]
@@ -456,18 +477,22 @@ def _raster(netz_alle, netz_rest, geformt, box, w, gewaehlt_netz=None):
     roh = hf.je_zeile(netz_alle, geformt, ys, x0, sx, nx, True)
     alle, darunter = _ueber_dem_boden(roh, w)
     rest = hf.je_zeile(netz_rest, geformt, ys, x0, sx, nx, True)
-    gewaehlt = np.isfinite(alle) & (alle > rest + MASKE) & ~darunter
+    ideal = np.isfinite(roh) & (roh > rest + MASKE)
+    gewaehlt = ideal & ~darunter  # wo darunter nichts ist, ist alle = roh
     innen = None
     if gewaehlt_netz is not None:
         innen = _erweitert(_beruehrt(gewaehlt_netz, geformt, xs, ys), 1.01 * max(sx, sy), sx, sy)
         gewaehlt &= innen
+        ideal &= innen
     # Die Neigung aus der Hüllfläche, wie sie ohne den Teilboden wäre: Auf den Boden gehoben ist
     # sie dort eben – der Rand gälte als „flach“ und bekäme Zeilen statt Höhenlinien.
     endlich = np.where(np.isfinite(roh), roh, np.nan)
     gx, gy = np.gradient(endlich, sx, sy)
     neigung = np.arctan(np.hypot(gx, gy))
     genau = _Genau(netz_alle, netz_rest, geformt, max(w.aufmass, 0.0))
-    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung, innen, genau)
+    raster = _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung, innen, genau)
+    raster.roh, raster.ideal, raster.unter = roh, ideal, darunter
+    return raster
 
 
 def _verschoben(d, n):
@@ -513,15 +538,35 @@ def _erweitert(maske, weite, sx, sy):
     return ergebnis
 
 
+def _ohne_unter_boden(t, boden):
+    """(Hüllfläche, Maske): `t` (Spitze ohne Aufmaß), wo die Spitze unter den Teilboden käme, auf
+    _FREI – dort fährt sie nicht (_ueber_dem_boden), für den Schnitt nimmt sie dort nichts."""
+    if not math.isfinite(boden):
+        return t, np.zeros(t.shape, dtype=bool)
+    with np.errstate(invalid="ignore"):
+        unter = np.isfinite(t) & (t < boden - BODEN_GLEICH)
+    return np.where(unter, _FREI, t), unter
+
+
 def _rest(raster, netz_alle, w, abstand):
-    """(Maske, Rest) im Raster: wo der Fräser davor (`w.davor`) mehr als `w.rest` stehen ließ,
-    als dieser wegnimmt – die Maske um R + Zeilenabstand erweitert; der Rest in mm."""
+    """(Maske, Rest, Davor) im Raster: wo der Fräser davor (`w.davor`) mehr als `w.rest` stehen
+    ließ, als dieser wegnimmt – die Maske um R + Zeilenabstand erweitert; der Rest in mm; Davor:
+    (die Fläche, die der Fräser davor stehen ließ, wo der Teilboden ihm Lagen nahm) für
+    _unterkante."""
     xs, ys = raster.xs, raster.ys
     sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
     x0, nx = float(xs[0]), len(xs)
-    flaeche_davor = _schnitt(hf.je_zeile(netz_alle, w.davor, ys, x0, sx, nx, True), w.davor, sx, sy)
-    flaeche = _schnitt(hf.je_zeile(netz_alle, w.form, ys, x0, sx, nx, True), w.form, sx, sy)
-    gueltig = (flaeche_davor > _TIEF / 2) & (flaeche > _TIEF / 2)
+    # Beide fahren nie unter den Teilboden (B-033): Der davor ließ an der Unterkante Rest stehen –
+    # ohne den Boden gerechnet sah es so aus, als wäre er bis hinunter gekommen, und das
+    # Restschlichten fuhr dort nicht (an der Kuppel R 40 mit Kugel Ø 6 bis 1,4 mm hoch).
+    t_davor, unter_davor = _ohne_unter_boden(
+        hf.je_zeile(netz_alle, w.davor, ys, x0, sx, nx, True), w.boden
+    )
+    t_klein = _ohne_unter_boden(hf.je_zeile(netz_alle, w.form, ys, x0, sx, nx, True), w.boden)[0]
+    flaeche_davor = _schnitt(t_davor, w.davor, sx, sy)
+    flaeche = _schnitt(t_klein, w.form, sx, sy)
+    # Wohin auch dieser nicht kommt, ohne unter den Boden zu fahren, ist kein Rest für ihn.
+    gueltig = (flaeche_davor > _TIEF / 2) & (flaeche > _TIEF / 2) & (flaeche < _FREI / 2)
     # Nur über dem Teil: Neben seinem Rand liegt die Hülle des größeren Fräsers, der um die Kante
     # rollt, höher – in der Luft, kein Rest (an einer Kuppel ohne Platte 0,08 mm).
     gueltig &= hf.hoehen(netz_alle, xs, ys, innen=True) > hf.KEIN_TREFFER / 2
@@ -535,7 +580,84 @@ def _rest(raster, netz_alle, w, abstand):
     # darunter liegt, ist Rechnung, kein Rest – doppelt genommen (im groben Raster der Vorschau
     # sonst 0,02 mm „Rest“ an einer Kuppel ohne Kehle).
     schwelle = max(w.rest, max(sx, sy) ** 2 / (4.0 * max(float(w.form.radius), GLEICH)))
-    return _erweitert(rest > schwelle, w.form.radius + abstand, sx, sy), rest
+    davor = (flaeche_davor, unter_davor)
+    return _erweitert(rest > schwelle, w.form.radius + abstand, sx, sy), rest, davor
+
+
+def _unterkante(raster, netz_alle, w, davor=None):
+    """Unterkante – oder None: der Rest, den der Teilboden an der Unterkante stehen lässt (B-033).
+    Die Fläche, die der Fräser stehen lässt, wenn seine Spitze dort fährt, wo die Bahn fährt
+    (`raster.gewaehlt`), gegen die, die er ohne den Boden ließe (`raster.ideal`, die Spitze auf
+    `raster.roh`) – nur über dem Teil und nur in Reichweite der Lagen, die der Boden nahm (sonst
+    zählte hier jede Kehle). Beim Restschlichten `davor` (aus _rest): Was der Fräser davor
+    stehen ließ, nimmt dieser nicht noch einmal weg – es zählt das Kleinere von beiden. An der
+    Kuppel R 40 mit Kugel Ø 6: bis 1,4 mm hoch, bis 0,44 mm dick (nachgerechnet im Schnitt: die
+    Kugel berührt die Fläche zuletzt bei z = r/2 ÷ (1 + r/40) = 1,40)."""
+    if raster.roh is None or not math.isfinite(getattr(w, "boden", -math.inf)):
+        return None
+    weg = raster.ideal & raster.unter  # Lagen, die nur der Boden nahm
+    weg_davor = davor[1] if davor is not None else None
+    if not weg.any() and (weg_davor is None or not weg_davor.any()):
+        return None
+    sx = float(raster.xs[1] - raster.xs[0])
+    sy = float(raster.ys[1] - raster.ys[0])
+    aufmass = max(w.aufmass, 0.0)
+    geformt = w.form.mit_aufmass(aufmass)
+    R = float(w.form.radius)
+    # Im groben Raster misst es genug (je Radius höchstens UNTERKANTE_SCHRITTE Schritte): ein
+    # Fräser Ø 12 im Raster 0,25 hätte sonst 49 × 49 Verschiebungen je Schnitt.
+    k = max(1, int(R / (UNTERKANTE_SCHRITTE * max(sx, sy))))
+    xs, ys = raster.xs[::k], raster.ys[::k]
+    sx, sy = sx * k, sy * k
+
+    def duenn(feld):
+        return feld[::k, ::k]
+
+    ist = _schnitt(np.where(duenn(raster.gewaehlt), duenn(raster.z), _FREI), geformt, sx, sy)
+    ideal = np.where(duenn(raster.ideal), duenn(raster.roh) + aufmass, _FREI)
+    ideal = _schnitt(ideal, geformt, sx, sy)
+    reichweite = R
+    if davor is not None:
+        ist = np.minimum(ist, duenn(davor[0]) + aufmass)
+        reichweite = max(R, float(w.davor.radius))
+        weg = weg | davor[1]
+    nah = _erweitert(duenn(weg), 1.01 * reichweite + max(sx, sy), sx, sy)
+    # Nur über dem Teil (wie _rest): Neben ihm rollt die Kugel ohne Boden über die Kante – was dort
+    # über dem Boden bliebe, ist Rohteil, keine Fläche (an der Kuppel sonst ein Ring 5 mm draußen).
+    ueber_dem_teil = hf.hoehen(netz_alle, xs, ys, innen=True) > hf.KEIN_TREFFER / 2
+    ueber_dem_teil &= (ideal < _FREI / 2) & (ideal >= w.boden + aufmass - BODEN_GLEICH)
+    rest = np.where(nah & ueber_dem_teil, np.minimum(ist, _FREI / 2) - ideal, 0.0)
+    # Doppelt so viel wie der Grat im Raster: Beim Restschlichten liegen die Zeilen der kleinen
+    # Kugel nicht überall wie ohne Boden – knapp über der Schwelle zerfiel der Ring in 70 Stücke.
+    schwelle = 2.0 * max(w.rest, max(sx, sy) ** 2 / (4.0 * max(R, GLEICH)))
+    band = rest > schwelle
+    if not band.any():
+        return None
+    # Fürs Bild ein zusammenhängender Ring: Lücken bis zum Radius geschlossen (mindestens zwei
+    # Rasterschritte) – nach dem Restschlichten mit Kugel Ø 2 an der Kuppel sonst 30 Flecken.
+    weite = max(2.01 * max(sx, sy), 1.01 * R)
+    bild = ~_erweitert(~_erweitert(band, weite, sx, sy), weite, sx, sy) & ueber_dem_teil
+    hoehe = float(np.max(ideal[band])) - aufmass - w.boden
+    from . import raeumen_bahn as rb
+
+    linien = []
+    # Die Linie auf der Schwelle des Rests, zwischen den Rasterpunkten eingerechnet – aus der
+    # Maske allein wäre sie eine Treppe im Raster der Vorschau (0,5 mm).
+    feld = np.where(bild, np.maximum(rest, 1.01 * schwelle), np.minimum(rest, 0.99 * schwelle))
+    for linie, geschlossen in rb._hoehenlinien(feld, xs, ys, schwelle):
+        linie = rb._vereinfacht(linie, UNTERKANTE_LINIE, geschlossen)
+        if len(linie) < 2 or np.sum(np.hypot(*np.diff(linie[:, :2], axis=0).T)) < 2 * R:
+            continue  # ein Fleck, kürzer als die Kugel breit ist: im Bild nur Unruhe
+        i = np.clip(np.rint((linie[:, 0] - xs[0]) / sx), 0, len(xs) - 1).astype(int)
+        j = np.clip(np.rint((linie[:, 1] - ys[0]) / sy), 0, len(ys) - 1).astype(int)
+        # Auf der Fläche: oben am Rest seine Höhe, unten am Rand des Teils der Boden.
+        flaeche = np.where(ideal[i, j] < _FREI / 2, ideal[i, j] - aufmass, w.boden)
+        z = np.clip(flaeche, w.boden, w.boden + max(hoehe, 0.0))
+        punkte = [(float(x), float(y), float(h)) for (x, y), h in zip(linie, z, strict=True)]
+        if geschlossen:
+            punkte.append(punkte[0])
+        linien.append(tuple(punkte))
+    return Unterkante(hoehe=max(hoehe, 0.0), dicke=float(rest.max()), linien=tuple(linien))
 
 
 def _stuecke(punkte, geschlossen, behalten):
@@ -1498,8 +1620,9 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         richtungen = tuple(r for r in richtungen if r != FLAECHE) or (True, False)
     if steil_flach or {SPIRALE, FLAECHE, AEQUI} & set(richtungen) or w.davor is not None:
         raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
+    davor = None
     if w.davor is not None:
-        maske, _rest_mm = _rest(raster, netz_alle, w, abstand)
+        maske, _rest_mm, davor = _rest(raster, netz_alle, w, abstand)
         raster.gewaehlt = raster.gewaehlt & maske
         if not raster.gewaehlt.any():
             raise ValueError(tr("s3.fehler.kein_rest"))
@@ -1534,7 +1657,11 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         # der Kette der Ebenen am Geist ging „Anlegen“ sonst nicht (die 16 Dreiecke von hinten
         # verdeckt).
         raise mst.SchonWeg(tr("s3.fehler.nichts"))
-    return _nie_unter_dem_boden(beste, w)
+    # Was an der Unterkante stehen bleibt, sagt der Assistent – gezeigt im Teil (B-033).
+    if raster is None and math.isfinite(w.boden):
+        raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
+    unterkante = _unterkante(raster, netz_alle, w, davor) if raster is not None else None
+    return replace(_nie_unter_dem_boden(beste, w), unterkante=unterkante)
 
 
 def _im_winkel(form_teil, namen, w, toleranz):
@@ -1563,4 +1690,8 @@ def _im_winkel(form_teil, namen, w, toleranz):
         if bogen is not None:  # gedreht bleibt der Umlaufsinn
             bogen = (*zurueck(bogen[0], bogen[1]), bogen[2])
         punkte.append(replace(p, x=x, y=y, bogen=bogen))
-    return replace(bahn, punkte=punkte, winkel=winkel)
+    unterkante = bahn.unterkante
+    if unterkante is not None:  # die Linien um den Rest ebenso
+        linien = tuple(tuple((*zurueck(x, y), z) for x, y, z in li) for li in unterkante.linien)
+        unterkante = replace(unterkante, linien=linien)
+    return replace(bahn, punkte=punkte, winkel=winkel, unterkante=unterkante)

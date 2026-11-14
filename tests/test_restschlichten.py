@@ -5,8 +5,10 @@
 # Ecke r · (1 − √0,75) = 0,134 r stehen: nach Ø 6 0,40, nach Ø 2 0,13. Die Bahn bleibt am Fuß
 # (r 16 … 21,5), im Quader nach beiden Bahnen dort deutlich weniger als nach Ø 6 allein, nirgends
 # ins Teil, oben auf der Kuppel nichts gefahren; schneller als die Kuppel ganz mit Ø 2. (b) Eine
-# Kuppel ohne Platte (keine Kehle): Ø 6 erreicht alles – ein Satz. (c) Die Operation im Job:
-# „Restschlichten T3“ mit Ø und Eckenradius davor, Art „schlichten3d“.
+# Kuppel auf einem Zylinder (keine Kehle): Ø 6 erreicht alles – ein Satz. Eine Kuppel, die am
+# Teilboden endet: Dort lässt Ø 6 Rest (nie unter den Boden, B-033), Ø 2 fährt nur am Fuß und lässt
+# weniger. (c) Die Operation im Job: „Restschlichten T3“ mit Ø und Eckenradius davor, Art
+# „schlichten3d“.
 import os
 import pathlib
 import sys
@@ -100,15 +102,72 @@ oben = rr < 12.0
 pruefe(np.all(np.abs(q.h - nach_gross)[oben] < 1e-9), "oben auf der Kuppel gefahren")
 
 # --- (b) Ohne Kehle kein Rest ----------------------------------------------------------------------
-allein = Part.makeSphere(25, V(30, 30, -15)).common(Part.makeBox(60, 60, 10, V(0, 0, 0)))
+# Eine Kuppel auf einem Zylinder gleichen Fußes (der Teilboden 5 mm darunter, eine Außenkante statt
+# einer Kehle): Ø 6 erreicht alles.
+auf_zylinder = (
+    Part.makeSphere(25, V(30, 30, -15))
+    .common(Part.makeBox(60, 60, 10, V(0, 0, 0)))
+    .fuse(Part.makeCylinder(20, 5, V(30, 30, -5)))
+    .removeSplitter()
+)
 for raster in (s3.RASTER, s3.VORSCHAU_RASTER):
     try:
-        s3.planen(allein, kugelflaechen(allein), werte(klein_form, davor=gross_form, oben=10.0,
-                                                       sicher=15.0, raster=raster))  # fmt: skip
+        s3.planen(auf_zylinder, kugelflaechen(auf_zylinder), werte(
+            klein_form, davor=gross_form, oben=10.0, sicher=15.0, raster=raster))  # fmt: skip
     except ValueError as grund:
         pruefe("Kein Rest" in str(grund), f"ohne Kehle: {grund}")
     else:
         pruefe(False, f"ohne Kehle (Raster {raster}): eine Bahn")
+
+# --- (b2) Die Kuppel endet am Teilboden: der Rest an der Unterkante (B-033) ------------------------
+# Fuß r 20, dort 53° steil (n_z 0,6). Unter den Boden fährt keine Kugel; die Kugel r berührt die
+# Fläche zuletzt bei z = r (1 − 0,6) ÷ (1 + r/25): Ø 6 bis 1,07 mm, Ø 2 bis 0,38. Bis 0.372.1 rollte
+# Ø 6 über die Kante (kein Rest), danach maß das Restschlichten den Rest ohne den Boden und fuhr
+# dort nicht. Jetzt: Es fährt nur am Fuß, nie unter den Boden, und im Quader steht am Fuß danach
+# weniger als nach Ø 6 – neben dem Teil nichts unter dem Boden.
+allein = Part.makeSphere(25, V(30, 30, -15)).common(Part.makeBox(60, 60, 10, V(0, 0, 0)))
+flaechen_allein = kugelflaechen(allein)
+gross_a = s3.planen(allein, flaechen_allein, werte(gross_form, oben=10.0, sicher=15.0))
+rest_a = s3.planen(allein, flaechen_allein, werte(klein_form, davor=gross_form, oben=10.0,
+                                                  sicher=15.0))  # fmt: skip
+uk_g, uk_k = gross_a.unterkante, rest_a.unterkante
+print(ascii(f"Unterkante: nach Ø 6 {uk_g.hoehe if uk_g else None}, nach dem Rest mit Ø 2 "
+            f"{uk_k.hoehe if uk_k else None} (gerechnet 1,07 und 0,38)"))  # fmt: skip
+pruefe(uk_g is not None and 0.9 < uk_g.hoehe < 1.3, f"Unterkante nach Ø 6: {uk_g}")
+pruefe(uk_k is not None and uk_k.hoehe < 0.6, f"Unterkante nach dem Rest: {uk_k}")
+pa = np.array([(p.x, p.y, p.z) for p in rest_a.punkte if not p.eilgang])
+ra = np.hypot(pa[:, 0] - 30, pa[:, 1] - 30)
+pruefe(pa[:, 2].min() >= -1e-6, f"Rest unter dem Boden: {pa[:, 2].min():.3f}")
+pruefe(ra.min() > 16.5 and pa[:, 2].max() < 3.5, f"Rest nicht am Fuß: r {ra.min():.2f}, "
+       f"z bis {pa[:, 2].max():.2f}")  # fmt: skip
+netz_a = vf.vernetze(allein, 0.005).netz
+qa = rm.Quader(0, 60, 0, 60, -3.0, 10.5, schritt=0.1)
+soll_a = hf.hoehen(netz_a, qa.x, qa.y)
+draussen = ~np.isfinite(soll_a)
+qa.h[:] = np.where(draussen, 1.0, np.minimum(soll_a + 1.0, 10.5))  # 1 mm Aufmaß, auch daneben
+for bahn_, form_ in ((gross_a, gross_form), (rest_a, klein_form)):
+    for von, nach in zip(bahn_.punkte, bahn_.punkte[1:], strict=False):
+        stuecke = ps._stuecke(von, nach)
+        qa.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], form_)
+    if bahn_ is gross_a:
+        nach_gross_a = qa.h.copy()
+xa, ya = np.meshgrid(qa.x, qa.y, indexing="ij")
+fuss = (np.hypot(xa - 30, ya - 30) > 19.4) & ~draussen  # die letzten 0,6 mm vor der Unterkante
+vorher_a = float(np.max((nach_gross_a - soll_a)[fuss]))
+nachher_a = float(np.max((qa.h - soll_a)[fuss]))
+mittel_v = float(np.mean((nach_gross_a - soll_a)[fuss]))
+mittel_n = float(np.mean((qa.h - soll_a)[fuss]))
+print(ascii(f"Am Fuß: nach Ø 6 bis {vorher_a:.3f} (im Mittel {mittel_v:.3f}), nach dem Rest bis "
+            f"{nachher_a:.3f} ({mittel_n:.3f}) mm; daneben tiefstens {qa.h[draussen].min():.3f}, "
+            f"ins Teil {np.min((qa.h - soll_a)[~draussen]):.3f}"))  # fmt: skip
+# Die letzte Kurve der kleinen Kugel liegt bis einen Zeilenabstand über der tiefsten Lage: an
+# einzelnen Stellen bis 0,32 statt 0,14 mm (gemessen 2026-11-15).
+pruefe(
+    nachher_a < 0.7 * vorher_a and mittel_n < 0.5 * mittel_v,
+    f"am Fuß nach dem Rest {nachher_a:.3f} ({mittel_n:.3f}), davor {vorher_a:.3f} ({mittel_v:.3f})",
+)
+pruefe(qa.h[draussen].min() >= -1e-6, f"neben dem Teil unter dem Boden: {qa.h[draussen].min()}")
+pruefe(np.min((qa.h - soll_a)[~draussen]) > -0.02, "ins Teil")
 
 # --- (c) Die Operation im Job ---------------------------------------------------------------------
 pruefe(s3op.eckenradius(ff.kugel(3.0)) == 3.0, "Eckenradius Kugel")

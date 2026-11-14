@@ -1326,6 +1326,7 @@ class BetaPanel(BearbeitungPanel):
             zeichen = max(1, round(BALKEN_ZEICHEN * dauer / laengste)) if laengste > 0 else 0
             zeilen[nummer] = zeilen[nummer].replace(f"{{balken{nummer}}}", "▬" * zeichen)
         rest = self._uebersicht_rest()
+        unterkante = self._uebersicht_unterkante()
         mit_ebene = bool(self._beta_geschwenkt and self.ebene_text.text())
         if zeilen:
             if self.vorschau_laeuft():
@@ -1348,6 +1349,8 @@ class BetaPanel(BearbeitungPanel):
             teile = [html.escape(tr("beta.uebersicht.nichts"))]
         if rest:
             teile.append(f"<span style='color: {REST_FARBE};'>■</span> {html.escape(rest)}")
+        if unterkante:
+            teile.append(f"<span style='color: {UNTERKANTE_FARBE};'>■</span> {unterkante}")
         if self._beta_nicht_dabei:
             # Der Satz der Strategie mit seinen Verweisen („T1 auf 51 mm ausspannen“, „So
             # einrichten“): Ein Klick hier behebt es, die Strategie kommt wieder dazu.
@@ -1473,16 +1476,26 @@ class BetaPanel(BearbeitungPanel):
                 self._vorschau_knoepfe_setzen()
             self._beta_wege_stand = None
             return
-        stand = tuple((id(b), f) for b, f in zeige)
+        # Der Rest an der Unterkante als dicke rote Linie um ihn: der, der am Ende bleibt – oder,
+        # ist nur eine Zeile gewählt, der ihrer Bahn.
+        if self._beta_nur is None:
+            unterkante = self._unterkante_bahn()[1]
+            if not any(getattr(b, "unterkante", None) is unterkante for b, _f in zeige):
+                unterkante = None
+        else:
+            unterkante = next((getattr(b, "unterkante", None) for b, _f in zeige), None)
+        stand = tuple((id(b), f) for b, f in zeige) + (id(unterkante),)
         if unsere and stand == self._beta_wege_stand:
             return
         if self._bahnvorschau is None:
             self._bahnvorschau = gb.Bahnvorschau(self.doc)
+        linien = _unterkante_linien(unterkante)
+        rot = gb.farbe_aus_hex(UNTERKANTE_FARBE)
         self._bahnvorschau.zeigen(
             ("uebersicht", self._beta_nur),
-            [b for b, _f in zeige],
+            [b for b, _f in zeige] + linien,
             self._job_zum_teil(),
-            [f for _b, f in zeige],
+            [f for _b, f in zeige] + [rot] * len(linien),
         )
         self._beta_wege_stand = stand
         self._vorschau_knoepfe_setzen()
@@ -1601,6 +1614,33 @@ class BetaPanel(BearbeitungPanel):
         zugang = getattr(self, "_zugang", None)
         offen = set(getattr(zugang, "unerreichbar", None) or ()) - set(self.gewaehlte)
         return sorted((n for n in offen if n.startswith("Face")), key=lambda n: int(n[4:]))
+
+    def _unterkante_bahn(self):
+        """(Block, schlichten3d_bahn.Unterkante) – oder (None, None): Was am Ende an der Unterkante
+        stehen bleibt, sagt die letzte angehakte Bearbeitung, die dort fräst (das Restschlichten
+        nach dem 3D-Schlichten) – nur in der Aufspannung, die „Anlegen“ anlegt."""
+        von = self._beta_ab or 0
+        letzte = None
+        for block in (self.schlichten3d, self.restschlichten):
+            an = block.aktiv() and block.moeglich and abschnitt(block) >= von
+            if an and block.vorschau is not None:
+                letzte = block
+        if letzte is None:
+            return None, None
+        return letzte, getattr(letzte.vorschau, "unterkante", None)
+
+    def _uebersicht_unterkante(self):
+        """Der Satz zum Rest an der Unterkante (rot im Teil) mit dem Verweis, der ihn kleiner macht
+        (Block.unterkante_verweis: „Restschlichten mit T… anhaken“) – „“ ohne Rest."""
+        _block, unterkante = self._unterkante_bahn()
+        if unterkante is None:
+            return ""
+        hoehe = einheiten.text(unterkante.hoehe, einheiten.LAENGE, 1)
+        satz = html.escape(tr("beta.uebersicht.unterkante", hoehe=hoehe), quote=False)
+        verweis = self.schlichten3d.unterkante_verweis()
+        if verweis:
+            satz += " " + _verweise_fuer(self.schlichten3d.s.kennung, verweis)
+        return satz
 
     def _uebersicht_rest(self):
         """Ein Satz zu diesen Flächen – sie stehen violett im Teil; „“ ohne."""
@@ -3065,12 +3105,34 @@ ZEIGE = "zeige|"  # Verweis einer Zeile der Übersicht: nur ihre Wege im Teil
 # … zu zeigen“): Was der Satz mit „Face1, Face2, Face4“ sagte, steht als Farbe im Teil.
 UNFERTIG_FARBE = "#f08c00"  # hat am Ende keine genaue Bahn
 REST_FARBE = "#8e44ad"  # geht in dieser Aufspannung von oben nicht
+# Der Rest an der Unterkante (3D-Schlichten, B-033): als dicke Linie um ihn im Teil – rot, weil das
+# Orange der „nicht fertigen“ Flächen dem der zweiten Bahn (3D-Schlichten) gleicht.
+UNTERKANTE_FARBE = "#e01b24"
+UNTERKANTE_BREITE = 4  # Pixel – die Wege sind 2 breit
 TASCHE_FARBE = "#2f9be0"  # gehört zur Tasche der Auswahl, ist aber nicht gewählt
 EBENE_FARBE = "#12a594"  # kommt in einer eigenen Ebene dran (geschwenkt oder von oben)
 BLASS = "#909090"
 WARN_ROT = "#c03030"
 BALKEN_FARBE = "#3584e4"  # der Zeitbalken einer angehakten Strategie
 BALKEN_ZEICHEN = 8  # so viele „▬“ hat in der Übersicht die längste Bearbeitung
+
+
+class _Linienzug:
+    """Eine Linie für gui_bahnvorschau, die keine Bahn ist (der Rest an der Unterkante): alle
+    Punkte im Vorschub, dicker gezeichnet (`linienbreite`)."""
+
+    def __init__(self, punkte):
+        from . import bahn as bn
+
+        self.punkte = [bn.Punkt(False, x, y, z) for x, y, z in punkte]
+        self.linienbreite = UNTERKANTE_BREITE
+
+
+def _unterkante_linien(unterkante):
+    """[_Linienzug] um den Rest an der Unterkante (schlichten3d_bahn.Unterkante); [] ohne."""
+    if unterkante is None:
+        return []
+    return [_Linienzug(linie) for linie in unterkante.linien if len(linie) >= 2]
 
 
 def _verweise_fuer(kennung, text):

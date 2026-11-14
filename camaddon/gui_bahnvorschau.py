@@ -31,6 +31,11 @@ def farbe_hex(nummer):
     return "#" + "".join(f"{int(round(255 * wert)):02x}" for wert in farbe(nummer))
 
 
+def farbe_aus_hex(text):
+    """„#rrggbb“ als (r, g, b) von 0 bis 1 – eine Farbe des Fensters für eine Linie im Teil."""
+    return tuple(int(text[i : i + 2], 16) / 255.0 for i in (1, 3, 5))
+
+
 EILGANG = (0.60, 0.60, 0.60)
 BOGEN_STUECKE = 12  # so viele Geraden je Bogen – grob genügt
 
@@ -101,6 +106,11 @@ class Bahnvorschau:
             if len(punkte) < 2:
                 continue
             teil = coin.SoSeparator()
+            breite = getattr(bahn, "linienbreite", None)
+            if breite:  # eine Linie, die keine Bahn ist (der Rest an der Unterkante): dicker
+                eigener = coin.SoDrawStyle()
+                eigener.lineWidth = breite
+                teil.addChild(eigener)
             koordinaten = coin.SoCoordinate3()
             koordinaten.point.setValues(0, len(punkte), [p[:3] for p in punkte])
             teil.addChild(koordinaten)

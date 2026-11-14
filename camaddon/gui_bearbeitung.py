@@ -5668,8 +5668,11 @@ class _Block:
             )
         self._ohne_vorbohren_rechnen(job, werkzeug, werte, vorschub, senkrecht)
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
-        self.ergebnis_basis = self._mit_ecken(
-            self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
+        self.ergebnis_basis = self._mit_unterkante(
+            self._mit_ecken(
+                self._mit_ausspannen(self.s.ergebnis_text(self.vorschau, zeit), self.vorschau),
+                self.vorschau,
+            ),
             self.vorschau,
         )
         self.ergebnis.setText(self.ergebnis_basis)
@@ -5989,8 +5992,9 @@ class _Block:
             return
         zeit, bahn = was[1], was[2]
         bahn.empfehlung, bahn.ecken_empfehlung = haupt, ecke
-        self.ergebnis_basis = self._mit_ecken(
-            self._mit_ausspannen(self.s.ergebnis_text(bahn, zeit), bahn), bahn
+        self.ergebnis_basis = self._mit_unterkante(
+            self._mit_ecken(self._mit_ausspannen(self.s.ergebnis_text(bahn, zeit), bahn), bahn),
+            bahn,
         )
         self.ergebnis.setText(self.ergebnis_basis)
 
@@ -6101,6 +6105,93 @@ class _Block:
         knopf = html.escape(tr("ba.s3.unter.ecken_rest", werkzeug=nummer or wz.nummer_text(kugel)))
         return f'{text} <a href="restschlichten:{kugel.kennung}">{knopf}</a>'
 
+    def _mit_unterkante(self, text, bahn):
+        """Hinter der Ergebniszeile des 3D-Schlichtens und Restschlichtens: Bleibt an der Unterkante
+        Rest stehen (schlichten3d_bahn.Unterkante – unter den Teilboden fährt die Spitze nie,
+        B-033), wie hoch; beim 3D-Schlichten der nächste Schritt als Verweis (Manuel: der nächste
+        Schritt ist ein Knopf) – „Restschlichten mit T… anhaken“ mit einer kleineren Kugel
+        (_unterkante_kugel), ohne eine „Kugel Ø … anlegen und Restschlichten anhaken“."""
+        unterkante = getattr(bahn, "unterkante", None)
+        if unterkante is None or self.s.kennung not in ("schlichten3d", "restschlichten"):
+            return text
+        hoehe = einheiten.text(unterkante.hoehe, einheiten.LAENGE, 1)
+        satz = html.escape(tr("ba.s3.unterkante", hoehe=hoehe), quote=False)
+        text = f"{text}. {satz}" if text else satz
+        verweis = self.unterkante_verweis()
+        return f"{text} {verweis}" if verweis else text
+
+    def unterkante_verweis(self):
+        """Der Verweis, der den Rest an der Unterkante kleiner macht (_mit_unterkante) – "" ohne:
+        nicht beim 3D-Schlichten, Restschlichten schon mit einer kleineren Kugel angehakt, oder
+        keine kleinere Kugel denkbar."""
+        if self.s.kennung != "schlichten3d":
+            return ""
+        wahl = self._unterkante_kugel()
+        if wahl is None:
+            return ""
+        kugel, d = wahl
+        if kugel is not None:
+            magazin = self.panel.magazin()
+            nummer = mg.genannt(kugel, magazin) if magazin else None
+            knopf_ = tr("ba.s3.unter.ecken_rest", werkzeug=nummer or wz.nummer_text(kugel))
+            return f'<a href="restschlichten:{kugel.kennung}">{html.escape(knopf_)}</a>'
+        knopf_ = tr("ba.s3.unterkante.anlegen", d=einheiten.text(d, einheiten.LAENGE, 1))
+        return f'<a href="unterkante_kugel:{d:g}">{html.escape(knopf_)}</a>'
+
+    def _unterkante_kugel(self):
+        """(Kugel, Ø) fürs Restschlichten an der Unterkante – oder None. Wie hoch der Rest steht,
+        geht mit dem Radius (an der Kuppel R 40: Kugel Ø 6 bis 1,4 mm, Ø 2 bis 0,56, Ø 1 bis 0,14):
+        aus der Werkzeugverwaltung die größte Kugel bis zum halben Ø – ohne eine solche die
+        größte kleinere –, und das Restschlichten fährt nur das Band an der Unterkante. Ohne
+        kleinere Kugel (None, Ø): die übliche Größe bis zum halben Ø zum Anlegen. Ist das
+        Restschlichten schon mit einer kleineren Kugel angehakt: None."""
+        from . import empfehlung as em
+
+        werkzeug = self.fraeser()
+        bibliothek = self.panel.bibliothek
+        if werkzeug is None or bibliothek is None:
+            return None
+        d_jetzt = float(werkzeug.durchmesser or 0.0)
+        rest = self.panel.restschlichten
+        jetzt = rest.fraeser() if rest.aktiv() else None
+        if jetzt is not None and 0 < float(jetzt.durchmesser or 0.0) < d_jetzt - 1e-6:
+            return None
+        kleiner = [
+            w
+            for w in bibliothek.werkzeuge
+            if w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) < d_jetzt - 1e-6
+        ]
+        halb = [w for w in kleiner if float(w.durchmesser) <= d_jetzt / 2 + 1e-6]
+        if halb or kleiner:
+            return max(halb or kleiner, key=lambda w: float(w.durchmesser)), 0.0
+        if werkzeug.art != wz.KUGELFRAESER:
+            return None  # angelegt wird eine Kopie dieser Kugel (_unterkante_kugel_anlegen)
+        d = max((k for k in em.KUGEL_DURCHMESSER if k <= d_jetzt / 2 + 1e-6), default=0.0)
+        return (None, d) if d > 0 else None
+
+    def _unterkante_kugel_anlegen(self, d):
+        """„Kugel Ø … anlegen und Restschlichten anhaken“: eine Kopie der Kugel dieses Blocks mit
+        dem Ø `d` – Schneidenlänge, ae, ap und fz mit dem Ø umgerechnet wie bei der Kugel für die
+        Ecken (empfehlung.neue_kugel), Schaft und Halter wie sie –, gespeichert, das
+        Restschlichten mit ihr angehakt."""
+        werkzeug = self.fraeser()
+        bibliothek = self.panel.bibliothek
+        if werkzeug is None or bibliothek is None or d <= 0:
+            return
+        vorbild = next((w for w in bibliothek.werkzeuge if w.kennung == werkzeug.kennung), None)
+        if vorbild is None:
+            return
+        neu = bibliothek.kopiere(vorbild)
+        faktor = d / float(vorbild.durchmesser or d)
+        neu.durchmesser, neu.schneidenlaenge = d, float(vorbild.schneidenlaenge or 0.0) * faktor
+        neu.name = tr("ba.s3.unterkante.name", d=einheiten.text(d, einheiten.LAENGE, 1))
+        for einsaetze in neu.schnittwerte.values():
+            for e in einsaetze:
+                e.fz, e.ae, e.ap = e.fz * faktor, e.ae * faktor, e.ap * faktor
+        bibliothek.speichern()
+        self.panel._werkzeuge_gespeichert()
+        self.panel.restschlichten_mit(neu.kennung)
+
     def _vorbohrer_angebot(self):
         """Unter dem Räumen: Taucht es ins Volle ein und fehlt fürs Vorbohren ein Bohrer im
         Magazin (_vorbohrer), das Angebot „Bohrer Ø … anlegen und vorbohren“ (Manuel: Empfehlungen
@@ -6210,6 +6301,9 @@ class _Block:
             if kasten is not None:
                 kasten.setChecked(True)
             return
+        if ziel.startswith("unterkante_kugel:"):  # Kugel anlegen, Restschlichten an der Unterkante
+            self._unterkante_kugel_anlegen(float(ziel.split(":", 1)[1]))
+            return
         if ziel.startswith("anhaken:"):  # eine andere Strategie anhaken (wie von Hand)
             kennung = ziel.split(":", 1)[1]
             anderer = next((b for b in self.panel.bloecke if b.s.kennung == kennung), None)
@@ -6295,8 +6389,11 @@ class _Block:
         if vorschau is not None and self.s.kennung == "schlichten3d":
             # Der Verweis zum Restschlichten hängt von dessen Haken ab, nicht von der Bahn.
             zeit_ = _zeit_text(zeit) if zeit is not None else "?"
-            basis = self._mit_ecken(
-                self._mit_ausspannen(self.s.ergebnis_text(vorschau, zeit_), vorschau), vorschau
+            basis = self._mit_unterkante(
+                self._mit_ecken(
+                    self._mit_ausspannen(self.s.ergebnis_text(vorschau, zeit_), vorschau), vorschau
+                ),
+                vorschau,
             )
         self.ergebnis_basis = basis
         self.ergebnis.setText(basis)
