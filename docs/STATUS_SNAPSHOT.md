@@ -597,6 +597,12 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Korrektur (0.371.3):* **Im Freien schnell: eine Ecke, die ein Zug davor nur berührt hat, steht noch.**
+  Fuhren zwei Züge genau einen Fräserdurchmesser auseinander oder tangierte ein Zug eine Ecke des stehenden
+  Materials (Ring bei x = 3 und y = 13 mit Ø 12: die Ecke bei 9; 7 liegt genau 6,000 entfernt), galt sie für
+  „im Freien schnell“ als weggefräst – der Zug, der sie wirklich nimmt, schaltete 0,03 mm vor ihrem Ende auf
+  den Freivorschub (0,016 mm³; gefunden mit dem Materialprüfer der Simultan-Folge). `freiwege` trägt jetzt
+  mit einem um 0,005 mm kleineren Fräser ab. Keine Bahn der Referenzen bewegt sich.
 - *Korrektur (0.371.2):* **3D-Schruppen mit Materialstand: die Lage mit voller Tiefe vom Rand des stehenden
   Materials her, wo das schneller ist.** Wurde vorher irgendwo geräumt (eine Tasche neben der Kuppel, ein
   Absatz), rechnete jede Lage wie eine Zwischenlage mit Ringen um das Teil – auch die mit voller Tiefe: an
@@ -605,14 +611,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Materials) und nimmt die schnellere Bahn: Kuppel mit Tasche daneben 4,79 statt 5,80 min, Eingriff 2,0
   statt 5,8 ae, keine Rampe; Kuppel mit Absatz 4,90 statt 5,68 min. Wo schon fast alles weg ist (ringsum
   geräumt), bleibt es beim bisherigen Weg (dort wäre es 2 … 15 % langsamer). Mulde des Testteils unverändert.
+  Voller Lauf ohne Oberfläche auf 0.371.2 (14.11. nachts): 146/147 im parallelen Lauf, `test_nebenrechner`
+  (Speicher zurückgeben, lastabhängig) einzeln grün. Testteil durch den ganzen Weg: 13,82 min, unverändert.
 - *Korrektur (0.371.1):* **3D-Schruppen nach bloßem Planfräsen rechnet wie mit einem niedrigeren Rohteil:**
   Ein überall gleich hoher Materialstand galt als „Materialstand“ – jede Lage rechnete dann wie eine
   Zwischenlage. Kuppel R 25, Rohteil von 25 auf 20 plangefräst: 5,00 statt 5,82 min, Eingriff bis 2,0 statt
   5,8 ae, keine Rampe mehr (vier vorher); Kegel 65° 10,26 statt 10,35 min, Eingriff 1,9 statt 5,6 ae.
-  Offen dazu (B-036): Knoten genau auf dem Rand des Rohteils haben im Stand keinen Wert – deshalb gilt
-  im Simultan-Beispiel schon das unberührte Rohteil als Materialstand. Mit der Korrektur dort meldet
-  die Materialprüfung der Folge 0,02 mm³ Abtrag im Freivorschub (Rampenanlauf, `schlicht_anlauf`) – erst
-  klären, darum so belassen.
+  Offen dazu: B-036 (unten in der Fehlerliste, mit Ursache).
 - *Neu (0.371.0):* **Zwischenlagen von unten auch nach vorangegangenen Operationen (Materialstand)** – bis
   0.370.0 fiel das 3D-Schruppen auf den alten Weg zurück, sobald davor plangefräst oder geräumt war. Jetzt:
   Kuppel nach Planfräsen 5,8 statt 6,3 min, Kuppel mit ringsum geräumter Platte 2,9 statt 3,4, Kegel 65°
@@ -2915,14 +2920,21 @@ Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sec
   räumte der Ø 6 (braucht mit Aufmaß 6,6 mm) erst ab 9,5 mm Seitenlänge. **Behoben in P-2026-11-13-18
   (0.369.1)** – findet das Raster in einer Tasche keinen Ring, fährt der genaue Ring aus der Kontur,
   nachgerechnet, mit der Rampe rundum.
-- B-036 **Unberührtes Rohteil gilt als Materialstand, wenn ein Stand übergeben wird** (offen, gefunden am
-  2026-11-14): `schruppen3d_bahn._mit_stand` sieht an den Knoten genau auf dem Rand des Rohteils −inf
-  (sie liegen neben den Zellen des Stands) und rechnet dann jede Lage wie eine Zwischenlage
-  (Simultan-Beispiel „Kuppel“: 73 von 1353 Knoten). Die naheliegende Korrektur (dort gilt das Rohteil)
-  macht das Schruppen dort normal, aber die Materialprüfung der Folge meldet dann für 2 und 3 mm
-  Zwischenlagen „trägt im Freivorschub 0,016 / 0,024 mm³ ab“ – der Rampenanlauf (`schlicht_anlauf`)
-  markiert ein Stück als frei, das eine Rasterzelle Material streift. Erst das klären. Nächste freie
-  Nummer B-037.
+- B-036 **Ein Körper als Rohteil: dem Materialstand fehlt rundum eine Knotenreihe** (offen, gefunden am
+  2026-11-14; Ursache am selben Tag geklärt): `materialstand._eingezogen` zieht ein Rohteil, das kein
+  Kasten des Jobs ist, um einen Knoten ein (gewollt für rundes Material) – auch am Rand des Rasters, also
+  auch an den geraden Seiten eines Körpers (Simultan-Beispiel: 73 von 1353 Knoten ohne Wert, „Guss“ in
+  `test_materialstand`: 816). Folge: `schruppen3d_bahn._mit_stand` hält das unberührte Rohteil für einen
+  Materialstand. Die Korrektur (am Rand des Rasters nicht einziehen; rundes Material bleibt unverändert,
+  nachgezählt an fünf Formen) liegt fertig als Patch bei Manuel
+  (`~/freecad_cam/wip/strategien/rand_stand/rand_fix.diff`), ist aber **noch nicht drin**: Mit ihr rechnet
+  das Simultan-Beispiel wie mit einem Kasten – und die Lage über dem Teil taucht dann am Rand des Rohteils
+  ein (1,4 mm im Material, mit Rampenanlauf eine Rampe von 56 mm) statt daneben in der Luft hinab und quer
+  hinein: Schruppen 18,2 statt 13,8 s, die Folge 61,1 statt 56,8 s. Das ist das eigentliche Thema: **Am
+  vollen Rohteil beginnt der erste Ring (`_rohteil_ring`, das Rechteck) im Material, mit Materialstand
+  (`_tiefe_vom_material`) daneben.** Erst das Einfahren am vollen Rohteil angleichen, dann der Patch.
+  (Der dabei gemeldete „Abtrag im Freivorschub“ war etwas Drittes und ist in 0.371.3 behoben.) Nächste
+  freie Nummer B-037.
 
 ## Offene Tasks
 

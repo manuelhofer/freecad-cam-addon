@@ -38,6 +38,7 @@ import numpy as np
 
 from . import bahn as bn
 from . import fahrzeit as fz
+from . import fraeserform as ff
 
 FREIVORSCHUB = fz.EILGANG  # mm/min – ohne Maschine (oder ohne ihren Höchstvorschub)
 VORLAUF = 2.0  # mm vor dem Material bleibt der Schnittvorschub
@@ -46,6 +47,7 @@ RAND = 1.0  # mm über den Radius hinaus muss es frei sein
 SEHNE = 1.0  # mm – so fein wird nachgesehen
 GLEICH = 0.05  # mm
 _HOEHE_GLEICH = 1e-6  # mm – so gleich müssen Höhen für _ohne_ausflug sein
+ABTRAG_SCHMALER = 0.005  # mm – um so viel kleiner trägt der Fräser hier ab (_schmaler)
 LINK_LUFT = (
     2.0  # mm – so hoch über dem höchsten Material fährt ein Weg, der nicht unten bleibt (wie der
 )
@@ -243,15 +245,35 @@ def _abfahren(punkte, form, quader, weite, im_stueck=False):
             if im_stueck:
                 _abtragen(quader, von_s, nach_s, form)
             else:
-                quader.fahre_stuecke(von_s, nach_s, form)
+                quader.fahre_stuecke(von_s, nach_s, _schmaler(form))
         saetze.append((frage, eintraege))
     return saetze
+
+
+def _schmaler(form):
+    """Der Fräser, mit dem hier abgetragen wird: um ABTRAG_SCHMALER kleiner. Der Quader nimmt
+    auch weg, was der Umfang nur berührt (restmaterial: ≤ Radius) – fahren zwei Züge genau einen
+    Durchmesser auseinander oder tangiert ein Zug eine Ecke des Stehenden (Ring bei x = 3 und
+    y = 13 mit Ø 12: die Ecke bei 9; 7 liegt genau 6,000 entfernt), war sie hier weg, wirklich und
+    für den Materialprüfer (simultan_abtrag: < Radius) aber nicht: Der Zug, der sie nimmt, fuhr
+    0,03 mm vor ihrem Ende schon im Freivorschub (Simultan-Beispiel, 0,016 mm³; B-036). Lieber
+    Material sehen, wo keins ist."""
+    if not isinstance(form, ff.Form):
+        return max(float(form) - ABTRAG_SCHMALER, 0.0)
+    r = float(form.radius) - ABTRAG_SCHMALER
+    if r <= 0:
+        return form
+    if form.eben:
+        return ff.scheibe(r)
+    if form.nur_kugel:
+        return ff.kugel(r)
+    return form
 
 
 def _abtragen(quader, von, nach, form):
     """Wie quader.fahre_stuecke – aber nicht weiter verteilt (in einem Nebenrechner ist das
     Stück schon die Verteilung)."""
-    for _ in quader.fahre_stuecke_schritte(von, nach, form, verteilt=False):
+    for _ in quader.fahre_stuecke_schritte(von, nach, _schmaler(form), verteilt=False):
         pass
 
 

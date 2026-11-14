@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-04 freivorschub-tangierte-ecke
+
+### EINGELESEN
+- B-036 nachgestellt (`~/freecad_cam/wip/strategien/geist_luft/folge_frei/frei4.py … frei8.py`):
+  `materialstand._eingezogen`, `schruppen3d_bahn._mit_stand`, `schlicht_anlauf.ergaenzen`,
+  `freiwege.schneller/_abfahren`, `restmaterial.Quader.fahre_stuecke_schritte` (≤ Radius),
+  `simultan_abtrag.schaftschnitt` (< Radius), `raeumen_bahn._Feld._tiefe_vom_material`, `_rohteil_ring`.
+
+### DATEIEN
+- `camaddon/freiwege.py`: `_schmaler`, `ABTRAG_SCHMALER` – „im Freien schnell“ trägt mit einem um 0,005 mm
+  kleineren Fräser ab (Scheibe und Kugel; andere Formen unverändert).
+- `tests/test_freiwege.py`: Ring bei x = 3, y = 13, x = 17, zurück bei y = 3 (Rohteil 20 × 16, Ø 12) – kein
+  schnelles Stück nimmt nach der Regel des Materialprüfers etwas weg (ohne die Korrektur: 0,016 mm³).
+- `docs/STATUS_SNAPSHOT.md` (0.371.3; B-036 mit Ursache; voller Lauf auf 0.371.2), `package.xml`.
+
+### ERGEBNIS
+- Ursache des „Abtrags im Freivorschub“ aus B-036: zwei Abtragsrechnungen mit verschiedener Regel am
+  Umfang. Der Quader nimmt, was der Umfang berührt; der Materialprüfer nicht. Die Ecke bei (9; 7) lag
+  genau 6,000 von zwei Zügen; der dritte nahm sie bei x = 13,47, schnell war er ab 13,5.
+- B-036 selbst (dem Materialstand fehlt bei einem Körper als Rohteil rundum eine Knotenreihe) ist
+  geklärt, die Korrektur gebaut und an fünf Rohteilformen nachgezählt – aber nicht übernommen: Das
+  Simultan-Beispiel würde 7 % langsamer (61,1 statt 56,8 s), weil am vollen Rohteil die Lage über dem Teil
+  am Rand eintaucht statt daneben hinab. Patch: `~/freecad_cam/wip/strategien/rand_stand/rand_fix.diff`.
+- Gemessen, ob „wie mit Materialstand rechnen“ als Variante auch am vollen Rohteil lohnt (acht Teile,
+  `~/freecad_cam/wip/strategien/geist_luft/voll_stand/`): sechsmal gleich, „halb“ +0,5 %, Kegel 85°
+  +4,4 % (dafür Eingriff 1,95 statt 4,24 ae und kein senkrechtes Eintauchen) – als Variante kein Gewinn.
+- Voller Lauf ohne Oberfläche auf 0.371.2: 146/147, `test_nebenrechner` einzeln grün.
+- Grün mit der Korrektur: `test_freiwege`, `test_goldene_bahnen` (nichts bewegt), `test_simultan_folge`,
+  `test_simultan_planung`, `test_simultan_gesamt`, `test_materialstand`, `test_testteil`, `test_pruefstand`,
+  `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_raeumen`, `test_planfraesen`, `test_kontur`,
+  `test_nut`, `test_bohrung`, `test_restschruppen`, `test_schlichten3d`.
 ## P-2026-11-14-03 hauptlage-vom-materialstand
 
 ### EINGELESEN

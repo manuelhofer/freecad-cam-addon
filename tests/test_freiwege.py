@@ -350,6 +350,36 @@ pruefe(
 )
 print("Fertigteil ok")
 
+# --- Ein Zug tangiert eine Ecke genau (B-036) ---------------------------------------------------
+# Rohteil 20 × 16, Ø 12 auf einem Ring bei x = 3, y = 13, x = 17, dann bei y = 3 zurück: Nach den
+# ersten drei Seiten steht der Streifen x 9 … 11 unter y 7; seine Ecke bei (9; 7) liegt genau
+# 6,000 von den Zügen bei x = 3 und y = 13. Der Quader nahm sie beim Berühren weg (≤ Radius),
+# wirklich nimmt sie erst der letzte Zug bei x = 13,47 – bis 0.371.2 fuhr er ab x = 13,5 schon im
+# Freivorschub (der Materialprüfer simultan_abtrag meldete 0,016 mm³). Geprüft mit dessen Regel
+# (< Radius): Kein schnelles Stück nimmt etwas weg.
+from camaddon import simultan_abtrag as sa
+
+ring = [P(True, 3.0, -10.0, 30.0), P(True, 3.0, -10.0, 16.4), P(False, 3.0, 13.0, 16.4),
+        P(False, 17.0, 13.0, 16.4), P(False, 17.0, 3.0, 16.4)]  # fmt: skip
+ring += [P(False, 17.0 - 0.5 * k, 3.0, 16.4) for k in range(1, 61)]
+klein = rm.Quader(0.0, 20.0, 0.0, 16.0, 0.0, 18.0, 0.1)
+neu_r, weg_r = fw.schneller(ring, ff.scheibe(6.0), klein, 902.0)
+pruefer = rm.Quader(0.0, 20.0, 0.0, 16.0, 0.0, 18.0, 0.1)
+schnell_abtrag, schnell_weg = 0.0, 0.0
+for a, b in zip(neu_r, neu_r[1:], strict=False):
+    volumen = sa._abtragen(
+        pruefer.x, pruefer.y, pruefer.h, pruefer.z_von, pruefer._schritt,
+        np.array((a.x, a.y, a.z)), np.array((b.x, b.y, b.z)), ff.scheibe(6.0), 0, len(pruefer.x),
+    )  # fmt: skip
+    if not b.eilgang and b.anteil > 1.0 + 1e-8:
+        schnell_abtrag += volumen
+        schnell_weg += bn.weg(a, b)
+pruefe(
+    schnell_abtrag < 1e-7 and schnell_weg > 5.0,
+    f"Ecke tangiert: {schnell_abtrag:.4f} mm³ im Freivorschub auf {schnell_weg:.1f} mm",
+)
+print(f"Ecke tangiert ok: {schnell_weg:.1f} mm schnell, {schnell_abtrag:.4f} mm³")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
