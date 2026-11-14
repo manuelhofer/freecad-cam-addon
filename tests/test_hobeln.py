@@ -390,7 +390,7 @@ pruefe(
     "vorgefräst",
 )
 # Das vorgeschlagene Stoßwerkzeug: die Schneide 3 − 2 · (0,005 + 0,02) auf 0,1 abgerundet, die
-# Klinge so lang, dass sie R 10 fährt, geschwenkt (0,73 → 0,7).
+# Klinge so lang, dass sie R 10 fährt, geschwenkt – seit den kürzeren Sätzen in Bögen 0,8 (vorher 0,7).
 vorschlag = hop.werkzeug_vorschlag([nut])
 tief = hop.werkzeug_vorschlag([nut], 3.0)
 pruefe(tief.stechtiefe == 4.0 and vorschlag.stechtiefe == 3.0, f"Stechtiefe {tief.stechtiefe}")
@@ -400,7 +400,7 @@ print(
 pruefe(
     vorschlag.art == wz.STOSSWERKZEUG
     and abs(vorschlag.schneidenbreite - 2.9) < 1e-9
-    and abs(vorschlag.klingenlaenge - 0.7) < 1e-9
+    and abs(vorschlag.klingenlaenge - 0.8) < 1e-9
     and not hb.klinge_pruefen(nut, vorschlag.schneidenbreite, vorschlag.klingenlaenge),
     f"Vorschlag: {vorschlag}",
 )
@@ -555,6 +555,26 @@ voll2 = hop.lege_an(job2, tc2, gruende2, oben=10.0)
 doc2.recompute()
 pruefe(voll2.Nuten == 1 and not voll2.Vorgefraest, f"aus dem Vollen, zwei Nuten: {voll2.Nuten}")
 FreeCAD.closeDocument(doc2.Name)
+
+# Frage 2 (Manuel, 2026-11-14: „C und D“): (d) kürzere Sätze in Bögen – höchstens BOGEN_WINKEL halber
+# Schritt, nicht unter SCHRITT_MIN; (c) seitlicher Freiwinkel – die hintere Ecke schwenkt weniger aus.
+pruefe(hb.schritt_im_bogen(math.inf) == hb.SCHRITT, "Gerade: Satzlänge")
+pruefe(
+    abs(hb.schritt_im_bogen(12.0) - 2 * 12 * math.tan(hb.BOGEN_WINKEL)) < 1e-12, "R 12: Satzlänge"
+)
+pruefe(hb.schritt_im_bogen(1.0) == hb.SCHRITT_MIN, "R 1: nicht kürzer als SCHRITT_MIN")
+st_r12 = list(hb._stellen_je_stueck(hb.hobelnuten(teil)[0], hb.SCHRITT))
+abstaende = [math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(st_r12, st_r12[1:], strict=False)]
+pruefe(min(abstaende) < 0.11 and max(abstaende) <= hb.SCHRITT + 1e-9, f"Sätze {min(abstaende)}")
+rechteck_a = hb._ueberstand(10.0, 2.6, 1.4, hb.SCHRITT)
+trapez_a = hb._ueberstand(10.0, 2.6, 1.4, hb.SCHRITT, None, 2.0)
+pruefe(trapez_a[0] < rechteck_a[0], f"Freiwinkel: außen {trapez_a[0]} gegen {rechteck_a[0]}")
+pruefe(
+    hb.kleinster_radius_fuer(3.6, 2.6, 2.0, freiwinkel=2.0)
+    < hb.kleinster_radius_fuer(3.6, 2.6, 2.0),
+    "Freiwinkel: kleinerer Radius möglich",
+)
+print(ascii(f"Ueberstand R10 2.6x1.4: Rechteck {rechteck_a[0]:.4f}, 2 Grad {trapez_a[0]:.4f}"))
 
 if fehler:
     raise AssertionError("\n".join(fehler))

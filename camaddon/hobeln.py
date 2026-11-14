@@ -186,6 +186,7 @@ def werte_fuer(werkzeug, sicher, vorschub, eintauchen=0.0, zustellung=ZUSTELLUNG
         leerumlaeufe=int(leerumlaeufe),
         sicherheit=float(sicherheit),
         schritt=max(float(satzlaenge), 0.05),
+        freiwinkel=float(getattr(werkzeug, "freiwinkel", 0.0) or 0.0),
     )
 
 
@@ -331,7 +332,12 @@ def klinge_grund(nut, werkzeug, wand_aufmass=0.0, tiefe=None):
     Oberkante des Materials ist (`tiefe`, ohne: die Nut selbst) – darüber stieße der Schaft ans
     Teil; oder die Wände stehen über dem Rest noch `wand_aufmass` vor (das Fräsen davor ließ
     Aufmaß an der Wand)."""
-    grund = hb.klinge_pruefen(nut, float(werkzeug.schneidenbreite), float(werkzeug.klingenlaenge))
+    grund = hb.klinge_pruefen(
+        nut,
+        float(werkzeug.schneidenbreite),
+        float(werkzeug.klingenlaenge),
+        freiwinkel=float(getattr(werkzeug, "freiwinkel", 0.0) or 0.0),
+    )
     if grund:
         return grund
     noetig = (nut.tiefe if tiefe is None else float(tiefe)) + STECHTIEFE_SICHER

@@ -1107,6 +1107,7 @@
     "wv.plattenwinkel.tooltip": "Nose angle of the insert (ε): C and W 80°, D 55°, V 35°, T 60°, S 90°. Empty: 80° (C insert).",
     "wv.art.stosswerkzeug": "Shaping tool (stationary in the spindle)",
     "wv.klingenlaenge": "Blade behind the edge",
+    "wv.freiwinkel": "Side clearance angle",
     "wv.spindelwinkel": "Edge towards +X at spindle",
     "wv.stechtiefe": "Grooving depth",
     "wv.stechtiefe.tooltip": "How deep the grooving tool can cut at most.",

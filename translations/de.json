@@ -1107,6 +1107,7 @@
     "wv.plattenwinkel.tooltip": "Spitzenwinkel der Wendeplatte (ε): C und W 80°, D 55°, V 35°, T 60°, S 90°. Leer: 80° (C-Platte).",
     "wv.art.stosswerkzeug": "Stoßwerkzeug (steht in der Spindel)",
     "wv.klingenlaenge": "Klinge hinter der Schneide",
+    "wv.freiwinkel": "Seitlicher Freiwinkel",
     "wv.spindelwinkel": "Schneide nach +X bei Spindel",
     "wv.stechtiefe": "Stechtiefe",
     "wv.stechtiefe.tooltip": "Wie tief das Einstechwerkzeug höchstens einstechen kann.",

@@ -99,6 +99,7 @@ WINKEL_FELDER = (
     "einstellwinkel",
     "plattenwinkel",
     "spindelwinkel",
+    "freiwinkel",
 )
 STEIGUNG = "steigung"
 ZAHLEN_FELDER = LAENGEN_FELDER + WINKEL_FELDER + (STEIGUNG,)
@@ -304,6 +305,7 @@ def feld_text(feld, art):
         "stechtiefe": tr("wv.stechtiefe"),
         "klingenlaenge": tr("wv.klingenlaenge"),
         "spindelwinkel": tr("wv.spindelwinkel"),
+        "freiwinkel": tr("wv.freiwinkel"),
         "ausfuehrung": tr("wv.ausfuehrung"),
         DREHRICHTUNG: tr("wv.drehrichtung"),
     }[feld]
@@ -578,6 +580,10 @@ class Werkzeug:
     # Spindelwinkel (Grad) zeigt die Schneide nach +X – beim Einrichten gemessen.
     klingenlaenge: float = 0.0
     spindelwinkel: float = 0.0
+    # Stoßwerkzeug: seitlicher Freiwinkel (Grad, je Seite) – hinter der Schneide wird die Klinge um
+    # Länge · tan(Winkel) je Seite schmaler; in der Kurve schwenkt ihre hintere Ecke dann weniger
+    # weit aus (Manuel, 2026-11-14, Frage 2: „C und D“). 0: ein Rechteck.
+    freiwinkel: float = 0.0
     ausfuehrung: str = ""  # RECHTS, LINKS, NEUTRAL (Drehwerkzeuge)
     drehrichtung: str = ""  # RECHTS (M3) oder LINKS (M4); leer = wie üblich (dreht_links)
     # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
@@ -1232,6 +1238,7 @@ ARTDATEN = {
             "klingenlaenge",
             "stechtiefe",
             "spindelwinkel",
+            "freiwinkel",
             "gesamtlaenge",
             "schaft",
         )
@@ -1322,6 +1329,7 @@ NEUE_FELDER = (
     "stechtiefe",
     "klingenlaenge",
     "spindelwinkel",
+    "freiwinkel",
 )
 # Die Beispiele je Art, wie bis P-2026-09-26-55 als eigene Tabellen.
 BEISPIELE = {art: daten.beispiel for art, daten in ARTDATEN.items()}
