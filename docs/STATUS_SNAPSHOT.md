@@ -597,6 +597,14 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Korrektur (0.371.2):* **3D-Schruppen mit Materialstand: die Lage mit voller Tiefe vom Rand des stehenden
+  Materials her, wo das schneller ist.** Wurde vorher irgendwo geräumt (eine Tasche neben der Kuppel, ein
+  Absatz), rechnete jede Lage wie eine Zwischenlage mit Ringen um das Teil – auch die mit voller Tiefe: an
+  den geraden Seiten des Rohteils in breiten Kappen (191 statt 42 mm über 1,25 ae, bis 5,8 ae, fünf
+  Rampen). Jetzt rechnet das Addon die Hauptlage auch wie das Räumen mit Materialstand (Ringe vom Rand des
+  Materials) und nimmt die schnellere Bahn: Kuppel mit Tasche daneben 4,79 statt 5,80 min, Eingriff 2,0
+  statt 5,8 ae, keine Rampe; Kuppel mit Absatz 4,90 statt 5,68 min. Wo schon fast alles weg ist (ringsum
+  geräumt), bleibt es beim bisherigen Weg (dort wäre es 2 … 15 % langsamer). Mulde des Testteils unverändert.
 - *Korrektur (0.371.1):* **3D-Schruppen nach bloßem Planfräsen rechnet wie mit einem niedrigeren Rohteil:**
   Ein überall gleich hoher Materialstand galt als „Materialstand“ – jede Lage rechnete dann wie eine
   Zwischenlage. Kuppel R 25, Rohteil von 25 auf 20 plangefräst: 5,00 statt 5,82 min, Eingriff bis 2,0 statt

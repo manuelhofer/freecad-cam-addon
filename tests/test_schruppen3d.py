@@ -382,6 +382,38 @@ pruefe(
     set(ps.urteile(k_stand_u)) <= set(ps.urteile(k_stand_o)),
     f"Stand: {ps.urteile(k_stand_u)} (von oben {ps.urteile(k_stand_o)})",
 )
+
+
+# Materialstand, in dem noch fast alles steht (eine Tasche 12 × 12 in der Ecke geräumt): Die Lage
+# mit voller Tiefe fährt vom Rand des stehenden Materials her statt wie eine Zwischenlage mit
+# Ringen um das Teil – die schnellere der beiden gilt. Bis 0.371.1: 5,80 min, Eingriff bis 5,8 ae
+# (191 mm über 1,25 ae), fünf Rampen.
+def tasche_geraeumt(quader):
+    gx, gy = np.meshgrid(quader.x, quader.y, indexing="ij")
+    drin = (gx <= 12.0) & (gy <= 12.0)
+    quader.h[drin] = np.minimum(quader.h[drin], 10.3)
+
+
+q_tasche = rm.Quader(0, 60, 0, 60, -1.0, 20.0, mst.SCHRITT)
+voll_tasche = q_tasche.h.copy()
+tasche_geraeumt(q_tasche)
+stand_tasche = mst.Materialstand(
+    q_tasche, voll_tasche, ["Räumen T3"], [q_tasche.h < voll_tasche - 1e-9]
+)
+tasche_u = r3.planen(teil, kugel, werte(20.0), stand=stand_tasche, von_unten=True)
+k_tasche_u = gemessen(teil, tasche_u, 20.0, tasche_geraeumt)
+print(ascii(f"Kuppel, Tasche daneben geräumt: {tasche_u.zeit:.2f} min, Hauptlage vom Rand des "
+            f"Materials {tasche_u.haupt_vom_stand} – {ps.zeile(k_tasche_u)}"))  # fmt: skip
+pruefe(
+    tasche_u.haupt_vom_stand and tasche_u.zeit < 5.2,
+    f"Tasche daneben: {tasche_u.zeit:.2f} min, vom Rand {tasche_u.haupt_vom_stand}",
+)
+pruefe(
+    k_tasche_u.einschnitt > -ps.EINSCHNITT_ZULAESSIG and k_tasche_u.eilgang_abtrag <= 1e-9,
+    f"Tasche daneben: Einschnitt {k_tasche_u.einschnitt:.3f}, Eilgang {k_tasche_u.eilgang_abtrag}",
+)
+pruefe(k_tasche_u.eingriff_max < 2.5, f"Tasche daneben: {ps.zeile(k_tasche_u)}")
+pruefe(not stand_u.haupt_vom_stand, "ringsum geräumt: die Hauptlage vom Rand war nicht schneller")
 # Ein ebener Materialstand (das Rohteil von 25 auf 20 plangefräst) ist ein niedrigeres Rohteil:
 # dieselbe Bahn wie mit Rohteil 20 ohne Stand – bis 0.371.0 rechnete dann jede Lage wie eine
 # Zwischenlage (5,82 statt 4,93 min, Eingriff bis 5,8 statt 1,9 ae, vier Rampen).

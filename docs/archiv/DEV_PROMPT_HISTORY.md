@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-03 hauptlage-vom-materialstand
+
+### EINGELESEN
+- `schruppen3d_bahn._schruppen` (die Zweige `vom_material`, `mit_stand`, `ist_zwischen`), `_mit_stand`,
+  `planen`, `variante_rechnen`, `_varianten_verteilt`; `raeumen_bahn` (Räumen mit Materialstand:
+  `feld.material_setzen`).
+- Die 25 Fälle des Gegenprüfers zum Materialstand (`~/freecad_cam/wip/strategien/geist_luft/stand_gegen`).
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`: `_schruppen(…, haupt_vom_stand=False)` – mit Materialstand rechnet die
+  Lage mit voller Tiefe wahlweise wie das Räumen mit Materialstand (Ringe vom Rand des stehenden
+  Materials); `planen` rechnet beide Wege je Variante und Reihenfolge und nimmt die schnellere Bahn
+  (`bahn.haupt_vom_stand`). `_varianten_verteilt` nimmt jetzt Tupel (Variante, von unten, Hauptlage).
+- `tests/test_schruppen3d.py`: Kuppel mit geräumter Tasche daneben (Hauptlage vom Rand, unter 5,2 min,
+  Eingriff unter 2,5 ae); ringsum geräumt bleibt beim alten Weg.
+- `docs/spezifikation_strategien.md` (4.2), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.371.2).
+
+### ERGEBNIS
+- Kuppel mit Tasche daneben: 4,79 statt 5,80 min, Eingriff 2,0 statt 5,8 ae, 0 statt 5 Rampen. Kuppel mit
+  Absatz: 4,90 statt 5,68 min. Ringsum geräumt 2,95 und Schulter 2,55 min unverändert (alter Weg gewinnt).
+- Die 25 Fälle des Gegenprüfers: fast alle schneller, einer +1 %, kein Einschnitt, kein Abtrag im Eilgang.
+- Mulde des Testteils unverändert (1,2945 min, 158 Halte).
+- Grün: `test_schruppen3d`, `test_schruppen3d_anlauf`, `test_restschruppen`, `test_materialstand`,
+  `test_testteil`, `test_goldene_bahnen`, `test_pruefstand`, `test_raeumen`, `test_simultan_planung`,
+  `test_simultan_folge`, `test_simultan_gesamt`, `test_sprache`.
+- Szenarien grün: `szenario_mulde`, `szenario_bearbeitung`, `szenario_formplatte`, `szenario_bearbeitung_stl`.
+  Manuels Testteil durch den ganzen Weg: 13,824 min wie vorher, jede Operation gleich, nichts im Teil.
 ## P-2026-11-14-02 ebener-materialstand
 
 ### EINGELESEN

@@ -319,6 +319,17 @@ eben). Kein OCL.
      Kuppel nach dem Planfräsen 5,82 statt 6,30 min, Kuppel mit ringsum geräumter Platte 2,95 statt
      3,42, Kegel 65° nach dem Planfräsen 10,35 statt 12,94; die Mulde des Testteils unverändert
      (1,2945 min, 158 Halte – dort öffnet sich eine Höhlung).
+   - *Die Hauptlage mit Materialstand, zwei Wege* (0.371.2, `haupt_vom_stand`): Mit Stand rechnete
+     auch die Lage mit voller Tiefe wie eine Zwischenlage – Ringe um das Teil, nur gefahren, wo
+     Material steht. Steht das Rohteil daneben noch fast ganz (eine Tasche, ein Absatz davor),
+     schneiden diese Ringe die geraden Seiten des Rohteils in breiten Kappen an (Kuppel mit Tasche
+     daneben: 191 statt 42 mm über 1,25 ae, bis 5,8 ae, fünf Rampen). Der zweite Weg rechnet sie
+     wie das Räumen mit Materialstand: Ringe vom Rand des stehenden Materials her
+     (`feld.material_setzen`), die Lagen darüber danach wie ohne Stand. `planen` rechnet beide (je
+     Variante und Reihenfolge) und nimmt die schnellere Bahn: Tasche daneben 4,79 statt 5,80 min,
+     2,0 statt 5,8 ae, keine Rampe; Absatz 4,90 statt 5,68 min; ringsum geräumt bleibt beim alten
+     Weg (2,95 min; vom Rand her 2 … 15 % langsamer). Ein ebener Stand (nur plangefräst, 0.371.1)
+     ist kein Stand, sondern ein niedrigeres Rohteil.
    - *Ausgenommen, mit der Reihenfolge von oben:* der Rest (`davor`: dort steht kein Streifen an
      einer Wand) und ein Abschnitt, in dem sich eine Höhlung öffnet, die nicht an das Freie der
      Hauptlage grenzt (`_hoehlung`: die erste Lage darin ginge mit voller Tiefe über die Rampe, der

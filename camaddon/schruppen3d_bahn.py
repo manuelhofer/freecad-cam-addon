@@ -577,6 +577,7 @@ def _schruppen(
     stand=None,
     nur=None,
     von_unten=False,
+    haupt_vom_stand=False,
 ):
     """Alle Lagen in der Variante (die der Hauptlagen); gibt (Hauptlagen, Zwischenlagen) mit
     Schnitt zurück. Mit `davor` (Form des größeren Fräsers davor) nur der Rest: jede Lage wie
@@ -710,7 +711,14 @@ def _schruppen(
         gesperrt = _breiter(~erlaubt)
         werte = w
         # Der Rest (davor, Materialstand, nur über den Flächen): nur, wo Material steht.
-        ist_zwischen = zwischenlage or davor is not None or mit_stand
+        # Die Hauptlage mit Materialstand (`haupt_vom_stand`, in planen eine Variante): Ringe vom
+        # Rand des stehenden Materials her – wie das Räumen mit Materialstand und wie `vom_material`
+        # – statt wie eine Zwischenlage mit Ringen um das Teil. Die nehmen die volle Tiefe an den
+        # geraden Seiten des Rohteils in breiten Kappen: Kuppel mit einer geräumten Tasche daneben
+        # 191 statt 42 mm über 1,25 ae, bis 5,8 ae, fünf Rampen, 5,80 statt 4,79 min. Steht nur
+        # noch wenig (ringsum geräumt), ist es wie eine Zwischenlage schneller – darum beides.
+        haupt_stand = bool(haupt_vom_stand) and mit_stand and not zwischenlage and davor is None
+        ist_zwischen = zwischenlage or davor is not None or (mit_stand and not haupt_stand)
         # Eine Lage über dem ganzen Teil (nichts gesperrt): Das Rohteil steht über dem Teil. Sie
         # fährt wie ein Klotz im Freien – Ringe vom Rand des Materials her (wie `vom_material`).
         # Bis 0.366.5 fiel sie aus (die Ringe der Zwischenlage folgen dem Gesperrten): Über einer
@@ -881,7 +889,7 @@ def _schruppen(
             feld.rohteil_zellen = ueber & aufweiten(erlaubt, r - 0.01)
             feld.beruehrt = aufweiten(feld.rohteil_zellen, r)
             feld.eng = aufweiten(feld.rohteil_zellen, weiter + schritt)
-        elif vom_material:
+        elif vom_material or haupt_stand:
             # Nur über den Flächen, ringsum gefräst: ein Klotz im Freien. Die Ringe vom Rohteil
             # her beginnen an seinem Rand, hinab geht es daneben, quer hinein mit vollem ap – wie
             # das Räumen mit Materialstand (raeumen_bahn._Feld.material_setzen). Als Zwischenlage
@@ -894,7 +902,7 @@ def _schruppen(
         ablauf = _Lage3D(st, feld, werte, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben)
         ablauf.hoehe = hoehe
         ablauf.stempel = stempel
-        if (vom_material and not ist_zwischen) or ueber_allem:
+        if ((vom_material or haupt_stand) and not ist_zwischen) or ueber_allem:
             ablauf.stand_hoehe = hoehe
         if ist_zwischen:
             # Einfahren wie in der Hauptlage: unter der Stirn höchstens so viel Material wie im
@@ -1117,22 +1125,35 @@ def bereich(form_teil, namen):
 
 
 def variante_rechnen(
-    netz, w, z_unten, r, schritt, zwischen, davor, stand, nur, variante, von_unten=False
+    netz,
+    w,
+    z_unten,
+    r,
+    schritt,
+    zwischen,
+    davor,
+    stand,
+    nur,
+    variante,
+    von_unten=False,
+    haupt_vom_stand=False,
 ):
     """Auch im Nebenrechner: alle Lagen in einer Variante – (_Stand, Hauptlagen, Zwischenlagen),
     None, wo es die Variante nicht gibt (_KeinMorph)."""
     st = rb._Stand()
     try:
         haupt, zwischenlagen = _schruppen(
-            st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur, von_unten
-        )
+            st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand, nur, von_unten,
+            haupt_vom_stand,
+        )  # fmt: skip
     except rb._KeinMorph:
         return None
     return st, haupt, zwischenlagen
 
 
 def _varianten_verteilt(argumente, varianten):
-    """{(Variante, von unten): was variante_rechnen ergab} – die Paare `varianten` je auf einem
+    """{(Variante, von unten, Hauptlage vom Stand): was variante_rechnen ergab} – die Tupel
+    `varianten` je auf einem
     Nebenrechner,
     gleichzeitig (sie hängen nicht voneinander ab; vorher nacheinander im Fenster, W-036). Das
     Fenster zeichnet beim Warten neu; in einem Nebenrechner (die Vorschau) als Unteraufträge. Leer
@@ -1173,8 +1194,7 @@ def _varianten_verteilt(argumente, varianten):
                 davor,
                 gemeinsam[1],
                 gemeinsam[2],
-                v[0],
-                v[1],
+                *v,
             )
         pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
     except nr.Fehler:
@@ -1244,16 +1264,21 @@ def planen(
     # (Rippe im Raster 1,0: 11,3 statt 5,4 min) und mit Materialstand an einer kleinen Kuppel mit
     # Rohteil darüber (Simultan-Beispiel: 0,61 statt 0,52 min – die Folge 99,8 statt 94,4 s). So
     # ist es mit Haken nie langsamer als ohne. Bei Gleichstand: von unten.
+    # Ebenso mit Materialstand die Hauptlage: vom Rand des stehenden Materials her oder wie eine
+    # Zwischenlage (_schruppen, `haupt_vom_stand`) – je nachdem, wie viel noch steht.
     reihenfolgen = (True, False) if von_unten and davor is None else (False,)
-    paare = [(variante, unten) for unten in reihenfolgen for variante in varianten]
+    hauptlagen = (True, False) if stand is not None and davor is None else (False,)
+    paare = [
+        (variante, unten, haupt)
+        for haupt in hauptlagen
+        for unten in reihenfolgen
+        for variante in varianten
+    ]
     argumente = (netz, w, z_unten, r, schritt, zwischen, davor, stand, nur)
     verteilt = _varianten_verteilt(argumente, paare)
     for paar in paare:
-        variante, unten = paar
-        if paar in verteilt:
-            gerechnet = verteilt[paar]
-        else:
-            gerechnet = variante_rechnen(*argumente, variante, unten)
+        variante, unten, haupt_so = paar
+        gerechnet = verteilt[paar] if paar in verteilt else variante_rechnen(*argumente, *paar)
         if gerechnet is None:
             continue
         st, haupt, zwischenlagen = gerechnet
@@ -1283,6 +1308,7 @@ def planen(
             # danach vergleichen, statt den Sieger der Rohbahn zu verändern.
             nachbereiten(bahn)
         bahn.von_unten = unten
+        bahn.haupt_vom_stand = haupt_so
         ergebnisse[paar] = bahn
     if not ergebnisse and wer_davor:
         from . import materialstand as mst  # erst hier: es bringt den Job mit
@@ -1298,7 +1324,7 @@ def planen(
         raise mst.SchonWeg(tr("r3.fehler.nichts"))
     bahn = min(ergebnisse.values(), key=lambda b: b.zeit)
     zeiten = {}
-    for (variante, _unten), b in ergebnisse.items():
+    for (variante, _unten, _haupt), b in ergebnisse.items():
         zeiten[variante] = min(zeiten.get(variante, math.inf), b.zeit)
     bahn.zeiten = zeiten
     return bahn
