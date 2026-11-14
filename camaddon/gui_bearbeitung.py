@@ -68,6 +68,8 @@ from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import reiben as rbn
 from . import reichweite as rw
+from . import ringnut as rnop
+from . import ringnut_bahn as rnb
 from . import schlichten3d as s3op
 from . import schlichten3d_bahn as s3b
 from . import schruppen3d as r3op
@@ -123,6 +125,7 @@ GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_FLANKENFRAESER = "BaFlankenFraeser"  # … für die Flanke (5 Achsen simultan)
 GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
+GEMERKT_RINGNUTFRAESER = "BaRingnutFraeser"  # … für die Ringnut
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
@@ -1109,8 +1112,8 @@ def _gemerkter_nullpunkt():
 
 def ist_bearbeitung(op):
     """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Nut“, „Bohrung fräsen“,
-    „Kontur“, „Entgraten“, „Gewinde fräsen“, „3D-Schruppen“, „3D-Schlichten“ oder
-    „Bleistift“?"""
+    „Kontur“, „Entgraten“, „Gewinde fräsen“, „3D-Schruppen“, „3D-Schlichten“, „Bleistift“ oder
+    „Ringnut fräsen“?"""
     return (
         s3op.ist_schlichten3d(op)
         or flop.ist_flanke(op)
@@ -1124,6 +1127,7 @@ def ist_bearbeitung(op):
         or eg.ist_entgraten(op)
         or fa.ist_fase_op(op)
         or gf.ist_gewindefraesen(op)
+        or rnop.ist_ringnut(op)
     )
 
 
@@ -1436,6 +1440,11 @@ def _gemerkt_passt(passt):
         if schluessel in _PASST:
             _PASST.move_to_end(schluessel)
             return _PASST[schluessel]
+        if self.kennung != "ringnut" and _ringnut_flaeche(form, name):
+            # Unter dem Rand: Von oben käme kein Werkzeug hin – „Bohrung fräsen“ fräste den Rand
+            # über der Sicherungsringnut auf Ø 65 auf, Räumen und Kontur ebenso (bis 0.371.2).
+            _PASST[schluessel] = False
+            return False
         ergebnis = passt(self, form, name)
         _PASST[schluessel] = ergebnis
         while len(_PASST) > PASST_HOECHSTENS:
@@ -1443,6 +1452,43 @@ def _gemerkt_passt(passt):
         return ergebnis
 
     return gemerkt
+
+
+def _ringnut_namen(form):
+    """Die Flächen aller Ringnuten der Form (ringnut_bahn, auch der nicht erreichbaren) – leer bei
+    einem STL (keine Zylinder) und bei allem, was keine Form mit Flächen ist."""
+    from . import stl_teil
+
+    try:
+        if stl_teil.daten(form) is not None:
+            return frozenset()
+        return frozenset(f for n in rnb.alle_ringnuten(form) for f in n.flaechen)
+    except Exception:  # noqa: BLE001
+        return frozenset()
+
+
+def _ringnut_flaeche(form, name):
+    """Gehört die Fläche zu einer Ringnut?"""
+    return name in _ringnut_namen(form)
+
+
+def _ohne_ringnuten(form, namen):
+    """`namen` ohne die Flächen der Ringnuten."""
+    weg = _ringnut_namen(form) if namen else frozenset()
+    return [n for n in namen if n not in weg] if weg else list(namen)
+
+
+def _flaechen_ohne_ringnuten(flaechen_fuer):
+    """flaechen_fuer einer Strategie, die keine Ringnut fräst: ohne die Flächen der Ringnuten –
+    rein wie heraus (Räumen fände sonst ihren Boden über die Taschenböden einer Wand)."""
+
+    @functools.wraps(flaechen_fuer)
+    def ohne(self, form, gewaehlte):
+        if self.kennung == "ringnut" or not gewaehlte:
+            return flaechen_fuer(self, form, gewaehlte)
+        return _ohne_ringnuten(form, flaechen_fuer(self, form, _ohne_ringnuten(form, gewaehlte)))
+
+    return ohne
 
 
 class _Strategie:
@@ -1453,6 +1499,8 @@ class _Strategie:
         super().__init_subclass__(**kwargs)
         if "passt" in cls.__dict__:
             cls.passt = _gemerkt_passt(cls.__dict__["passt"])
+        if "flaechen_fuer" in cls.__dict__:
+            cls.flaechen_fuer = _flaechen_ohne_ringnuten(cls.__dict__["flaechen_fuer"])
 
     kennung = ""
     gemerkt = ""  # Parameter: der zuletzt gewählte Fräser
@@ -4581,6 +4629,129 @@ class _Reiben(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
+class _Ringnut(_Strategie):
+    """„Ringnut fräsen“ (ringnut, ringnut_bahn): die Nuten in Bohrungen unter dem Rand
+    (Sicherungsring, O-Ring) mit einem Scheiben- oder T-Nutenfräser. Mit dem Nutenfräser, der die
+    meisten der gewählten Nuten kann, der größte (BearbeitungPanel._ringnutfraeser_waehlen);
+    fehlt er, sagt es, womit es ginge, mit Knopf (_ringnut_angebot). Die Vorschau rechnet hier
+    – Erkennen gemerkt, die Bahn und ihre Prüfung unter 0,1 s am Beispielteil: kein Nebenrechner."""
+
+    kennung = "ringnut"
+    gemerkt = GEMERKT_RINGNUTFRAESER
+    einsatz_reihenfolge = (wz.VOLLNUT,)
+    bevorzugt = wz.NUTENFRAESER
+
+    def titel(self):
+        return tr("ba.ringnut")
+
+    def text(self):
+        return tr("ba.ringnut.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.ringnutfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.ringnut_einsatz.tooltip")
+
+    def felder(self):
+        return (("zustellung", tr("ba.ringnut.zustellung"), tr("ba.ringnut.zustellung.tooltip")),)
+
+    def haken(self):
+        return (
+            ("schlichten", tr("ba.ringnut.schlichten"), tr("ba.ringnut.schlichten.tooltip"), True),
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.NUTENFRAESER
+
+    def passt(self, form, name):
+        return _ringnut_flaeche(form, name) and bool(rnb.ringnuten(form, [name]))
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Je gewählte Nut ihre Zylinderfläche – eine Ringfläche meint die Nut."""
+        namen = []
+        for nut in rnb.ringnuten(form, [n for n in gewaehlte if self.passt(form, n)]):
+            if nut.name not in namen:
+                namen.append(nut.name)
+        return namen
+
+    def unmoeglich_text(self):
+        return tr("ba.ringnut.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return rnop.zustellung_vorschlag(werkzeug, einsatz)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return rnop.vorschau(
+            job,
+            job.Model.Group,
+            werkzeug,
+            werte["zustellung"],
+            flaechen,
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+            halter=werte.get("halter"),
+            laenge=werte.get("laenge", 0.0),
+            stand=werte.get("materialstand"),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        """Je Nut eine Zeile – „Face15: Ø 65 × 2,15, 1,5 tief – 2 Kreise, 3,2 min“ –, die das
+        Werkzeug nicht kann, mit ihrem Grund."""
+        zeilen = []
+        for j in bahn.je_nut:
+            kreise = (
+                tr("ba.zahl.kreis") if j["kreise"] == 1 else tr("ba.zahl.kreise", n=j["kreise"])
+            )
+            zeilen.append(
+                tr(
+                    "ba.ergebnis_ringnut",
+                    name=j["name"],
+                    nut=j["nut"].text(),
+                    kreise=kreise,
+                    zeit=_zeit_text(j["zeit"]),
+                )
+            )
+        for name, grund in getattr(bahn, "nicht_passend", ()) or ():
+            zeilen.append(tr("ba.ringnut.nicht", name=name, grund=grund))
+        if len(bahn.je_nut) > 1:
+            zeilen.append(tr("ba.ringnut.zusammen", zeit=zeit))
+        return "<br>".join(html.escape(z, quote=False) for z in zeilen)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return rnop.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        rnop.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return rnop.ist_ringnut(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "schlichten": bool(op.Schlichten),
+            "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
@@ -4601,6 +4772,9 @@ STRATEGIEN = (
     _Bleistift,
     _Senken,
     _Reiben,
+    # Nach dem Fertigbearbeiten der Bohrungen (Bohrung fräsen, Schlichten danach, Reiben) – ihre
+    # Scheibe fährt mittig im Eilgang durch die fertige Bohrung.
+    _Ringnut,
     _Gewinde,
     _Gewindefraesen,
     _Fase,
@@ -4637,6 +4811,7 @@ SCHRUPPEN_ZUERST = {
     "flanke": 2,
     "restschlichten": 2,
     "bleistift": 2,
+    "ringnut": 2,  # nach dem Schlichten der Bohrung, vor den Kanten
     "fase": 3,
     "entgraten": 3,
     "entgraten3d": 3,
@@ -4903,6 +5078,9 @@ class _Block:
         if self.s.kennung in ("schlichten3d", "restschlichten"):
             werte["aufnahme"] = self.panel.werkzeugaufnahme()  # für eine Empfehlung
             werte["fuenfachs"] = self.panel._fuenfachs()  # für den Vorschlag „Wegkippen“
+        if self.s.kennung == "ringnut" and self.fraeser() is not None:
+            # Schaft und Halter über der Oberkante prüft die Ringnut selbst (ringnut_bahn).
+            werte["halter"], werte["laenge"] = self.panel._ringnut_halter(self.fraeser())
         if self.s.kennung == "nut":
             werte["eintauchen_bei"] = dict(self.eintauchen)
         elif self.s.kennung == "raeumen":
@@ -6196,6 +6374,7 @@ class BearbeitungPanel:
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
+        self.ringnut = next(b for b in self.bloecke if b.s.kennung == "ringnut")
         self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
         self.flanke = next(b for b in self.bloecke if b.s.kennung == "flanke")
         self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
@@ -8327,6 +8506,10 @@ class BearbeitungPanel:
             # standen 3D-Schruppen und -Schlichten mit Ø 12 rot an der Fase).
             form = vr.modell(self.job).Shape
             gewaehlte = [n for n in gewaehlte if not _fase_fuer_block(form, n)]
+        if gewaehlte and block.s.kennung != "ringnut" and self.job is not None:
+            # Die Flächen einer Ringnut liegen unter dem Rand – nur „Ringnut fräsen“ bekommt sie
+            # (Räumen nähme sonst den Boden der Nut, „Bohrung fräsen“ ihre Wand von oben).
+            gewaehlte = _ohne_ringnuten(vr.modell(self.job).Shape, gewaehlte)
         if getattr(block.s, "nimmt_kanten", False):
             return list(gewaehlte) + list(kanten)
         return gewaehlte
@@ -8761,6 +8944,9 @@ class BearbeitungPanel:
                 else:
                     text = tr("ba.flaeche.gekippt", name=name, winkel=winkel)
                 farbe = GRUEN
+            elif self.ringnut.s.passt(form, name):
+                nut = rnb.ringnuten(form, [name])[0]
+                text, farbe = tr("ba.flaeche.ringnut_unter", name=name, nut=nut.text()), GRUEN
             elif self.fase.s.passt(form, name):
                 fase = fb.fasen(form, [name])[0]
                 text = tr(
@@ -9038,6 +9224,10 @@ class BearbeitungPanel:
                     moeglich = moeglich and bool(block._fraeser)
                 if block is self.senken:
                     moeglich = moeglich and self._senker_da(form)
+                if block is self.ringnut and moeglich and not block._fraeser:
+                    # Kein Nutenfräser in der Werkzeugverwaltung: Was fehlt, sagt „Nicht fertig“
+                    # mit dem Knopf, der einen anlegt (_ringnut_angebot).
+                    moeglich, grund = False, tr("ba.ringnut.kein_fraeser")
                 if block is self.schlichten_danach:
                     # Mit dem Räumen oder der Nut (sie stehen davor in der Liste) – ein Haken von
                     # Hand bleibt.
@@ -9071,6 +9261,7 @@ class BearbeitungPanel:
         self._restschlichtfraeser_waehlen()
         self._fase_fraeser_waehlen(form)
         self._bohrfraeser_waehlen(form)
+        self._ringnutfraeser_waehlen(form)
         self._bloecke_ordnen()
 
     def _bloecke_ordnen(self):
@@ -10101,6 +10292,14 @@ class BearbeitungPanel:
             return self._flaechen(block, form)
         if block is self.flanke:
             return self._flaechen(block, form) if not float(werte.get("aufmass", 0.0)) else []
+        if block is self.ringnut:
+            # Alle Flächen der Nuten, die ihr Werkzeug kann (Ringnutbahn.namen) – mit dem Kreis
+            # auf Maß; ohne ihn bleibt der Rest stehen. Ohne Vorschau die gewählten.
+            if not werte.get("schlichten", True):
+                return []
+            if block.vorschau is not None:
+                return list(getattr(block.vorschau, "namen", ()) or ())
+            return [f for n in rnb.ringnuten(form, self._flaechen(block, form)) for f in n.flaechen]
         return []
 
     def _unfertige(self, form):
@@ -10167,6 +10366,8 @@ class BearbeitungPanel:
             return
         namen = [name for name, _k in unfertig]
         angebot = self._senken_angebot(form, namen)
+        if angebot is None:
+            angebot = self._ringnut_angebot(form, namen)
         if angebot is None:
             self._unfertig_aktion = None
             self.unfertig_angebot.hide()
@@ -10984,6 +11185,8 @@ class BearbeitungPanel:
             dabei = anderer.aktiv() or anderer in mit
             if not dabei or anderer.vorschau is None or werkzeug is None:
                 continue
+            if anderer is self.ringnut:
+                continue  # unter dem Rand: von oben nimmt sie nichts weg (materialstand)
             if eigene & set(self._flaechen(anderer, form)):
                 continue
             fraeser = ff.von_werkzeug(werkzeug)
@@ -11304,6 +11507,102 @@ class BearbeitungPanel:
         ]
         if passend:
             block.wahl_fraeser.setCurrentIndex(max(passend)[1])
+
+    def _ringnut_ueber(self, form):
+        """ringnut_bahn.ueber_der_kante je Nut – für Wahl und Angebot."""
+        return lambda nut: rnb.ueber_der_kante(form, nut)
+
+    def _ringnut_halter(self, werkzeug):
+        """(Halter, Länge ab Spindelnase) des Nutenfräsers aus der Werkzeugverwaltung."""
+        if self.bibliothek is None:
+            return None, 0.0
+        return rnop.halter_und_laenge(werkzeug, self.bibliothek)
+
+    def _ringnutfraeser_waehlen(self, form):
+        """Wählt für „Ringnut fräsen“ den Nutenfräser, der die meisten gewählten Nuten kann, von
+        denen den größten (ringnut_bahn.waehlen) – solange keiner von Hand gewählt ist."""
+        block = self.ringnut
+        if not block.moeglich or not block._fraeser or block.fraeser_von_hand:
+            return
+        nuten = rnb.ringnuten(form, block.s.flaechen_fuer(form, self.gewaehlte))
+        if not nuten:
+            return
+        beste, _gruende = rnb.waehlen(
+            nuten, block._fraeser, self._ringnut_halter, self._ringnut_ueber(form)
+        )
+        jetzt = block.fraeser()
+        if beste is None or (jetzt is not None and jetzt.kennung == beste.kennung):
+            return
+        block._setzt_selbst = True
+        try:
+            block.fraeser_setzen(beste)
+        finally:
+            block._setzt_selbst = False
+
+    def _ringnut_angebot(self, form, namen):
+        """(Satz, Knopf, Aktion) unter „Nicht fertig“ – oder None: Sind darunter Ringnuten, die kein
+        Nutenfräser der Werkzeugverwaltung kann: womit es ginge (ringnut_bahn.grenzen), ein
+        passender aus dem Katalog der Hersteller, wenn er gelesen ist, und der Knopf, der einen
+        Scheibenfräser mit diesen Maßen anlegt (ringnut_bahn.vorschlag_werkzeug)."""
+        from . import werkzeugwahl as ww
+
+        nuten = rnb.ringnuten(form, [n for n in namen if _ringnut_flaeche(form, n)])
+        if not nuten or self.bibliothek is None:
+            return None
+        ueber = self._ringnut_ueber(form)
+        vorhandene = [w for w in self.bibliothek.werkzeuge if w.art == wz.NUTENFRAESER]
+        offen = [
+            n
+            for n in nuten
+            if not any(
+                not rnb.werkzeug_pruefen(n, w, *self._ringnut_halter(w), ueber(n))
+                for w in vorhandene
+            )
+        ]
+        if not offen:
+            return None
+        # Ein Nutenfräser ist da, ihm fehlt nur ein Maß (Halslänge, Breite der Scheibe): Der Knopf
+        # öffnet ihn – kein zweiter Fräser (der nächste Schritt ist ein Knopf).
+        for w in vorhandene:
+            grund = rnb.mass_fehlt(offen[0], w, *self._ringnut_halter(w), ueber(offen[0]))
+            if grund and w.nummer > 0:
+                knopf_text = tr("rw.werkzeug_oeffnen", werkzeug=f"T{w.nummer}")
+                return dezimal(grund), knopf_text, lambda n=w.nummer: self.werkzeugverwaltung(n)
+        vorschlag = rnb.vorschlag_werkzeug(offen, ueber) or rnb.vorschlag_werkzeug(offen[:1], ueber)
+        grenzen = rnb.grenzen(offen, ueber)
+        satz = grenzen.text() if grenzen is not None else tr("rn.fehlt.keiner")
+        if ww.katalog_bereit():
+            aus_katalog = rnb.aus_dem_katalog(offen, ww.katalog_werkzeuge(), ueber)
+            if aus_katalog:
+                from .gui_bearbeitung_beta import _werkzeug_text
+
+                satz += " " + tr(
+                    "rn.katalog", namen=", ".join(_werkzeug_text(w) for w in aus_katalog)
+                )
+        else:
+            ww.katalog_laden_im_hintergrund()
+            QtCore.QTimer.singleShot(KATALOG_NACHSEHEN_MS, self._nach_katalog)
+        if vorschlag is None:
+            return dezimal(satz), tr("va.werkzeugverwaltung"), self.werkzeugverwaltung
+        knopf_text = tr(
+            "rn.anlegen",
+            d=groesse_zeigen(vorschlag.durchmesser, einheiten.LAENGE, 1) or "0",
+            b=groesse_zeigen(vorschlag.schneidenbreite, einheiten.LAENGE, 2) or "0",
+        )
+        return dezimal(satz), knopf_text, lambda: self._ringnutfraeser_anlegen(vorschlag)
+
+    def _ringnutfraeser_anlegen(self, vorschlag):
+        """„Scheibenfräser Ø 19 × 2,15 anlegen“ (_ringnut_angebot): mit Richtwerten in die
+        Werkzeugverwaltung (und ins Magazin), dann die Haken neu – „Ringnut fräsen“ fräst."""
+        if self.bibliothek is None:
+            return
+        werkzeug = wz.Werkzeug.aus_dict(vorschlag.als_dict())
+        werkzeug.nummer = self.bibliothek.naechste_nummer()
+        self._werkzeug_anlegen(werkzeug)
+        self.unfertig_angebot.hide()
+        if self.job is not None:
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
+        self.vorschau_starten()
 
     def _restfraeser_waehlen(self):
         """Wählt im Block Restmaterial den größten Fräser, der kleiner ist als der davor – wenn

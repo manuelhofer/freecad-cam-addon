@@ -597,6 +597,28 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.372.0):* **„Ringnut fräsen“ – Sicherungsring- und O-Ring-Nuten in Bohrungen mit dem
+  Scheibenfräser, ohne Umspannen.** Anlass: das Lagerschild von Manuels Pumpe (Nut Ø 65,1 × 2,13 im Lagersitz
+  Ø 62). Bisher blieb so eine Nut unbearbeitet – und wer ihre Wand anklickte, bekam „Bohrung fräsen“ bis auf
+  Ø 65 angeboten (der Lagersitz darüber wäre aufgefräst worden; behoben). Der Assistent erkennt die Nut
+  (auch geteilte Zylinder aus einem STEP, am Grund eines Sacklochs, mit Querbohrung), wählt den größten
+  passenden Nutenfräser der Werkzeugliste (nur eingetragene Maße zählen) und hakt den Block im Schritt
+  „Schlichten“ an; passt keiner, steht da, womit es ginge, mit Knopf „Scheibenfräser Ø … × … anlegen“ (fehlt
+  einem vorhandenen nur ein Maß: „T… öffnen“). Bahn: mittig hinab (im Eilgang nur mit Materialstand und
+  1 mm Luft, bis 2 mm über die Nut), tangential an, Kreise im Gleichlauf in radialen Stufen, ein Kreis auf
+  Maß, zurück zur Mitte; der Vorschub der Mitte ist am Innenkreis zurückgenommen, damit er an der Schneide
+  stimmt. Am Beispielteil `beispiele/ringnut_lagersitz.FCStd`: Lagernut 0,60 min, O-Ring-Nut 0,49 min; an
+  Manuels Lagerschild (Kopie, nur gelesen) 1,40 min mit einem Ø 50. Gebaut von einem Bauer, gegengeprüft von
+  zwei Zweiflern mit eigener Nachrechnung (16 Funde, drei davon Sicherheit: geschätzte Halslänge, Eilgang
+  ohne Blick auf die Bohrungswand, Eilgang bis auf den Boden – alle behoben und je als Prüfung festgehalten),
+  nachgeprüft (27 Fälle ohne Berührung); den letzten Rest (ohne Materialstand prüfte niemand, ob die
+  Bohrung fertig ist) habe ich selbst geschlossen. `szenario_ringnut` grün, Bilder durchgesehen. Bild und
+  Frage 4 in `OFFENE_FRAGEN.md`; Regeln in Spezifikation Strategien 13.8. Noch nicht: Nuten mit Radien im
+  Grund, Außennuten, T-Nuten, rückwärts senken. Bild `docs/bilder/vorschlaege/ringnut_fraesen.png`.
+- *Korrektur (0.372.0):* **Nach „Anlegen“ steht der Job nicht mehr als „geändert“ da.** Das Fenster in
+  Schritten merkt sich am Job die gewählten Flächen – das markierte ihn nach jedem „Anlegen“ (blaues Häkchen
+  im Baum; „Neu berechnen“ rechnete ihn noch einmal). Gefunden, weil das neue Szenario danach 5 min auf
+  nichts wartete: `szenario_schritte_alles` braucht jetzt 66 statt 665 s.
 - *Korrektur (0.371.3):* **Im Freien schnell: eine Ecke, die ein Zug davor nur berührt hat, steht noch.**
   Fuhren zwei Züge genau einen Fräserdurchmesser auseinander oder tangierte ein Zug eine Ecke des stehenden
   Materials (Ring bei x = 3 und y = 13 mit Ø 12: die Ecke bei 9; 7 liegt genau 6,000 entfernt), galt sie für

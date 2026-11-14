@@ -292,7 +292,55 @@ def zugang(form, unten=(0.0, 0.0, -1.0), spannflaeche=None, maschine=None):
             ),
             None,
         )
-    return Zugang(richtungen, unerreichbar, spannflaeche)
+    return _mit_ringnuten(form, Zugang(richtungen, unerreichbar, spannflaeche), oben)
+
+
+def _mit_ringnuten(form, zugang_, oben):
+    """Die Flächen der Ringnuten (ringnut_bahn) kommen von oben dran, wenn `oben` +Z ist: Ein
+    Scheibenfräser fährt mittig in die Bohrung und hinaus an die Wand – freie Sicht längs der
+    Achse hat dort keine Probe (am Lagersitz Ø 62 hieß die Sicherungsringnut „Keine freie Sicht“).
+    Eine Ringnut, die nicht erreichbar ist (eine Nase im Weg), behält „unerreichbar“ mit ihrem
+    Grund. Andere Richtungen von oben bleiben, wie sie sind."""
+    if abs(oben.z - 1.0) > GLEICH:
+        return zugang_
+    from . import ringnut_bahn as rn
+
+    try:
+        nuten = rn.alle_ringnuten(form)
+    except Exception:  # noqa: BLE001 – keine Form mit Flächen: wie bisher
+        return zugang_
+    if not nuten:
+        return zugang_
+    unerreichbar = dict(zugang_.unerreichbar)
+    richtungen = list(zugang_.richtungen)
+    dazu = []
+    for nut in nuten:
+        namen = [f for f in nut.flaechen if f != zugang_.spannflaeche]
+        grund = nut.grund
+        if not grund and rn.vorschlag_werkzeug([nut]) is None:
+            # Kein üblicher Scheibenfräser kommt hin: Die Flächen bleiben, wie sie ohne Ringnut
+            # wären – „unerreichbar“ hält den Weg zum Umspannen offen.
+            grund = tr("rn.fehlt.keiner")
+        if grund:
+            for f in namen:
+                if f in unerreichbar:
+                    unerreichbar[f] = grund
+            continue
+        for f in namen:
+            unerreichbar.pop(f, None)
+            for r in richtungen:
+                if f in r.flaechen:
+                    r.flaechen = [g for g in r.flaechen if g != f]
+            dazu.append(f)
+    if not dazu:
+        return Zugang(richtungen, unerreichbar, zugang_.spannflaeche)
+    von_oben = next((r for r in richtungen if r.achse[2] > 1 - GENAU), None)
+    if von_oben is None:
+        von_oben = Richtung(achse=(0.0, 0.0, 1.0), flaechen=[])
+        richtungen.insert(0, von_oben)
+    von_oben.flaechen = sorted(set(von_oben.flaechen) | set(dazu), key=lambda s: int(s[4:]))
+    richtungen = [r for r in richtungen if r.flaechen]
+    return Zugang(richtungen, unerreichbar, zugang_.spannflaeche)
 
 
 STL_RASTER = 0.25  # mm – so fein das Höhenfeld je Richtung (_zugang_stl)

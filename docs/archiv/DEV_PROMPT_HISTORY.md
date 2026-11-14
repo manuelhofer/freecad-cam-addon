@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-05 ringnut-fraesen
+
+### EINGELESEN
+- Kandidat „Hinter der Kante“ der Strategiesuche (Spezifikation Strategien 13.7, Rangliste vom 12.11.).
+- Kopien von Manuels Teilen nach Einstichen durchgezählt (82 Dateien, nur gelesen, nichts davon im Repo):
+  eine Sicherungsringnut im Lagerschild seiner Pumpe (Ø 65,1 × 2,13, 1,55 tief).
+- Vorbild „Bohrung fräsen“: `bohrung_bahn.py`, `bohrung.py`, `_Bohrung` in `gui_bearbeitung.py`.
+
+### DATEIEN
+- Neu: `camaddon/ringnut_bahn.py` (Erkennen, Werkzeug prüfen und vorschlagen, Bahn, eigene Prüfung im
+  Schnitt r–z), `camaddon/ringnut.py` (Operation), `tests/test_ringnut.py`,
+  `tests/gui/szenario_ringnut.py`, `beispiele/ringnut_lagersitz.FCStd`,
+  `docs/bilder/vorschlaege/ringnut_fraesen.png`.
+- `camaddon/gui_bearbeitung.py`: Block `_Ringnut` (Schritt „Schlichten“), Werkzeugwahl, „Nicht fertig“ mit
+  Satz und Knopf (Scheibenfräser anlegen; „T… öffnen“, wenn einem vorhandenen nur ein Maß fehlt).
+- `camaddon/bohrung_bahn.py`: Eine Wand unter einem Rand ist keine Bohrung mehr; über einer Nut am Grund
+  geht „Bohrung fräsen“ bis auf den Nutboden.
+- `camaddon/zugang.py`, `materialstand.py`, `restmaterial.py`, `raum_material.py`, `simultan_abtrag.py`,
+  `kollision.py`, `reichweite.py`, `werkzeuge.py` (Halslänge beim Nutenfräser), `werkzeuge_aus_cam.py`
+  (NeckHeight beim Keyway), `werkzeugwahl.py`, `job_schnittwerte.py`, `gui_vierachs_operation.py`.
+- `camaddon/gui_bearbeitung_beta.py`, `_am_job_merken`: Die Merker am Job lassen ihn nicht mehr als
+  „geändert“ stehen (`purgeTouched`, wenn er davor aktuell war).
+- Übersetzungen de/en, Hilfe de/en, `docs/spezifikation_strategien.md` (13.8, Tabelle 13.7),
+  `docs/OFFENE_FRAGEN.md` (Frage 4), `docs/STATUS_SNAPSHOT.md`, `beispiele/README.md`,
+  `daten/beispiele.json`, `package.xml` (0.372.0).
+
+### ERGEBNIS
+- Workflow (ein Bauer, zwei Zweifler mit eigener Nachrechnung, Nacharbeit, Nachprüfung; Skripte und
+  Protokolle bei Manuel unter `~/freecad_cam/wip/strategien/hinter_der_kante/`): 16 Funde, alle bestätigt
+  und behoben – drei davon Sicherheit (ein Keyway aus FreeCAD mit geschätzter Halslänge: der Schaft wäre
+  am Rand angestoßen; Eilgang mittig hinab, ohne die Bohrungswand im Materialstand zu sehen; Eilgang bis
+  auf den Boden einer Nut am Grund). Falsch war: eine Senkung von unten galt als Ringnut (das Umspannen
+  ging verloren), eine Nut am Grund endete in einer Sackgasse, eine Nut mit Querbohrung wurde nicht erkannt.
+- Nachprüfung: 27 Fälle ohne Berührung (Scheibe gegen das fertige Teil ≥ 0, Hals/Schaft ≥ 0,5 mm, Rest
+  ≤ 0,0017 mm). Ihr letzter Sicherheitsfund – ohne Materialstand prüfte niemand, ob die Bohrung fertig
+  ist – von mir geschlossen (`ringnut._bohrung_davor`), dazu der Knopf „T… öffnen“ (`mass_fehlt`).
+- Beispielteil: Scheibenfräser Ø 19 × 2,15 für beide Nuten; Lagernut 2 Kreise 0,60 min, O-Ring-Nut 4 Kreise
+  0,49 min. Manuels Lagerschild (Kopie): Ø 50, 2 Kreise, 1,40 min, Hals–Rand 10,95 mm.
+- Vorher: „Bohrung fräsen“ hielt die Nutwand für eine Bohrung Ø 65 und hätte, angeklickt, den Lagersitz
+  darüber aufgefräst.
+- Die 54 Körper der Beispielteile: Bohrungen, Zugang, „unerreichbar“ wie vorher; `test_testteil` und
+  `test_goldene_bahnen` unverändert.
+- Oberfläche gesehen (`szenario_ringnut`, Bilder durchgesehen): ohne Fräser der Satz mit Knopf, nach dem
+  Klick der Block im Schritt „Schlichten“ mit 1,1 min, Vorschau im Teil, Übersicht, Anlegen – Reihenfolge
+  Planfräsen, Räumen, Bohrung fräsen, Wände schlichten, Ringnut fräsen.
+- Nebenbei: Nach „Anlegen“ blieb der Job „geändert“ (nur er, alle Operationen aktuell) – Szenarien, die
+  darauf warten, liefen ins Zeitlimit: `szenario_schritte_alles` 665 → 66 s, `szenario_ringnut` 377 → 75 s.
+- Szenarien grün: `szenario_ringnut`, `szenario_bohrung`, `szenario_bearbeitung`, `szenario_schritte_alles`,
+  `szenario_schritte_testteil`, `szenario_katalog_bohrung`, `szenario_erster_start`.
+- Grün: `test_ringnut`, `test_werkzeuge_aus_cam`, `test_sprache`, `test_bohrung`, `test_zugang`,
+  `test_testteil`, `test_goldene_bahnen`, `test_materialstand`, `test_kollision`, `test_reichweite`.
+- Nicht geprüft: stabile Version 1.1.4; „Kollision prüfen“ im Fenster mit einer Ringnut (ohne Oberfläche:
+  0 Meldungen); der echte Herstellerkatalog (wie viele Nutenfräser dort eine Halslänge haben).
 ## P-2026-11-14-04 freivorschub-tangierte-ecke
 
 ### EINGELESEN

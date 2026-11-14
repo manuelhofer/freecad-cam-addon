@@ -581,6 +581,9 @@ class Werkzeugmasse:
     schaft: float  # Schaft-Ø
     gesamt: float  # Gesamtlänge
     kugel: bool = False  # Lollipop: die Schneide ist eine Kugel mit D, der Hals sitzt in der Mitte
+    # Die Scheibe eines Nutenfräsers in „Ringnut fräsen“ schneidet auch oben – gesetzt nur dort
+    # (kollision.vorbereiten), damit andere Operationen mit Nutenfräser prüfen wie bis 0.371.
+    scheibe: bool = False
     stirn: object = None  # die Form der Stirn (fraeserform.Form); None: eben
 
 

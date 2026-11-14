@@ -808,8 +808,8 @@ def _vertreter_zu_klassen(schnittwerte):
 #
 # Was nicht eingetragen ist, schätzen Bild und CAM gleich (werkzeugform.py,
 # uebergabe_werkzeuge.py): als Anteil von D je Art; sonst Schneidenlänge
-# 2 × D, Schaft = D. Den Hals des Schwalbenschwanz- und des Nutenfräsers
-# gibt es nur geschätzt – er hat kein Feld.
+# 2 × D, Schaft = D. Den Hals des Schwalbenschwanzfräsers gibt es nur
+# geschätzt – er hat kein Feld; der Nutenfräser hat seit „Ringnut fräsen“ eins.
 ANTEIL_VON_D = {
     (TORUSFRAESER, "eckradius"): 0.1,
     (SCHWALBENSCHWANZFRAESER, "schneidenlaenge"): 0.25,
@@ -1058,7 +1058,10 @@ ARTDATEN = {
     ),
     NUTENFRAESER: Artdaten(
         GRUPPE_FRAESEN,
-        ("durchmesser", "schneiden", "schneidenbreite", "hals_d", "gesamtlaenge", "schaft")
+        # Die Halslänge seit „Ringnut fräsen“: Wie tief die Scheibe unter einen Rand reicht,
+        # entscheidet, ob eine Sicherungsringnut geht (ringnut_bahn) – leer bleibt sie geschätzt.
+        ("durchmesser", "schneiden", "schneidenbreite", "hals_d", "hals_laenge", "gesamtlaenge")
+        + ("schaft",)
         + _SCHNEIDSTOFF,
         {
             "durchmesser": 50.0,

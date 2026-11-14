@@ -149,7 +149,9 @@ def werkzeug_aus(bit, nummer):
     elif art == wz.NUTENFRAESER:
         # Über der Scheibe hat CAM nur den Schaft – er ist auch der Hals.
         werte["hals_d"] = werte["schaft"]
-    if form == "lollipop":
+    if form in ("lollipop", "keyway"):
+        # Beim Keyway entscheidet die Halslänge, ob der Schaft über den Rand einer Ringnut reicht
+        # (ringnut_bahn) – geschätzt (0,25 · D) stieß ein Schaft Ø 16 dort 1 mm an.
         werte["hals_laenge"] = _mm(o, "NeckHeight")
     if art == wz.GEWINDEFRAESER:
         werte.update(_gewindefraeser(o, werte))

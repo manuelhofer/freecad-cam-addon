@@ -157,6 +157,11 @@
    "sha256": "f823c8b7dff6abc8de7e48ddce3662d8556c5f50da6ddc92d127b2e669757856"
   },
   {
+   "pfad": "beispiele/ringnut_lagersitz.FCStd",
+   "bytes": 3426,
+   "sha256": "8840eb8fb76455f16e404a7b84fc0f6d1005d666755cb3c41fb941af3698f780"
+  },
+  {
    "pfad": "beispiele/schwenkteil_5achs.FCStd",
    "bytes": 8345,
    "sha256": "994d416121c1832aeb7e152a7e13e3bf472cac34444112078cb157d081227364"

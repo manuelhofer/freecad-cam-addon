@@ -161,6 +161,13 @@ if MIT_LOLLIPOP:
         hals_d=4.7625,
         schaft=6.35,
     )
+    # Die Halslänge (NeckHeight) liest der Import seit 0.372.0 auch beim Keyway – „Ringnut
+    # fräsen“ sagt nur mit eingetragenem Hals zu.
+    keyway = neu.get("3/8in Keyway")
+    pruefe(
+        keyway is not None and keyway.hals_laenge > 0,
+        f"Keyway: Halslänge {getattr(keyway, 'hals_laenge', None)}",
+    )
 # Der Gewindefräser hat in CAM einen Zahn: (5 − 3) · tan 30° + 0,1 hoch, der Hals
 # reicht bis 20 mm.
 zahn = 2 * 0.5773502691896257 + 0.1

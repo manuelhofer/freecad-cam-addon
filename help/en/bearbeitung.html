@@ -35,7 +35,7 @@ part</b>.</li>
 sequence is ticked. Above it, which tools fit the pocket – your own and, with <b>What would the
 catalogue have?</b>, larger ones from the manufacturers.</li>
 <li><b>Holes</b> – spotting, drilling, bore milling, countersinking, reaming, threads.</li>
-<li><b>Finishing</b> – walls, floors and free-form faces.</li>
+<li><b>Finishing</b> – walls, floors and free-form faces, ring grooves in bores.</li>
 <li><b>Edges</b> – chamfers and deburring.</li>
 </ol>
 <p>Every strategy shows its time as a <b>bar</b> – as long as its time against the longest of the step,
@@ -1096,6 +1096,22 @@ steps), but only where material stands above the layer that the small one reache
 large one left on the faces remain for finishing.</li>
 <li>If there is no rest anywhere, it says so in red. The operation is called “Rest roughing T5”
 and comes after 3D roughing.</li>
+</ul>
+
+<h3>20. Ring groove</h3>
+<p>For <b>grooves under the rim of a bore</b> – circlip, O-ring, undercut – that no end mill
+reaches from above. A slitting or T-slot cutter (type “slot cutter”) goes down the centre of the
+finished bore, arcs to the wall, cuts full circles to size (climb milling) and leaves through the
+centre. The preview in the part shows what it does.</p>
+<ul>
+<li>It comes <b>after</b> the bore. If material still stands in it, the block says so in red.</li>
+<li>Of several slot cutters it takes the <b>largest that fits</b>. Disc width, neck Ø and neck
+length must be entered – without a neck length it assumes the shank sits right above the
+disc.</li>
+<li>If none fits, “Not finished” says what would do, with a button that creates such a
+cutter.</li>
+<li>If something sticks into the bore above the groove (a lug), it is not offered – with the
+reason.</li>
 </ul>
 
 <h3>An STL from a polygon bar</h3>

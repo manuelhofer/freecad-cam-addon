@@ -366,6 +366,12 @@ class Pruefstand:
                 break
             if not getattr(op, "Active", True):
                 continue
+            from .ringnut import ist_ringnut
+
+            if ist_ringnut(op):
+                # Unter dem Rand: von oben nimmt sie nichts weg – als Zylinder auf dem Höhenfeld
+                # gefahren, fehlte der Rand über der Nut bis Ø 2·(e + D/2) (wie materialstand).
+                continue
             if getattr(op, "Anstellen", False) or getattr(op, "Wegkippen", False):
                 raise ValueError(tr("s5p.fehler.abtragform"))
             toolform = vs.form_des_controllers(op.ToolController)

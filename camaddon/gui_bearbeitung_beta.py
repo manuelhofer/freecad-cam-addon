@@ -2205,6 +2205,10 @@ class BetaPanel(BearbeitungPanel):
 
     def _am_job_merken(self, job, bis):
         try:
+            # Die beiden Merker ändern keine Bahn: Der Job soll danach nicht als „geändert“
+            # dastehen (bis 0.371.3 blieb er es nach jedem „Anlegen“ – das blaue Häkchen im Baum,
+            # und „Neu berechnen“ rechnete den Job noch einmal).
+            sauber = "Touched" not in job.State
             if not hasattr(job, EIGENSCHAFT_FLAECHEN):
                 job.addProperty("App::PropertyStringList", EIGENSCHAFT_FLAECHEN, GRUPPE, "")
                 job.addProperty("App::PropertyInteger", EIGENSCHAFT_ABSCHNITT, GRUPPE, "")
@@ -2213,6 +2217,8 @@ class BetaPanel(BearbeitungPanel):
             vorher = list(getattr(job, EIGENSCHAFT_FLAECHEN))
             setattr(job, EIGENSCHAFT_FLAECHEN, sorted(set(vorher) | set(self.gewaehlte)))
             setattr(job, EIGENSCHAFT_ABSCHNITT, max(int(bis), self._beta_ab or 0))
+            if sauber:
+                job.purgeTouched()
         except Exception as fehler:
             FreeCAD.Console.PrintWarning(f"Beta: am Job nicht gemerkt: {fehler}\n")
 

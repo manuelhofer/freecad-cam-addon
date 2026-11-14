@@ -1510,6 +1510,11 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     for k, op in enumerate(abfahrt.operationen):
         if op.tc is None or getattr(op.tc, "Tool", None) is None:
             continue
+        if _ist_ringnut(job, op.name):
+            # Die Ringnut liegt unter dem Rand: Im Quader von oben trüge ihre Scheibe den Rand
+            # darüber ab und hieße „im Teil“. Sie trägt hier nichts ab; ob Scheibe, Hals und Schaft
+            # frei sind, prüft ringnut_bahn.pruefen im Schnitt r–z, räumlich die Kollision.
+            continue
         if not any(s.operation == k and s.stellungen is not None for s in abfahrt.stationen):
             # Fährt nichts ab – ein Messstopp hebt nur Z – und trägt nichts ab. Bis 0.126.0 hieß
             # das „nicht von oben“: Mit einem Messstopp im Job blieb das Rohteil stehen.
@@ -1588,6 +1593,14 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     return QuaderAbtrag(
         quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen, fasen, ringe
     )
+
+
+def _ist_ringnut(job, name):
+    """Ist die Operation `name` des Jobs eine „Ringnut fräsen“ (ringnut)?"""
+    from .ringnut import ist_ringnut
+
+    ops = getattr(getattr(job, "Operations", None), "Group", None) or []
+    return any(o.Label == name and ist_ringnut(o) for o in ops)
 
 
 def _ebene_namen(form, namen):

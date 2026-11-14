@@ -297,10 +297,18 @@ def fuer_schritte(job, vor=None, dazu=()):
                 stand.kennung = stand.kennung + (kennung,)
                 _merken(_kopie(stand))
                 continue
+            from . import ringnut as rnop
             from . import simultan_operation as so
 
             if so.ist_simultan(was):
                 return None  # Keine aus der senkrechten Ersatzbahn angenommene Vorbearbeitung.
+            if rnop.ist_ringnut(was):
+                # Die Ringnut liegt unter dem Rand: Von oben nimmt sie nichts weg. Abgefahren
+                # senkte ihre Scheibe den Rand über der Nut bis auf Nuthöhe (am Lagersitz Ø 62 auf
+                # Ø 65 hinaus) – ihre Bahn prüft ringnut_bahn.pruefen im Schnitt r–z.
+                stand.kennung = stand.kennung + (kennung,)
+                _merken(_kopie(stand))
+                continue
             name = was.Label
             fraeser = _grosszuegig(rm._fraeser(was.ToolController))
             if not (yield from _fahre_befehle_schritte(stand.quader, was.Path.Commands, fraeser)):

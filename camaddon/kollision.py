@@ -200,7 +200,7 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     else:
         zylinder(SCHNEIDE, radius, spitze, oben)
         if mit_kern and radius > EINDRINGEN:
-            zylinder(KERN, radius - EINDRINGEN, spitze + EINDRINGEN, oben)
+            zylinder(KERN, radius - EINDRINGEN, spitze + EINDRINGEN, oben - _kern_oben(masse))
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         zylinder(HALS, masse.hals_d / 2, oben, hals_ende)
@@ -212,6 +212,14 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     if form is not None:
         teile.append((HALTER, form))
     return teile
+
+
+def _kern_oben(masse):
+    """So viel kleiner ist der Kern oben: bei der Scheibe eines Nutenfräsers in „Ringnut fräsen“
+    (masse.scheibe, gesetzt in vorbereiten) EINDRINGEN – sie schneidet auch mit ihrer Oberseite
+    (in einer Ringnut so breit wie die Scheibe liegt sie an der oberen Ringfläche an); sonst 0,
+    über der Schneide eines Fräsers ist Luft."""
+    return EINDRINGEN if getattr(masse, "scheibe", False) else 0.0
 
 
 def werkzeugkapseln(masse, laenge, halter):
@@ -244,7 +252,8 @@ def werkzeugkapseln(masse, laenge, halter):
     elif oben - spitze > 1e-6 and radius > 0:
         auf_z[SCHNEIDE] = ((spitze, oben, radius, True),)
         if radius > EINDRINGEN:
-            auf_z[KERN] = ((spitze + EINDRINGEN, oben, radius - EINDRINGEN, True),)
+            kern_oben = oben - _kern_oben(masse)
+            auf_z[KERN] = ((spitze + EINDRINGEN, kern_oben, radius - EINDRINGEN, True),)
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         if hals_ende - oben > 1e-6:
@@ -793,11 +802,13 @@ def vorbereiten(abfahrt, job, bibliothek, ergebnis, nullpunkt=None):
     for op in abfahrt.operationen:
         nummer = getattr(op.tc, "ToolNumber", 0)
         halter = rw.werkzeughalter(op.tc, bibliothek)
-        werkzeuge.append(
-            Werkzeugdaten(
-                op.tc.Name, nummer, rw.werkzeugmasse(op.tc, bibliothek, op.laenge), halter
-            )
-        )
+        masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
+        if getattr(op, "art", "") == "ringnut":
+            # Nur in „Ringnut fräsen“ schneidet die Scheibe auch mit ihrer Oberseite (so breit wie
+            # die Nut liegt sie an der oberen Ringfläche an): der Kern oben kleiner (_kern_oben).
+            # Andere Operationen mit einem Nutenfräser prüfen wie bis 0.371.
+            masse = replace(masse, scheibe=True)
+        werkzeuge.append(Werkzeugdaten(op.tc.Name, nummer, masse, halter))
         if (halter is None or hl.ist_vorschlag(halter)) and nummer not in ohne_halter:
             ohne_halter.add(nummer)
             if halter is None:

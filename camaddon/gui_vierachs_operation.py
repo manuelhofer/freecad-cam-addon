@@ -27,6 +27,7 @@ def _ist_eben(objekt):
     from . import nut as nu
     from . import planfraesen as pf
     from . import raeumen as ra
+    from . import ringnut as rn
     from . import schlichten3d as s3op
     from . import schruppen3d as r3op
 
@@ -40,6 +41,7 @@ def _ist_eben(objekt):
         or r3op.ist_schruppen3d(objekt)
         or bst.ist_bleistift(objekt)
         or bo.ist_bohrungsfraesen(objekt)
+        or rn.ist_ringnut(objekt)
         or eg.ist_entgraten(objekt)
         or e3op.ist_entgraten3d(objekt)
         or fa.ist_fase_op(objekt)

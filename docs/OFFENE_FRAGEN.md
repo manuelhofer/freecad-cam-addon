@@ -76,3 +76,28 @@ Teilboden an, und dort unten stehen bei dir vielleicht Backen oder Unterlagen. I
 *Warum nur Manuel:* Ob neben dem Teil unter seinem Boden Platz ist, hängt davon ab, wie du spannst.
 *Was die Antwort ändert:* bei a) und c) hebt die Bahn die Spitze auf die Endtiefe (bei c) abschaltbar).
 Seit 2026-11-13.
+
+## 4. „Ringnut fräsen“ (neu, 0.372.0): So fährt es – passt das für deine Sicherungsringnuten?
+
+![Ringnut fräsen: Schnitt und Draufsicht](bilder/vorschlaege/ringnut_fraesen.png)
+
+**Die Frage:** In deiner Pumpe sitzt im Lagerschild eine Sicherungsringnut (Ø 65,1 × 2,13 im Lagersitz
+Ø 62). So eine Nut blieb bisher unbearbeitet. Jetzt schlägt der Assistent „Ringnut fräsen“ vor, sobald ein
+Scheiben-/T-Nutenfräser passt (fehlt er, steht da, womit es ginge, mit Knopf zum Anlegen): mittig in die
+fertige Bohrung, tangential an die Wand, Kreise im Gleichlauf, zurück zur Mitte. Gebaut ist es mit diesen
+Vorgaben – alle stehen unter „Werte ändern“, aber was ohne Zutun gilt, entscheidest du:
+
+- **Radiale Stufe je Kreis:** höchstens 0,1 · Scheiben-Ø (Ø 19: 1,9 mm).
+- **Ein Kreis auf Maß:** davor bleiben 0,1 mm radial stehen (Haken, angehakt).
+- **Breite Nut** (breiter als die Scheibe): von oben nach unten, 20 % Überlappung.
+- **Von selbst angehakt**, wenn ein passender Fräser in der Werkzeugliste ist.
+
+- **a)** So lassen. *Claudes Vorschlag.*
+- **b)** Anbieten, aber nicht von selbst anhaken (du hakst es an, wenn du die Nut nicht lieber drehst).
+- **c)** Andere Werte – welche?
+
+*Warum nur Manuel:* Wie du Sicherungsring- und O-Ring-Nuten wirklich machst (fräsen oder auf der
+Drehmaschine einstechen, mit welchem Schlichtrest), weiß nur der Zerspaner.
+*Was die Antwort ändert:* die Vorbelegung der vier Punkte. Am Beispielteil (`beispiele/ringnut_lagersitz.FCStd`)
+heute: Lagernut 2 Kreise, 0,60 min; O-Ring-Nut Ø 24 × 3 in zwei Höhen, 0,49 min. Noch nicht gebaut: Nuten mit
+Radien im Grund, Außennuten an Zapfen, T-Nuten, rückwärts senken. Seit 2026-11-14.

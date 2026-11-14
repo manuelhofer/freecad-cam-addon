@@ -120,19 +120,51 @@ def bohrungen(form, namen=None):
         if normale.x * zur_achse.x + normale.y * zur_achse.y <= 0:
             continue  # die Normale zeigt von der Achse weg: ein Zapfen, keine Bohrung
         bb = flaeche.BoundBox
+        if _unter_dem_rand(form, mitte, float(flaeche_.Radius), float(bb.ZMax)):
+            # Über ihr eine engere Bohrung derselben Achse: eine Ringnut (ringnut_bahn) – von oben
+            # käme kein Werkzeug hin; die Helix hätte den Rand darüber bis auf ihren Ø aufgefräst
+            # (am Lagersitz Ø 62 mit der Sicherungsringnut Ø 65 bis 0.371.2 so geplant).
+            continue
         durch, spitze = _unter_gemerkt(form, name, flaeche, mitte, bb)
+        z_unten = float(bb.ZMin)
+        boden = _grund_unter(form, mitte, float(flaeche_.Radius), z_unten)
+        if boden is not None:
+            # Darunter eine Ringnut am Grund (ein Freistich): bis auf ihren Boden, als Sackbohrung
+            # – sonst bliebe der Kern zwischen Boden und Wand stehen (Ø 20 über dem Freistich
+            # Ø 24 × 2: bis 11,5 statt 10), und „Ringnut fräsen“ wartete auf die Bohrung.
+            durch, spitze, z_unten = False, 0.0, boden
         ergebnis.append(
             Bohrung(
                 name,
                 (float(mitte.x), float(mitte.y)),
                 float(flaeche_.Radius),
                 float(bb.ZMax),
-                float(bb.ZMin),
+                z_unten,
                 durch,
                 spitze,
             )
         )
     return ergebnis
+
+
+def _unter_dem_rand(form, mitte, radius, z_oben):
+    """ringnut_bahn.unter_dem_rand – False für alles, was keine Form mit Flächen ist."""
+    from . import ringnut_bahn as rn
+
+    try:
+        return rn.unter_dem_rand(form, (mitte.x, mitte.y), radius, z_oben)
+    except Exception:  # noqa: BLE001 – keine Form, die sich so fragen lässt
+        return False
+
+
+def _grund_unter(form, mitte, radius, z_unten):
+    """ringnut_bahn.grund_unter – None für alles, was keine Form mit Flächen ist."""
+    from . import ringnut_bahn as rn
+
+    try:
+        return rn.grund_unter(form, (mitte.x, mitte.y), radius, z_unten)
+    except Exception:  # noqa: BLE001 – keine Form, die sich so fragen lässt
+        return None
 
 
 def _unter_gemerkt(form, name, flaeche, mitte, bb):

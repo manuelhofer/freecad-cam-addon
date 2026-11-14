@@ -115,6 +115,7 @@ class _Katalogwerkzeug:
         "art", "durchmesser", "schneidenlaenge", "gesamtlaenge", "auskragung", "steigung",
         "faehigkeiten", "name", "hersteller", "artikel", "link",
         "schaft", "hals_d", "hals_laenge", "eckradius",  # für empfehlung._katalog_fraeser
+        "schneidenbreite",  # für ringnut_bahn.aus_dem_katalog (Scheiben-, T-Nutenfräser)
     )  # fmt: skip
 
     def __init__(self, daten):
@@ -134,7 +135,7 @@ class _Katalogwerkzeug:
         link = werte.get("link") or reihe.link or wk.suche(reihe.hersteller, artikel, name)
         form = tuple(
             float(werte.get(feld) or 0.0)
-            for feld in ("schaft", "hals_d", "hals_laenge", "eckradius")
+            for feld in ("schaft", "hals_d", "hals_laenge", "eckradius", "schneidenbreite")
         )
         return (reihe.art, *masse, faehigkeiten, name, reihe.hersteller, artikel, link, *form)
 

@@ -1112,6 +1112,13 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None, jobs=None):
             if mz.operation_erreichbar(davor, op) is False:
                 material.ausgelassen += ((op.Label, davor.Label),)
                 continue  # Nicht gefahrener Schnitt darf keinen freien Raum vortäuschen.
+            from .ringnut import ist_ringnut
+
+            if ist_ringnut(op):
+                # Der Scheibenfräser schneidet nur seine Scheibe (unter dem Rand); als Zylinder
+                # mit der Länge des ToolBits gefahren, nähme er den Rand über der Nut weg. Die Nut
+                # bleibt hier stehen – das täuscht keinen freien Raum vor.
+                continue
             if so.ist_simultan(op):
                 stapel.leeren()
                 vorbereitet = simultane.get((davor.Name, op.Name))

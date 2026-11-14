@@ -2760,7 +2760,7 @@ Gegenrechnung in den Ordnern daneben.
 | 17 | Vorschub je Satz nach wirklicher Spandicke | am Testteil gemessen (13.6): klein |
 | 17 | Skelett-Spirale für lange Taschen und Taschen mit Insel | offen (nur Forschung) |
 | 16 | Innenecken entlasten (ausbohren, ausstechen, vorschälen) | Ausbohren gemessen: lohnt nicht, keine Frage |
-| 16 | Hinter der Kante: Ringnut, T-Nut, rückwärts senken mit dem Scheibenfräser | offen – fehlt im Addon |
+| 16 | Hinter der Kante: Ringnut, T-Nut, rückwärts senken mit dem Scheibenfräser | Ringnut in Bohrungen gebaut („Ringnut fräsen“, 13.8); Außennut, T-Nut, rückwärts senken offen |
 | 16 | Rohteil antasten, Planlagen nach Messwert | offen |
 | 15 | Drehzahl nach wirksamem Ø der Kugel | gemessen: lohnt nicht (die Teile sind steil), keine Frage |
 | ≤ 15 | kurz gespannt zuerst; Tonne an der 5-Achs; Gratkarte; Schneidenkonto; Abschnitt für Abschnitt fertig; dünne Wand gestützt; Ratter-Probeschnitt | offen |
@@ -3028,6 +3028,120 @@ Gegenrechnung in den Ordnern daneben.
   ist so lang wie beide Helixe zusammen. Keine Frage an Manuel. Gefunden dabei: Mit Vorbohren
   wurde am Anfang der Morph-Helix auf ihrem Kreis gebohrt, nicht in ihrer Mitte, und mit dem Loch
   fiel der Morph weg (2,1 statt 1,6 min, die Rampe blieb) – *behoben, P-2026-11-12-04*.
+
+### 13.8 Ringnut fräsen – hinter der Kante (2026-11-14)
+
+Anlass: das Lagerschild einer Pumpe, in der Lagerbohrung Ø 62 die Sicherungsringnut Ø 65,1 × 2,13
+breit, 1,55 tief. Bis 0.371.2 blieb sie im Assistenten unbearbeitet – oder schlimmer: Klickte man
+sie an, nahm „Bohrung fräsen“ die Nutwand als Bohrung Ø 65 und hätte den Rand darüber bis auf
+Ø 65 aufgefräst (am Beispielteil `beispiele/ringnut_lagersitz.FCStd` nachgerechnet: die Helix mit
+dem Ø 12 bis an R 32,2 von z 30 bis 23,85). Code: `camaddon/ringnut_bahn.py` (Erkennen,
+Werkzeug, Bahn, eigene Prüfung), `camaddon/ringnut.py` (Operation), Block `_Ringnut` in
+`gui_bearbeitung.py`; Prüfung `tests/test_ringnut.py`, Szenario `tests/gui/szenario_ringnut.py`.
+
+**Erkennen.** Eine senkrechte Zylinderfläche mit Material außen, ganz herum (auch aus Teilflächen
+– ein STEP teilt Zylinder in Hälften), deren Radius R größer ist als der kleinste Radius
+r_zugang der Bohrungsabschnitte derselben Achse über ihr bis zur Oberkante. Darunter: eine
+kleinere Bohrung (durch oder mit Boden) oder ein Boden (Hinterstich am Grund). **Nach unten
+offen ist keine Ringnut** (Zweifler, Nacharbeit 14.11.): Eine Gegenbohrung, Senkung oder ein
+Lagersitz von unten (Ø 10 durch, Ø 20 × 12 von unten) hieß zuerst Ringnut, mit der Unterseite des
+Teils als „Ringfläche“ – sie verlor „unerreichbar“ und damit das Umspannen. Jetzt bleiben Zugang,
+„unerreichbar“ und `bohrungen` dort wie bis 0.371 (an allen 54 Körpern der Beispielteile
+gleich); die Ringflächen sind nur Ebenen ganz im Kreis R. Geht die Nutwand nicht ganz herum (eine
+Querbohrung Ø 6 teilt sie in 2 × 2,67 rad), ist sie eine Ringnut, wenn der Ring zwischen der
+Bohrung darüber und R frei von Material ist (OpenCascade-Schnitt ≤ 0,001 mm³); ein Steg darin
+sperrt sie. Am Grund fräst „Bohrung fräsen“ die Wand darüber als Sackbohrung bis auf den Boden
+der Nut (sonst blieb der Kern bis z 9,5 stehen, und „Ringnut fräsen“ wartete auf eine Bohrung,
+die keine Strategie fertig macht). Kommt an eine Nut kein üblicher Scheibenfräser
+(vorschlag_werkzeug: keiner), bleibt sie für den Zugang „unerreichbar“. Ragt
+zwischen Nut und Oberkante etwas in die Bohrung, das nicht rund um die Achse ist (Steg, Nase:
+OpenCascade-Schnitt der Abschnitte, 0,01 mm eingezogen, mit dem Teil > 0,001 mm³), oder ist die
+Bohrung oben zu, ist sie nicht erreichbar – mit Grund. Solche Flächen nimmt keine andere
+Strategie (`bohrung_bahn.bohrungen` lässt Wände unter einem Rand aus, im Assistenten bekommt nur
+„Ringnut fräsen“ sie); der Zugang (`zugang`) zählt die erreichbaren zu „von oben“.
+
+**Werkzeug** (Nutenfräser – Scheiben-, T-Nuten-, Keilnutfräser; seit diesem Patch mit Feld
+Halslänge; ein Keyway aus FreeCAD bringt sie als NeckHeight mit). **Nur eingetragene Maße**: Ohne
+Breite der Scheibe passt er nicht („eintragen“); ohne Halslänge kein Hals, der Schaft gleich über
+der Scheibe („Halslänge eintragen“, wenn das anstößt); ohne Hals-Ø so dick wie der Schaft, ohne
+Schaft-Ø so dick wie die Scheibe. Geschätzt (0,3 · D × 0,25 · D) hieß ein Keyway Ø 19 mit Hals Ø 6 ×
+3 und Schaft Ø 16 passend – der Schaft lag 1 mm im Rand. Es passt, wenn – mit SPIEL 0,3 mm je Seite,
+SPIEL_OBEN 0,5 mm – die Scheibe mittig durch die Bohrung geht (D/2 ≤ r_zugang − 0,3), der Hals am
+Rand nicht anstößt, wenn die Scheibe auf R steht ((D − d_Hals)/2 ≥ Tiefe + 0,3 über jedem Abschnitt
+bis zur Kante), die Scheibe nicht breiter ist als die Nut, und was dicker ist als der Hals (Schaft,
+Halter) 0,5 mm über dem bleibt, was über der Oberkante innerhalb von e + r steht – nachgerechnet im
+Schnitt r–z mit dem Profil des Werkzeugs bei jedem Versatz e. Von mehreren der, der die meisten
+Nuten kann, dann der größte Ø. Je Werkzeug der Grund, warum es nicht passt. Passt keins:
+„Scheibenfräser Ø höchstens …, Scheibe höchstens … breit; bei Ø … der Hals höchstens Ø …, mindestens
+… lang (Schaft Ø …)“ – Hals und Länge gelten für den Ø und Schaft des Vorschlags –, dazu ein
+passender aus dem Katalog der Hersteller (1 900 Nutenfräser, Hals geschätzt) und ein Knopf, der den
+Vorschlag anlegt: der größte übliche Ø (Reihe 6 … 100), Scheibe so breit wie die schmalste Nut, Hals
+so dick wie es geht (höchstens D/2), 2 mm länger als nötig.
+
+**Bahn.** Eilgang über die Achse, knapp über die Oberkante, dann mittig hinab bis auf Nuthöhe. Die
+Bohrung muss fertig sein: Steht im Materialstand davor innerhalb D/2 + 0,3 (höchstens bis 0,05 vor
+die Wand) noch etwas über der Nut, geht es nicht – „erst die Bohrung fertig fräsen“ (mit 0,5 mm
+Wandaufmaß lag die Scheibe Ø 19,4 in der Ø 20 sonst 0,2 mm in der Wand). Im **Eilgang** hinab nur
+mit Materialstand und mindestens 1 mm Luft rundum (EILGANG_LUFT = kollision.WARNABSTAND – mit 0,3 mm
+meldete „Kollision prüfen“ jede Ringnut mit dem eigenen Vorschlag Ø 19 in der Ø 20); der Eilgang
+endet den Sicherheitsabstand (2 mm) über der Nuthöhe, den Rest und alles andere – ohne
+Materialstand, mit wenig Luft – fährt der Eintauchvorschub. Am Grund läge die Scheibe sonst im
+Eilgang auf dem Boden; von Höhe zu Höhe einer breiten Nut ebenfalls im Vorschub. Je Höhe: Halbkreis
+aus der Mitte tangential auf den ersten Kreis, je radiale Stufe (ae: das des Einsatzes, höchstens
+0,1 · D – die Vollnut-Richtwerte nennen ae = D) ein Halbkreis hinüber und ein voller Kreis, bis R −
+0,1, dann der **Kreis auf Maß** (Sicherungsringnuten sind toleriert, DIN 472 d2 H12/H13), Halbkreis
+tangential zurück zur Mitte. Ist die Nut breiter als die Scheibe, mehrere Höhen, je um 20 % der
+Scheibenbreite überlappt, von oben nach unten (jede weitere schneidet unten und am Umfang, die Späne
+fallen in die Bohrung). Gleichlauf G3, Vollkreise in Vierteln wie `bohrung_bahn`. Der Vorschub der
+Mitte ist e ÷ (e + D/2) des Vorschubs an der Schneide (Innenkreis: am Beispiel 0,71). Mehrere Nuten:
+je Bohrung von oben nach unten, ohne herauszufahren; die Bohrungen nach dem kürzesten Weg. Im Job
+nach dem Fertigbearbeiten der Bohrung (STRATEGIEN nach „Reiben“, Abschnitt „Schlichten“).
+
+**Prüfen.** Die Höhenfeld-Prüfer sehen das Teil von oben und kennen keinen Überhang. Darum: der
+Materialstand und der Abtrag im Quader (Abfahren) nehmen die Ringnut nicht – von oben nimmt sie
+nichts weg; der räumliche Materialstand der 3+2-Ebenen lässt die Nut stehen (kein vorgetäuschter
+freier Raum). Die Bahn prüft sich selbst (`ringnut_bahn.pruefen`): jeder Punkt, Bögen alle 5°,
+jedes Stück des Werkzeugs gegen die Abschnitte der Bohrung. Die Kollision rechnet die Körper
+räumlich; ihr Kern der Scheibe ist in einer Operation „Ringnut fräsen“ auch oben um EINDRINGEN
+kleiner (die Scheibe so breit wie die Nut liegt oben an) – andere Operationen mit Nutenfräser
+prüfen wie bis 0.371. Die Abtragform der Simultan-Messung (`simultan_abtrag`) überspringt die
+Ringnut wie der Materialstand. Unabhängig in `tests/test_ringnut.py`, ohne ringnut_bahn,
+kollision oder reichweite: das Werkzeug als Zylinder aus den eingetragenen Maßen, die Stellen aus
+dem Programm (G0–G3, Bögen aus I, J); im Vorschub die Scheibe gegen das fertige Teil, Hals und
+Schaft gegen das Teil vor der Nut, im Eilgang alles mit 0,2 mm Zugabe gegen das Teil vor der Nut
+(je 0 mm³) – an der Platte, mit 2 mm Luft im Eilgang, am Grund und mit Querbohrung; Abstand Hals –
+Rand aus dem Dreiecksnetz, und die Nutflächen im Hüllkörper der Scheibe.
+
+**Am Beispielteil** (Vorschlag für beide Nuten: Scheibenfräser VHM Ø 19 × 2,15, Hals Ø 9,5 × 11,
+Schaft 10; Richtwerte vc 140, fz 0,076, vf 1 070 mm/min an der Schneide):
+
+| Nut | Höhen | Kreise | Zeit | Hals – Rand | Rest | Übermaß |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Ø 65 × 2,15, 1,5 tief (Lagersitz Ø 62) | 1 | 2 | 0,60 min | 3,25 mm | 0,003 mm | 0 |
+| Ø 24 × 3, 2 tief (Bohrung Ø 20) | 2 | 4 | 0,49 min | 2,75 mm | 0,0001 mm | 0 |
+
+Zusammen 1,11 min (mit fertigen Bohrungen im Materialstand): in den Lagersitz im Eilgang bis 2 mm
+über die Nut, in die Ø 20 (0,5 mm Luft) mittig im Eintauchvorschub (353 mm/min, 12 mm).
+
+Allein: für die Lagernut ein Ø 50 × 2,15 (Hals Ø 25 × 7), für die O-Ring-Nut ein Ø 19 × 3.
+
+**Ohne Materialstand** (davor eine Simultan-Operation oder eine gedrehte Rundachse –
+`materialstand.fuer` gibt None) sieht niemand, ob die Bohrung über der Nut fertig ist. Dann rechnet
+die Operation nur, wenn eine aktive Operation davor im Job eine Wand der Bohrung über der Nut
+fräst (`ringnut._bohrung_davor`, `ringnut_bahn.waende_ueber`); sonst der Satz „die Bohrung im
+selben Job davor fräsen“. Hinab geht es dann mittig im Vorschub, nicht im Eilgang.
+
+**Fehlt einem Nutenfräser nur ein Maß** (Breite der Scheibe, Halslänge – für die Zusage zählen nur
+eingetragene Maße, keine Schätzung), bietet „Nicht fertig“ den Knopf „T… öffnen …“ statt eines
+zweiten Fräsers (`ringnut_bahn.mass_fehlt`). Seit 0.372.0 liest der Import aus FreeCAD die
+Halslänge (NeckHeight) auch beim Keyway – das gilt für alle Operationen mit diesem Werkzeug
+(Reichweite, Kollision).
+
+**Grenzen:** Eine Nut mit Radien im Grund oder Fasen an den Kanten wird noch nicht erkannt (die
+Torus-/Kegelflächen unterbrechen die Kette der Wände) – ihre Flächen bleiben wie bisher.
+
+**Nicht gebaut (spätere Erweiterung):** Außennuten an Wellen und Zapfen, T-Nuten an geraden
+Wänden, Rückwärtssenken (nach unten offene Erweiterungen bleiben „unerreichbar“: umspannen).
 
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 
