@@ -543,9 +543,9 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
    (0.376.0)** – Erkennen jeder umlaufenden Nut, Hobelbahn mit Spindelwinkel je Satz, Werkzeugart
    Stoßwerkzeug mit Einsatz „Hobeln“, Operation, Programm für alle Steuerungen (Siemens SPOS, Heidenhain
    Zyklus 13, LinuxCNC/Haas M19 R, Fanuc/Mach4 M19 S; Mazak zum Eintragen; GRBL/woodWOP können es nicht).
-   **Weiter:** der Block im Assistenten – das Vorfräsen (heute Räumen) muss am Grund der gehobelten Nuten
-   den Rest stehen lassen, nur dort (Auftrag liegt bereit); danach Prüfung „Klinge gegen Nutwände“ in der
-   Vorschau, Optionen ohne Halt je Satz (TANG, Spindel als Rundachse).
+   **0.377.0: im Assistenten, aus dem Vollen.** Weiter: Frage 2 (Breite der Nut), Optionen ohne Halt je
+   Satz (TANG, Spindel als Rundachse), Interpolationsdrehen für runde Nuten; Werkzeugname in der Auswahl
+   abgeschnitten.
 5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – **gebaut in 0.376.0**
    („C, A −90° – Rohr im Futter auf dem Rundtisch“), B-037 behoben; Kopf/Tisch geht schon. **Offen:** die
    4. Achse auf einer 3-Achs-Fräse – Futter horizontal längs X/Y, Werkzeug von oben, Reitstock als Option;
@@ -618,6 +618,16 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.377.0):* **Dichtnut hobeln im Assistenten – aus dem Vollen, ohne Fräser** (Manuel, 2026-11-14:
+  „das ja Sinn der Sache das man es nicht fräst“). Grund oder Wand der Nut anklicken: Fehlt ein
+  Stoßwerkzeug, legt ein Knopf eins an (am Deckel 3,5 × 0,8, Stechtiefe 5) und hakt „Dichtnut hobeln“ an;
+  Räumen, Kontur und Nut lassen die Nut dann ganz weg. Einfahrt senkrecht bis 0,3 über der Oberkante, dann
+  stetiges Gefälle durch die Nut (Zustellung vom Werkzeug, Richtwert 0,08 × Faktor der Werkstoffklasse),
+  ebener Umlauf, Leerumläufe; ist die Klinge schmaler als die Nut, Spur für Spur je von oben bis unten.
+  Die Klinge wird als Rechteck in jeder Stellung gegen die Wände geprüft, auch mit dem Schwenk der
+  Steuerungen, die den Winkel vor dem Satz stellen (Zweifler-Fund: dort 0,03–0,18 mm in der Wand – behoben).
+  Deckel: 49 Umläufe je Spur, 2 Spuren, 4,4 min. Haken „Vorher fräsen, Rest hobeln“ (aus) für den alten Weg.
+  Offen: Frage 2 (die Nut wird bis 0,05 mm je Seite schmaler).
 - *Neu (0.376.0):* **4-Achs an der Tisch/Tisch: das Rohr im Dreibackenfutter auf dem Rundtisch** (Manuel,
   2026-11-15). Im 4-Achs-Assistenten steht an der Tisch/Tisch als erste Rundachse „C, A −90° – Rohr im Futter
   auf dem Rundtisch, Werkzeug von oben“: Das Rohr steht mittig im Futter (Körper in Bild und Kollision), die

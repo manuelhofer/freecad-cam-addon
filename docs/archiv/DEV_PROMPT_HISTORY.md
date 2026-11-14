@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-06 dichtnut-hobeln-im-assistenten
+
+### EINGELESEN
+- Manuel, 2026-11-14: „Die Einfahrt muss flach passieren also an einem geraden Stück in einer Rampe ins
+  Bauteil also 0.3 mm vor Oberkante anfangen und in Richtung der Nut fahren und dabei auf zustelltiefe
+  runter Fahren...“; „Ja man kann die Zustellung auch über die komplette Nut machen ist sinnvoller ja auch
+  die erste Zustellung einfach so machen .... Das es sozusagen eine stetiges gefallen durch die Nut geht...
+  ich glaube 0.08 mm span ist da angesagt beim Nut räumen“; „Die Zustellung ist ja Werkzeug abhängig ...“;
+  „Wenn die Werkzeug schneide kleiner ist als die Nut wird versetzt???“; „Ne das hobeln sollte auch bei
+  nicht vor gefraeseter Nut funktionieren oder?? Also das ja Sinn der Sache das man es nicht fräst“;
+  „das man die schmale Nut fährt auf der einen Seite und dann wieder oben anfängt und dann an der anderen
+  Seite entlang die selbe Nut fährt“; „das im Wechsel wie soll das bei einer konstanten Spirale nach unten
+  funktionieren??“; „Man sieht irgendwie nichts was was macht“.
+
+### DATEIEN
+- `camaddon/hobeln_bahn.py`, `hobeln.py`, `gui_bearbeitung.py`, `raeumen*.py`, `kontur*.py`,
+  `postprozessor.py`, `werkzeugkiste.py`, `uebergabe_werkzeuge.py`; `tests/test_hobeln.py`,
+  `tests/gui/szenario_hobeln.py`; Hilfe Bearbeitung Abschnitt 21 de/en; translations;
+  `docs/spezifikation_strategien.md` 13.10, `docs/STATUS_SNAPSHOT.md`, `docs/OFFENE_FRAGEN.md` (Frage 2);
+  `package.xml` 0.377.0.
+
+### ERGEBNIS
+- Block „Dichtnut hobeln“ im Assistenten; Vorgabe aus dem Vollen (Räumen/Kontur/Nut lassen die Nut weg),
+  Einfahrt 0,3 über der Oberkante, stetiges Gefälle, Zustellung vom Werkzeug (Richtwert 0,08), Spur für
+  Spur; Knopf legt ein Stoßwerkzeug an und hakt an; Stechtiefe geprüft. Workflow Bauer + Zweifler (8 Funde,
+  drei gefährlich: Schwenk vor dem Satz in der Wand, Klinge in volles Material, Wandaufmaß) + Nacharbeit.
+- Geprüft: test_hobeln, test_raeumen, test_kontur, test_testteil, test_goldene_bahnen, test_sprache,
+  test_postprozessor, test_uebergabe_werkzeuge, test_werkzeugkiste; szenario_hobeln (Bilder angesehen).
 ## P-2026-11-15-05 hobeln-uebergabe-und-m5
 
 ### EINGELESEN
