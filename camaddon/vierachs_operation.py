@@ -828,7 +828,9 @@ def kommentar_vorn(op):
 def pfad_kommentar(op):
     """Der Kommentar vorn in der Bahn einer Operation in geschwenkter Lage (Path.Command-Name):
     nur über „Programm schreiben“ des Addons ein Maschinenprogramm."""
-    text = _ascii(tr("vo.pfad.geschwenkt", schwenk=schwenk_anzeige(op)))
+    # „A −90°“ in ASCII: „A -90“ – sonst „A ?90?“ (_ascii ersetzt, was es nicht kennt).
+    schwenk = schwenk_anzeige(op).replace("−", "-").replace("°", "")
+    text = _ascii(tr("vo.pfad.geschwenkt", schwenk=schwenk))
     return f"{KOMMENTAR_GESCHWENKT} {text})"
 
 

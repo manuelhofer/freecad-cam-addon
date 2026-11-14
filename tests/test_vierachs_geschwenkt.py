@@ -133,7 +133,7 @@ pruefe(
 pruefe("C" in achsen_der_bahn and "A" not in achsen_der_bahn, f"Bahn: {achsen_der_bahn}")
 # Vorn in der Bahn: Nur über „Programm schreiben“ des Addons ist sie ein Maschinenprogramm.
 pruefe(
-    any(b.Name.startswith(vo.KOMMENTAR_GESCHWENKT) for b in befehle[:3]),
+    any(b.Name.startswith(vo.KOMMENTAR_GESCHWENKT) and "[A -90]" in b.Name for b in befehle[:3]),
     f"Bahn ohne Kommentar vorn: {[b.Name for b in befehle[:3]]}",
 )
 
