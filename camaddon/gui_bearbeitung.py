@@ -2339,6 +2339,13 @@ class _SchlichtenDanach(_Strategie):
                 tr("ba.schlichten_danach.zeilenabstand"),
                 tr("ba.schlichten_danach.zeilenabstand.tooltip"),
             ),
+            # Der Rest nach diesem Gang – „Weiter bearbeiten“ trägt ihn ein (aufmass_setzen):
+            # zwei gleiche Schnitte mit Messen dazwischen (Manuel, 2026-11-14).
+            (
+                "aufmass",
+                tr("ba.schlichten_danach.rest"),
+                tr("ba.schlichten_danach.rest.tooltip"),
+            ),
         )
 
     def haken(self):
@@ -2375,6 +2382,7 @@ class _SchlichtenDanach(_Strategie):
         schneide = float(werkzeug.schneidenlaenge or 0.0)
         aufmass_boden = float(werte.get("aufmass_boden", 0.0))
         aufmass_wand = float(werte.get("aufmass_wand", 0.0))
+        gang_rest = max(float(werte.get("aufmass", 0.0) or 0.0), 0.0)  # bleibt nach diesem Gang
         boeden = list(werte.get("boden_flaechen") or [])
         waende = list(werte.get("wand_flaechen") or [])
         boden = wand = None
@@ -2382,7 +2390,7 @@ class _SchlichtenDanach(_Strategie):
             try:
                 boden = ra.vorschau(
                     job, job.Model.Group, form, werte["zustellung"], werte["zeilenabstand"],
-                    aufmass_wand, boeden, aufmass_boden=0.0, gleichlauf=werte["gleichlauf"],
+                    aufmass_wand, boeden, aufmass_boden=gang_rest, gleichlauf=werte["gleichlauf"],
                     schneidenlaenge=schneide, vorschub=werte.get("vorschub", 0.0),
                     eintauchen=werte.get("eintauchen", 0.0), stand=stand,
                 )  # fmt: skip
@@ -2393,6 +2401,7 @@ class _SchlichtenDanach(_Strategie):
                 wand = ko.vorschau(
                     job, job.Model.Group, form, werte["zustellung"], aufmass_wand, aufmass_wand,
                     True, waende, breite=aufmass_wand, schneidenlaenge=schneide, stand=stand,
+                    rest=gang_rest,
                 )  # fmt: skip
             except mst.SchonWeg:
                 wand = None
@@ -10369,6 +10378,8 @@ class BearbeitungPanel:
         if angebot is None:
             angebot = self._ringnut_angebot(form, namen)
         if angebot is None:
+            angebot = self._bohrer_angebot_unfertig(namen)
+        if angebot is None:
             self._unfertig_aktion = None
             self.unfertig_angebot.hide()
         else:
@@ -12536,6 +12547,29 @@ class BearbeitungPanel:
             (d, winkel, tiefe, namen) for (d, winkel), (tiefe, namen) in sorted(fehlend.items())
         ]
 
+    def _bohrer_angebot_unfertig(self, namen):
+        """(Satz, Knopf, Aktion) unter „Nicht fertig“ – oder None: Sind unter den unfertigen
+        Flächen Bohrungen, in die der Fräser von „Bohrung fräsen“ nicht kommt und die kein Bohrer
+        der Werkzeugverwaltung bohrt (_fehlende_bohrer), der Knopf „Bohrer Ø … anlegen“. Unter dem
+        Block „Bohrung fräsen“ stand er schon – wer über „Alles vorschlagen“ in der Übersicht
+        landet, sah ihn nicht (Manuels Lagerschild: 52 Flächen „nicht fertig“, darunter 34
+        Bohrungen Ø 6 bis 11, ohne Knopf)."""
+        fehlend = self._fehlende_bohrer(self.bohrung, namen)
+        if not fehlend:
+            return None
+        flaechen = [n for _d, _w, _t, liste in fehlend for n in liste]
+        durchmesser = [
+            f"Ø {groesse_zeigen(d, einheiten.LAENGE, 2) or '0'}"
+            + ("" if abs(winkel - bh.SPITZENWINKEL) <= bh.GLEICH_WINKEL else f" {winkel:g}°")
+            for d, winkel, _t, _n in fehlend
+        ]
+        satz = tr(
+            "ba.bohrung.bohrer_fehlt",
+            flaechen=", ".join(flaechen[:4]) + (" …" if len(flaechen) > 4 else ""),
+        )
+        knopf_text = tr("ba.bohrer_anlegen.knopf", d=", ".join(durchmesser))
+        return satz, knopf_text, lambda: self._bohrer_anlegen(fehlend)
+
     def _bohrer_anlegen(self, fehlend):
         """„Bohrer Ø … anlegen“ unter „Bohrung fräsen“: je Durchmesser aus _fehlende_bohrer ein
         Bohrer wie fürs Vorbohren (_vorbohrer_anlegen); dann die Haken neu – „Bohren“ übernimmt
@@ -13297,6 +13331,7 @@ class BearbeitungPanel:
         fand. In der Transaktion von _anlegen; gibt die neuen Operationen zurück."""
         bahn = self.schlichten_danach.vorschau
         werkzeug = f"T{tc.ToolNumber}"
+        gang_rest = max(float(werte.get("aufmass", 0.0) or 0.0), 0.0)  # bleibt nach diesem Gang
         ops = []
         if werte.get("messstopp"):
             # Mit dem, was ein Taster dort messen würde (Plan C3b): die gewählte Tasche, Bohrung
@@ -13307,7 +13342,7 @@ class BearbeitungPanel:
             ops.append(
                 ra.lege_an(
                     self.job, tc, werte["zustellung"], werte["zeilenabstand"],
-                    werte["aufmass_wand"], 0.0, werte["gleichlauf"],
+                    werte["aufmass_wand"], gang_rest, werte["gleichlauf"],
                     name=tr("ba.schlichten_danach.boden_name", werkzeug=werkzeug),
                     flaechen=werte["boden_flaechen"],
                 )  # fmt: skip
@@ -13324,6 +13359,7 @@ class BearbeitungPanel:
                 ko.lege_an(
                     self.job, tc, werte["zustellung"], aufmass, aufmass, True, aufmass, name,
                     flaechen=bahn.kontur_waende, korrektur=bool(werte.get("korrektur")),
+                    rest=gang_rest,
                 )  # fmt: skip
             )
         if getattr(bahn, "ring", None) is not None:

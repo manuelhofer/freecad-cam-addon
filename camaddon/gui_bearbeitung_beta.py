@@ -65,6 +65,7 @@ EIGENSCHAFT_FLAECHEN = "CamAddonBetaFlaechen"
 EIGENSCHAFT_ABSCHNITT = "CamAddonBetaAbschnitt"
 GRUPPE = "CAM-Addon Beta"
 AUFMASS_STUFE = 1.0  # mm: so viel weniger Aufmaß schlägt „Weiter bearbeiten“ je Gang vor
+ZWEI_AB = 1.0  # mm: steht davor höchstens so viel, sind „zwei gleiche Schnitte“ angehakt
 TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
 FERTIG_ZEIGEN = "BetaFertigZeigen"  # Parameter: nach „Anlegen“ das Fenster „Angelegt“ (an)
 FERTIG_ZEILEN = 14  # so viele Operationen zeigt es ohne Blättern
@@ -2063,6 +2064,8 @@ class BetaPanel(BearbeitungPanel):
         geht das Anlegen nicht, kommt er wieder heraus."""
         stopp = None
         ops = list(self.job.Operations.Group) if self.job is not None else []
+        folge = getattr(self, "_beta_folge", None)
+        davor_namen = {o.Name for o in ops}
         if getattr(self, "_beta_messstopp", False) and ops:
             from . import messstopp as ms
 
@@ -2083,7 +2086,42 @@ class BetaPanel(BearbeitungPanel):
                 tc = getattr(mit, "ToolController", None)
                 if tc is not None:
                     ms.korrektur_setzen(stopp, int(tc.ToolNumber))
+        if ergebnis and folge:
+            self._beta_folge = None  # nur einmal
+            self._folge_anhaengen(folge, davor_namen)
         return ergebnis
+
+    def _folge_anhaengen(self, folge, davor_namen):
+        """Hinter die gerade angelegten Operationen die Folge aus „Weiter bearbeiten“: Leerfahrt,
+        Messstopp, derselbe Schnitt auf das Ende, Leerfahrt (gangfolge.folge). Geht es nicht,
+        bleibt, was angelegt ist – mit einer Warnung im Protokoll."""
+        from . import gangfolge as gf
+        from . import messstopp as ms
+
+        neu = [o for o in self.job.Operations.Group if o.Name not in davor_namen]
+
+        def stopp_anlegen(davor, danach):
+            if not folge.get("messstopp"):
+                return None
+            return ms.lege_an(
+                self.job, davor.ToolController, danach.ToolController, messmerkmal(self.job, davor)
+            )
+
+        try:
+            ergebnis = gf.folge(
+                self.job, neu, folge.get("ende"), bool(folge.get("leerfahrt")), stopp_anlegen
+            )
+            if ergebnis.stopp is not None and getattr(self, "_beta_korrigieren", False):
+                mit = next(
+                    (o for o in ergebnis.fertig if getattr(o, "Radiuskorrektur", False)), None
+                )
+                tc = getattr(mit, "ToolController", None)
+                if tc is not None:
+                    ms.korrektur_setzen(ergebnis.stopp, int(tc.ToolNumber))
+            if ergebnis.alle:
+                self.job.Document.recompute()
+        except Exception as fehler:  # noqa: BLE001 – die angelegten Operationen bleiben
+            FreeCAD.Console.PrintWarning(f"Beta: Folge nicht angelegt: {fehler}\n")
 
     def _nur_diese_anlegen(self, aktive):
         bis = self._beta_bis
@@ -2308,6 +2346,8 @@ class BefehlWeiterBearbeiten:
                 frage.messstopp.isChecked(),
                 frage.aufmass_wert(),
                 frage.korrigieren_wert(),
+                zwei=frage.zwei_wert(),
+                leerfahrt=frage.leerfahrt_wert(),
             )
 
 
@@ -2368,9 +2408,26 @@ class WeiterFrage(QtGui.QDialog):
         zeile.addWidget(QtGui.QLabel(einheiten.einheit(einheiten.LAENGE)))
         zeile.addStretch()
         aufbau.addLayout(zeile)
-        hinweis = _grau(tr("beta.weiter.aufmass"))
-        hinweis.setWordWrap(True)
-        aufbau.addWidget(hinweis)
+        # Der Satz dazu steht im Tooltip der Zeile (wenig Text im Fenster – mit den Haken darunter
+        # überlagerte er sie): „Für mehrere Gänge … je Gang „Weiter bearbeiten““.
+        self.aufmass_beschriftung.setToolTip(tr("beta.weiter.aufmass"))
+        # Zwei gleiche Schnitte mit Messen dazwischen, und Leerfahrten (Manuel, 2026-11-14: „a“ –
+        # „aber es muss auch die möglichkeit geben das man leerfahrten eingeben kann“; gangfolge).
+        # Angehakt, sobald davor höchstens ZWEI_AB stehen: Dann steht im Feld das Ende (0), der
+        # erste Schnitt nimmt die Hälfte.
+        self._davor = gang_davor(job)
+        self.zwei = QtGui.QCheckBox(tr("beta.weiter.zwei"))
+        self.zwei.setToolTip(tr("beta.weiter.zwei.tooltip"))
+        self.zwei.setChecked(0.0 < self._davor <= ZWEI_AB + 1e-9)
+        aufbau.addWidget(self.zwei)
+        self.zwei_text = _grau()
+        self.zwei_text.setContentsMargins(22, 0, 0, 0)
+        aufbau.addWidget(self.zwei_text)
+        self.leerfahrt = QtGui.QCheckBox(tr("beta.weiter.leerfahrt"))
+        self.leerfahrt.setToolTip(tr("beta.weiter.leerfahrt.tooltip"))
+        aufbau.addWidget(self.leerfahrt)
+        self.zwei.toggled.connect(self._aufmass_zeigen)
+        self.aufmass.textChanged.connect(self._aufmass_zeigen)
         for knopf_ in self.wahl.values():
             knopf_.toggled.connect(self._aufmass_zeigen)
         self._aufmass_zeigen()
@@ -2389,6 +2446,39 @@ class WeiterFrage(QtGui.QDialog):
         an = self.abschnitt() in (SCHRUPPEN, SCHLICHTEN)
         self.aufmass.setVisible(an)
         self.aufmass_beschriftung.setVisible(an)
+        schlichten = self.abschnitt() == SCHLICHTEN
+        self.zwei.setVisible(schlichten and self._davor > 0)
+        self.leerfahrt.setVisible(schlichten)
+        ende = self.aufmass_wert()
+        zeigen = self.zwei_wert() and ende is not None
+        if zeigen:
+            from . import gangfolge as gf
+
+            self.zwei_text.setText(
+                tr(
+                    "beta.weiter.zwei.aufmass",
+                    halb=groesse_zeigen(gf.halbes_aufmass(self._davor, ende), einheiten.LAENGE, 3)
+                    or "0",
+                    ende=groesse_zeigen(ende, einheiten.LAENGE, 3) or "0",
+                )
+            )
+        self.zwei_text.setVisible(bool(zeigen))
+        if hasattr(self, "messstopp"):  # mit zwei Schnitten steht er zwischen ihnen
+            self.messstopp.setText(
+                tr("beta.weiter.messstopp.zwischen") if zeigen else tr("beta.weiter.messstopp")
+            )
+        self.adjustSize()
+
+    def zwei_wert(self):
+        """In zwei gleichen Schnitten? Nur beim Schlichten, und nur, wenn davor mehr steht als
+        das Ende im Feld."""
+        if self.abschnitt() != SCHLICHTEN or not self.zwei.isChecked():
+            return False
+        ende = self.aufmass_wert()
+        return ende is not None and self._davor > ende + 1e-9
+
+    def leerfahrt_wert(self):
+        return self.abschnitt() == SCHLICHTEN and self.leerfahrt.isChecked()
 
     def aufmass_wert(self):
         """Das Aufmaß dieses Gangs (mm) – None, wenn der Schritt keins hat oder das Feld leer ist."""
@@ -2617,14 +2707,29 @@ def _hat_loecher(job):
     return False
 
 
+def gang_davor(job):
+    """So viel ließ der letzte Gang im Job stehen (mm): die letzte Operation mit Werkzeug – ihr
+    Schlichtrest, ihr Aufmaß am Boden oder ihr Aufmaß (leerfahrt.gang_aufmass); 0 ohne Angabe."""
+    from . import leerfahrt as lf
+    from . import messstopp as ms
+
+    for op in reversed(list(job.Operations.Group)):
+        if getattr(op, "ToolController", None) is None or ms.ist_messstopp(op):
+            continue
+        aufmass = lf.gang_aufmass(op)
+        if aufmass is None:
+            return 0.0
+        if lf.gang_feld(op) == "AufmassBoden":
+            # Ein Räumen lässt an der Wand und am Boden stehen – das Größere ist noch zu holen.
+            aufmass = max(aufmass, float(getattr(op, "Aufmass", 0.0) or 0.0))
+        return max(0.0, float(aufmass))
+    return 0.0
+
+
 def aufmass_vorschlag(job):
-    """Das Aufmaß für den nächsten Gang: das der letzten Operation mit Werkzeug (ihre Eigenschaft
-    „Aufmass“) weniger AUFMASS_STUFE, nicht unter 0."""
-    ops = list(job.Operations.Group)
-    davor = next((op for op in reversed(ops) if getattr(op, "ToolController", None)), None)
-    aufmass = getattr(davor, "Aufmass", 0.0)
-    aufmass = float(getattr(aufmass, "Value", aufmass) or 0.0)
-    return max(0.0, round(aufmass - AUFMASS_STUFE, 3))
+    """Das Aufmaß für den nächsten Gang: was der letzte stehen ließ (gang_davor) weniger
+    AUFMASS_STUFE, nicht unter 0."""
+    return max(0.0, round(gang_davor(job) - AUFMASS_STUFE, 3))
 
 
 def aufmass_setzen(panel, ab, aufmass):
@@ -2636,11 +2741,24 @@ def aufmass_setzen(panel, ab, aufmass):
     panel.vorschau_starten()
 
 
-def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None, korrigieren=False):
+def weiter_bearbeiten(
+    job, ab, messstopp=False, aufmass=None, korrigieren=False, zwei=False, leerfahrt=False
+):
     """Öffnet die Beta am Job `job` beim Abschnitt `ab` – mit den gemerkten Flächen; `messstopp`:
     vor den neuen Operationen ein Messstopp (messstopp.py); `aufmass` (mm): das Aufmaß dieses Gangs
     für die Strategien des Abschnitts; `korrigieren`: der Messzyklus korrigiert den Schlichtfräser
-    – dafür schlichten die Strategien mit Radiuskorrektur (Haken „korrektur“)."""
+    – dafür schlichten die Strategien mit Radiuskorrektur (Haken „korrektur“). `zwei`: in zwei
+    gleichen Schnitten – der Assistent legt den ersten mit dem halben Aufmaß an, „Anlegen“ hängt
+    den Messstopp und denselben Schnitt auf `aufmass` an (gangfolge.folge); `leerfahrt`: nach
+    jedem Schnitt derselbe noch einmal."""
+    from . import gangfolge as gf
+
+    davor = gang_davor(job)
+    ende = aufmass
+    if zwei and aufmass is not None and davor > aufmass + 1e-9:
+        aufmass = gf.halbes_aufmass(davor, ende)
+    else:
+        zwei = False
     klon = vr.modell(job)
     teil = vr.original(klon)
     flaechen = list(getattr(job, EIGENSCHAFT_FLAECHEN, []))
@@ -2651,8 +2769,16 @@ def weiter_bearbeiten(job, ab, messstopp=False, aufmass=None, korrigieren=False)
         angeklickt=klon,
         flaechen=flaechen,
     )
-    panel._beta_messstopp = messstopp
+    # Mit zwei Schnitten steht der Messstopp zwischen ihnen (_anlegen), nicht davor.
+    panel._beta_messstopp = messstopp and not zwei
     panel._beta_korrigieren = bool(messstopp and korrigieren)
+    panel._beta_folge = None
+    if zwei or leerfahrt:
+        panel._beta_folge = {
+            "ende": ende if zwei else None,
+            "leerfahrt": bool(leerfahrt),
+            "messstopp": bool(messstopp and zwei),
+        }
     if panel._beta_korrigieren:
         for block in panel.bloecke:
             if abschnitt(block) == ab and "korrektur" in block.haken_felder:

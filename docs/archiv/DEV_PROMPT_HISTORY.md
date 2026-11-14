@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-14-08 zwei-schnitte-leerfahrt
+
+### EINGELESEN
+- Manuels Antwort auf Frage 1 (P-2026-11-14-06); `gui_bearbeitung_beta.WeiterFrage`, `weiter_bearbeiten`,
+  `BetaPanel._anlegen`; `messstopp.py`; `kontur_bahn._kontur` (Schlichtzug), `kontur.py`;
+  `gui_bearbeitung._SchlichtenDanach`, `_schlichten_danach_anlegen`; FreeCADs „Operation kopieren“
+  (`PathCommands._CopyOperation`).
+
+### DATEIEN
+- Neu: `camaddon/leerfahrt.py` (Operation „Leerfahrt“, `gang_feld`, `gang_aufmass`),
+  `camaddon/gangfolge.py` (`folge`, `kopie`, `halbes_aufmass`), `tests/test_gangfolge.py`.
+- `camaddon/kontur_bahn.py` (`Konturwerte.rest`), `camaddon/kontur.py` (Eigenschaft „Schlichtrest“).
+- `camaddon/gui_bearbeitung.py`: „Schlichten danach“ mit dem Feld „Rest nach diesem Gang“ (Wand und
+  Boden); `_bohrer_angebot_unfertig` (Knopf „Bohrer Ø … anlegen“ unter „Nicht fertig“).
+- `camaddon/gui_bearbeitung_beta.py`: `WeiterFrage` mit den Haken „In zwei gleichen Schnitten“ und
+  „Leerfahrt nach jedem Schnitt“, `gang_davor`, `weiter_bearbeiten(…, zwei, leerfahrt)`,
+  `BetaPanel._folge_anhaengen`; der lange graue Satz zum Aufmaß steht jetzt im Tooltip.
+- `tests/gui/szenario_beta_schritte.py` (Schritt 4c), Übersetzungen de/en,
+  `docs/spezifikation_strategien.md` (13.9), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.373.0).
+
+### ERGEBNIS
+- Prüfkörper (Klotz 40 × 30 auf Platte, Wände mit 0,3 geschruppt): erster Schnitt 6,15 mm, zweiter 6,00 mm
+  vor der Wand, je 21 Sätze; Reihenfolge Schnitt, Leerfahrt, Messstopp, „auf Maß“, Leerfahrt; die
+  Leerfahrt fährt Satz für Satz die Bahn ihrer Quelle, auch nach einer Änderung und nach Speichern/Laden.
+- Im Fenster gesehen (`szenario_beta_schritte`, Bild `6b_zwei_schnitte`): nach 0,5 mm davor „erst 0,25,
+  dann 0“, angelegt wird die Folge mit den Resten 0,25 / 0,25 / 0 / 0. Erst überlagerte der graue Satz
+  zum Aufmaß die neuen Haken – er steht jetzt im Tooltip.
+- Nicht gesehen: der Knopf „Bohrer Ø … anlegen“ unter „Nicht fertig“ (gleiche Bausteine wie unter
+  „Bohrung fräsen“); „Messstopp zwischen den beiden Schnitten“ als Beschriftung.
+- Grün: `test_gangfolge`, `test_kontur`, `test_goldene_bahnen` (nichts bewegt), `test_testteil`,
+  `test_sprache`; `szenario_beta_schritte`. Voller Lauf der 189 Oberflächen-Szenarien auf 0.372.0: alle grün.
 ## P-2026-11-14-07 nie-unter-den-teilboden
 
 ### EINGELESEN

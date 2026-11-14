@@ -536,9 +536,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 P-2026-11-14-06) – in dieser Reihenfolge:**
 1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1.** Offen dazu: den Rest an der
    Unterkante im Fenster zeigen (heute bleibt er stehen, ohne dass es jemand sagt).
-2. *„Weiter bearbeiten“ mit Messen dazwischen:* das letzte Aufmaß in zwei gleichen Schnitten (Haken,
-   angehakt ab 1 mm Aufmaß davor), dazu **Leerfahrten** (derselbe Schnitt noch einmal ohne Zustellung –
-   vorschlichten, Leerfahrt, messen, fertigschlichten, Leerfahrt), die Aufmaße frei einstellbar.
+2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
+   über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). Offen: „Bohrung fräsen“ und die Nut als
+   zwei gleiche Schnitte.
 3. *Dichtnut schaben* (neu, Manuels Wunsch): eine Nut im Deckel mit stehendem Stech-/Schabwerkzeug, die
    Spindel folgt dem Verlauf – Riefen längs der Nut, am Grund eine Dichtfläche. Erst nachlesen, wie die
    Steuerungen das können (Spindel als Achse, tangential nachgeführt), dann Vorschlag mit Bild.
@@ -610,6 +610,20 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.373.0):* **„Weiter bearbeiten“: zwei gleiche Schlichtschnitte mit Messen dazwischen, und
+  Leerfahrten** (Manuels Antwort auf Frage 1: „a – aber es muss auch die möglichkeit geben das man
+  leerfahrten eingeben kann“). Im Fenster „Womit weiter?“ zwei Haken beim Schlichten: **„In zwei gleichen
+  Schnitten (messen dazwischen)“** – angehakt, sobald davor höchstens 1 mm steht; im Feld steht das Ende
+  (0), darunter „erst 0,15, dann 0“ – und **„Leerfahrt nach jedem Schnitt“** (aus). „Anlegen“ legt dann
+  an: Schnitt mit dem halben Aufmaß → Leerfahrt → Messstopp → derselbe Schnitt auf Maß → Leerfahrt. Der
+  zweite Schnitt ist eine Kopie des ersten (gleicher Fräser, gleiche Tiefe, gleicher Vorschub) – beide Male
+  dieselbe Abdrängung. Die Leerfahrt ist eine eigene Operation, die die Bahn ihrer Quelle Satz für Satz
+  noch einmal fährt und mitrechnet, wenn die Quelle sich ändert. Dafür kann der Schlichtzug der Kontur
+  jetzt einen Rest stehen lassen („Rest nach diesem Gang“ bei „Schlichten danach“; gilt auch für den
+  Boden). Die Aufmaße sind frei (0,5 → 0,25 → 0 geht ebenso). Am Prüfkörper: erster Schnitt 6,15 mm, zweiter
+  6,00 mm vor der Wand, je 21 Sätze. Dazu: fehlen für kleine Bohrungen Bohrer, steht der Knopf „Bohrer Ø …
+  anlegen“ jetzt auch unter „Nicht fertig“ in der Übersicht (an Manuels Lagerschild fehlte er dort –
+  **diesen Knopf habe ich nicht laufen sehen**). Spezifikation Strategien 13.9.
 - *Korrektur (0.372.1):* **3D-Schlichten fährt nie unter den Teilboden** (B-033; Manuel, 2026-11-14: „das
   fertigteil darf NIEMALS irgendwie beschädigt werden … der teilboden darf nicht überfahren werden es
   müssen dann reste bleiben“). Reicht eine Freiformfläche bis an die Unterkante des Teils, rollte die Kugel
@@ -641,6 +655,7 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   nichts wartete: `szenario_schritte_alles` braucht jetzt 66 statt 665 s.
   Voller Lauf ohne Oberfläche auf 0.372.0 (14.11. früh): 147/148; `test_empfehlung` baute das
   Katalogwerkzeug noch ohne das neue Feld „Breite der Scheibe“ (nur die Prüfdatei) – berichtigt, grün.
+  Voller Lauf aller 189 Oberflächen-Szenarien auf demselben Stand: alle grün.
 - *Korrektur (0.371.3):* **Im Freien schnell: eine Ecke, die ein Zug davor nur berührt hat, steht noch.**
   Fuhren zwei Züge genau einen Fräserdurchmesser auseinander oder tangierte ein Zug eine Ecke des stehenden
   Materials (Ring bei x = 3 und y = 13 mit Ø 12: die Ecke bei 9; 7 liegt genau 6,000 entfernt), galt sie für

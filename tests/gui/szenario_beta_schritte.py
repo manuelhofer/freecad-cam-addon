@@ -505,6 +505,72 @@ def schritte(h):
     )
     h.bild("6_job", None)
 
+    # 4c. Noch einmal „Weiter bearbeiten“ – jetzt stehen 0,5: „in zwei gleichen Schnitten“ ist
+    # angehakt (erst 0,25, dann 0), dazu „Leerfahrt nach jedem Schnitt“ (Manuel, 2026-11-14:
+    # „erstes vorschlichten ... nochmal erstes vorschlichten .... dann messsen ... dann
+    # vertigschlichten ... und dann nochmal vertig schlichten“). „Anlegen“: Schnitt, Leerfahrt,
+    # Messstopp, derselbe Schnitt auf Maß, Leerfahrt.
+    from camaddon import leerfahrt as lf
+
+    with __import__("contextlib").suppress(Exception):
+        Gui.Control.closeDialog()
+    yield 500
+    beta.WeiterFrage.offen = None
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_WeiterBearbeitenBeta"))
+    yield from h.warte_auf(lambda: beta.WeiterFrage.offen is not None, 10000)
+    frage2 = beta.WeiterFrage.offen
+    if frage2 is not None:
+        frage2.wahl[beta.SCHLICHTEN].setChecked(True)
+        yield 200
+        h.pruefe(frage2.zwei.isVisible() and frage2.zwei.isChecked(), "„zwei Schnitte“ nicht an")
+        h.pruefe(frage2.aufmass.text() == "0", f"Ende: {frage2.aufmass.text()!r}")
+        h.pruefe("0,25" in frage2.zwei_text.text(), f"erst/dann: {frage2.zwei_text.text()!r}")
+        h.pruefe(not frage2.leerfahrt.isChecked(), "Leerfahrt von selbst an")
+        frage2.leerfahrt.setChecked(True)
+        yield 200
+        h.bild("6b_zwei_schnitte", frage2)
+        frage2.accept()
+        yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen not in (None, weiter), 60000)
+        zweites_fenster = beta.BearbeitungPanel.offen
+        yield from h.warte_auf(
+            lambda: zweites_fenster is not None and not zweites_fenster.vorschau_laeuft(), 300000
+        )
+        yield 1000
+        vorher = len(job.Operations.Group)
+        zweites_fenster.accept(bis_hier=True)
+        yield from h.warte_auf(
+            lambda: beta.BearbeitungPanel.offen is not zweites_fenster
+            or zweites_fenster.geschlossen,
+            120000,
+        )
+        yield 3000
+        dazu = list(job.Operations.Group)[vorher:]
+        arten = [
+            "stopp" if ms.ist_messstopp(o) else "leer" if lf.ist_leerfahrt(o) else "schnitt"
+            for o in dazu
+        ]
+        print("BETA zwei Schnitte", [o.Label for o in dazu], arten, flush=True)
+        n = arten.index("leer") if "leer" in arten else 0
+        h.pruefe(
+            n > 0
+            and arten
+            == ["schnitt"] * n + ["leer"] * n + ["stopp"] + ["schnitt"] * n + ["leer"] * n,
+            f"Folge: {arten}",
+        )
+        reste = [lf.gang_aufmass(o) for o in dazu if not ms.ist_messstopp(o)]
+        h.pruefe(
+            all(abs(r - 0.25) < 1e-6 for r in reste[: 2 * n])
+            and all(abs(r) < 1e-6 for r in reste[2 * n :]),
+            f"Reste der Gänge: {reste}",
+        )
+        # Das Fenster von Schritt 4 bleibt gehalten (`gehalten`): Fiele sein Python-Objekt hier
+        # weg, bräche FreeCAD später in closeDialog ab („double free“).
+        gehalten, weiter = weiter, zweites_fenster
+        h.pruefe(gehalten is not None, "Fenster von Schritt 4")
+
     # 5. Neue Aufspannung: derselbe Teil, ein neuer Job, Schritt 1.
     with __import__("contextlib").suppress(Exception):
         Gui.Control.closeDialog()

@@ -3143,6 +3143,31 @@ Torus-/Kegelflächen unterbrechen die Kette der Wände) – ihre Flächen bleibe
 **Nicht gebaut (spätere Erweiterung):** Außennuten an Wellen und Zapfen, T-Nuten an geraden
 Wänden, Rückwärtssenken (nach unten offene Erweiterungen bleiben „unerreichbar“: umspannen).
 
+### 13.9 Zwei gleiche Schlichtschnitte, Messen dazwischen, Leerfahrten (2026-11-14)
+
+Manuel, 2026-11-14: „schruppen .. erstes vorschlichten ... und danach nochmal erstes vorschlichten ....
+dann messsen ... dann vertigschlichten ... und dann nochmal vertig schlichten ... dann hat man immer
+100 % das richtige mass ... aber klar alles als option und auch die 0.3 sind optionen“.
+
+- **Die Folge** (`camaddon/gangfolge.py`, aus „Weiter bearbeiten“ → Schlichten): Schnitt mit dem halben
+  Aufmaß → [Leerfahrt] → [Messstopp] → derselbe Schnitt auf das Ende → [Leerfahrt]. Die Hälfte liegt
+  mitten zwischen dem, was davor steht, und dem Ende im Feld (0,3 → 0,15 → 0; 0,5 → 0,3 → 0,1).
+- **Derselbe Schnitt:** Der zweite ist eine Kopie der Operation des ersten (FreeCADs „Operation
+  kopieren“), nur das Gang-Aufmaß anders – Fräser, Tiefe, Vorschub, Ein- und Ausfahren gleich. Das
+  Gang-Aufmaß je Art (`leerfahrt.gang_feld`): beim Schlichtzug der Kontur „Schlichtrest“ (ihr „Aufmass“
+  ist das des Schruppens davor), beim Räumen der Boden („AufmassBoden“), sonst „Aufmass“.
+- **Schlichtrest:** Der Schlichtzug der Kontur fährt um den Rest vor der Wand (`Konturwerte.rest`,
+  Versatz R + Rest) – mit der Radiuskorrektur der Steuerung trägt er die Kontur um den Rest versetzt.
+- **Leerfahrt** (`camaddon/leerfahrt.py`): eine Operation mit Verknüpfung `Quelle`; sie fährt deren
+  Fahrsätze noch einmal (ohne FreeCADs angehängtes „G0 Z Freifahrhöhe“) und rechnet mit, wenn die
+  Quelle sich ändert. Sie nimmt im Materialstand nichts weg, was die Quelle nicht nahm.
+- **Messstopp:** zwischen den beiden Schnitten, nach der Leerfahrt des ersten (`messstopp.py`; mit
+  Taster und Zyklus misst die Maschine selbst, „korrigiert den Schlichtfräser selbst“ gilt für den
+  zweiten Schnitt).
+- **Vorbelegung:** „In zwei gleichen Schnitten“ angehakt, sobald davor höchstens 1 mm steht (`ZWEI_AB`);
+  „Leerfahrt nach jedem Schnitt“ aus. Alles einstellbar, auch das Ende.
+- Prüfung `tests/test_gangfolge.py`; im Fenster `tests/gui/szenario_beta_schritte.py`, Schritt 4c.
+
 ## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
 
 Manuel (2026-10-04): „wenn es frei ist und da kein Material ist … muss ich nicht langsam fahren,

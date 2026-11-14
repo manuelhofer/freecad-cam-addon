@@ -101,6 +101,9 @@ class Konturwerte:
     # Konturprogrammierung): Der Schlichtkreis trägt je Satz die Kontur des Teils (_korrektur) –
     # der Postprozessor des Addons schreibt ihn mit G41/G42; die Bahn selbst bleibt die Mitte.
     korrektur: bool = False
+    # So viel bleibt nach dem Schlichtzug an der Wand stehen – der erste von zwei gleichen
+    # Schlichtschnitten mit Messen dazwischen (gangfolge; Manuel, 2026-11-14). 0: auf Maß.
+    rest: float = 0.0
 
 
 @dataclass
@@ -1369,13 +1372,14 @@ def _kontur(
             break
     schlicht, schlichte_weitere = None, []
     if w.schlichten:
+        d_schlicht = r + max(w.rest, 0.0)  # mit Rest: derselbe Zug, um den Rest vor der Wand
         versaetze = [
-            v for v in _versaetze(k, r, toleranz, schritt, w.gleichlauf)
+            v for v in _versaetze(k, d_schlicht, toleranz, schritt, w.gleichlauf)
             if _im_rohteil(v[1].x, v[1].y, w.rohteil, r).any()
         ]  # fmt: skip
         if versaetze:
-            schlicht = (r, *versaetze[0])
-            schlichte_weitere = [(r, *v) for v in versaetze[1:]]
+            schlicht = (d_schlicht, *versaetze[0])
+            schlichte_weitere = [(d_schlicht, *v) for v in versaetze[1:]]
     alle = (
         schrupp
         + [e for schleife in weitere for e in schleife]
