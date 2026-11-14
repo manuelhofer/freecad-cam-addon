@@ -545,6 +545,9 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
    Funktionen der Steuerungen (TANG, Interpolationsdrehen, Zyklus 291) als Option beim Programm schreiben,
    das Werkzeug vorher ausgerichtet. **Bauplan in sieben Schritten: Spezifikation Strategien 13.10** –
    mit Schritt 1 (Mittellinie und Maße der Nut) anfangen. Noch nichts gebaut.
+5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – Rohr im Dreibackenfutter
+   senkrecht auf C, A/B fest auf 90°, C dreht, Z von oben; Kopf/Tisch – Kopf auf 90° (geht schon); 4. Achse –
+   Futter horizontal längs X/Y, Werkzeug von oben, Reitstock als Option. Dazu B-037 (1) klären.
 4. *Kein Dreh-CAM:* Rundes dreht Manuel auf der CLX selbst; die runden Testteile bleiben Frästests.
    „Ringnut fräsen“ bleibt als Option, wie gebaut.
 
@@ -3009,6 +3012,13 @@ Nutzungslimit ab, ich habe die Fälle selbst nachgestellt; Prüfdateien unter
   der senkrechten Spindel nicht um 200° drehen (das ist echt, nicht der Fehler). „Plan indexiert“ war
   vorher nie an einer A-Achse geprüft. Nachstellen: `~/freecad_cam/wip/strategien/kurvennut/
   szenario_kurvennut.py` mit `MASCHINE=tisch_tisch ACHSE=A FRAESER=8`, Sätze in `saetze_tisch_tisch.txt`.
+  **Manuel dazu (2026-11-15):** So spannt man nicht – an der 5-Achs-Tisch/Tisch steht das Rohr im
+  Dreibackenfutter senkrecht auf dem Rundtisch, mittig (das Rohr länger); für den Mantel schwenkt A auf 90°,
+  dann dreht C das Rohr und Z schaut von oben drauf. An einer 4. Achse liegt das Futter horizontal längs X
+  oder Y, Z von oben, bei langen Teilen mit Reitstock. Daraus: (a) „Rohr auf dem Tisch, A dreht“ fällt als
+  Weg weg; (b) zu bauen ist **4-Achs mit C in geschwenkter Lage** (Tisch/Tisch: A bzw. B fest auf 90°) und
+  ein Dreibackenfutter senkrecht auf dem Rundtisch als Spannmittel; (c) der Widerspruch in (1) bleibt zu
+  klären – kinematisch ist es dieselbe Lage wie eine 4. Achse längs X mit Werkzeug von oben.
   Nächste freie Nummer B-038.
 
 Nut und 3D-Schlichten/Bleistift sind am 13.11. nachgeholt (P-2026-11-13-09): sechs Funde behoben.

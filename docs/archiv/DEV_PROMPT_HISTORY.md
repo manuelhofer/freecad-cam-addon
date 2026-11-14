@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-03 rohr-spannen-an-der-fraese
+
+### EINGELESEN
+- Manuel, 2026-11-15: „also wenn man so etwas auf einem tisch bearbeitetet spand man das meistens am mantel
+  in ein drei backenfutter senkrcht zum tisch ! .. nur so als info .. und meist relativ mittig ... das rohr
+  muss dementsprechen länger sein .. auch die 4te achse würde es eher in ein drei backenfutter horizonal
+  entlang der x oder y achse so das die z achse vertikal von oben drauf schaut spannen ! und vll sogar mit
+  einem reitstock stützen ..“
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (B-037 ergänzt; „Nächster Schritt“ Punkt 5).
+
+### ERGEBNIS
+- „Rohr auf dem Tisch, A dreht“ ist kein Weg; zu bauen: 4-Achs mit C in geschwenkter Lage (Tisch/Tisch,
+  A/B fest auf 90°), Dreibackenfutter senkrecht auf dem Rundtisch, Rohteil länger um die Spannlänge; an der
+  4. Achse Futter horizontal, Werkzeug von oben, Reitstock als Option. Nichts gebaut.
 ## P-2026-11-15-02 kurvennut-aufmass-leerfahrten
 
 ### EINGELESEN
