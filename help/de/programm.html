@@ -218,6 +218,18 @@ hält mit Alarm. Das wirkt nur, wenn der Gang danach mit Radiuskorrektur fährt 
 „Schlichten danach“ mit G41/G42) – sonst misst er nur. Siemens ohne Werkzeugverwaltung: Den
 Werkzeugnamen (S_TNAME) bitte an der Maschine prüfen.</li>
 </ul>
+<p><b>Spindelwinkel beim Hobeln.</b> Beim Dichtnut-Hobeln steht die Spindel (das Stoßwerkzeug
+hat 0 U/min, kein M3) und dreht sich je Satz in Fahrtrichtung. Wie der Winkel in den Satz kommt,
+steht in zwei Befehlen: <b>Spindelwinkel vor dem Satz</b> (Zeilen davor) und <b>Spindelwinkel im
+Satz</b> (hängt am Bewegungssatz); <code>{w}</code> ist der Winkel in Grad. Vorbelegt: Siemens
+„SPOS=DC({w})“ im Satz, Heidenhain Zyklus 13 ORIENTIERUNG mit „L M19“ davor, LinuxCNC und Haas
+„M19 R{w}“ davor. Fanuc, Mazak und Mach orientieren je Maschine anders (Parameter, Makro) – dort
+trägst du es ein; sonst sagt das Programm, dass es fehlt. So wartet jeder Satz, bis die Spindel
+steht – die Bahn hält je Satz kurz an. Kann deine Maschine die Spindel als Rundachse in der Bahn
+mitfahren (Siemens nach M70, je nach Maschine „C“), trägst du das im Satz ein, etwa
+„C=DC({w})“, und das Umschalten beim Werkzeugwechsel. Die Spindel dreht schon über der Nut in
+Richtung, nicht erst in ihr. <b>Wie viel die stehende Spindel aushält, sagt kein Hersteller –
+am ersten Teil mit wenig Zustellung und Vorschub-Override langsam.</b></p>
 <p><b>Ältere Siemens 840D (ohne SINUMERIK Operate).</b> Dort stehen die Parameter der Messzyklen
 als Variablen vor dem Aufruf (Siemens Messzyklen Programmierhandbuch 04/2006); mit <code>_KNUM=0</code>
 prüft der Zyklus die Toleranz ohne zu korrigieren, und mit <code>_CBIT[2]=1</code> hält er bei

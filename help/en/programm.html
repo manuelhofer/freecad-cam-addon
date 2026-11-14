@@ -215,6 +215,19 @@ please check the tool name (S_TNAME) at the machine.</li>
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>
+<p><b>Spindle angle when planing.</b> When planing a seal groove the spindle stands still (the
+shaping tool has 0 rpm, no M3) and turns into the direction of travel with every block. How the
+angle gets into the block is set by two commands: <b>Spindle angle before the block</b> (lines
+before it) and <b>Spindle angle in the block</b> (appended to the move); <code>{w}</code> is the angle in
+degrees. Preset: Siemens “SPOS=DC({w})” in the block, Heidenhain cycle 13 ORIENTATION with “L M19”
+before, LinuxCNC and Haas “M19 R{w}” before. Fanuc, Mazak and Mach orient differently on every
+machine (parameter, macro) – enter it there; otherwise the program says it is missing. Every block
+then waits until the spindle is in position – the path stops briefly at each block. If your
+machine can move the spindle as a rotary axis along the path (Siemens after M70, depending on the
+machine “C”), enter that in the block, e.g. “C=DC({w})”, and the switch at the tool change. The
+spindle turns into direction above the groove, not inside it. <b>No manufacturer states how much
+a stationary spindle can take – go slowly on the first part, with little infeed and feed
+override.</b></p>
 <p><b>Older Siemens 840D (without SINUMERIK Operate).</b> There the measuring cycle parameters are
 variables set before the call (Siemens measuring cycles programming manual 04/2006); with
 <code>_KNUM=0</code> the cycle checks the tolerance without correcting, and with <code>_CBIT[2]=1</code>
