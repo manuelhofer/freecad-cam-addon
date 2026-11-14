@@ -461,6 +461,11 @@ def _presets(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, bericht):
         for einsatz in einsaetze:
             if not einsatz.vc and not einsatz.fz:
                 continue
+            if einsatz.art == wz.HOBELN:
+                # Beim Hobeln steht die Spindel – vc ist der Hub, kein Schnitt je Umdrehung: in
+                # FreeCADs Presets rechnete es daraus eine Drehzahl (bis 0.376.0: KeyError, und
+                # das Anlegen scheiterte für alle Strategien, sobald ein Stoßwerkzeug Werte hatte).
+                continue
             titel = wz.einsatz_name(einsatz)
             presets.append(
                 {
