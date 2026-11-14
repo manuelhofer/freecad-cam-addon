@@ -38,13 +38,17 @@ from .kette import LINEAR
 class Kinematik:
     """Achsen und Spitze für ein Werkzeug auf einer Maschine (siehe oben)."""
 
-    def __init__(self, pruefung, werkzeugaufnahme, laenge, nullpunkt_des_jobs):
+    def __init__(self, pruefung, werkzeugaufnahme, laenge, nullpunkt_des_jobs, versatz=None):
+        """`versatz`: In geschwenkter Lage liegt der Nullpunkt des Programms so weit vom
+        Nullpunkt des Jobs (schwenken.Schwenkung.versatz) – die Punkte im Programm zählen von
+        dort, das Werkstück liegt weiter am Nullpunkt des Jobs."""
         self.pruefung = pruefung
         self.aufnahme = werkzeugaufnahme
         self.laenge = laenge
         self.nullpunkt = FreeCAD.Vector(nullpunkt_des_jobs)
+        self.versatz = FreeCAD.Vector(*versatz) if versatz is not None else FreeCAD.Vector()
         self.linear, self.drehachsen = pruefung.achsen_fuer(werkzeugaufnahme)
-        self._loesung = pruefung.loeser(werkzeugaufnahme, laenge, self.nullpunkt)
+        self._loesung = pruefung.loeser(werkzeugaufnahme, laenge, self.nullpunkt + self.versatz)
 
     # --- rückwärts ----------------------------------------------------------------------
 
@@ -65,7 +69,9 @@ class Kinematik:
         """Wo die Spitze bei diesen Stellungen im Programm steht: (x, y, z) – mit den
         Rundachsen auf 0 gerechnet, so liest die Steuerung X, Y und Z. Fehlende Achsen
         stehen in Grundstellung."""
-        return self._im_job(self._wege(stellungen, rundachsen=False))
+        x, y, z = self._im_job(self._wege(stellungen, rundachsen=False))
+        v = self.versatz
+        return (x - v.x, y - v.y, z - v.z)
 
     def am_werkstueck(self, stellungen):
         """Wo die Spitze bei diesen Stellungen am gedrehten Werkstück steht: (x, y, z) in

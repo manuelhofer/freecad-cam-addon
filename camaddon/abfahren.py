@@ -81,6 +81,9 @@ class OperationAbfahrt:
     # Hielt der Halter die Spitze höher als die Schneide allein (vierachs_operation.anstoss_von):
     # (heraus, mindestens, a von, a bis) – für „Kollision prüfen“; leer sonst.
     anstoss: tuple = ()
+    # In geschwenkter Lage: so weit liegt der Nullpunkt des Programms vom Nullpunkt des Jobs
+    # (reichweite.Pruefung.versatz) – die Punkte der Stationen zählen von dort; None: keiner.
+    versatz: tuple = None
 
     @property
     def einspannung(self):
@@ -129,7 +132,7 @@ class Abfahrt:
         if operation not in self._kinematiken:
             op = self.operationen[operation]
             self._kinematiken[operation] = Kinematik(
-                self.pruefung, op.aufnahme, op.einspannung, self.nullpunkt
+                self.pruefung, op.aufnahme, op.einspannung, self.nullpunkt, op.versatz
             )
         return self._kinematiken[operation]
 
@@ -342,6 +345,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         if len(linear) > 3:
             continue
         eingespannt = rw.einspannung(tc, bibliothek)
+        versatz = None  # in geschwenkter Lage: vom Nullpunkt nach dem Schwenken (unten)
         try:
             # In einer geschwenkten Ebene die Sätze ohne Schwenkzyklus (3+2, schwenken).
             m_bahn = sw.Maschine(pruefung, aufnahme, eingespannt, nullpunkt_des_jobs)
@@ -352,6 +356,9 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     ergebnis.hinweise.append(f"{op.Label}: {programm.hinweis}")
             else:
                 befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
+            # In geschwenkter Lage zählen die Sätze vom Nullpunkt nach dem Schwenken.
+            if ebene is None:
+                versatz = pruefung.versatz(op, aufnahme, eingespannt, nullpunkt_des_jobs)
             # Ohne Ebene liest unten dieselbe Bahn noch einmal (ohne Start): einmal gelesen für
             # beide – am 4-Achs-Testteil 330 000 Schritte (P-2026-10-11-11).
             schritte = None
@@ -367,6 +374,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 op.Label,
                 grenzen=False,
                 schritte=None if schritte is None else (schritte, unbekannt),
+                versatz=versatz,
             )
             if grund:
                 ergebnis.hinweise.append(
@@ -378,7 +386,9 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=str(fehler))
             )
             continue
-        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte))
+        vorbereitet.append(
+            (op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte, versatz)
+        )
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -437,12 +447,12 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     vorheriger_tc = None
     gewechselt = []  # je Werkzeugwechsel die Station, vor der er dauert (Wechselzeit)
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
-    for k, (op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte) in enumerate(
+    for k, (op, tc, aufnahme, eingespannt, linear, befehle, ebene, schritte, versatz) in enumerate(
         vorbereitet
     ):
         vorbereitet[k] = None  # die Schritte dieser Operation nicht länger als nötig
         geschwenkt = ebene is not None
-        loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
+        loesung = pruefung.loeser(aufnahme, eingespannt, rw._plus(nullpunkt_des_jobs, versatz))
         nummer = len(ergebnis.operationen)
         # Vor jeder Bearbeitung zum Wechselpunkt – wie das Programm, in dem jede hinter ihrer
         # Sprungmarke ein vollständiger Einstieg ist (D-4); gewechselt wird nur, wo sich das
@@ -469,6 +479,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 eingespannt.lage,
                 _ebene_text(ebene, pruefung, aufnahme) if geschwenkt else "",
                 _anstoss(op),
+                versatz,
             )
         )
         if nummer == 0 and any(h is not None for h in home):

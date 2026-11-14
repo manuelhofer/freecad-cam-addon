@@ -1287,6 +1287,20 @@ class Pruefung:
             hoehe = sw.schwenkhoehe(rohteil, maschine.abbildung, rund)
         return sw.befehle_ohne_zyklus(befehle, sw.Schwenkung(lage, rund, abbildung, hoehe=hoehe))
 
+    def versatz(self, op, aufnahme, eingespannt, nullpunkt_des_jobs):
+        """In geschwenkter Lage („C, A auf 90°“): wo der Nullpunkt des Programms gegenüber dem
+        des Jobs liegt (schwenken.versatz_der_operation, (x, y, z)) – None sonst. Die Sätze der
+        Operation (befehle()) zählen von dort: Linearachsen lösen mit Nullpunkt + Versatz, das
+        Werkstück liegt am Nullpunkt (kinematik.Kinematik mit `versatz`)."""
+        from . import schwenken as sw
+        from . import vierachs_operation as vo
+
+        if not (vo.ist_rundum(op) and vo.schwenk(op)):
+            return None
+        return sw.versatz_der_operation(
+            op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+        )
+
     def _bestueckung_pruefen(self, job, bibliothek, sammler):
         """Stecken im Job zwei Werkzeuge auf einem Revolverplatz (W-002 Stufe G)? Die Maschine
         nähme nur eines – ein Satz sagt, welche und wo."""
@@ -1366,10 +1380,16 @@ class Pruefung:
                     aufnahme=m.name_von(aufnahme),
                 )
             )
-        loesung = self.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
+        # In geschwenkter Lage zählt das Programm vom Nullpunkt nach dem Schwenken (versatz).
+        versatz = (
+            None
+            if ebene is not None
+            else self.versatz(op, aufnahme, eingespannt, nullpunkt_des_jobs)
+        )
+        loesung = self.loeser(aufnahme, eingespannt, _plus(nullpunkt_des_jobs, versatz))
         from .kinematik import Kinematik
 
-        kinematik = Kinematik(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+        kinematik = Kinematik(self, aufnahme, eingespannt, nullpunkt_des_jobs, versatz)
         sammler.beginne(op.Label, linear, drehachsen, kinematik, f"T{nummer}")
         vorhanden = {self.programmbuchstabe(a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
@@ -1429,6 +1449,14 @@ class Pruefung:
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         sammler.ende_operation()
+
+
+def _plus(nullpunkt, versatz):
+    """Der Nullpunkt, von dem die Sätze zählen: der des Jobs, in geschwenkter Lage plus den
+    Versatz (Pruefung.versatz; None: keiner)."""
+    if versatz is None:
+        return nullpunkt
+    return FreeCAD.Vector(nullpunkt) + FreeCAD.Vector(*versatz)
 
 
 def _simultan(op):

@@ -25,6 +25,7 @@ import Part
 
 from camaddon import abfahren as ab
 from camaddon import beispielmaschine as bm
+from camaddon import einrichtblatt as eb
 from camaddon import kollision as kb
 from camaddon import maschine as m
 from camaddon import postprozessor as pp
@@ -156,23 +157,21 @@ linear, dreh = p.achsen_fuer(aufnahme)
 rund = {p.programmbuchstabe(a): a for a in dreh if p.programmbuchstabe(a)}
 
 
-def spitze_im_job():
+def spitze_im_job(null):
+    """Die Spitze im Teil (Job am Nullpunkt `null` an der Werkstückaufnahme, mit dem Tisch)."""
     welt = m.globale_platzierung(aufnahme.Lcs).multVec(eins.spitze())
-    job_welt = m.globale_platzierung(ws.Lcs).multiply(
-        FreeCAD.Placement(nullpunkt, FreeCAD.Rotation())
-    )
+    job_welt = m.globale_platzierung(ws.Lcs).multiply(FreeCAD.Placement(null, FreeCAD.Rotation()))
     return job_welt.inverse().multVec(welt)
 
 
-verfahren.grundstellung()
-s0 = spitze_im_job()
-spalten = []
-for a in linear:  # je Linearachse 1 mm, A und C auf 0 (ohne TCPM)
-    verfahren.setze(a, verfahren.stellung(a) + 1.0, grenzen=False)
-    spalten.append(tuple(spitze_im_job() - s0))
-    verfahren.setze(a, verfahren.stellung(a) - 1.0, grenzen=False)
-jacobi = np.array(spalten).T
-start = {a: verfahren.stellung(a) for a in linear}
+def jacobi(null):
+    """Je Linearachse 1 mm: wie die Spitze im Teil fährt (bei den Rundachsen, wie sie stehen)."""
+    s0, spalten = spitze_im_job(null), []
+    for a in linear:
+        verfahren.setze(a, verfahren.stellung(a) + 1.0, grenzen=False)
+        spalten.append(tuple(spitze_im_job(null) - s0))
+        verfahren.setze(a, verfahren.stellung(a) - 1.0, grenzen=False)
+    return np.array(spalten).T, s0
 
 
 def mit_c(liste):
@@ -184,22 +183,52 @@ def mit_c(liste):
     return aus
 
 
-paare = list(zip(mit_c(befehle), mit_c(gefahren), strict=True))
-groesste = 0.0
-for bahn, programm in paare[:: max(1, len(paare) // 15)]:
-    punkt = np.array([programm.get(x, 0.0) for x in "XYZ"])
-    wege = np.linalg.lstsq(jacobi, punkt - np.array(tuple(s0)), rcond=None)[0]
-    for a, w in zip(linear, wege, strict=True):
-        verfahren.setze(a, start[a] + w, grenzen=False)
-    for buchstabe, a in rund.items():
-        verfahren.setze(a, programm.get(buchstabe, 0.0), grenzen=False)  # wie das Gelenk
-    soll = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * bahn["C"]).multVec(
-        V(*(bahn.get(x, 0.0) for x in "XYZ"))
-    )
-    groesste = max(groesste, (spitze_im_job() - soll).Length)
+def neben_der_bahn(saetze, null, nach_dem_schwenken=True, versatz=(0.0, 0.0, 0.0)):
+    """So weit (mm) steht die Spitze höchstens neben der Bahn, wenn die Maschine `saetze` fährt
+    und das Teil am Nullpunkt `null` sitzt – eingerichtet wie der Einrichter: nach dem Schwenken
+    (A fest, C 0) die Spitze an die Stirn auf der Achse (G54), oder bei A 0 (`versatz` dazu: so
+    rechnete das Programm bis zum Fund des Zweiflers). Ohne TCPM: X, Y, Z sind die Linearachsen
+    ab G54, je 1 mm wie die Spitze bei A 0 C 0 im Teil fährt; A und C wie das Gelenk."""
     verfahren.grundstellung()
-print(ascii(f"Spitze: {len(paare)} Sätze, höchstens {groesste:.6f} mm neben der Bahn"))
+    start = np.array([verfahren.stellung(a) for a in linear])
+    j0, _s = jacobi(null)  # X, Y, Z im Programm: wie bei Rundachsen 0
+    if nach_dem_schwenken:
+        for buchstabe, wert in achse.schwenk:
+            verfahren.setze(rund[buchstabe], wert, grenzen=False)
+    js, s = jacobi(null)
+    g54 = start + np.linalg.lstsq(js, -np.array(tuple(s)), rcond=None)[0]  # Spitze an der Stirn
+    paare = list(zip(mit_c(befehle), mit_c(saetze), strict=True))
+    groesste = 0.0
+    for bahn, programm in paare[:: max(1, len(paare) // 15)]:
+        punkt = np.array([programm.get(x, 0.0) for x in "XYZ"]) + np.array(versatz)
+        wege = g54 + np.linalg.solve(j0, punkt)
+        verfahren.grundstellung()
+        for a, w in zip(linear, wege, strict=True):
+            verfahren.setze(a, w, grenzen=False)
+        for buchstabe, a in rund.items():
+            verfahren.setze(a, programm.get(buchstabe, 0.0), grenzen=False)  # wie das Gelenk
+        soll = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * bahn["C"]).multVec(
+            V(*(bahn.get(x, 0.0) for x in "XYZ"))
+        )
+        groesste = max(groesste, (spitze_im_job(null) - soll).Length)
+    verfahren.grundstellung()
+    return len(paare), groesste
+
+
+anzahl, groesste = neben_der_bahn(gefahren, nullpunkt)
+print(ascii(f"Spitze: {anzahl} Sätze, höchstens {groesste:.6f} mm neben der Bahn"))
 pruefe(groesste < 1e-6, f"Spitze {groesste:.4f} mm neben der Bahn")
+# Das Rohr sitzt 5 mm tiefer als im Modell (das Futter niedriger, tiefer gespannt): Eingerichtet
+# nach dem Schwenken trifft dasselbe Programm die Bahn am echten Teil. Bis zum Fund des Zweiflers
+# (2026-11-14) zählte es von G54 bei A 0 – mit dem Abstand Stirn–Schwenkachse aus dem Modell im
+# Programm: 7,07 mm daneben und 5 mm tiefer, der Anfahrsatz 2 mm im Rohteil.
+tiefer = nullpunkt + V(0, 0, -5.0)
+_anzahl, echt = neben_der_bahn(gefahren, tiefer)
+schwenkung = sw.schwenkung_der_operation(op, sw.Maschine(p, aufnahme, eins, nullpunkt), job)
+_anzahl, frueher = neben_der_bahn(gefahren, tiefer, False, schwenkung.versatz)
+print(ascii(f"5 mm tiefer gespannt: {echt:.6f} mm, früher (G54 bei A 0) {frueher:.3f} mm"))
+pruefe(echt < 1e-6, f"5 mm tiefer gespannt: {echt:.4f} mm neben der Bahn")
+pruefe(abs(frueher - math.hypot(5.0, 5.0)) < 0.01, f"Gegenprobe G54 bei A 0: {frueher:.4f} mm")
 reich = p.pruefe_job(job, nullpunkt, bib)
 pruefe(not reich.ueberschreitungen, f"über: {[u.text() for u in reich.ueberschreitungen][:2]}")
 pruefe(not any("radial" in h for h in reich.hinweise), f"Hinweise: {reich.hinweise}")
@@ -227,6 +256,15 @@ for kennung, schwenken, zurueck, c_wort in (
     pruefe(sum(z.startswith(schwenken) for z in zeilen) == 1, f"{kennung}: A mehrmals")
     pruefe(zurueck in zeilen[erste_c:], f"{kennung}: am Ende nicht zurück")
     pruefe(not programm.hinweise, f"{kennung}: {programm.hinweise}")
+    # Im Kopf: G54 wird nach dem Schwenken eingerichtet (A wie die Steuerung zählt).
+    kopf = [z for z in zeilen if re.search(r"G54: .*A [−-]90 und C 0 schwenken", z)]
+    pruefe(kopf, f"{kennung}: Kopf ohne Nullpunkt nach dem Schwenken")
+# Einrichtblatt: das Futter auf dem Rundtisch und der Nullpunkt nach dem Schwenken.
+futter_text = eb.spannung_text(job, sprache.tr)
+null_text = eb.nullpunkt_text(job, sprache.tr)
+print(ascii(f"Einrichtblatt: {futter_text} | {null_text}"))
+pruefe(f"Dreibackenfutter Ø {futter_d:g}" in futter_text, f"Einrichtblatt Spannung: {futter_text}")
+pruefe("nach dem Schwenken auf A −90" in null_text, f"Einrichtblatt Nullpunkt: {null_text}")
 ohne = pp.abschnitte(job)  # ohne Maschine: nicht ins Programm
 pruefe(
     ohne and not ohne[0].befehle and "geschwenkter Lage" in ohne[0].hinweis,

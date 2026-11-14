@@ -452,6 +452,11 @@ class Schwenkung:
     # nimmt, die „Auf der Maschine prüfen“ gefahren ist (zyklus_richtung).
     richtung: int = -1
     richtung_achse: str = ""  # der Buchstabe der Bezugsrundachse dazu (postprozessor dreht um)
+    # In geschwenkter Lage („C, A auf 90°“, schwenkung_der_operation): Der Nullpunkt des Programms
+    # wird nach dem Schwenken eingerichtet – an der Stirn, auf der Achse von C. So weit liegt er
+    # (im Programm bei Rundachsen 0 gezählt) vom Nullpunkt des Jobs: Die Abbildung hat dann kein b,
+    # im Programm steht nur die Drehung. None: der Nullpunkt des Jobs.
+    versatz: tuple = None
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -924,7 +929,15 @@ def schwenkung_der_operation(op, maschine, job=None):
     X, Y, Z durch die Abbildung Job → Programm ohne TCPM mit ihnen (Maschine.abbildung); C dreht
     dann wie an der Drehmaschine. Davor fährt das Werkzeug auf die Höhe, über der sich Stange und
     Futter frei schwenken (schwenkhoehe). Ohne `maschine` (sw.Maschine) keine Abbildung: Dann
-    geht die Operation nicht ins Programm – die Lage hängt an der Kinematik der Maschine."""
+    geht die Operation nicht ins Programm – die Lage hängt an der Kinematik der Maschine.
+
+    Der Nullpunkt des Programms liegt nicht am Nullpunkt des Jobs (bei A 0 an der Stirn des
+    senkrechten Rohrs), sondern dort, wohin die Stirn geschwenkt ist – eingerichtet nach dem
+    Schwenken auf der Achse von C (Schwenkung.versatz). Mit dem Nullpunkt bei A 0 stünde im
+    Programm fest der Abstand zwischen Stirn und Schwenkachse, und der hängt an der Höhe des
+    Futters und daran, wie weit das Rohr herausragt: 5 mm tiefer gespannt als im Modell, und die
+    Spitze stand 7,07 mm neben der Bahn, der Anfahrsatz 2 mm im Rohteil (Zweifler 2026-11-14).
+    Nach dem Schwenken eingerichtet bleibt nur die Drehung, wie an einer liegenden 4. Achse."""
     from . import spannung
     from . import vierachs_operation as vo
 
@@ -932,6 +945,10 @@ def schwenkung_der_operation(op, maschine, job=None):
     if not fest:
         return None
     abbildung = maschine.abbildung(fest) if maschine is not None else None
+    versatz = None
+    if abbildung is not None:
+        versatz = tuple(float(w) for w in abbildung.b)
+        abbildung = Abbildung(abbildung.a, (0.0, 0.0, 0.0))
     hoehe = None
     if abbildung is not None:
         if job is None:
@@ -944,8 +961,21 @@ def schwenkung_der_operation(op, maschine, job=None):
 
             futter = spannung.tischfutter(job)
             form = rohteil if futter is None else Part.makeCompound([rohteil, futter])
-            hoehe = schwenkhoehe(form, maschine.abbildung, fest)
-    return Schwenkung(FreeCAD.Placement(), dict(fest), abbildung, hoehe=hoehe)
+            hoehe = schwenkhoehe(form, maschine.abbildung, fest) - versatz[2]
+    return Schwenkung(FreeCAD.Placement(), dict(fest), abbildung, hoehe=hoehe, versatz=versatz)
+
+
+def versatz_der_operation(op, maschine):
+    """Schwenkung.versatz einer 4-Achs-Operation in geschwenkter Lage: wo die Stirn auf der Achse
+    (der Nullpunkt des Jobs) nach dem Schwenken steht, im Programm mit dem Nullpunkt des Jobs bei
+    Rundachsen 0 gezählt (x, y, z) – None ohne feste Rundachsen oder ohne Abbildung. Wer Sätze
+    dieser Operation auf der Maschine nachfährt, rechnet mit dem Nullpunkt des Jobs plus diesem
+    Versatz (reichweite.Pruefung.versatz)."""
+    from . import vierachs_operation as vo
+
+    fest = vo.schwenk(op) if vo.ist_rundum(op) else {}
+    abbildung = maschine.abbildung(fest) if fest and maschine is not None else None
+    return None if abbildung is None else tuple(float(w) for w in abbildung.b)
 
 
 def passende_rundachsen(maschine, lage, rund):

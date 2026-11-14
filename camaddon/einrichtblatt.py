@@ -576,6 +576,17 @@ def spannung_text(job, tr):
             flaeche=getattr(job, "Flaeche", "") or "–",
         )
     rohteil = getattr(grundjob(job), "Stock", None)
+    kreis = spannung.rund(rohteil)
+    if kreis is not None and vr.im_tischfutter(grundjob(job)):
+        # Geschwenkt („C, A auf 90°“): Das Rohr steht im Dreibackenfutter mitten auf dem Rundtisch.
+        d, hoehe = spannung.futter_masse(kreis[2])
+        return tr(
+            "eb.spannung.tischfutter",
+            mm=_mm(),
+            d=_zahl(d),
+            hoehe=_zahl(hoehe),
+            tiefe=_zahl(vr.spannlaenge(grundjob(job))),
+        )
     if vr.ist_stange(job, rohteil):
         return tr("eb.spannung.stange", mm=_mm(), tiefe=_zahl(vr.spannlaenge(job)))
     from . import spannmittel as sm
@@ -654,6 +665,8 @@ def nullpunkt_text(job, tr):
 
     # Gekippt gespannt: Das Rohteil liegt in dieser Aufspannung anders – ihr eigenes (gedreht).
     rohteil = getattr(job if sw.ist_umspannen(job) else grundjob(job), "Stock", None)
+    if vr.ist_stange(job, rohteil) and vr.im_tischfutter(grundjob(job)):
+        return _nullpunkt_geschwenkt(grundjob(job), tr)
     if vr.ist_stange(job, rohteil):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)
@@ -695,6 +708,29 @@ def nullpunkt_text(job, tr):
         else:
             achsen.append(tr("eb.nullpunkt.von", wert=_zahl(abstand), mm=_mm(), seite=kleiner))
     return tr("eb.nullpunkt.achsen", x=achsen[0], y=achsen[1], z=achsen[2])
+
+
+def _nullpunkt_geschwenkt(job, tr):
+    """Der Nullpunkt in geschwenkter Lage („C, A auf 90°“): eingerichtet nach dem Schwenken, an
+    der Stirn auf der Achse von C – so hängt das Programm nicht an der Höhe des Futters
+    (schwenken.schwenkung_der_operation). Fährt der Job auch ohne Schwenken, hat diese Lage den
+    nächsten Nullpunkt (postprozessor._nullpunkt_geschwenkt)."""
+    from . import postprozessor as pp
+    from . import vierachs_operation as vo
+    from . import vierachs_rohteil as vr
+
+    schwenk = vr.schwenk_anzeige(job).rstrip("°")
+    ops = [o for o in getattr(getattr(job, "Operations", None), "Group", []) if o.Active]
+    ohne = [o for o in ops if not (vo.ist_rundum(o) and vo.schwenk(o)) and not pp.ohne_arbeit(o)]
+    if not ohne:
+        return tr("eb.nullpunkt.geschwenkt", schwenk=schwenk)
+    register = ([str(f) for f in (getattr(job, "Fixtures", None) or [])] or ["G54"])[0]
+    return tr(
+        "eb.nullpunkt.geschwenkt_zwei",
+        schwenk=schwenk,
+        register=register,
+        weiter=pp.naechster_nullpunkt(register) or "–",
+    )
 
 
 def _gewaehlter_text(job, bb, tr):

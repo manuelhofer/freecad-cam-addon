@@ -68,6 +68,9 @@ EIGENSCHAFT_ABSTECHBREITE = "CamAddonAbstechbreite"
 # „A90“ – die Stange steht dann im Dreibackenfutter auf dem Rundtisch (spannung.tischfutter);
 # ausgeblendet. Fehlt sie oder ist sie leer: die Stange steckt im Futter der Maschine.
 EIGENSCHAFT_SCHWENK = "CamAddonSchwenk"
+# … und wie die Steuerung die feste Stellung zeigt („A −90°“, DIN 66217 – vierachs_achsen
+# Stangenachse.anzeige): für das Einrichtblatt, das die Maschine nicht kennt; ausgeblendet.
+EIGENSCHAFT_SCHWENK_ANZEIGE = "CamAddonSchwenkAnzeige"
 
 MIN_AUFMASS = 1.0  # mm am Radius, mindestens, beim Vorschlag für den Stangen-Ø
 STUFE_MM = 5.0  # Stangen-Ø in 5-mm-Schritten …
@@ -783,6 +786,12 @@ def schwenk_text(job):
     return str(getattr(job, EIGENSCHAFT_SCHWENK, "") or "")
 
 
+def schwenk_anzeige(job):
+    """Die feste Stellung, wie die Steuerung sie zeigt („A −90°“) – sonst wie das Gelenk („A90“),
+    leer ohne geschwenkte Lage."""
+    return str(getattr(job, EIGENSCHAFT_SCHWENK_ANZEIGE, "") or "") or schwenk_text(job)
+
+
 def schwenk_als_text(schwenk):
     """((Buchstabe, Stellung), …) als Text: (("A", 90.0),) → „A90“; leer: ""."""
     return " ".join(f"{b}{float(w):g}" for b, w in (schwenk or ()))
@@ -806,6 +815,14 @@ def _merke_schwenk(job, achse):
         job.setEditorMode(EIGENSCHAFT_SCHWENK, 2)  # ausgeblendet – das Addon nutzt sie
     if getattr(job, EIGENSCHAFT_SCHWENK) != text:
         setattr(job, EIGENSCHAFT_SCHWENK, text)
+    anzeige = str(getattr(achse, "anzeige", "") or "") if text else ""
+    if EIGENSCHAFT_SCHWENK_ANZEIGE not in job.PropertiesList:
+        if not anzeige:
+            return
+        job.addProperty("App::PropertyString", EIGENSCHAFT_SCHWENK_ANZEIGE, "CAM-Addon", "")
+        job.setEditorMode(EIGENSCHAFT_SCHWENK_ANZEIGE, 2)
+    if getattr(job, EIGENSCHAFT_SCHWENK_ANZEIGE) != anzeige:
+        setattr(job, EIGENSCHAFT_SCHWENK_ANZEIGE, anzeige)
 
 
 def _merke(job, eigenschaft, wert, text):

@@ -154,7 +154,7 @@ class _Maschinen:
     slotRedoDocument = _dokument  # noqa: N815
 
 
-def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
+def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None, versatz=None):
     """Grund bei fehlender Achse, unlesbarer Bewegung oder überschrittener Grenze, sonst leer.
 
     Der bestehende Reichweitenkern prüft auch innere Kreisextrema. Hier werden
@@ -164,10 +164,12 @@ def bahn_grund(maschine, befehle, name="", grenzen=True, schritte=None):
     Abspieler hält an der Grenze (Spezifikation Simulation 4a/4b) – nur, was die
     Maschine gar nicht fahren kann (fremde Rundachse, unlesbare Sätze), bleibt aus.
     `schritte`: (Schritte, unbekannte Befehle) von `reichweite._bahn(befehle, …,
-    rueckzug=True)`, wenn der Aufrufer sie schon hat (abfahren.abfahrt).
+    rueckzug=True)`, wenn der Aufrufer sie schon hat (abfahren.abfahrt). `versatz`: In
+    geschwenkter Lage zählen die Sätze vom Nullpunkt nach dem Schwenken
+    (reichweite.Pruefung.versatz).
     """
     p = maschine.pruefung
-    kin = Kinematik(p, maschine.aufnahme, maschine.laenge, maschine.nullpunkt)
+    kin = Kinematik(p, maschine.aufnahme, maschine.laenge, maschine.nullpunkt, versatz)
     linear, dreh = p.achsen_fuer(maschine.aufnahme)
     result = rw.Ergebnis()
     sammler = rw._Sammler(p, result)
@@ -278,7 +280,8 @@ def _operation_erreichbar(job, operation):
             m.laenge,
             m.nullpunkt,
         )
-        return not bahn_grund(m, befehle, operation.Label)
+        versatz = m.pruefung.versatz(operation, m.aufnahme, m.laenge, m.nullpunkt)
+        return not bahn_grund(m, befehle, operation.Label, versatz=versatz)
     except (ValueError, RuntimeError) as fehler:
         FreeCAD.Console.PrintLog(f"CAM-Addon: Bahnzugang: {fehler}\n")
         return False

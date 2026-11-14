@@ -850,6 +850,7 @@ def fahrtdaten(abfahrt):
                 op.erste,
                 op.saetze,
                 op.art,
+                op.versatz,
             )
             for op in abfahrt.operationen
         ],
@@ -869,8 +870,11 @@ def _fahrt_aus(fahrt, pruefung):
             erste,
             saetze,
             art,
+            versatz=versatz,
         )
-        for name, tc_name, nummer, aufnahme, laenge, erste, saetze, art in fahrt.operationen
+        for (name, tc_name, nummer, aufnahme, laenge, erste, saetze, art, versatz) in (
+            fahrt.operationen
+        )
     ]
     return ab.Abfahrt(
         pruefung,

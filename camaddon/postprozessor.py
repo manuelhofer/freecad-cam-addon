@@ -1904,7 +1904,7 @@ def programm(
     vergeben = set()
     marken = [markenname(a.name, vergeben) for a in abschnitte] if s.marken else []
     if s.kommentare:
-        zeilen.extend(_kopfzeilen(s, abschnitte, marken))
+        zeilen.extend(_kopfzeilen(s, abschnitte, marken, info))
     if marken:
         # Zurück an den Anfang: eine Marke, wo die Steuerung Namen kennt, sonst der Name als
         # Kommentar – suchen nach ANFANG (Manuel, 2026-10-25).
@@ -3106,7 +3106,9 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                     gefahren = fuer_op.pruefung.befehle(
                         op, None, fuer_op.aufnahme, fuer_op.laenge, fuer_op.nullpunkt
                     )
-                grund = mz.bahn_grund(fuer_op, gefahren, op.Label)
+                # In geschwenkter Lage zählen die Sätze vom Nullpunkt nach dem Schwenken.
+                versatz = fest.versatz if fest is not None else None
+                grund = mz.bahn_grund(fuer_op, gefahren, op.Label, versatz=versatz)
             except (ValueError, RuntimeError) as fehler:
                 grund = str(fehler)
             if grund:
@@ -3162,7 +3164,45 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 fest=fest,
             )
         )
-    return ergebnis
+    return _nullpunkt_geschwenkt(ergebnis)
+
+
+def naechster_nullpunkt(register):
+    """Der Nullpunkt nach `register` (wie der Job ihn nennt): G54 → G55, G59 → G54.1 P1 …;
+    leer, wenn `register` keiner ist."""
+    nr = nullpunkt_nummer(register)
+    if nr is None:
+        return ""
+    return f"G5{nr + 4}" if nr + 1 <= 6 else f"G54.1 P{nr + 1 - 6}"
+
+
+def _nullpunkt_geschwenkt(abschnitte):
+    """In geschwenkter Lage („C, A auf 90°“) wird der Nullpunkt nach dem Schwenken eingerichtet
+    (schwenken.Schwenkung.versatz) – an der Stirn, auf der Achse von C. Fährt der Job auch ohne
+    Schwenken (die Stirn von oben planen), braucht er bei A 0 seinen eigenen: Dann bekommen die
+    Bearbeitungen in geschwenkter Lage den nächsten Nullpunkt (G54 → G55), die anderen behalten
+    den des Jobs."""
+    if not any(a.fest is not None for a in abschnitte):
+        return abschnitte
+    ohne = [a for a in abschnitte if a.fest is None and _arbeitet(a.befehle)]
+    if not ohne:
+        return abschnitte
+    for a in abschnitte:
+        if a.fest is not None and a.nullpunkte:
+            weiter = naechster_nullpunkt(a.nullpunkte[0])
+            if weiter:
+                a.nullpunkte = (weiter,)
+    return abschnitte
+
+
+def fest_text(rund, umgekehrt=()):
+    """Die festen Rundachsen in geschwenkter Lage, wie die Steuerung sie zählt (DIN 66217:
+    `umgekehrt` die Buchstaben, die das Programm umdreht): {"A": 90.0}, {"A"} → „A −90“."""
+    teile = []
+    for b, w in sorted(rund.items()):
+        w = -float(w) if b in umgekehrt else float(w)
+        teile.append(f"{b} {'−' if w < 0 else ''}{abs(w):g}")
+    return " ".join(teile)
 
 
 SPIEL_KNAPP = 2.0  # mm – so viel muss der Fräser mehr herausstehen, als er tief fräst
@@ -3598,7 +3638,7 @@ def _mm(wert):
     return f"{float(wert):.1f}".rstrip("0").rstrip(".")
 
 
-def _kopfzeilen(s, abschnitte, marken):
+def _kopfzeilen(s, abschnitte, marken, info=None):
     """Der Kopf des Programms (D-4, als Kommentare; Manuel, 2026-10-25: „werkzeugliste am anfang
     mit ausspannlängen, durchmesser, und länge von spindelnase … welches werkzeug für welche
     bearbeitung … die sprung namen damit man danach suchen kann … auch am anfang ein Anfang
@@ -3617,6 +3657,25 @@ def _kopfzeilen(s, abschnitte, marken):
         else:
             text = tr("pp.kopf.nullpunkt", register=register)
         zeilen.append(_kommentar(s, text))
+    # In geschwenkter Lage: Dieser Nullpunkt wird nach dem Schwenken eingerichtet – das Programm
+    # hängt so nicht an der Höhe des Futters (schwenken.schwenkung_der_operation).
+    gesagt = set()
+    for a in abschnitte:
+        fest_register = a.nullpunkte[0] if a.nullpunkte else "G54"
+        if a.fest is None or fest_register in gesagt:
+            continue
+        gesagt.add(fest_register)
+        umgekehrt = set(getattr(info, "umgekehrt", ()) or ())
+        zeilen.append(
+            _kommentar(
+                s,
+                tr(
+                    "pp.kopf.nullpunkt_geschwenkt",
+                    register=fest_register,
+                    schwenk=fest_text(a.fest.rund, umgekehrt),
+                ),
+            )
+        )
     if marken:
         zeilen.append(_kommentar(s, tr("pp.kopf.marken")))
         zeilen.append(_kommentar(s, f"  {MARKE_ANFANG} – {tr('pp.kopf.anfang')}"))
