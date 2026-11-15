@@ -540,9 +540,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   PLANE/M128) – Achtung, der Zweifler von 0.376.0 fand: ohne TCPM hinge das Programm an der Futterhöhe.
 - *Nullpunkt, 4. Achse:* **Y/Z mittig auf der Rohrachse, Z 0 am höchsten Punkt (Mantel oben), X 0 an einer
   Stirn** – heute „auf der Achse der Stange, an der Stirn“: Z um den Radius verschieben, Einrichtblatt.
-- *Hobelklingen:* „such welche raus die es gibt ... nehm sie mit in die liste auf“ – Hersteller-Stoßwerkzeuge
-  (z. B. Horn Supermini 105, Paul Horn Nutstoßen, Mapal, Wohlhaupter …) mit Breite, Klingenlänge,
-  seitlichem Freiwinkel, Stechtiefe in die Werkzeugkiste (Abrufe in menschlichem Maß).
+- *Hobelklingen:* „such welche raus die es gibt ... nehm sie mit in die liste auf“ – **recherchiert
+  (2026-11-15):** 121 Klingen mit Quelle je Wert in `~/freecad_cam/wip/strategien/hobelklingen/klingen.json`
+  (Horn Speed-Forming P105 – das einzige echte Hobeln mit orientierter Spindel, b 1,5/2/2,5, tmax 12–22; Horn
+  S117 und N105/N110; WNT/Ceratizit SlotCut; Hoffmann GARANT 2–6 mm, t bis 4; Iscar SCB/XNUWB). **Einen
+  seitlichen Freiwinkel nennt keine Quelle** (vermutlich nur in den CAD-Dateien im Horn-eShop, nach
+  Anmeldung). Noch NICHT in der Werkzeugliste: Die Länge der Klinge hinter der Schneide (davon hängt der
+  kleinste fahrbare Radius ab) steht nirgends als dieses Maß – nur Plattenmaße; geraten wäre gefährlich.
+  Frage 1. GARANT-Richtwerte (Prospekt 2018): Stahl < 750 vf 8000, ap 0,11; INOX 5000, 0,05–0,06; Alu 8000,
+  0,20 je Hub – das Addon bleibt bei Manuels 0,08 (× Faktor der Werkstoffklasse).
 - *Frage 3 (Bohrung in zwei Schnitten):* **(b)** – Leerfahrt, Messstopp und zweiter Schnitt direkt hinter
   „Bohrung fräsen“, vor Senken und Gewinde. **Erledigt in 0.385.1** (gangfolge.direkt_dahinter).
 - *Frage 4:* **Restschlichten von selbst anhaken**, wenn an der Unterkante Rest bleibt und eine passende
