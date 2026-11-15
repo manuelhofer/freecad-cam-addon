@@ -548,9 +548,9 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
    (0.376.0)** – Erkennen jeder umlaufenden Nut, Hobelbahn mit Spindelwinkel je Satz, Werkzeugart
    Stoßwerkzeug mit Einsatz „Hobeln“, Operation, Programm für alle Steuerungen (Siemens SPOS, Heidenhain
    Zyklus 13, LinuxCNC/Haas M19 R, Fanuc/Mach4 M19 S; Mazak zum Eintragen; GRBL/woodWOP können es nicht).
-   **0.377.0: im Assistenten, aus dem Vollen.** Weiter: Frage 2 (Breite der Nut), Optionen ohne Halt je
-   Satz (TANG, Spindel als Rundachse), Interpolationsdrehen für runde Nuten; Werkzeugname in der Auswahl
-   abgeschnitten.
+   **0.377.0: im Assistenten, aus dem Vollen; 0.378.0: Freiwinkel und kürzere Sätze in Bögen; 0.383.0:
+   Spindel als Rundachse ohne Halt je Satz (Siemens, Fanuc).** Offen: Fragen 2 und 5 (Freiwinkel seiner
+   Klingen; Achsname/M70 an seiner 840D, Heidenhain 291), TANG und Fanuc G41.1 (nicht belegt).
 5. *4-Achs an 5-Achs-Fräsen richtig spannen* (Manuel, 2026-11-15): Tisch/Tisch – **gebaut in 0.376.0**
    („C, A −90° – Rohr im Futter auf dem Rundtisch“), B-037 behoben; Kopf/Tisch geht schon. **Offen:** die
    4. Achse auf einer 3-Achs-Fräse – **gebaut in 0.379.0** (Beispielmaschine „3-Achs-Fräse mit 4. Achse“,

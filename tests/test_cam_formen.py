@@ -75,7 +75,7 @@ pruefe(
         "T19 Flachsenker",
         "T21 Bohrstange",
         "T22 Ausspindelwerkzeug",
-        "T24 Stoßwerkzeug (steht in der Spindel)",  # als Schaftfräser in Schneidenbreite
+        "T24 Stoßwerkzeug",  # als Schaftfräser in Schneidenbreite
     ],
     f"Näherungen: {bericht.naeherungen}",
 )

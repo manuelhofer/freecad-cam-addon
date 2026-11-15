@@ -1116,7 +1116,7 @@
     "wv.einstellwinkel.tooltip": "Angle between cutting edge and feed direction (κ): face mills mostly 45° or 90°, turning tools often 93° or 95°. Empty: the usual angle of the type (grey in the field).",
     "wv.plattenwinkel": "Insert angle",
     "wv.plattenwinkel.tooltip": "Nose angle of the insert (ε): C and W 80°, D 55°, V 35°, T 60°, S 90°. Empty: 80° (C insert).",
-    "wv.art.stosswerkzeug": "Shaping tool (stationary in the spindle)",
+    "wv.art.stosswerkzeug": "Shaping tool",
     "wv.klingenlaenge": "Blade behind the edge",
     "wv.freiwinkel": "Side clearance angle",
     "wv.spindelwinkel": "Edge towards +X at spindle",

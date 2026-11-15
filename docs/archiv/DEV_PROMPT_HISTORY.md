@@ -12,6 +12,19 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-17 szenarien-nachts-artname
+
+### EINGELESEN
+- Voller Szenario-Lauf auf 0.383.0 (196): nach 0.383.1 die 18 roten wiederholt – alle grün (Wendel war ein
+  einzelner Ausreißer unter Last). Offen aus dem Hobel-Block: Werkzeugname in der Auswahl abgeschnitten.
+
+### DATEIEN
+- translations (wv.art.stosswerkzeug: „Stoßwerkzeug“ / „Shaping tool“), `tests/test_cam_formen.py`;
+  `docs/STATUS_SNAPSHOT.md` (Nächster Schritt 3); `package.xml` 0.383.2.
+
+### ERGEBNIS
+- Alle 154 Prüfdateien (14.11.) und alle 196 Szenarien (15.11., 0.383.1) grün. Artname kürzer – in der
+  Auswahl lesbar. Geprüft: test_cam_formen, test_werkzeuge, test_sprache, szenario_hobeln (Bild angesehen).
 ## P-2026-11-15-16 werkzeugverwaltung-geht-wieder-auf
 
 ### EINGELESEN
