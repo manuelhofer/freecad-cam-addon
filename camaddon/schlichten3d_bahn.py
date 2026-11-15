@@ -1361,51 +1361,71 @@ def _flaeche_entlang(form_teil, flaechen, raster, w, abstand, laengs_u, geformt)
     Flächen die Höhe bestimmen. Offene Kurven im Zickzack, geschlossene immer mit dem Material
     rechts (im Gegenlauf links) – von einer zur nächsten nur ein Schritt quer. None, wo nichts
     zu fräsen ist."""
+    linien = _fluss_linien(form_teil, flaechen, w, abstand, laengs_u, geformt)
+    return _entlang(linien, raster, w, abstand, laengs_u)
+
+
+def _fluss_linien(form_teil, flaechen, w, abstand, laengs_u, geformt):
+    """[(x, y)] – je Fläche ihre Kurven (_fluss_kurven, _fluss_kurve), wie _flaeche_entlang sie
+    fährt: das Einzige daran, das die Flächen (OpenCascade) braucht."""
     from . import vierachs_flaechen as vf
 
+    linien = []
+    for nummer in vf.nummern(flaechen):
+        f = ft.flaeche(form_teil, nummer)
+        for t in _fluss_kurven(f, laengs_u, abstand):
+            linien.append(_fluss_kurve(f, laengs_u, float(t), w.schritt, geformt))
+    return linien
+
+
+def _entlang(linien, raster, w, abstand, laengs_u):
+    """_flaeche_entlang mit den Kurven `linien` (_fluss_linien) – ohne Flächen, auch in einem
+    Nebenrechner."""
     punkte = []
     laenge = 0.0
     kurven = 0
     z_min = math.inf
     rueckwaerts = False
-    for nummer in vf.nummern(flaechen):
-        f = ft.flaeche(form_teil, nummer)
-        for t in _fluss_kurven(f, laengs_u, abstand):
-            x, y = _fluss_kurve(f, laengs_u, float(t), w.schritt, geformt)
-            zu = _geschlossen(x, y, w.schritt)
-            if zu:
-                gueltig = np.isfinite(x)
-                rechts = _material_rechts(np.column_stack([x[gueltig], y[gueltig]]), True, raster)
-                umkehren = rechts is not None and rechts != w.gleichlauf
-            else:
-                umkehren = rueckwaerts
-            if umkehren:
-                x, y = x[::-1], y[::-1]
-            with np.errstate(invalid="ignore"):
-                z = _bilinear(raster, x, y, STUFE)
-                maske = np.isfinite(x) & np.isfinite(z)
-            if maske.any():
-                maske &= raster.bei(raster.gewaehlt, np.nan_to_num(x), np.nan_to_num(y))
-            laeufe = _laeufe(maske, np.where(np.isfinite(x), z, np.nan), w.schritt)
-            if not laeufe:
+    # Erst alle Kurven, dann ihre Sprungstellen auf einmal genau (_genau_vorrechnen, ab
+    # GENAU_VERTEILT_AB auf den Nebenrechnern) – wie Spirale und Äquidistant. Bis 0.383.2 rechnete
+    # jede Kurve ihre Stellen einzeln im eigenen Prozess: an der Mulde von Manuels Testteil beim
+    # Anlegen 7,7 von 8,7 s auf einem Kern im Fenster (gemessen 2026-11-15).
+    _genau_vorrechnen(raster, linien)
+    for x, y in linien:
+        zu = _geschlossen(x, y, w.schritt)
+        if zu:
+            gueltig = np.isfinite(x)
+            rechts = _material_rechts(np.column_stack([x[gueltig], y[gueltig]]), True, raster)
+            umkehren = rechts is not None and rechts != w.gleichlauf
+        else:
+            umkehren = rueckwaerts
+        if umkehren:
+            x, y = x[::-1], y[::-1]
+        with np.errstate(invalid="ignore"):
+            z = _bilinear(raster, x, y, STUFE)
+            maske = np.isfinite(x) & np.isfinite(z)
+        if maske.any():
+            maske &= raster.bei(raster.gewaehlt, np.nan_to_num(x), np.nan_to_num(y))
+        laeufe = _laeufe(maske, np.where(np.isfinite(x), z, np.nan), w.schritt)
+        if not laeufe:
+            continue
+        kurven += 1
+        if not zu:
+            rueckwaerts = not rueckwaerts
+        for anfang, ende in laeufe:
+            idx = np.arange(anfang, ende + 1)
+            idx = idx[np.isfinite(x[idx]) & np.isfinite(z[idx])]
+            if len(idx) < 2:
                 continue
-            kurven += 1
-            if not zu:
-                rueckwaerts = not rueckwaerts
-            for anfang, ende in laeufe:
-                idx = np.arange(anfang, ende + 1)
-                idx = idx[np.isfinite(x[idx]) & np.isfinite(z[idx])]
-                if len(idx) < 2:
-                    continue
-                raum = np.column_stack([x[idx], y[idx], z[idx]])
-                behalten = _vereinfacht3d(raum)
-                x0, y0, z0 = (float(v) for v in raum[behalten[0]])
-                laenge += _verbinden(punkte, x0, y0, z0, w, raster)
-                for i in behalten[1:]:
-                    punkt = bn.Punkt(False, float(raum[i, 0]), float(raum[i, 1]), float(raum[i, 2]))
-                    laenge += bn.weg(punkte[-1], punkt)
-                    punkte.append(punkt)
-                z_min = min(z_min, float(np.min(raum[:, 2])))
+            raum = np.column_stack([x[idx], y[idx], z[idx]])
+            behalten = _vereinfacht3d(raum)
+            x0, y0, z0 = (float(v) for v in raum[behalten[0]])
+            laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+            for i in behalten[1:]:
+                punkt = bn.Punkt(False, float(raum[i, 0]), float(raum[i, 1]), float(raum[i, 2]))
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+            z_min = min(z_min, float(np.min(raum[:, 2])))
     if not punkte:
         return None
     letzter = punkte[-1]
@@ -1696,23 +1716,28 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     if steil_flach and set(richtungen) - {FLAECHE, AEQUI}:  # die beiden ohne Höhenlinien
         vorweg = _hoehenlinien(raster, w, abstand)
     beste = None
+    verteilt = _richtungen_verteilt(
+        form_teil, flaechen, netz_alle, netz_rest, box, w, richtungen, abstand, geformt, raster,
+        vorweg,
+    )  # fmt: skip
     for richtung in richtungen:
-        if richtung == SPIRALE:
-            bahn = _spirale(raster, w, abstand, vorweg)
-        elif richtung == AEQUI:
-            bahn = _aequidistant(raster, w, abstand)
-        elif richtung == FLAECHE:
+        if richtung == FLAECHE:
             # Entlang der Fläche liegen die Kurven im Raum gleich weit auseinander, flach wie
             # steil – ohne Höhenlinien; längs u und längs v, die schnellere.
             bahn = None
             for laengs_u in (True, False):
-                kandidat = _flaeche_entlang(
-                    form_teil, flaechen, raster, w, abstand, laengs_u, geformt
-                )
+                if (FLAECHE, laengs_u) in verteilt:
+                    kandidat = verteilt[FLAECHE, laengs_u]
+                else:
+                    kandidat = _flaeche_entlang(
+                        form_teil, flaechen, raster, w, abstand, laengs_u, geformt
+                    )
                 if kandidat is not None and (bahn is None or kandidat.zeit < bahn.zeit):
                     bahn = kandidat
+        elif richtung in verteilt:
+            bahn = verteilt[richtung]
         else:
-            bahn = _eine_richtung(
+            bahn = richtung_stueck(
                 netz_alle, netz_rest, box, w, richtung, abstand, geformt, raster, vorweg
             )
         if bahn is not None and (beste is None or bahn.zeit < beste.zeit):
@@ -1729,6 +1754,84 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
     unterkante = _unterkante(raster, netz_alle, w, davor) if raster is not None else None
     return replace(_nie_unter_dem_boden(beste, w), unterkante=unterkante)
+
+
+def richtung_stueck(
+    netz_alle, netz_rest, box, w, richtung, abstand, geformt, raster, vorweg, linien=None
+):
+    """Die Schlichtbahn einer Richtung (oder None) – im eigenen Prozess oder auf einem
+    Nebenrechner (_richtungen_verteilt): x/y (True/False, _eine_richtung), SPIRALE, AEQUI, und
+    (FLAECHE, längs u) mit den Kurven `linien` (_fluss_linien, die Flächen braucht es hier
+    nicht)."""
+    if richtung == SPIRALE:
+        return _spirale(raster, w, abstand, vorweg)
+    if richtung == AEQUI:
+        return _aequidistant(raster, w, abstand)
+    if isinstance(richtung, tuple) and richtung[0] == FLAECHE:
+        return _entlang(linien, raster, w, abstand, richtung[1])
+    return _eine_richtung(netz_alle, netz_rest, box, w, richtung, abstand, geformt, raster, vorweg)
+
+
+# So viele Rasterpunkte braucht es, damit die Richtungen auf die Nebenrechner gehen: Darunter
+# rechnet eine Richtung in Hundertsteln, das Verschicken des Rasters kostete mehr.
+RICHTUNGEN_VERTEILT_AB = 4000
+
+
+def _richtungen_verteilt(
+    form_teil, flaechen, netz_alle, netz_rest, box, w, richtungen, abstand, geformt, raster,
+    vorweg,
+):  # fmt: skip
+    """{Richtung oder (FLAECHE, längs u): Schlichtbahn oder None} – die Richtungen gleichzeitig,
+    je auf einem Nebenrechner (richtung_stueck): Sie hängen nicht voneinander ab, gewählt wird
+    danach die schnellste. Bis 0.383.2 nacheinander, beim Anlegen im Fenster (Kuppel R 40 mit
+    Ø 6: 2,8 s, davon die längste Richtung 1,1 s; gemessen 2026-11-15). In einem Nebenrechner
+    (die Vorschau) als Unteraufträge. Leer ohne Nebenrechner, mit einer Richtung oder einem
+    kleinen Raster; was ein Arbeiter nicht lieferte, fehlt – das rechnet planen() selbst."""
+    import secrets
+
+    if raster is None or len(richtungen) < 2 or raster.z.size < RICHTUNGEN_VERTEILT_AB:
+        return {}
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return {}
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return {}
+    auftraege, schluessel = {}, []
+    try:
+        gemeinsam = []
+        for name, wert in (("alle", netz_alle), ("rest", netz_rest), ("raster", raster)):
+            kennung = f"schlichten3d-{name}-{secrets.token_hex(8)}"
+            schluessel.append(kennung)
+            gemeinsam.append(pool.gemeinsam(kennung, wert))
+        stuecke = []
+        for richtung in richtungen:
+            if richtung != FLAECHE:
+                stuecke.append((richtung, None))
+                continue
+            for laengs_u in (True, False):  # die Kurven brauchen die Flächen: hier
+                linien = _fluss_linien(form_teil, flaechen, w, abstand, laengs_u, geformt)
+                stuecke.append(((FLAECHE, laengs_u), linien))
+        for richtung, linien in stuecke:
+            auftraege[richtung] = pool.auftrag(
+                "schlichten3d_bahn", "richtung_stueck", gemeinsam[0], gemeinsam[1], box, w,
+                richtung, abstand, geformt, gemeinsam[2], vorweg, linien,
+            )  # fmt: skip
+        # Ohne Maus und Tastatur – mitten in der Neuberechnung (P-2026-10-10-45; W-036).
+        pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler:
+        for a in auftraege.values():  # was fertig ist, gilt; den Rest rechnet planen() selbst
+            if not a.fertig:
+                a.abbrechen()
+    finally:
+        for kennung in schluessel:
+            pool.vergessen(kennung)
+    return {
+        r: a.ergebnis
+        for r, a in auftraege.items()
+        if a.fertig and a.fehler is None and not a.abgebrochen
+    }
 
 
 def _im_winkel(form_teil, namen, w, toleranz):

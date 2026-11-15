@@ -635,11 +635,22 @@ def unterkante_vorschlag(form, unterkante, werkzeug, radius, bibliothek, netz=No
         if hasattr(bibliothek, name):
             setattr(probe, name, getattr(bibliothek, name))
 
+    vernetzt = [netz]
+    stellen = getattr(unterkante, "stellen", None)
+
     def luft(w):
         halter = probe.halter_fuer_pruefung(w)
         laenge = rw.laenge_des_werkzeugs(w, probe)[0]
         koerper = hb.koerper_des_werkzeugs(rw.masse_des_werkzeugs(w), laenge, halter)
-        tief = sb.koerper_an_der_unterkante(form, unterkante, w.durchmesser / 2, koerper, netz)
+        if vernetzt[0] is None and stellen is not None and len(stellen):
+            # Einmal für alle Kugeln: Im Nebenrechner merkt vernetze() nichts – bis 0.383.2
+            # vernetzte koerper_an_der_unterkante das Teil je geprüfter Kugel neu (0,75 s je Mal).
+            from . import vierachs_flaechen as vf
+
+            vernetzt[0] = vf.vernetze(form, sb.VORSCHAU_TOLERANZ).netz
+        tief = sb.koerper_an_der_unterkante(
+            form, unterkante, w.durchmesser / 2, koerper, vernetzt[0]
+        )
         return None if tief is None else -tief
 
     kleiner = sorted(
