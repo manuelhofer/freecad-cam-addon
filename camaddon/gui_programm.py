@@ -866,6 +866,10 @@ class ProgrammDialog(QtGui.QDialog):
         self._erklaer_zeilen = []
         titel = QtGui.QLabel(f"<b>{tr('pp.einstellungen', steuerung=s.name)}</b>")
         titel.setToolTip(tr("pp.einstellungen.erklaerung"))
+        # Umbrochen: „Einstellungen für Heidenhain TNC 640/620/320 (Klartext)“ (341 px) neben
+        # „Erklärungen zeigen“ machte die Spalte 499 px breit bei 436 sichtbar – sie rollte zur
+        # Seite, links und rechts abgeschnitten (szenario_hobeln, Bild 7, 15.11.).
+        titel.setWordWrap(True)
         zeile = QtGui.QHBoxLayout()
         zeile.addWidget(titel, 1)
         self.haken_erklaerungen = QtGui.QCheckBox(tr("pp.erklaerungen.zeigen"))

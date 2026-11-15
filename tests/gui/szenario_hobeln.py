@@ -279,6 +279,7 @@ def _programm_fenster(h, doc, job):
         )
         d.einstellungen.ensureWidgetVisible(d.felder["spindel_achse_aus"][1])
         yield 500
+        _spalte_breit(h, d, "siemens")
         h.bild("6_programm_achse", d)
         haken.setChecked(False)
         yield 800
@@ -290,6 +291,33 @@ def _programm_fenster(h, doc, job):
     if haken is not None:
         d.einstellungen.ensureWidgetVisible(haken)
         yield 500
+    _spalte_breit(h, d, "heidenhain")
     h.bild("7_programm_heidenhain", d)
     d.close()
     yield 500
+
+
+def _spalte_breit(h, d, steuerung):
+    """Die Spalte der Einstellungen rollt nicht zur Seite: Ihr Inhalt ist nicht breiter als der
+    sichtbare Bereich (Bild 7 vom 15.11.: um rund 12 px nach links gerollt, der Satz mit dem Grund
+    rechts abgeschnitten). Die breitesten Elemente (rechter Rand bei kleinster Breite) im Protokoll.
+    """
+    from PySide import QtCore, QtGui
+
+    inhalt = d.einstellungen.widget()
+    sicht = d.einstellungen.viewport().width()
+    breit = sorted(
+        (
+            w.mapTo(inhalt, QtCore.QPoint(0, 0)).x() + w.minimumSizeHint().width(),
+            type(w).__name__,
+            str(w.text() if hasattr(w, "text") and callable(w.text) else "")[:50],
+        )
+        for w in inhalt.findChildren(QtGui.QWidget)
+        if w.isVisibleTo(inhalt)
+    )[-5:]
+    gerollt = d.einstellungen.horizontalScrollBar().value()
+    breite = inhalt.minimumSizeHint().width()
+    print("HOBELN Spalte", steuerung, breite, sicht, gerollt, breit, flush=True)
+    h.pruefe(
+        gerollt == 0, f"{steuerung}: Einstellungen {gerollt} px zur Seite gerollt, {breit[-2:]}"
+    )
