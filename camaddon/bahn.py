@@ -102,6 +102,13 @@ def zeit(punkte, vorschub, eintauchen=None, eilgang=None, beschleunigung=None):
     (fahrzeit: Trapezprofil, anhalten an Ecken und um Eilgänge). `vorschub` und `eintauchen`
     wie bei dauer(); `eilgang` (mm/min) und `beschleunigung` (mm/s²) ohne Angabe die
     Vorgaben, 10 m/min und 1 m/s²."""
+    return sum(satzzeiten(punkte, vorschub, eintauchen, eilgang, beschleunigung)) / 60.0
+
+
+def satzzeiten(punkte, vorschub, eintauchen=None, eilgang=None, beschleunigung=None):
+    """[s] je Satz von zeit() (fahrzeit.zeiten) – vor und nach einem Eilgang hält die Maschine:
+    Stücke zwischen Eilgängen lassen sich so getrennt rechnen und aneinanderhängen
+    (hobeln.vorschau, je Nut in einem Nebenrechner)."""
     from . import fahrzeit as fz
 
     schnell = (eilgang or fz.EILGANG) / 60.0
@@ -117,7 +124,7 @@ def zeit(punkte, vorschub, eintauchen=None, eilgang=None, beschleunigung=None):
         saetze.append(
             fz.Satz(weg(von, nach), f, a, _richtung(von, nach, True), _richtung(von, nach, False))
         )
-    return sum(fz.zeiten(saetze)) / 60.0
+    return fz.zeiten(saetze)
 
 
 def _richtung(von, nach, anfang):

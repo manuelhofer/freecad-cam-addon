@@ -369,13 +369,13 @@ class Hobelvorschau:
 def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1,
              vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0, vorgefraest=None, oben=None,
              aus_dem_vollen=True):  # fmt: skip
-    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen(); im Fenster
-    in einem Nebenrechner (bearbeitung_vorschau.hobeln). Nuten, die nicht gehen, mit ihrem Satz
-    in `nicht_passend`; geht keine, ValueError mit dem ersten Satz. `oben`: die Oberkante des
-    Materials über den Nuten (None: das Rohteil). `aus_dem_vollen`: die ganze Nut ab `oben`;
-    sonst nur `rest` über dem Grund, und `vorgefraest` sind die Gründe, die ein Block davor bis
-    auf den Rest fräst (None: nicht prüfen) – die anderen gehen nicht; `wand_aufmass` zählt nur
-    dann."""
+    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen(), mehrere
+    gleichzeitig (_nuten_verteilt); im Fenster in einem Nebenrechner (bearbeitung_vorschau.hobeln),
+    die Nuten dann als Unteraufträge. Nuten, die nicht gehen, mit ihrem Satz in `nicht_passend`;
+    geht keine, ValueError mit dem ersten Satz. `oben`: die Oberkante des Materials über den Nuten
+    (None: das Rohteil). `aus_dem_vollen`: die ganze Nut ab `oben`; sonst nur `rest` über dem
+    Grund, und `vorgefraest` sind die Gründe, die ein Block davor bis auf den Rest fräst (None:
+    nicht prüfen) – die anderen gehen nicht; `wand_aufmass` zählt nur dann."""
     form_teil = vs._teil(job.Model.Group)
     gewaehlt = list(flaechen)
     alle = [n for n in hb.alle_hobelnuten(form_teil) if set(n.flaechen) & set(gewaehlt)]
@@ -392,36 +392,101 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
     )  # fmt: skip
     punkte, je_nut, nicht, namen_ = [], [], [], []
     waende = False  # eine Nut geht nur nicht, weil ihre Wände noch Aufmaß haben
-    for nut in alle:
+    gruende, zu_planen = {}, []
+    for i, nut in enumerate(alle):
         tiefe = max(oben, nut.z_oben) - nut.z_boden
         ohne_waende = nut.grund or klinge_grund(nut, werkzeug, 0.0, tiefe)
         grund = ohne_waende or klinge_grund(nut, werkzeug, wand_aufmass, tiefe)
         waende = waende or (bool(grund) and not ohne_waende)
         if not grund and vorgefraest is not None and nut.name not in vorgefraest:
             grund = tr("ho.grund.nicht_vorgefraest", rest=hb._mm(rest))
-        if not grund:
-            try:
-                bahn = hb.planen(nut, dataclasses.replace(w, rest=tiefe) if aus_dem_vollen else w)
-            except ValueError as fehler:
-                grund = str(fehler)
         if grund:
-            nicht.append((nut.name, grund))
+            gruende[i] = grund
+        else:
+            zu_planen.append((i, nut, dataclasses.replace(w, rest=tiefe) if aus_dem_vollen else w))
+    geplant = _nuten_verteilt(zu_planen)
+    for i, nut, werte in zu_planen:
+        ergebnis = geplant[i] if i in geplant else hb.planen_stueck(nut, werte)
+        if ergebnis[4]:
+            gruende[i] = ergebnis[4]
+        else:
+            geplant[i] = ergebnis
+    saetze = []  # je gehobelte Nut (Punkte, [s je Satz])
+    for i, nut in enumerate(alle):
+        if i in gruende:
+            nicht.append((nut.name, gruende[i]))
             continue
-        punkte.extend(bahn.punkte)
+        nut_punkte, umlaeufe, spuren, nut_zeit = geplant[i][:4]
+        saetze.append((nut_punkte, geplant[i][6]))
+        punkte.extend(nut_punkte)
         namen_.append(nut.name)
         je_nut.append(
-            {"name": nut.name, "nut": nut, "umlaeufe": bahn.umlaeufe, "spuren": bahn.spuren,
-             "zeit": bahn.zeit}
+            {"name": nut.name, "nut": nut, "umlaeufe": umlaeufe, "spuren": spuren,
+             "zeit": nut_zeit}
         )  # fmt: skip
     if not je_nut:
         fehler = ValueError(nicht[0][1])
         fehler.daten = {"waende": waende}  # der Assistent bietet „Schlichten danach“ an
         raise fehler
-    if len(je_nut) == 1:  # dieselben Punkte, dieselbe Zeit: nicht noch einmal (0,6 s am Deckel)
-        zeit = je_nut[0]["zeit"]
-    else:
-        zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None)
+    zeit = _zeit_hintereinander(saetze, w)
     return Hobelvorschau(punkte, je_nut, nicht, namen_, zeit, zeit_mit=(w.vorschub, w.eintauchen))
+
+
+def _zeit_hintereinander(je_nut, w):
+    """bahn.zeit über die Punkte aller Nuten hintereinander – aus den Sätzen je Nut
+    ([(Punkte, [s je Satz])], hobeln_bahn.planen_stueck) und den Eilgängen dazwischen, statt noch
+    einmal über alle (am Deckel 0,6 s je Nut). Genau dieselbe Summe: Jede Nut beginnt mit einem
+    Eilgang, davor und danach hält die Maschine (fahrzeit.zeiten), also hängt kein Satz einer Nut
+    an einer anderen. Fängt eine nicht so an, über alle Punkte."""
+    if len(je_nut) == 1:  # dieselben Punkte, dieselbe Zeit
+        return sum(je_nut[0][1]) / 60.0
+    alle_saetze, vorher = [], None
+    for punkte, saetze in je_nut:
+        if vorher is not None:
+            if not punkte or not punkte[0].eilgang:
+                alle = [p for nut_punkte, _s in je_nut for p in nut_punkte]
+                return bn.zeit(alle, w.vorschub, w.eintauchen or None)
+            alle_saetze.extend(bn.satzzeiten([vorher, punkte[0]], w.vorschub, w.eintauchen or None))
+        alle_saetze.extend(saetze)
+        vorher = punkte[-1] if punkte else vorher
+    return sum(alle_saetze) / 60.0
+
+
+def _nuten_verteilt(zu_planen):
+    """{Nummer: hobeln_bahn.planen_stueck(…)} – mehrere Nuten gleichzeitig, je eine auf einem
+    Nebenrechner (sie hängen nicht voneinander ab; am Deckel kostet eine 1,3 s); in einem
+    Nebenrechner (die Vorschau) als Unteraufträge. Die Spurlagen kommen mit zurück
+    (hobeln_bahn.geplant_merken), gemerkte gehen mit hin. Leer mit einer Nut oder ohne
+    Nebenrechner; was ein Arbeiter nicht lieferte, fehlt – das plant vorschau() selbst."""
+    if len(zu_planen) < 2:
+        return {}
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return {}
+    pool = nr.pool()
+    if not pool.verfuegbar() or pool.anzahl < 2:
+        return {}
+    auftraege = {}
+    try:
+        for i, nut, werte in zu_planen:
+            auftraege[i] = pool.auftrag(
+                "hobeln_bahn", "planen_stueck", nut, werte, hb.gemerkt_fuer(nut, werte)
+            )
+        # Ohne Maus und Tastatur – wie die Richtungen des 3D-Schlichtens (P-2026-10-10-45).
+        pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler:
+        for a in auftraege.values():  # was fertig ist, gilt; den Rest plant vorschau() selbst
+            if not a.fertig:
+                a.abbrechen()
+    ergebnis = {
+        i: a.ergebnis
+        for i, a in auftraege.items()
+        if a.fertig and a.fehler is None and not a.abgebrochen
+    }
+    for teil in ergebnis.values():
+        hb.geplant_merken(teil[5])
+    return ergebnis
 
 
 def werkzeug_vorschlag(nuten, tiefe=None):

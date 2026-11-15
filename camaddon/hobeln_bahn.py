@@ -829,6 +829,30 @@ def geplant_merken(eintraege):
         _SPURLAGEN.popitem(last=False)
 
 
+def gemerkt_fuer(nut, werte):
+    """Die gemerkten Spurlagen [(Schlüssel, Spurlagen)] der Nut mit der Klinge von `werte` – leer,
+    wenn sie noch nicht geplant ist (für planen_stueck in einem anderen Nebenrechner)."""
+    schluessel = _spurlagen_schluessel(nut, werte)
+    gemerkt = _SPURLAGEN.get(schluessel)
+    return [] if gemerkt is None else [(schluessel, gemerkt)]
+
+
+def planen_stueck(nut, werte, gemerkt=None):
+    """Eine Nut für hobeln.vorschau in einem Nebenrechner: (Punkte, Umläufe, Spuren, Zeit, None,
+    Spurlagen, [s je Satz]) oder (None, …, Satz, …), wenn sie nicht geht. `gemerkt`: ihre
+    Spurlagen, wenn der Aufrufer sie schon hat (gemerkt_fuer) – dann rechnet sie nur die Punkte.
+    Die Zeit wie in planen(); die Sätze einzeln (bahn.satzzeiten), damit die Zeit aller Nuten
+    hintereinander nicht noch einmal über alle Punkte läuft."""
+    geplant_merken(gemerkt)
+    try:
+        b = planen(nut, werte, mit_zeit=False)
+    except ValueError as fehler:
+        return None, 0, 0, 0.0, str(fehler), [], []
+    saetze = bn.satzzeiten(b.punkte, werte.vorschub, werte.eintauchen or None)
+    zeit = sum(saetze) / 60.0  # wie bahn.zeit in planen()
+    return b.punkte, b.umlaeufe, b.spuren, zeit, None, gemerkt_fuer(nut, werte), saetze
+
+
 def planen(nut, werte, mit_zeit=True):
     """Die Hobelbahn (Hobelbahn) für die Nut `nut` (Hobelnut) mit den Werten `werte`
     (Hobelwerte). ValueError mit einem Satz, wenn es nicht geht. Ohne `mit_zeit` ist die Zeit nan
