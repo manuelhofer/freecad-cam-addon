@@ -299,6 +299,13 @@ class Steuerung:
     # Siemens: CYCLE800() löscht nur die Schwenkframes – geht es ohne Ebene weiter, fährt das
     # Programm erst zum Wechselpunkt, dann die Rundachsen auf 0.
     schwenken_aus_dreht: bool = False
+    # Das Rohr im Futter auf dem Rundtisch („C, A −90°“) mit dem Schwenkzyklus: ungeschwenkt
+    # eingerichtet, wie Manuel einrichtet (2026-11-15: „z0 vom tisch die entfernteste stelle … ist
+    # mittig im rohr xy0“) – den Abstand zur Schwenkachse nimmt die Steuerung aus ihrer Kinematik
+    # (lage_mit_zyklus). Nur wo C danach als Achse im geschwenkten Rahmen fahren darf: Siemens
+    # CYCLE800, Heidenhain PLANE SPATIAL; Fanuc G68.2 noch nicht (ob C unter G68.2 fahren darf, ist
+    # ungeprüft).
+    lage_mit_zyklus: bool = False
     # 5 Achsen simultan mit TCPM (Manuel, 2026-10-03: „TCPM bleibt aus … später als Haken“): die
     # Steuerung führt die Spitze – im Programm die Spitze im Werkstück und die Rundachsen je
     # Punkt, F in mm/min statt G93 ({t}: Werkzeugnummer). Aus oder leer: ohne TCPM, die
@@ -842,6 +849,7 @@ STEUERUNGEN = {
         # ersten zwei Buchstaben, höchstens 32 Zeichen).
         marke="{marke}:",
         schwenken_aus="CYCLE800()",
+        lage_mit_zyklus=True,
         # TRAORI: Transformation mit Orientierung – X, Y, Z sind die Spitze im Werkstück, die
         # Rundachsen stehen je Satz; TRAFOOF schaltet sie ab (Grundlagen, „Fünfachs-Transformation“).
         tcpm_ein="TRAORI",
@@ -1118,6 +1126,7 @@ _HEIDENHAIN = {
     ),
     "g93": False,
     "schwenken_aus_dreht": True,  # PLANE RESET TURN MB MAX: zieht zurück und dreht auf 0
+    "lage_mit_zyklus": True,
     "dialekt": "klartext",
 }
 
@@ -1397,6 +1406,19 @@ class Abschnitt:
     # Eine 4-Achs-Operation des Addons (vierachs_operation.ist_rundum) ohne Schwenken: Nach dem
     # Wechselpunkt kommt sie von oben an ihren ersten Punkt (_erst_ueber_den_punkt).
     von_oben: bool = False
+    # In einem Job mit Stange quer zu Z (an der 4. Achse): der Radius der Stange
+    # (vierachs_rohteil.mantel_oben) – an einer Fräse mit 4. Achse (vierte_achse) zählt Z im
+    # Programm vom Mantel oben. None: kein solcher Job.
+    mantel: float = None
+    # In geschwenkter Lage dieselbe Bearbeitung mit dem Schwenkzyklus der Steuerung
+    # (schwenken.lage_mit_zyklus): (Sätze, Schwenkung, Nullpunkte des Jobs) – ungeschwenkt
+    # eingerichtet, Z 0 an der Stirn der Stange. Mit einer Steuerung, die das kann
+    # (lage_mit_zyklus), schreibt das Programm sie so; sonst `fest`.
+    lage_zyklus: tuple = None
+    # Im Job mit dem Rohr im Futter auf dem Rundtisch: so weit (mm) steht die Stirn der Stange über
+    # dem Nullpunkt des Jobs (vierachs_rohteil.stirn_oben) – mit dem Schwenkzyklus zählt auch eine
+    # Bearbeitung ohne Schwenken von dort. None: kein solcher Job.
+    stirn_oben: float = None
 
 
 @dataclass
@@ -1786,6 +1808,64 @@ def _messen_saetze(s, gemessen, info, nummer=1, korrigiert=None, abschnitte=()):
 _NULLPUNKT = re.compile(r"G5([4-9])|G59\.([1-9])|G54\.1\s*P(\d+)")
 
 
+def lage_mit_zyklus(s):
+    """Schreibt die Steuerung `s` das Rohr im Futter auf dem Rundtisch („C, A −90°“) mit ihrem
+    Schwenkzyklus – ungeschwenkt eingerichtet (Steuerung.lage_mit_zyklus, Haken „Schwenkzyklus“)?"""
+    return bool(s.schwenkzyklus and s.schwenken and s.lage_mit_zyklus)
+
+
+def _zyklus_name(s):
+    """Der Name des Schwenkzyklus für einen Satz: „CYCLE800“, „PLANE SPATIAL“."""
+    worte = s.schwenken.strip().split("\n")[-1].split("(")[0].split()
+    if not worte:
+        return ""
+    return " ".join(worte[:2]) if len(worte) > 1 and worte[1].isalpha() else worte[0]
+
+
+def _lage_im_zyklus(abschnitte, s, hinweise, info):
+    """(Abschnitte, dz): Mit dem Schwenkzyklus (lage_mit_zyklus) die Abschnitte in geschwenkter
+    Lage mit ihren Sätzen im Zyklus (Abschnitt.lage_zyklus) und dem Nullpunkt des Jobs (G54 statt
+    G55 für „nach dem Schwenken“); die übrigen Bearbeitungen des Jobs zählen dann ebenso von der
+    Stirn der Stange (Abschnitt.stirn_oben, um dz verschoben). Ohne Zyklus bleibt alles und ein
+    Hinweis sagt, dass der Nullpunkt erst nach dem Schwenken eingerichtet wird. Mit einer Ebene
+    (3+2) im selben Programm bleibt es ebenso: Deren Bezugspunkt zählt vom Nullpunkt des Jobs."""
+    lage = [a for a in abschnitte if a.lage_zyklus is not None]
+    if not lage:
+        return abschnitte, 0.0
+    if not lage_mit_zyklus(s) or any(a.schwenkung is not None for a in abschnitte):
+        umgekehrt = set(getattr(info, "umgekehrt", ()) or ())
+        schwenk = fest_text(lage[0].fest.rund, umgekehrt) if lage[0].fest is not None else ""
+        hinweis = tr("pp.hinweis.lage_ohne_zyklus", steuerung=s.name, schwenk=schwenk)
+        if hinweis not in hinweise:
+            hinweise.append(hinweis)
+        return abschnitte, 0.0
+    neu, dz = [], 0.0
+    for a in abschnitte:
+        if a.lage_zyklus is not None:
+            befehle, schwenkung, nullpunkte = a.lage_zyklus
+            a = dataclasses.replace(
+                a, befehle=list(befehle), schwenkung=schwenkung, fest=None, nullpunkte=nullpunkte
+            )
+        elif a.stirn_oben:
+            a = dataclasses.replace(
+                a, befehle=sw.verschoben(a.befehle, (0.0, 0.0, -float(a.stirn_oben)))
+            )
+        if a.stirn_oben:
+            dz = -float(a.stirn_oben)
+        neu.append(a)
+    return neu, dz
+
+
+def vierte_achse(info):
+    """Schreibt das Programm für eine Fräse mit 4. Achse – genau eine Rundachse, A oder B? Dort
+    zählt Z einer Stange quer zu Z vom Mantel oben (Abschnitt.mantel); an der Drehmaschine (C),
+    den 5-Achs-Maschinen und ohne Maschine bleibt Z auf der Achse. Wie
+    reichweite.Pruefung.vierte_achse mit der Kette."""
+    return bool(
+        info is not None and not info.drehmaschine and set(info.rundachsen) in ({"A"}, {"B"})
+    )
+
+
 def nullpunkt_nummer(register):
     """Die Nummer des Nullpunkts, wie der Job ihn nennt (FreeCADs Fixtures): G54 … G59 → 1 … 6,
     G59.1 … G59.9 und G54.1 P1 … → 7 …; None, wenn es keiner ist."""
@@ -1878,6 +1958,10 @@ def _rund_umdrehen(abschnitt, info):
         # In geschwenkter Lage zählen die festen Rundachsen wie an der Maschine (wie 3+2 ohne
         # Zyklus): A der Tisch/Tisch gegen das Gelenk.
         fest = set(getattr(abschnitt.fest, "rund", {}) or {}) & set(info.umgekehrt)
+        if abschnitt.lage_zyklus is not None and abschnitt.schwenkung is not None:
+            # … mit dem Schwenkzyklus ebenso: Die Vorzugsrichtung (_DIR, SEQ) zählt A wie die
+            # Steuerung – sonst nähme sie A +90 mit C 180, und jedes C der Bahn läge 180° daneben.
+            fest |= set(abschnitt.schwenkung.rund) & set(info.umgekehrt)
         return ({buchstabe} if buchstabe else set()) | fest
     if info.rundachsen:
         return set(info.umgekehrt)
@@ -2044,6 +2128,15 @@ def programm(
         # Fein geprüfte Bahnen haben nur einen kleinen Vorrat für die Steuerungsglättung.
         s = s.ersetzt(toleranz=min(s.toleranz, 0.0001))
     zeilen, hinweise = [], []
+    # Das Rohr im Futter auf dem Rundtisch: mit dem Schwenkzyklus ungeschwenkt eingerichtet, wo die
+    # Steuerung ihn kann (_lage_im_zyklus); an der 4. Achse Z vom Mantel oben (Abschnitt.mantel).
+    abschnitte, dz = _lage_im_zyklus(abschnitte, s, hinweise, info)
+    mantel = next((a.mantel for a in abschnitte if a.mantel is not None), None)
+    if mantel is not None and vierte_achse(info):
+        dz = -float(mantel)
+    if rohteil is not None and dz:
+        (x0, y0, z0), (x1, y1, z1) = rohteil
+        rohteil = ((x0, y0, z0 + dz), (x1, y1, z1 + dz))
     if s.dialekt == "klartext":
         if info.drehmaschine:
             hinweise.append(tr("pp.hinweis.klartext_drehen"))
@@ -2145,6 +2238,10 @@ def programm(
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
         befehle_roh = abschnitt.befehle
+        if abschnitt.mantel is not None and vierte_achse(info):
+            # An der 4. Achse: Z 0 oben auf dem Mantel (Manuel, 2026-11-15) – die Bahn im Job zählt
+            # von der Achse der Stange.
+            befehle_roh = sw.verschoben(befehle_roh, (0.0, 0.0, -float(abschnitt.mantel)))
         if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
             try:
                 befehle_roh = abschnitt.befehle_tcpm(bei_null=s.tcpm_bei_null)
@@ -2311,6 +2408,18 @@ def programm(
                     programm=True,
                 )
                 notiz(tr("pp.ebene", rundachsen=rund))
+                if zyklus and abschnitt.schwenkung.vor_zyklus:
+                    # In geschwenkter Lage mit dem Zyklus: erst hoch über Rohr und Futter, über
+                    # die Achse von C – dort dreht sich unter dem Werkzeug nur, was die
+                    # Schwenkhöhe kennt (wie ohne Zyklus, schwenken.schwenkung_der_operation).
+                    vor = abschnitt.schwenkung
+                    if vor.hoehe is not None and not (gewechselt and _wechselpunkt_oben(s, info)):
+                        woerter = ["G0", *([laenge_offen] if laenge_offen else [])]
+                        zeilen.append(" ".join([*woerter, _wort(s, "Z", _zahl(vor.hoehe))]))
+                        laenge_offen = ""
+                    if vor.ueber is not None:
+                        x, y = vor.ueber
+                        zeilen.append(f"G0 {_wort(s, 'X', _zahl(x))} {_wort(s, 'Y', _zahl(y))}")
                 if zyklus:
                     zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung, info, umgekehrt))
             geschwenkt = abschnitt.schwenkung
@@ -3028,7 +3137,16 @@ def _schwenken_aus(s, schwenkung, zyklus, oben=False, info=None, auf_null=True):
     der sie nicht selbst zurückdreht (Siemens CYCLE800()), danach ebenso – mit `auf_null`: es
     geht ohne Ebene weiter."""
     if zyklus:
-        zeilen = _zeilen(s.schwenken_aus)
+        zeilen = []
+        rueckzug = getattr(schwenkung, "rueckzug_rahmen", None)
+        if rueckzug is not None and s.schwenken_aus_dreht:
+            # Dreht das Zurück selbst (PLANE RESET TURN): erst im geschwenkten Rahmen hoch und
+            # über die Achse von C, wie hinein (Schwenkung.rueckzug_rahmen).
+            hoehe, (x, y) = rueckzug
+            if hoehe is not None and not oben:
+                zeilen.append(f"G0 {_wort(s, 'Z', _zahl(hoehe))}")
+            zeilen.append(f"G0 {_wort(s, 'X', _zahl(x))} {_wort(s, 'Y', _zahl(y))}")
+        zeilen.extend(_zeilen(s.schwenken_aus))
         if auf_null and not s.schwenken_aus_dreht:
             zeilen.extend(_schwenken_aus(s, schwenkung, False, oben, info))
         return zeilen
@@ -3345,6 +3463,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
     from . import reichweite as rw
     from . import stirnseite as st
     from . import vierachs_operation as vo
+    from . import vierachs_rohteil as vr
 
     ergebnis = []
     merk = {}  # je Controller: Einspannung und Maße (_einspannung_und_knapp)
@@ -3390,7 +3509,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
             # bringen; weder Rundachsen noch einen zusätzlichen Z-Schwenkanlauf erfinden.
             befehle = sw.befehle_ohne_zyklus(befehle, schwenkung, schon_oben=True)
             schwenkung = None
-        fest = None
+        fest, lage_zyklus = None, None
         if not geschwenkt and vo.ist_rundum(op) and vo.schwenk(op):
             # In geschwenkter Lage („C, A auf 90°“): Die Sätze hängen an der Kinematik der
             # Maschine (Programm ohne TCPM) – ohne Maschine nicht ins Programm.
@@ -3402,6 +3521,8 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 # Der Kommentar „nur über Programm schreiben“ (vo.pfad_kommentar) ist für FreeCADs
                 # eigene Postprozessoren – hier wird die Bahn eins.
                 befehle = [b for b in befehle if not b.Name.startswith(vo.KOMMENTAR_GESCHWENKT)]
+                # Mit dem Schwenkzyklus (wenn die Steuerung ihn kann): ungeschwenkt eingerichtet.
+                lage_zyklus = sw.lage_mit_zyklus(befehle, fest, fuer_op, vr.stirn_oben(job) or 0.0)
                 befehle = sw.befehle_ohne_zyklus(befehle, fest)
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
@@ -3417,13 +3538,18 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                     gefahren = fuer_op.pruefung.befehle(
                         op, None, fuer_op.aufnahme, fuer_op.laenge, fuer_op.nullpunkt
                     )
-                # In geschwenkter Lage zählen die Sätze vom Nullpunkt nach dem Schwenken.
+                # In geschwenkter Lage zählen die Sätze vom Nullpunkt nach dem Schwenken, an der
+                # 4. Achse vom Mantel oben (reichweite.Pruefung.versatz).
                 versatz = fest.versatz if fest is not None else None
+                if fest is None and not geschwenkt and not so.ist_simultan(op):
+                    versatz = fuer_op.pruefung.versatz(
+                        op, fuer_op.aufnahme, fuer_op.laenge, fuer_op.nullpunkt
+                    )
                 grund = mz.bahn_grund(fuer_op, gefahren, op.Label, versatz=versatz)
             except (ValueError, RuntimeError) as fehler:
                 grund = str(fehler)
             if grund:
-                befehle, schwenkung, befehle_tcpm = [], None, None
+                befehle, schwenkung, befehle_tcpm, lage_zyklus = [], None, None, None
                 hinweis = tr("pp.hinweis.simultan_ausgelassen", grund=grund)
         if not hinweis and not _arbeitet(befehle):
             # Nichts zu fräsen (ein „3D-Schruppen“ ohne Rest): kein Werkzeugwechsel dafür – nur
@@ -3450,6 +3576,11 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
         if not geschwenkt and st.ist_stirn(op, befehle):
             stirn = (st.modus(job), st.sicher_z(op))
         einspannung = _einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt, merk)
+        # Eine Stange quer zu Z: An einer Fräse mit 4. Achse zählt das Programm Z vom Mantel oben
+        # (programm, vierte_achse) – nicht in geschwenkter Lage und nicht simultan.
+        mantel = None
+        if not geschwenkt and fest is None and not so.ist_simultan(op):
+            mantel = vr.mantel_oben(job)
         ergebnis.append(
             Abschnitt(
                 op.Label,
@@ -3474,6 +3605,11 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 nullpunkte=nullpunkte,
                 fest=fest,
                 von_oben=bool(vo.ist_rundum(op) and not vo.schwenk(op) and schwenkung is None),
+                mantel=mantel,
+                lage_zyklus=(
+                    None if lage_zyklus is None else (lage_zyklus[0], lage_zyklus[1], nullpunkte)
+                ),
+                stirn_oben=None if geschwenkt else vr.stirn_oben(job),
             )
         )
     return _nullpunkt_geschwenkt(ergebnis)
@@ -3985,6 +4121,32 @@ def _kopfzeilen(s, abschnitte, marken, info=None):
                     "pp.kopf.nullpunkt_geschwenkt",
                     register=fest_register,
                     schwenk=fest_text(a.fest.rund, umgekehrt),
+                ),
+            )
+        )
+    # Das Rohr im Futter auf dem Rundtisch mit dem Schwenkzyklus: ungeschwenkt eingerichtet.
+    lage = next((a for a in abschnitte if a.lage_zyklus is not None and a.fest is None), None)
+    if lage is not None:
+        zeilen.append(
+            _kommentar(
+                s,
+                tr(
+                    "pp.kopf.nullpunkt_zyklus",
+                    register=(lage.nullpunkte[0] if lage.nullpunkte else "G54"),
+                    zyklus=_zyklus_name(s),
+                ),
+            )
+        )
+    # An der 4. Achse: wo Z 0 liegt – oben auf dem Mantel, mit dem Ø, an dem man antastet.
+    mantel = next((a for a in abschnitte if a.mantel is not None), None)
+    if mantel is not None and vierte_achse(info):
+        zeilen.append(
+            _kommentar(
+                s,
+                tr(
+                    "pp.kopf.nullpunkt_mantel",
+                    register=(mantel.nullpunkte[0] if mantel.nullpunkte else "G54"),
+                    d=_mm(2.0 * float(mantel.mantel)),
                 ),
             )
         )

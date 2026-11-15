@@ -215,6 +215,63 @@ for satz in saetze:
     verfahren.grundstellung()
 print(ascii(f"Spitze an {len(saetze)} Sätzen: höchstens {groesste:.6f} mm neben der Bahn"))
 pruefe(len(saetze) >= 5 and groesste < 1e-6, f"Spitze {groesste:.4f} mm neben der Bahn")
+
+# --- Nullpunkt wie Manuel an der 4. Achse: Z 0 oben auf dem Mantel (2026-11-15) -----------------
+# „da ist mittig vom rohr 0 und in z richtung der höchste punkt und länge meist x eine seite 0“:
+# Die Maschine fährt die Sätze, wie die Prüfung sie liest (Z vom Mantel oben), mit G54 oben auf
+# dem Mantel der Stange (Ø 60: 30 über der Achse) – die Spitze trifft die Bahn. Gegenprobe: mit
+# G54 auf der Achse (wie bis 0.385) stünde sie 30 mm zu tief.
+pruefe(p.vierte_achse(), "die 3-Achs-Fräse mit 4. Achse gilt nicht als Fräse mit 4. Achse")
+R_STANGE = 30.0
+pruefe(abs(vr.mantel_oben(job) - R_STANGE) < 1e-9, f"Mantel oben: {vr.mantel_oben(job)}")
+eins_p = rw.einspannung(tc, bib)
+gelesen = p.befehle(op, None, aufnahme, eins_p, nullpunkt)
+pruefe(
+    p.versatz(op, aufnahme, eins_p, nullpunkt) == (0.0, 0.0, R_STANGE),
+    f"Versatz: {p.versatz(op, aufnahme, eins_p, nullpunkt)}",
+)
+bahn_z = [float(b.Parameters["Z"]) for b in befehle if "Z" in b.Parameters]
+prog_z = [float(b.Parameters["Z"]) for b in gelesen if "Z" in b.Parameters]
+pruefe(
+    len(bahn_z) == len(prog_z)
+    and all(abs(a - b - R_STANGE) < 1e-9 for a, b in zip(bahn_z, prog_z, strict=False)),
+    "die Sätze der Prüfung zählen Z nicht vom Mantel oben",
+)
+stand, saetze_prog = {}, []
+for b in gelesen:
+    stand.update({x: float(w) for x, w in b.Parameters.items() if x in "XYZA"})
+    if b.Name == "G1" and "A" in stand:
+        saetze_prog.append(dict(stand))
+saetze_prog = saetze_prog[:: max(1, len(saetze_prog) // 15)]
+
+
+def neben_mit_g54(g54_ueber_achse):
+    """Die Spitze höchstens so weit neben der Bahn, wenn G54 um `g54_ueber_achse` über dem
+    Nullpunkt des Jobs (der Achse) eingerichtet ist und die Maschine die Sätze der Prüfung fährt."""
+    verfahren.grundstellung()
+    s0_hier = spitze_im_job()
+    weit = 0.0
+    for satz in saetze_prog:
+        punkt = V(*(satz.get(x, 0.0) for x in "XYZ")) + V(0, 0, g54_ueber_achse)
+        wege = np.linalg.lstsq(jacobi, np.array(tuple(punkt - s0_hier)), rcond=None)[0]
+        for a, w in zip(linear, wege, strict=True):
+            verfahren.setze(a, start[a] + w, grenzen=False)
+        verfahren.setze(a_eigene, satz["A"], grenzen=False)
+        im_teil = V(satz["X"], satz["Y"], satz["Z"] + R_STANGE)  # der Punkt der Bahn im Job
+        soll = FreeCAD.Rotation(V(achse.laengs), -achse.drehsinn * satz["A"]).multVec(im_teil)
+        weit = max(weit, (spitze_im_job() - soll).Length)
+        verfahren.grundstellung()
+    return weit
+
+
+oben_trifft, auf_achse = neben_mit_g54(R_STANGE), neben_mit_g54(0.0)
+print(
+    ascii(
+        f"G54 oben auf dem Mantel: {oben_trifft:.6f} mm, Gegenprobe auf der Achse {auf_achse:.3f}"
+    )
+)
+pruefe(len(saetze_prog) >= 5 and oben_trifft < 1e-6, f"Mantel oben: {oben_trifft:.4f} mm")
+pruefe(abs(auf_achse - R_STANGE) < 1e-6, f"Gegenprobe G54 auf der Achse: {auf_achse:.4f} mm")
 reich = p.pruefe_job(job, nullpunkt, bib)
 pruefe(not reich.ueberschreitungen, f"über: {[u.text() for u in reich.ueberschreitungen][:2]}")
 pruefe(not rw._laengs_ins_futter(p, job), "X der Spannfläche zeigt ins Futter")
@@ -245,12 +302,18 @@ def wie_die_bahn(wert):
     return any(abs((wert - vorzeichen * y + 180.0) % 360.0 - 180.0) < 1e-3 for y in in_der_bahn)
 
 
+pruefe(pp.vierte_achse(info), f"Maschineninfo ohne 4. Achse: {info.rundachsen}")
 for kennung, muster in (
     ("siemens", r"\bA1=(?:AC[PN]\()?(-?\d+\.\d+)"),
     ("heidenhain", r"\bA([+-]\d+\.\d+)"),
     ("linuxcnc", r"\bA(-?\d+\.\d+)"),
 ):
     programm = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), info, "Rohr")
+    # Im Kopf: wo G54 liegt – Z 0 oben auf dem Mantel, mit dem Ø.
+    pruefe(
+        any(re.search(r"Z 0 oben auf dem Mantel, (Ø|D) 60\b", z) for z in programm.zeilen[:30]),
+        f"{kennung}: Kopf ohne Z 0 oben auf dem Mantel",
+    )
     werte = [float(w) for z in programm.zeilen for w in re.findall(muster, z.split(";")[0])]
     gleich = [x for x in werte if wie_die_bahn(x)]
     print(
@@ -259,6 +322,30 @@ for kennung, muster in (
     pruefe(not programm.hinweise, f"{kennung}: {programm.hinweise}")
     pruefe(len(werte) >= len(set(in_der_bahn)) // 2, f"{kennung}: nur {len(werte)} A-Wörter")
     pruefe(len(gleich) >= len(werte) - 2, f"{kennung}: A nicht wie die Bahn ({werte[:5]})")
+
+# Z im Programm: vom Mantel oben – die Z-Wörter der LinuxCNC-Zeilen mit A sind die der Bahn − 30.
+# Gegenprobe: dasselbe Programm für eine Maschine ohne 4. Achse (3-Achs-Fräse, keine Maschine)
+# zählt Z weiter von der Achse, Zeile für Zeile wie bis 0.385.
+mit_vierter = pp.programm(pp.abschnitte(job), pp.steuerung("linuxcnc"), info, "Rohr").zeilen
+ohne_vierte = pp.programm(
+    pp.abschnitte(job), pp.steuerung("linuxcnc"), pp.Maschineninfo(), "Rohr"
+).zeilen
+z_mit = [float(w) for z in mit_vierter for w in re.findall(r"\bZ(-?\d+\.\d+)", z.split("(")[0])]
+z_ohne = [float(w) for z in ohne_vierte for w in re.findall(r"\bZ(-?\d+\.\d+)", z.split("(")[0])]
+im_job = {round(float(b.Parameters["Z"]), 3) for b in befehle if "Z" in b.Parameters}
+pruefe(
+    z_ohne and all(round(z, 3) in im_job for z in z_ohne),
+    f"ohne 4. Achse: Z nicht wie die Bahn ({z_ohne[:5]})",
+)
+pruefe(not any("Mantel" in z for z in ohne_vierte), "ohne 4. Achse: Mantel im Kopf")
+verschoben = [z for z in z_mit if round(z + R_STANGE, 3) in im_job]
+print(
+    ascii(
+        f"Z vom Mantel: {len(verschoben)} von {len(z_mit)} Z-Wörtern, ohne 4. Achse {len(z_ohne)}"
+    )
+)
+# Der Wechselpunkt (Z oben, in MKS) zählt nicht vom Nullpunkt – jedes andere Z ist die Bahn − 30.
+pruefe(len(verschoben) >= len(z_mit) - 3, f"Z nicht vom Mantel: {z_mit[:6]}")
 
 # --- Die erste Anfahrt: oben über den Punkt, dann Z hinunter ----------------------------------
 # Wo Teilapparat, Futter und Reitstock im Job stehen (Hüllboxen; Z oben, X von – bis).
@@ -276,10 +363,12 @@ pruefe(len(kisten) == 3, f"Spannmittel: {sorted(kisten)}")
 RADIUS_T1 = 4.0
 
 
-def hinein(zeilen, start):
+def hinein(zeilen, start, dz=0.0):
     """Fährt der erste Eilgang nach dem Wechsel (Z oben, X/Y wie `start`) in ein Spannmittel?
     Die Sätze nach „M6“/„TOOL CALL“ bis zum ersten mit Z: ändert sich Z, fährt die Spindel an der
-    X/Y-Stelle dieses Satzes hinunter (ohne X/Y im Satz: an der alten). Gibt den Namen oder ""."""
+    X/Y-Stelle dieses Satzes hinunter (ohne X/Y im Satz: an der alten). Gibt den Namen oder "".
+    `dz`: so weit über dem Nullpunkt des Jobs liegt Z 0 des Programms (an der 4. Achse: der
+    Mantel oben)."""
     x, y = start
     nach = False
     for zeile in zeilen:
@@ -290,7 +379,7 @@ def hinein(zeilen, start):
         worte = dict(re.findall(r"\b([XYZ])([+-]?\d+(?:\.\d*)?)", roh))
         x, y = float(worte.get("X", x)), float(worte.get("Y", y))
         if "Z" in worte:
-            z = float(worte["Z"])
+            z = float(worte["Z"]) + dz
             for name, k in kisten.items():
                 ueber = k.XMin - RADIUS_T1 < x < k.XMax + RADIUS_T1
                 ueber = ueber and k.YMin - RADIUS_T1 < y < k.YMax + RADIUS_T1
@@ -307,7 +396,7 @@ starts = {
 for kennung in ("siemens", "heidenhain", "linuxcnc"):
     zeilen = pp.programm(pp.abschnitte(job), pp.steuerung(kennung), info, "Rohr").zeilen
     for wo, start in starts.items():
-        getroffen = hinein(zeilen, start)
+        getroffen = hinein(zeilen, start, R_STANGE)
         pruefe(not getroffen, f"{kennung}: der erste Eilgang {wo} fährt in {getroffen}")
 # Gegenprobe: in der Reihenfolge der Bahn (G0 Z allein zuerst, wie bis 0.377 im Programm).
 bahn_zeilen = ["M6"] + [
@@ -322,13 +411,21 @@ text = eb.spannung_text(job, sprache.tr)
 print(ascii(f"Einrichtblatt: {text}"))
 pruefe("Reitstock" in text and "DIN 332" in text, f"Einrichtblatt: {text}")
 pruefe(f"Zapfen {eb._zahl(vr.REITSTOCK_ZAPFEN)}" in text, f"Zapfen im Einrichtblatt: {text}")
-null_text = eb.nullpunkt_text(job, sprache.tr)
+null_text = eb.nullpunkt_text(job, sprache.tr, info)
 print(ascii(f"Nullpunkt: {null_text}"))
 raus = laenge - vr.SPANNLAENGE
 pruefe(
     f"{eb._zahl(vr.REITSTOCK_ZAPFEN)} " in null_text and f"{eb._zahl(raus)} " in null_text,
     f"Nullpunkt ohne Zapfen {vr.REITSTOCK_ZAPFEN} oder Ausspannlänge {raus}: {null_text}",
 )
+pruefe(f"Z 0 oben auf dem Mantel, Ø {eb._zahl(60.0)} mm" in null_text, f"Mantel: {null_text}")
+# Ohne Maschine mit 4. Achse (keine Maschine am Job): wie bisher auf der Achse.
+achse_text = eb.nullpunkt_text(job, sprache.tr, pp.Maschineninfo())
+pruefe("Mantel" not in achse_text and "auf der Achse" in achse_text, f"ohne: {achse_text}")
+sprache.setze_sprache("en")
+englisch = eb.nullpunkt_text(job, sprache.tr, info)
+sprache.setze_sprache("de")
+pruefe("Z 0 on top of the bar" in englisch, f"englisch: {englisch}")
 # Mit Planaufmaß 15 ist der Zapfen 15 lang – nicht „mindestens 10“.
 doc15 = FreeCAD.newDocument("RohrPlan15")
 teil15 = doc15.addObject("Part::Feature", "Rohr")

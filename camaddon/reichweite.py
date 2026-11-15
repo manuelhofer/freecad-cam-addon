@@ -824,6 +824,7 @@ class Pruefung:
     def __init__(self, assembly, maschine, werkstueckaufnahme=None, kette=None):
         self._geteilt = None  # schritte_teilen(): Sätze und Schritte je Operation, einmal gelesen
         self._kennung = None  # kennung(), einmal gerechnet
+        self._vierte = None  # vierte_achse(), einmal gerechnet
         self.maschine = maschine
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
@@ -1308,6 +1309,10 @@ class Pruefung:
                     job = st.job_von(op)
                     modus = st.modus(job) if job is not None else st.MIT
                     return st.befehle(befehle, rahmen, modus, st.sicher_z(op))
+            # An der 4. Achse zählt das Programm Z vom Mantel oben (versatz, _mantel).
+            mantel = self._mantel(op)
+            if mantel is not None:
+                return sw.verschoben(befehle, (0.0, 0.0, -mantel))
             return befehle
 
         maschine = sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
@@ -1331,10 +1336,41 @@ class Pruefung:
         from . import vierachs_operation as vo
 
         if not (vo.ist_rundum(op) and vo.schwenk(op)):
-            return None
+            mantel = self._mantel(op)
+            return None if mantel is None else (0.0, 0.0, float(mantel))
         return sw.versatz_der_operation(
             op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
         )
+
+    def vierte_achse(self):
+        """Ist die Maschine eine Fräse mit 4. Achse – genau eine Rundachse im Programm, A oder B
+        (an der Drehmaschine ist es C, an den 5-Achs-Maschinen sind es zwei)? Wie
+        postprozessor.vierte_achse mit der Maschineninfo."""
+        if getattr(self, "_vierte", None) is None:
+            buchstaben = {
+                self.programmbuchstabe(a) for a in self.kette.achsen if a.art != LINEAR
+            } - {None}
+            self._vierte = buchstaben in ({"A"}, {"B"})
+        return self._vierte
+
+    def _mantel(self, op):
+        """An der 4. Achse (vierte_achse): wie hoch Z 0 des Programms über dem Nullpunkt des Jobs
+        auf der Achse der Stange liegt – oben auf dem Mantel (vierachs_rohteil.mantel_oben);
+        None sonst, auch in einer geschwenkten Ebene, simultan und in geschwenkter Lage (die
+        haben ihren eigenen Weg)."""
+        from . import schwenken as sw
+        from . import simultan_operation as so
+        from . import stirnseite as st
+        from . import vierachs_operation as vo
+
+        if not self.vierte_achse() or so.ist_simultan(op):
+            return None
+        if vo.ist_rundum(op) and vo.schwenk(op):
+            return None
+        job = st.job_von(op)
+        if job is None or sw.ist_ebene(job):
+            return None
+        return vr.mantel_oben(job)
 
     def _bestueckung_pruefen(self, job, bibliothek, sammler):
         """Stecken im Job zwei Werkzeuge auf einem Revolverplatz (W-002 Stufe G)? Die Maschine

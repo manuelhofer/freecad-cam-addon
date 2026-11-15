@@ -462,6 +462,12 @@ class Schwenkung:
     # die Schwenkhöhe kennt (Rohr und Futter); am Wechselpunkt stand es irgendwo über dem Tisch.
     # None: dort, wo es steht.
     ueber: tuple = None
+    # Mit Schwenkzyklus in geschwenkter Lage (lage_mit_zyklus): vor dem Zyklus erst auf `hoehe`
+    # und über `ueber` (ungeschwenkt gezählt) – CYCLE800 und PLANE SPATIAL schwenken, wo das
+    # Werkzeug steht; vor einem Zurück, das selbst zurückdreht (PLANE RESET TURN), im geschwenkten
+    # Rahmen auf (Höhe, (X, Y)) über die Achse von C (`rueckzug_rahmen`).
+    vor_zyklus: bool = False
+    rueckzug_rahmen: tuple = None
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -591,6 +597,34 @@ def befehle_ohne_zyklus(befehle, schwenkung, schon_oben=False):
             continue  # ohne Zyklen im Programm ohne Sinn
         else:
             ergebnis.append(befehl)
+    return ergebnis
+
+
+def verschoben(befehle, versatz):
+    """Die Sätze (Path.Command) um `versatz` (dx, dy, dz) verschoben – so zählen sie von einem
+    anderen Nullpunkt: X, Y, Z der Bewegungen und Bohrzyklen, R der Bohrzyklen (die Höhe, auf die
+    sie zurückziehen). I, J, K (relativ zum Anfang) und Q (eine Zustellung) bleiben; nach G91
+    (inkrementell) bleibt alles, bis G90 kommt."""
+    import Path
+
+    adressen = dict(zip("XYZ", versatz, strict=True))
+    if not any(adressen.values()):
+        return list(befehle)
+    adressen["R"] = adressen["Z"]
+    absolut = True
+    ergebnis = []
+    for befehl in befehle:
+        name = befehl.Name.upper()
+        if name in ("G90", "G91"):
+            absolut = name == "G90"
+        if not absolut or name not in BEWEGUNG + BOGEN + ZYKLEN + ("G84", "G74"):
+            ergebnis.append(befehl)
+            continue
+        werte = dict(befehl.Parameters)
+        for k, d in adressen.items():
+            if k in werte and (k != "R" or name not in BOGEN):  # R am Bogen: sein Radius
+                werte[k] = float(werte[k]) + d
+        ergebnis.append(Path.Command(befehl.Name, werte))
     return ergebnis
 
 
@@ -996,6 +1030,74 @@ def zurueck_aus_der_lage(schwenkung):
         saetze.append(Path.Command("G0", {"X": x, "Y": y}))
     saetze.append(Path.Command("G0", dict.fromkeys(schwenkung.rund, 0.0)))
     return saetze
+
+
+def lage_mit_zyklus(befehle, fest, maschine, oben=0.0):
+    """Die geschwenkte Lage („C, A −90°“, `fest`: schwenkung_der_operation) mit dem Schwenkzyklus
+    der Steuerung: (Sätze, Schwenkung) – oder None ohne Abbildung.
+
+    Eingerichtet wird ungeschwenkt, wie Manuel einrichtet (2026-11-15): X, Y 0 mittig im Rohr,
+    auf der Achse von C, Z 0 `oben` (mm, längs der Achse) über dem Nullpunkt des Jobs – an der
+    Stirn der Stange (vierachs_rohteil.stirn_oben). Der Zyklus schwenkt um diesen Punkt: Den Weg
+    zur Schwenkachse nimmt die Steuerung aus ihrer Kinematik, das Programm hängt so nicht an der
+    Höhe des Futters (der Fund des Zweiflers von 0.376: 5 mm tiefer gespannt waren ohne Zyklus mit
+    G54 bei A 0 7,07 mm neben der Bahn). Die Ebene des Zyklus ist die Drehung der Lage selbst
+    (Abbildung ohne Versatz, umgekehrt): Im geschwenkten Rahmen stehen dieselben X, Y, Z wie
+    „nach dem Schwenken eingerichtet“, nur um den Weg von der Stirn des Teils zur Stirn der Stange
+    verschoben; C dreht darin wie an einer liegenden 4. Achse.
+
+    `befehle`: die Sätze der Bahn im Job (ohne den Kommentar vorn). Die Sätze ohne Vorspann (kein
+    „G0 A…“ – das stellt der Zyklus), zum ersten Punkt auf der Schwenkhöhe darüber und hinunter
+    (befehle_ohne_zyklus)."""
+    if fest is None or fest.abbildung is None or fest.versatz is None:
+        return None
+    import numpy
+
+    a = numpy.array(fest.abbildung.a, dtype=float)
+    d = numpy.array((0.0, 0.0, float(oben)))
+    ad = a @ d  # wohin der Weg zur Stirn der Stange geschwenkt ist (im Programm)
+    rahmen = Abbildung(fest.abbildung.a, tuple(float(-w) for w in ad))
+    hoehe_rahmen = None if fest.hoehe is None else float(fest.hoehe) - float(ad[2])
+    im_rahmen = Schwenkung(FreeCAD.Placement(), dict(fest.rund), rahmen, hoehe=hoehe_rahmen)
+    saetze = befehle_ohne_zyklus(befehle, im_rahmen, schon_oben=True)
+    rund = {k: float(w) for k, w in fest.rund.items()}
+    for i, satz in enumerate(saetze):  # das Schwenken selbst macht der Zyklus
+        if satz.Name == "G0" and {k: float(w) for k, w in satz.Parameters.items()} == rund:
+            del saetze[i]
+            break
+    # Die Ebene des Zyklus: Rahmen → Job ist die Drehung zurück (a ist orthonormal).
+    m = a.T
+    matrix = FreeCAD.Matrix(
+        m[0][0], m[0][1], m[0][2], 0.0, m[1][0], m[1][1], m[1][2], 0.0,
+        m[2][0], m[2][1], m[2][2], 0.0, 0.0, 0.0, 0.0, 1.0,
+    )  # fmt: skip
+    ebene_ = FreeCAD.Placement(FreeCAD.Vector(), FreeCAD.Placement(matrix).Rotation)
+    # Ungeschwenkt gezählt (von der Stirn der Stange): die Schwenkhöhe, über der Achse von C.
+    v = fest.versatz
+    hoehe = None if fest.hoehe is None else float(fest.hoehe) + float(v[2]) - float(d[2])
+    ueber_rahmen = None
+    if fest.ueber is not None:
+        ueber_rahmen = (float(fest.ueber[0]) - float(ad[0]), float(fest.ueber[1]) - float(ad[1]))
+    richtung, richtung_achse = -1, ""
+    if maschine is not None:
+        from . import maschine as mm
+
+        bezug = mm.schwenk_bezug(getattr(maschine.pruefung, "maschine", None))
+        richtung = zyklus_richtung(maschine, maschine.richtung(rund), rund, bezug)
+        reihe = siemens_reihenfolge(maschine)
+        richtung_achse = reihe[bezug - 1].buchstabe if len(reihe) >= bezug else ""
+    schwenkung = Schwenkung(
+        ebene_,
+        dict(fest.rund),
+        rahmen,
+        hoehe=hoehe,
+        richtung=richtung,
+        richtung_achse=richtung_achse,
+        ueber=(-float(d[0]), -float(d[1])),
+        vor_zyklus=True,
+        rueckzug_rahmen=None if ueber_rahmen is None else (hoehe_rahmen, ueber_rahmen),
+    )
+    return saetze, schwenkung
 
 
 def versatz_der_operation(op, maschine):

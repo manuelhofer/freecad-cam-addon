@@ -683,11 +683,14 @@ def gemerkter_nullpunkt(job):
     return (lage if len(lage) == 3 else ""), versatz
 
 
-def nullpunkt_text(job, tr):
+def nullpunkt_text(job, tr, info=None, steuerung=None):
     """Wo X 0, Y 0, Z 0 am Rohteil liegt – mit den Worten der Nullpunkt-Wahl im Assistenten
     („Mitte oben“, „Ecke links vorne oben“, „Kante vorne oben, Mitte“); liegt er an keinem dieser
     Punkte, je Achse: links/Mitte/rechts … oder sein Abstand von links, vorne, unten. Stange und
-    N-Kant-Stange: wie ihr Assistent ihn setzt."""
+    N-Kant-Stange: wie ihr Assistent ihn setzt – an einer Fräse mit 4. Achse Z 0 oben auf dem
+    Mantel, wie das Programm zählt (`info`: die Maschineninfo, für die es schreibt; ohne die der
+    Maschine des Jobs); das Rohr im Futter auf dem Rundtisch, wie die Steuerung es schreibt
+    (`steuerung`: postprozessor.Steuerung; ohne die des Jobs, steuerung_des_jobs)."""
     from . import n_eck
     from . import vierachs_rohteil as vr
 
@@ -698,17 +701,28 @@ def nullpunkt_text(job, tr):
     # Gekippt gespannt: Das Rohteil liegt in dieser Aufspannung anders – ihr eigenes (gedreht).
     rohteil = getattr(job if sw.ist_umspannen(job) else grundjob(job), "Stock", None)
     if vr.ist_stange(job, rohteil) and vr.im_tischfutter(grundjob(job)):
-        return _nullpunkt_geschwenkt(grundjob(job), tr)
+        return _nullpunkt_geschwenkt(grundjob(job), tr, steuerung)
+    # An der 4. Achse zählt Z vom Mantel oben (postprozessor.vierte_achse): dort tastet man an.
+    mantel = vr.mantel_oben(grundjob(job)) if vr.ist_stange(job, rohteil) else None
+    if mantel is not None:
+        from . import postprozessor as pp
+
+        if not pp.vierte_achse(info if info is not None else pp.maschineninfo(grundjob(job))):
+            mantel = None
     if vr.ist_stange(job, rohteil) and vr.mit_reitstock(grundjob(job)):
         # Die Stirn des Teils liegt im Zapfen, man sieht sie nicht (Zweifler 2026-11-14): Wer an
         # der Stirn der Stange antastet, braucht die Zahl – und wie weit die Stange herausragt.
         laenge = float(rohteil.Height)
-        return tr(
-            "eb.nullpunkt.stange_reitstock",
-            mm=_mm(),
-            vorn=_zahl(vr.vorn_laenge(grundjob(job))),
-            raus=_zahl(laenge - vr.spannlaenge(grundjob(job))),
-        )
+        werte = {
+            "mm": _mm(),
+            "vorn": _zahl(vr.vorn_laenge(grundjob(job))),
+            "raus": _zahl(laenge - vr.spannlaenge(grundjob(job))),
+        }
+        if mantel is not None:
+            return tr("eb.nullpunkt.mantel_reitstock", d=_zahl(2.0 * mantel), **werte)
+        return tr("eb.nullpunkt.stange_reitstock", **werte)
+    if mantel is not None:
+        return tr("eb.nullpunkt.mantel", mm=_mm(), d=_zahl(2.0 * mantel))
     if vr.ist_stange(job, rohteil):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)
@@ -752,15 +766,25 @@ def nullpunkt_text(job, tr):
     return tr("eb.nullpunkt.achsen", x=achsen[0], y=achsen[1], z=achsen[2])
 
 
-def _nullpunkt_geschwenkt(job, tr):
-    """Der Nullpunkt in geschwenkter Lage („C, A auf 90°“): eingerichtet nach dem Schwenken, an
-    der Stirn auf der Achse von C – so hängt das Programm nicht an der Höhe des Futters
-    (schwenken.schwenkung_der_operation). Fährt der Job auch ohne Schwenken, hat diese Lage den
-    nächsten Nullpunkt (postprozessor._nullpunkt_geschwenkt)."""
+def _nullpunkt_geschwenkt(job, tr, steuerung=None):
+    """Der Nullpunkt in geschwenkter Lage („C, A auf 90°“). Mit dem Schwenkzyklus der Steuerung
+    (postprozessor.lage_mit_zyklus) ungeschwenkt, wie Manuel einrichtet: X, Y 0 mittig im Rohr,
+    Z 0 oben an der Stirn der Stange – für alle Bearbeitungen des Jobs. Ohne ihn eingerichtet
+    nach dem Schwenken, an der Stirn auf der Achse von C – so hängt das Programm nicht an der Höhe
+    des Futters (schwenken.schwenkung_der_operation); fährt der Job auch ohne Schwenken, hat diese
+    Lage den nächsten Nullpunkt (postprozessor._nullpunkt_geschwenkt)."""
     from . import postprozessor as pp
     from . import vierachs_operation as vo
     from . import vierachs_rohteil as vr
 
+    s = steuerung if steuerung is not None else steuerung_des_jobs(job)
+    if pp.lage_mit_zyklus(s):
+        vorn = vr.stirn_oben(job) or 0.0
+        if vorn > 1e-6:
+            return tr(
+                "eb.nullpunkt.zyklus_aufmass", mm=_mm(), vorn=_zahl(vorn), zyklus=pp._zyklus_name(s)
+            )
+        return tr("eb.nullpunkt.zyklus", zyklus=pp._zyklus_name(s))
     schwenk = vr.schwenk_anzeige(job).rstrip("°")
     ops = [o for o in getattr(getattr(job, "Operations", None), "Group", []) if o.Active]
     ohne = [o for o in ops if not (vo.ist_rundum(o) and vo.schwenk(o)) and not pp.ohne_arbeit(o)]
@@ -773,6 +797,37 @@ def _nullpunkt_geschwenkt(job, tr):
         register=register,
         weiter=pp.naechster_nullpunkt(register) or "–",
     )
+
+
+def steuerung_des_jobs(job):
+    """Die Steuerung, für die „Programm schreiben“ den Job schreibt, mit den Änderungen des
+    Benutzers (Haken „Schwenkzyklus“ …): wie gui_programm.steuerung_des_jobs und
+    gespeicherte_aenderungen – am Job gemerkt, sonst die für seine Maschine zuletzt gewählte, sonst
+    die zuletzt gewählte –, nur ohne Fenster."""
+    import json
+
+    import FreeCAD
+
+    from . import PARAMETER_PFAD
+    from . import postprozessor as pp
+    from . import reichweite as rw
+
+    parameter = FreeCAD.ParamGet(PARAMETER_PFAD)
+    kennung = str(getattr(job, pp.EIGENSCHAFT_STEUERUNG, "") or "")
+    if kennung not in pp.STEUERUNGEN:
+        try:
+            je_maschine = json.loads(parameter.GetString("SteuerungJeMaschine", "") or "{}")
+        except ValueError:
+            je_maschine = {}
+        pfad = rw.gemerkte_maschine(job)
+        kennung = je_maschine.get(os.path.normcase(pfad)) if pfad else None
+    if kennung not in pp.STEUERUNGEN:
+        kennung = parameter.GetString("SteuerungZuletzt", pp.VORGABE)
+    try:
+        aenderungen = json.loads(parameter.GetString(f"Steuerung_{kennung}", "") or "{}")
+    except ValueError:
+        aenderungen = {}
+    return pp.steuerung(kennung, aenderungen if isinstance(aenderungen, dict) else None)
 
 
 def _gewaehlter_text(job, bb, tr):

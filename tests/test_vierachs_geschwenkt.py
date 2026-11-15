@@ -198,12 +198,17 @@ def mit_c(liste):
     return aus
 
 
-def neben_der_bahn(saetze, null, nach_dem_schwenken=True, versatz=(0.0, 0.0, 0.0)):
+def neben_der_bahn(
+    saetze, null, nach_dem_schwenken=True, versatz=(0.0, 0.0, 0.0), ursprung=(0.0, 0.0, 0.0)
+):
     """So weit (mm) steht die Spitze höchstens neben der Bahn, wenn die Maschine `saetze` fährt
     und das Teil am Nullpunkt `null` sitzt – eingerichtet wie der Einrichter: nach dem Schwenken
     (A fest, C 0) die Spitze an die Stirn auf der Achse (G54), oder bei A 0 (`versatz` dazu: so
     rechnete das Programm bis zum Fund des Zweiflers). Ohne TCPM: X, Y, Z sind die Linearachsen
-    ab G54, je 1 mm wie die Spitze bei A 0 C 0 im Teil fährt; A und C wie das Gelenk."""
+    ab G54, je 1 mm wie die Spitze bei A 0 C 0 im Teil fährt; A und C wie das Gelenk.
+    `ursprung`: der Punkt im Job, an dem G54 eingerichtet ist (mit dem Schwenkzyklus: ungeschwenkt
+    an der Stirn der Stange – die Steuerung schwenkt ihn mit: so weit fährt sie die Linearachsen,
+    dass die Spitze nach dem Schwenken an ihm steht, gerechnet mit der Kinematik der Maschine)."""
     verfahren.grundstellung()
     start = np.array([verfahren.stellung(a) for a in linear])
     j0, _s = jacobi(null)  # X, Y, Z im Programm: wie bei Rundachsen 0
@@ -211,7 +216,8 @@ def neben_der_bahn(saetze, null, nach_dem_schwenken=True, versatz=(0.0, 0.0, 0.0
         for buchstabe, wert in achse.schwenk:
             verfahren.setze(rund[buchstabe], wert, grenzen=False)
     js, s = jacobi(null)
-    g54 = start + np.linalg.lstsq(js, -np.array(tuple(s)), rcond=None)[0]  # Spitze an der Stirn
+    ziel = np.array(ursprung) - np.array(tuple(s))
+    g54 = start + np.linalg.lstsq(js, ziel, rcond=None)[0]  # Spitze am Ursprung
     paare = list(zip(mit_c(befehle), mit_c(saetze), strict=True))
     groesste = 0.0
     for bahn, programm in paare[:: max(1, len(paare) // 15)]:
@@ -248,15 +254,18 @@ reich = p.pruefe_job(job, nullpunkt, bib)
 pruefe(not reich.ueberschreitungen, f"über: {[u.text() for u in reich.ueberschreitungen][:2]}")
 pruefe(not any("radial" in h for h in reich.hinweise), f"Hinweise: {reich.hinweise}")
 
-# --- Das Programm: erst hoch, A fest, C dreht, am Ende zurück ---------------------------------
+# --- Das Programm ohne Schwenkzyklus: erst hoch, A fest, C dreht, am Ende zurück ---------------
+# (Haken „Mit dem Schwenkzyklus der Steuerung“ aus – oder eine Steuerung ohne: „nach dem Schwenken
+# einrichten“, wie bis 0.385, mit Hinweis.)
 maschine_sw = sw.Maschine(p, aufnahme, eins, nullpunkt)
 info = pp.maschineninfo_dokument(asm.Document)
+ohne_zyklus = {k: pp.steuerung(k).ersetzt(schwenkzyklus=False) for k in ("siemens", "heidenhain")}
 for kennung, schwenken, zurueck, c_wort in (
     ("siemens", "G0 A1=-90.000", "G0 A1=0.000", r"C1="),
     ("heidenhain", "L A-90.000 R0 FMAX", "L A+0.000 R0 FMAX", r" C[+-]\d"),
 ):
     programm = pp.programm(
-        pp.abschnitte(job, maschine=maschine_sw), pp.steuerung(kennung), info, "Rohr"
+        pp.abschnitte(job, maschine=maschine_sw), ohne_zyklus[kennung], info, "Rohr"
     )
     zeilen = [z.split(" ", 1)[1] if kennung == "heidenhain" else z for z in programm.zeilen]
     an = next((i for i, z in enumerate(zeilen) if z == schwenken), -1)
@@ -265,7 +274,8 @@ for kennung, schwenken, zurueck, c_wort in (
     ueber_c = zeilen[an - 1] if an > 0 else ""
     print(
         ascii(
-            f"{kennung}: {hoch} | {zeilen[an] if an >= 0 else '-'} | Hinweise {programm.hinweise}"
+            f"{kennung} ohne Zyklus: {hoch} | {zeilen[an] if an >= 0 else '-'} | "
+            f"Hinweise {programm.hinweise}"
         )
     )
     pruefe(
@@ -274,17 +284,150 @@ for kennung, schwenken, zurueck, c_wort in (
     )
     pruefe(sum(z.startswith(schwenken) for z in zeilen) == 1, f"{kennung}: A mehrmals")
     pruefe(zurueck in zeilen[erste_c:], f"{kennung}: am Ende nicht zurück")
-    pruefe(not programm.hinweise, f"{kennung}: {programm.hinweise}")
+    pruefe(
+        len(programm.hinweise) == 1 and "ohne Schwenkzyklus" in programm.hinweise[0],
+        f"{kennung} ohne Zyklus: {programm.hinweise}",
+    )
     pruefe(not any("CAM-Addon:" in z for z in zeilen), f"{kennung}: Kommentar der Bahn im Programm")
     # Im Kopf: G54 wird nach dem Schwenken eingerichtet (A wie die Steuerung zählt).
     kopf = [z for z in zeilen if re.search(r"G54: .*A [−-]90 und C 0 schwenken", z)]
     pruefe(kopf, f"{kennung}: Kopf ohne Nullpunkt nach dem Schwenken")
+
+# --- Mit dem Schwenkzyklus: ungeschwenkt eingerichtet, wie Manuel (2026-11-15) ---------------
+# „dann ist z0 vom tisch die entfernteste stelle .. und wenn das rohr senkrecht also man durch das
+# loch zum tisch schauen kann ist mittig im rohr xy0“: G54 bei A 0 C 0 mitten im Rohr, oben an der
+# Stirn der Stange; CYCLE800 / PLANE SPATIAL schwenkt um ihn, den Weg zur Schwenkachse nimmt die
+# Steuerung aus ihrer Kinematik. Nachgerechnet mit eigener Kinematik: Die Spitze trifft die Bahn –
+# auch mit dem Rohr 5 mm tiefer gespannt (G54 an der Stirn gemessen). Gegenprobe: dasselbe
+# Programm mit G54 nach dem Schwenken an der Stirn des Teils eingerichtet liegt um das Planaufmaß
+# daneben – Einrichtblatt und Kopf sagen deshalb, wo.
+vorn = vr.stirn_oben(job)
+pruefe(vorn is not None and vorn > 0.5, f"Stirn der Stange über dem Teil: {vorn}")
+lage = [a for a in pp.abschnitte(job, maschine=maschine_sw) if a.lage_zyklus is not None]
+pruefe(len(lage) == 1, f"Abschnitte mit Schwenkzyklus: {len(lage)}")
+im_zyklus, schwenk_zyklus, _register = lage[0].lage_zyklus
+pruefe(
+    not any(b.Name == "G0" and set(b.Parameters) == {"A"} for b in im_zyklus),
+    "im Zyklus steht A noch in den Sätzen",
+)
+pruefe(
+    abs(abs(sw.zyklus_winkel(schwenk_zyklus.ebene)[1][2]) - 90.0) < 1e-6,
+    f"Winkel des Zyklus: {sw.zyklus_winkel(schwenk_zyklus.ebene)}",
+)
+d_job = (0.0, 0.0, vorn)
+# Der Zyklus stellt A (im Programm steht es nicht mehr): davor so, wie er schwenkt.
+geschwenkt_im_zyklus = [Path.Command("G0", dict(schwenk_zyklus.rund)), *im_zyklus]
+_anzahl, mit_zyklus = neben_der_bahn(geschwenkt_im_zyklus, nullpunkt, ursprung=d_job)
+_anzahl, mit_zyklus_tiefer = neben_der_bahn(geschwenkt_im_zyklus, tiefer, ursprung=d_job)
+_anzahl, falsch_eingerichtet = neben_der_bahn(geschwenkt_im_zyklus, nullpunkt)
+print(
+    ascii(
+        f"Schwenkzyklus: {mit_zyklus:.6f} mm, 5 mm tiefer {mit_zyklus_tiefer:.6f} mm, G54 nach dem "
+        f"Schwenken an der Stirn des Teils {falsch_eingerichtet:.3f} mm (Planaufmaß {vorn:g})"
+    )
+)
+pruefe(mit_zyklus < 1e-6, f"Schwenkzyklus: {mit_zyklus:.4f} mm neben der Bahn")
+pruefe(mit_zyklus_tiefer < 1e-6, f"Schwenkzyklus 5 mm tiefer: {mit_zyklus_tiefer:.4f} mm")
+pruefe(abs(falsch_eingerichtet - vorn) < 1e-6, f"Gegenprobe: {falsch_eingerichtet:.4f} mm")
+for kennung, zyklus_satz, zurueck_satz, c_wort in (
+    ("siemens", "CYCLE800(", "CYCLE800()", r"C1="),
+    ("heidenhain", "PLANE SPATIAL", "PLANE RESET", r" C[+-]\d"),
+):
+    programm = pp.programm(
+        pp.abschnitte(job, maschine=maschine_sw), pp.steuerung(kennung), info, "Rohr"
+    )
+    zeilen = [z.split(" ", 1)[1] if kennung == "heidenhain" else z for z in programm.zeilen]
+    an = [i for i, z in enumerate(zeilen) if z.startswith(zyklus_satz) and z != zurueck_satz]
+    erste_c = next((i for i, z in enumerate(zeilen) if re.search(c_wort, z)), -1)
+    zurueck = [i for i, z in enumerate(zeilen) if z.startswith(zurueck_satz)]
+    print(ascii(f"{kennung} mit Zyklus: {[zeilen[i] for i in an]} | Hinweise {programm.hinweise}"))
+    # Erst hoch, über C (X 0 Y 0 ungeschwenkt), dann der Zyklus; A steht nicht mehr im Programm.
+    # (nach dem Wechselpunkt ganz oben ohne „Z“ davor – dort ist es schon hoch)
+    davor = [z for z in zeilen[max(0, an[0] - 12) : an[0]] if re.match(r"(G0|L) |G53", z)]
+    pruefe(
+        len(an) == 1 and an[0] < erste_c and zurueck and zurueck[-1] > erste_c,
+        f"{kennung}: Zyklus {an}, erstes C {erste_c}, zurück {zurueck}",
+    )
+    pruefe(
+        len(davor) >= 2
+        and any("Z" in z for z in davor[:-1])
+        and re.search(r"X\+?0\.000 Y\+?0\.000", davor[-1]),
+        f"{kennung}: vor dem Zyklus {davor}",
+    )
+    pruefe(
+        not any(re.search(r"\bA1?=?[+-]?90", z.split(";")[0]) for z in zeilen),
+        f"{kennung}: A im Programm",
+    )
+    pruefe(not programm.hinweise, f"{kennung} mit Zyklus: {programm.hinweise}")
+    # Die Vorzugsrichtung: A an der Steuerung −90 (nach DIN umgedreht), die kleinere der zwei
+    # Stellungen (die andere: A +90 mit C 180 – jedes C der Bahn läge 180° daneben).
+    richtung_ok = (
+        an and zeilen[an[0]].endswith(",-1,0,1)")
+        if kennung == "siemens"
+        else an and zeilen[an[0]].split()[-1] == "SEQ-"
+    )
+    pruefe(richtung_ok, f"{kennung}: Vorzugsrichtung im Zyklus {[zeilen[i] for i in an]}")
+    pruefe(
+        any("ungeschwenkt einrichten" in z for z in zeilen)
+        and not any("schwenken, dann einrichten" in z for z in zeilen),
+        f"{kennung}: Kopf ohne ungeschwenkt einrichten",
+    )
+    pruefe(not any(z.startswith("G55") for z in zeilen), f"{kennung}: G55 mit Schwenkzyklus")
+    if kennung == "siemens":  # CYCLE800() dreht nicht zurück: danach A 0 über C
+        pruefe("G0 A1=0.000" in zeilen[zurueck[-1] :], "siemens: nach CYCLE800() nicht auf A 0")
+    else:  # PLANE RESET TURN dreht selbst: vorher im Rahmen über C
+        vor_reset = zeilen[zurueck[-1] - 1] if zurueck else ""
+        pruefe(re.search(r"^L [XY][+-]\d", vor_reset), f"heidenhain: vor PLANE RESET {vor_reset}")
+    # Die Sätze im Zyklus: dieselben X, Y, Z wie ohne Zyklus, um den geschwenkten Weg zur Stirn
+    # der Stange verschoben (a · d).
+    if kennung == "siemens":
+        ohne = pp.programm(
+            pp.abschnitte(job, maschine=maschine_sw), ohne_zyklus["siemens"], info, "Rohr"
+        ).zeilen
+        ad = np.array(schwenkung.abbildung.a) @ np.array(d_job)
+
+        def bahnsaetze(zz):
+            aus = []
+            for z in zz:
+                if z.startswith("G1 ") and "C1=" in z:
+                    w = dict(re.findall(r"\b([XYZ])(-?\d+\.\d+)", z))
+                    aus.append(tuple(float(w.get(k, "nan")) for k in "XYZ"))
+            return aus
+
+        mit_s, ohne_s = bahnsaetze(zeilen), bahnsaetze(ohne)
+        paare = [
+            (m_, o_)
+            for m, o in zip(mit_s, ohne_s, strict=False)
+            for m_, o_ in [(m, o)]
+            if not any(math.isnan(x) for x in m + o)
+        ]
+        weit = max(
+            (max(abs(m[i] - o[i] + ad[i]) for i in range(3)) for m, o in paare), default=math.inf
+        )
+        print(ascii(f"Sätze mit/ohne Zyklus: {len(mit_s)}/{len(ohne_s)}, höchstens {weit:.4f} mm"))
+        pruefe(len(mit_s) == len(ohne_s) and weit < 0.0015, f"Sätze im Zyklus: {weit:.4f} mm")
 # Einrichtblatt: das Futter auf dem Rundtisch und der Nullpunkt nach dem Schwenken.
 futter_text = eb.spannung_text(job, sprache.tr)
 null_text = eb.nullpunkt_text(job, sprache.tr)
 print(ascii(f"Einrichtblatt: {futter_text} | {null_text}"))
 pruefe(f"Dreibackenfutter Ø {futter_d:g}" in futter_text, f"Einrichtblatt Spannung: {futter_text}")
 pruefe("nach dem Schwenken auf A −90" in null_text, f"Einrichtblatt Nullpunkt: {null_text}")
+# Mit dem Schwenkzyklus (Siemens, wie „Programm schreiben“ ihn schreibt): ungeschwenkt.
+zyklus_text = eb.nullpunkt_text(job, sprache.tr, steuerung=pp.steuerung("siemens"))
+print(ascii(f"Einrichtblatt mit Zyklus: {zyklus_text}"))
+pruefe(
+    "ungeschwenkt" in zyklus_text
+    and "mittig im Rohr" in zyklus_text
+    and f"{eb._zahl(vorn)} mm über der Stirn des Teils" in zyklus_text
+    and "CYCLE800" in zyklus_text,
+    f"Einrichtblatt mit Zyklus: {zyklus_text}",
+)
+ohne_text = eb.nullpunkt_text(job, sprache.tr, steuerung=ohne_zyklus["siemens"])
+pruefe("nach dem Schwenken" in ohne_text, f"Einrichtblatt Haken aus: {ohne_text}")
+sprache.setze_sprache("en")
+englisch = eb.nullpunkt_text(job, sprache.tr, steuerung=pp.steuerung("heidenhain"))
+sprache.setze_sprache("de")
+pruefe("unswivelled" in englisch and "PLANE SPATIAL" in englisch, f"englisch: {englisch}")
 ohne = pp.abschnitte(job)  # ohne Maschine: nicht ins Programm
 pruefe(
     ohne and not ohne[0].befehle and "geschwenkter Lage (A −90°)" in ohne[0].hinweis,
@@ -352,7 +495,7 @@ pruefe(
 misch_befunde = [b.text() for b in kb.kollision(misch, job, nullpunkt, bib).befunde]
 pruefe(not misch_befunde, f"Mischjob: {misch_befunde[:2]}")
 zeilen = pp.programm(
-    pp.abschnitte(job, maschine=maschine_sw), pp.steuerung("siemens"), info, "Rohr"
+    pp.abschnitte(job, maschine=maschine_sw), ohne_zyklus["siemens"], info, "Rohr"
 ).zeilen
 an = next((i for i, z in enumerate(zeilen) if z == "G0 A1=-90.000"), -1)
 zurueck = next((i for i, z in enumerate(zeilen) if z == "G0 A1=0.000"), -1)
@@ -366,6 +509,17 @@ pruefe(
 )
 misch_null = eb.nullpunkt_text(job, sprache.tr)
 pruefe("G54 ungeschwenkt" in misch_null and "G55 nach dem Schwenken" in misch_null, misch_null)
+# Mit dem Schwenkzyklus: ein Nullpunkt für beide (G54 an der Stirn der Stange) – die Stirn von oben
+# zählt ebenso von dort (Z 0,5 über der Stirn des Teils: 0,5 − Planaufmaß).
+zeilen = pp.programm(
+    pp.abschnitte(job, maschine=maschine_sw), pp.steuerung("siemens"), info, "Rohr"
+).zeilen
+plan_z = [float(w) for z in zeilen for w in re.findall(r"^G1 Z(-?\d+\.\d+)", z)]
+print(ascii(f"Mischjob mit Zyklus: G55 {[z for z in zeilen if z.startswith('G55')]}, {plan_z}"))
+pruefe(not any(z.startswith("G55") for z in zeilen), "Mischjob mit Zyklus: G55")
+pruefe(any(abs(z - (0.5 - vorn)) < 1e-3 for z in plan_z), f"Mischjob: Stirn Z {plan_z}")
+misch_zyklus = eb.nullpunkt_text(job, sprache.tr, steuerung=pp.steuerung("siemens"))
+pruefe("G55" not in misch_zyklus and "ungeschwenkt" in misch_zyklus, misch_zyklus)
 
 FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)

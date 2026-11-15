@@ -840,6 +840,39 @@ def im_tischfutter(job):
     return bool(schwenk_text(job)) and ist_stange(job)
 
 
+def mantel_oben(job):
+    """Wie hoch der Mantel der liegenden Stange über ihrer Achse steht (mm, der Radius des
+    Rohteils) – None, wenn der Job keine Stange quer zu Z hat (längs X oder Y, an der 4. Achse)
+    oder sie im Futter auf dem Rundtisch steht.
+
+    An der 4. Achse richtet Manuel so ein (2026-11-15: „bei einer 4ten achse … da ist mittig vom
+    rohr 0 und in z richtung der höchste punkt und länge meist x eine seite 0“): Y 0 auf der Achse,
+    Z 0 oben auf dem Mantel, X 0 an der Stirn. Der Job behält seinen Nullpunkt auf der Achse (so
+    rechnen alle Bahnen um sie); das Programm zählt Z um diesen Wert tiefer
+    (reichweite.Pruefung.versatz, postprozessor.vierte_achse)."""
+    if not ist_stange(job) or im_tischfutter(job):
+        return None
+    rohteil = job.Stock
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    if abs(laengs.z) > 1e-6:
+        return None
+    return float(rohteil.Radius)
+
+
+def stirn_oben(job):
+    """Wie weit die Stirn der Stange im Futter auf dem Rundtisch über dem Nullpunkt des Jobs (der
+    Stirn des Teils) steht (mm, längs ihrer Achse) – das Planaufmaß; None ohne diese Lage.
+
+    Ungeschwenkt richtet Manuel dort Z 0 ein (2026-11-15: „dann ist z0 vom tisch die entfernteste
+    stelle .. und wenn das rohr senkrecht … ist mittig im rohr xy0“) – mit dem Schwenkzyklus der
+    Steuerung (postprozessor.lage_mit_zyklus)."""
+    if not im_tischfutter(job):
+        return None
+    rohteil = job.Stock
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    return rohteil.Placement.Base.dot(laengs) + float(rohteil.Height)
+
+
 def vorn_laenge(job):
     """So weit reicht die Stange des Jobs vor die Stirn des Teils (mm) – Stange.vorn, wie der Job
     sie hat: mit Reitstock der Zapfen für die Zentrierbohrung. Aus einstellung(); sieht der Job

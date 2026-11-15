@@ -250,7 +250,10 @@ class Abfahrt:
         ergebnis = []
         for anfang in range(0, len(self.stationen), STATIONEN_AM_STUECK):
             block = self.stationen[anfang : anfang + STATIONEN_AM_STUECK]
-            punkte = [station.punkt for station in block]
+            # Ohne Drehung der Punkt selbst – im Job: Zählt das Programm von einem anderen
+            # Nullpunkt (OperationAbfahrt.versatz: an der 4. Achse Z vom Mantel oben, Ø 50 sonst
+            # 25 mm zu tief im Abtrag), mit dem Versatz dazu.
+            punkte = [self._im_job(station) for station in block]
             dreht = [
                 i
                 for i, station in enumerate(block)
@@ -270,6 +273,17 @@ class Abfahrt:
             yield
         self._am_werkstueck = ergebnis
         return ergebnis
+
+    def _im_job(self, station):
+        """Der Punkt der Station (im Programm) im Job, die Rundachsen auf 0: plus den Versatz
+        ihrer Operation (OperationAbfahrt.versatz) – ohne einen der Punkt selbst."""
+        nummer = station.operation
+        if nummer is None or not 0 <= nummer < len(self.operationen):
+            return station.punkt
+        versatz = self.operationen[nummer].versatz
+        if versatz is None:
+            return station.punkt
+        return tuple(float(p) + float(v) for p, v in zip(station.punkt, versatz, strict=True))
 
     def spitze(self, index, stellungen):
         """Wo die Spitze bei `stellungen` ({Achse: Stellung}, etwa so, wie die Maschine an
