@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-22 restschlichten-von-selbst
+
+### EINGELESEN
+- Manuel, 2026-11-15, Frage 4 (Restschlichten bei Rest an der Unterkante von selbst anhaken?): „4. ja von
+  selbst anhacken“; „kleinigkeiten kannst du noch bauen bis zum kompletten nutzungslimit !!!“
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (_unterkante_von_selbst), `tests/gui/szenario_unterkante.py`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.385.0.
+
+### ERGEBNIS
+- Bleibt beim 3D-Schlichten Rest an der Unterkante und ist eine kleinere Kugel in der Werkzeugverwaltung,
+  hakt der Block das Restschlichten mit ihr von selbst an – je Assistent einmal, abgewählt bleibt
+  abgewählt; eine neue Kugel legt weiter nur der Knopf an. Geprüft: szenario_unterkante (Verweis-Weg,
+  von selbst, abgewählt bleibt).
 ## P-2026-11-15-21 antworten-fragen-1-bis-5
 
 ### EINGELESEN

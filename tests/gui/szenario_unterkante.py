@@ -117,6 +117,9 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
 
     # --- 1. Mit einer kleineren Kugel in der Werkzeugverwaltung ---------------------------------
+    # Erst der Weg über den Verweis (wie bis 0.384.2); dass der Block von selbst anhakt (Frage 4,
+    # „ja von selbst anhacken“), prüft der Schluss dieses Teils. Die Sperre gilt ab dem Öffnen.
+    gui_bearbeitung.BearbeitungPanel._unterkante_gehakt = True
     yield from _oeffnen(h, doc, teil, kuppel)
     panel = gui_bearbeitung.BearbeitungPanel.offen
     if panel is None or panel.job is None:
@@ -190,7 +193,23 @@ def schritte(h):
     )
     h.pruefe("Restschlichten" in uebersicht, "Restschlichten fehlt in der Übersicht")
     h.bild("4_nach_rest", panel.form)
+    # Von selbst: Restschlichten wieder aus, die Sperre weg, neu rechnen – der Block hakt es an.
+    rest.haken.setChecked(False)
+    panel._unterkante_gehakt = False
+    yield 300
+    panel.vorschau_starten()
+    yield from _gerechnet(h, panel)
+    h.pruefe(
+        rest.aktiv() and rest.fraeser() is not None and rest.fraeser().nummer == 5,
+        f"Restschlichten nicht von selbst mit T5: {rest.aktiv()} {rest.fraeser()}",
+    )
+    rest.haken.setChecked(False)  # abgewählt bleibt abgewählt
+    yield 300
+    panel.vorschau_starten()
+    yield from _gerechnet(h, panel)
+    h.pruefe(not rest.aktiv(), "Restschlichten nach dem Abwählen wieder angehakt")
     panel.reject()
+    del gui_bearbeitung.BearbeitungPanel._unterkante_gehakt
     yield 1500
 
     # --- 2. Ohne kleinere Kugel: anlegen ---------------------------------------------------------

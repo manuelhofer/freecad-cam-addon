@@ -6030,6 +6030,7 @@ class _Block:
         zeit, bahn = was[1], was[2]
         bahn.empfehlung, bahn.ecken_empfehlung = haupt, ecke
         bahn.unterkante_empfehlung = unten
+        self._unterkante_von_selbst(bahn)
         self.ergebnis_basis = self._mit_unterkante(
             self._mit_ecken(self._mit_ausspannen(self.s.ergebnis_text(bahn, zeit), bahn), bahn),
             bahn,
@@ -6221,6 +6222,24 @@ class _Block:
         bibliothek.speichern()
         self.panel._werkzeuge_gespeichert()
         self._unterkante_rest(neu.kennung)
+
+    def _unterkante_von_selbst(self, bahn):
+        """Bleibt beim 3D-Schlichten Rest an der Unterkante und ist eine kleinere Kugel in der
+        Werkzeugverwaltung, hakt der Block das Restschlichten mit ihr von selbst an (Manuel,
+        2026-11-15, Frage 4: „ja von selbst anhacken“) – je Assistent einmal: Wer es danach abwählt,
+        bleibt dabei. Eine Kugel, die erst angelegt werden müsste, bleibt beim Knopf."""
+        if self.s.kennung != "schlichten3d" or getattr(self.panel, "_unterkante_gehakt", False):
+            return
+        vorschlag = getattr(bahn, "unterkante_empfehlung", None)
+        if getattr(bahn, "unterkante", None) is None or vorschlag is None:
+            return
+        if self._unterkante_schon_kleiner() or self.panel.restschlichten.aktiv():
+            return
+        werkzeuge = getattr(self.panel.bibliothek, "werkzeuge", ())
+        if not any(w.kennung == vorschlag.werkzeug for w in werkzeuge):
+            return
+        self.panel._unterkante_gehakt = True
+        self._unterkante_rest(vorschlag.werkzeug)
 
     def _unterkante_rest(self, kennung):
         """Das Restschlichten mit der Kugel `kennung` angehakt – „Unter dem Rand“ nur, wenn das

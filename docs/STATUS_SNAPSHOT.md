@@ -546,7 +546,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - *Frage 3 (Bohrung in zwei Schnitten):* **(b)** – Leerfahrt, Messstopp und zweiter Schnitt direkt hinter
   „Bohrung fräsen“, vor Senken und Gewinde.
 - *Frage 4:* **Restschlichten von selbst anhaken**, wenn an der Unterkante Rest bleibt und eine passende
-  kleinere Kugel da ist.
+  kleinere Kugel da ist – **erledigt in 0.385.0** (je Assistent einmal; abgewählt bleibt abgewählt; eine
+  Kugel, die erst angelegt werden müsste, bleibt beim Knopf).
 - *Frage 5 (Hobeln ohne Halt):* „bau das doch so das es immer funktioniert nicht speziell auf meine
   maschinen“ – für Fräsmaschinen, die nicht drehen; an seiner Drehmaschine wäre es Stechdrehen, aber auch
   dort muss eine außermittige eckige Nut gehobelt werden können: **C4 (Hauptspindel, das Teil) und C1
