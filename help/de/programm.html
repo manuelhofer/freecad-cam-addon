@@ -285,8 +285,13 @@ an der Maschine prüfen.</li>
 Cs-Betrieb macht ein M-Befehl, den der Maschinenhersteller festlegt (ohne ihn: Alarm 197) – trag
 ihn in „ein“ und „aus“ ein, sonst bleibt es beim Grundweg und das Programm sagt es. Fanuc zählt
 die Drehung im Weg des Satzes mit (Grad wie mm), deshalb schreibt das Programm in jeden Satz ein
-F, mit dem X, Y, Z im Hub fahren (am Deckel bis 6-mal so groß). Mit Roll-over der Achse muss sie
-den kürzesten Weg nehmen (Parameter 1008: RABx = 0, RAAx = 0).</li>
+F, mit dem X, Y, Z im Hub fahren (am Deckel bis 6-mal so groß, bis rund 36 000 mm/min). Liegt
+dieses F über dem höchsten Schnittvorschub der Maschine (Parameter 1422/1430), begrenzt die
+Steuerung es und fährt langsamer – nichts passiert, nur dauert es länger, als das Programm
+rechnet. Mit Roll-over der Achse muss sie den kürzesten Weg nehmen (Parameter 1008: RABx = 0,
+RAAx = 0): mit RAAx = 1 gibt das Vorzeichen die Richtung vor, und wo der Winkel fällt (ein nach
+innen gewölbtes Stück der Nut), dreht die Klinge fast eine ganze Umdrehung in der Nut. Das steht
+auch als Hinweis im Programm.</li>
 <li><b>LinuxCNC, Haas, Mach, Mazak:</b> kein Satz belegt – die Spindel als Achse ist dort Sache
 der Maschine (LinuxCNC: eine HAL-Verdrahtung, umgeschaltet etwa mit einem eigenen M1xx). Trag ein,
 was deine Maschine dafür hat; ohne Eintrag bleibt es beim Grundweg.</li>

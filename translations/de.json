@@ -88,6 +88,7 @@
     "pp.hinweis.spindel_winkel": "{steuerung} kann die Spindel nicht je Satz orientieren – das Hobeln braucht das. Unter „Befehle“ eintragen, wie diese Steuerung den Spindelwinkel fährt.",
     "pp.hinweis.spindel_winkel_nie": "{steuerung} kann die Spindel nicht auf einen Winkel stellen – Dichtnut hobeln geht damit nicht.",
     "pp.hinweis.spindel_achse_fehlt": "„Spindel als Rundachse mitführen“: Für {steuerung} fehlt „Spindel als Achse ein“ oder „… im Satz“ – eintragen, wie deine Maschine es schaltet. Bis dahin hält die Bahn je Satz.",
+    "pp.hinweis.spindel_achse_rollover": "{steuerung}: C steht fortlaufend im Programm. Mit Roll-over der Achse (Parameter 1008 ROAx = 1) nur mit RABx = 0 und RAAx = 0 (kürzester Weg) – sonst dreht die Klinge bei fallendem Winkel fast eine ganze Umdrehung in der Nut.",
     "pp.feld.spindel_winkel_vor": "Spindelwinkel vor dem Satz (Hobeln)",
     "pp.feld.spindel_winkel_vor.tooltip": "Zeilen vor jedem Satz einer Hobelbahn; {w} der Winkel der stehenden Spindel (Grad), {w0} in ganzen Grad.",
     "pp.feld.spindel_winkel_satz": "Spindelwinkel im Satz (Hobeln)",

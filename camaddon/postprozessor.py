@@ -1261,6 +1261,21 @@ def spindel_achse_wirksam(s):
     )
 
 
+# Fanuc mit Roll-over der Achse (Parameter 1008 ROAx = 1): ein Absolutwert nimmt nur mit RABx = 0
+# und RAAx = 0 den kürzesten Weg („To select a rotary motion of a shorter travel distance, set
+# both RAAx and RABx to 0“, B-63534EN/02, 20.2.2, S. 531); mit RAAx = 1 gibt das Vorzeichen die
+# Richtung vor. C fortlaufend fällt in jedem nach innen gewölbten Stück der Nut (Bahn dort im
+# Uhrzeigersinn) – von 161,266 auf 160,266 drehte die Klinge dann +359° statt −1°, in der Nut.
+SPINDEL_ACHSE_ROLLOVER = ("fanuc",)
+
+
+def spindel_achse_warnung(s):
+    """Der Satz zu Roll-over, wo „… im Satz“ die Spindel fortlaufend ({wf}) schreibt – "" sonst."""
+    if s.kennung in SPINDEL_ACHSE_ROLLOVER and "{wf}" in s.spindel_achse_satz:
+        return tr("pp.hinweis.spindel_achse_rollover", steuerung=s.name)
+    return ""
+
+
 def _winkel_werte(winkel):
     """Die Platzhalter des Spindelwinkels: {w} 0 … unter 360 (drei Stellen), {wf} fortlaufend, {w0}
     in ganzen Grad – 359,9996° heißt „0.000“, nicht „360.000“."""
@@ -2721,6 +2736,12 @@ def programm(
                 if not achse_an:  # vor dem ersten Satz mit Winkel: die Spindel wird Achse
                     for feld_ in ("spindel_achse_ein", "spindel_achse_satz", "spindel_achse_aus"):
                         _hersteller(s, feld_, hinweise, gesehen, zeilen)
+                    warnung = spindel_achse_warnung(s)
+                    if warnung and "spindel_achse_rollover" not in gesehen:
+                        gesehen.add("spindel_achse_rollover")  # im Fenster und für den Einrichter
+                        hinweise.append(warnung)
+                        if s.kommentare:
+                            zeilen.append(_kommentar(s, warnung))
                     zeilen.extend(_zeilen(_fuellen(s.spindel_achse_ein, **werte_w)))
                     achse_an = True
                 woerter.append(_fuellen(s.spindel_achse_satz, **werte_w).strip())

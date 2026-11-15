@@ -3325,8 +3325,14 @@ Daraus (Lesart, nach der gebaut wird):
      M-Befehl des Maschinenherstellers über das PMC-Signal CON (Alarm 197, B-63534EN/02 Anhang G) –
      „ein“/„aus“ sind leer und gelb, ohne Eintrag bleibt der Grundweg (Hinweis). F zählt die
      Rundachse in Grad wie mm (4.4, S. 46) – darum je Satz F = F · √(L² + ΔC²) ÷ L (mit den
-     gerundeten Zahlen des Programms). Roll-over (20.2.1, S. 531): nur mit RABx = 0, RAAx = 0
-     (kürzester Weg).
+     gerundeten Zahlen des Programms). Roll-over (20.2.1/20.2.2, S. 531): nur mit RABx = 0,
+     RAAx = 0 (kürzester Weg) – mit RAAx = 1 gibt das Vorzeichen die Richtung, und wo der Winkel
+     fällt (nach innen gewölbtes Stück), drehte die Klinge fast eine Umdrehung in der Nut. Das sagt
+     das Programm als Hinweis, als Kommentar vor dem Einschalten und im Tooltip von „… im Satz“
+     (`spindel_achse_warnung`; Prüfung `test_hobeln`: Bogen im Uhrzeigersinn, C von 365 auf 355
+     fallend, Siemens DC über 0 auf 359,5). F über dem höchsten Schnittvorschub (Parameter
+     1422/1430, „clamped to the upper limit“, S. 101) fährt langsamer – nur die Zeit stimmt dann
+     nicht (am Deckel F bis rund 36 000 mm/min).
    - *LinuxCNC, Haas, Mach, Mazak:* kein Satz belegt – Haken da, Befehle leer (selbst eintragen).
      LinuxCNC: Spindel als C ist eine HAL-Verdrahtung der Maschine (nur Forum).
    - *Heidenhain:* der Haken grau mit Grund – im Klartext keine Werkzeugspindel als Achse gefunden.

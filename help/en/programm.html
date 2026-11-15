@@ -280,8 +280,12 @@ so there is no jump by a full turn. F stays the feed of X, Y, Z. The axis name (
 M code set by the machine tool builder (without it: alarm 197) – enter it in “on” and “off”,
 otherwise the basic way stays and the program says so. Fanuc counts the rotation in the length of
 the block (degrees as mm), so the program writes an F into every block with which X, Y, Z move at
-the stroke feed (up to 6 times as large on the cover). With roll-over the axis must take the
-shortest way (parameter 1008: RABx = 0, RAAx = 0).</li>
+the stroke feed (up to 6 times as large on the cover, up to about 36 000 mm/min). If this F is
+above the machine's maximum cutting feed (parameters 1422/1430), the control clamps it and moves
+slower – nothing happens, it just takes longer than the program calculates. With roll-over the
+axis must take the shortest way (parameter 1008: RABx = 0, RAAx = 0): with RAAx = 1 the sign
+gives the direction, and where the angle falls (a section of the groove curving inwards) the
+blade turns almost a full revolution in the groove. The program says so as a note too.</li>
 <li><b>LinuxCNC, Haas, Mach, Mazak:</b> no block documented – the spindle as an axis is up to the
 machine there (LinuxCNC: HAL wiring, switched e.g. with your own M1xx). Enter what your machine
 has for it; without an entry the basic way stays.</li>

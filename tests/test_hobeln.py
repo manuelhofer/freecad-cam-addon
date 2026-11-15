@@ -621,6 +621,58 @@ print(
     f" F bis {f_faktor:.2f}-mal so groß"
 )
 pruefe(f_saetze > 100 and f_fehler < 0.05, f"Fanuc: F zählt C nicht mit ({f_fehler:.2f})")
+# Am Deckel steigt der Winkel nur. Ein nach innen gewölbtes Stück der Nut (Bahn im Uhrzeigersinn
+# um R 10) lässt ihn fallen – hier von 365° über 360° auf 355°, je Satz 0,5°: Fanuc schreibt C
+# fortlaufend fallend, ohne Sprung, und sagt (Fenster und Programm), dass Roll-over nur mit
+# RABx = 0 und RAAx = 0 geht – mit RAAx = 1 drehte jeder fallende Satz +359,5° in der Nut
+# (B-63534EN/02, 20.2.2, S. 531). Siemens DC je Satz 0 … 360, über 0 hinweg auf 359,5.
+bogen_w = [365.0 - 0.5 * k for k in range(21)]
+befehle_k = [("G0", {"Z": 15.0})]
+for k, w_k in enumerate(bogen_w):
+    lage = math.radians(w_k - 360.0 + 90.0)  # im Uhrzeigersinn: Fahrtrichtung = Lage − 90°
+    punkt = {"X": 10.0 * math.cos(lage), "Y": 10.0 * math.sin(lage)}
+    befehle_k.append((f"({pp.SPINDEL_NOTIZ}{w_k:.3f})", {}))
+    if k == 0:
+        befehle_k += [("G0", punkt), ("G1", {"Z": 9.0, "F": 33.0})]
+    else:
+        befehle_k.append(("G1", dict(punkt, Z=9.0, F=100.0)))
+befehle_k.append(("G0", {"Z": 15.0}))
+konkav = [pp.Abschnitt("Hobeln konkav", 5, 0.0, False, befehle=befehle_k)]
+pk = pp.programm(konkav, s_f, None, "Konkav")
+c_k = [float(re.search(r"(?:^|\s)C(-?[\d.]+)", z).group(1)) for z in pk.zeilen
+       if z.startswith("G") and re.search(r"\sC-?\d", z)]  # fmt: skip
+pruefe(
+    len(c_k) == len(bogen_w) and max(abs(a - b) for a, b in zip(c_k, bogen_w, strict=False)) < 6e-4,
+    f"Fanuc konkav: C {c_k[:3]} … {c_k[-3:]} statt {bogen_w[0]} … {bogen_w[-1]} fallend",
+)
+pruefe(
+    all(-0.5 - 1e-6 <= b - a < 0 for a, b in zip(c_k, c_k[1:], strict=False)),
+    f"Fanuc konkav: C nicht stetig fallend {c_k}",
+)
+rollover = [h for h in pk.hinweise if "RAAx = 0" in h and "RABx = 0" in h]
+pruefe(rollover, f"Fanuc konkav: kein Satz zu Roll-over {pk.hinweise}")
+pruefe(
+    any("RAAX = 0" in z.upper() for z in pk.zeilen if z.startswith("(")),
+    "Fanuc konkav: Roll-over nicht im Programm",
+)
+pruefe(fa.count("M199") == 1 and any("RAAX" in z.upper() for z in fa), "Fanuc Deckel: Roll-over")
+s_si_k = pp.steuerung("siemens").ersetzt(spindel_achse=True)
+dc_k = [float(z.split("C=DC(")[1].split(")")[0])
+        for z in pp.programm(konkav, s_si_k, None, "Konkav").zeilen if "C=DC(" in z]  # fmt: skip
+pruefe(
+    len(dc_k) == len(bogen_w)
+    and all(0.0 <= w < 360.0 for w in dc_k)
+    and max(
+        abs((a - b % 360.0 + 180.0) % 360.0 - 180.0) for a, b in zip(dc_k, bogen_w, strict=False)
+    )
+    < 6e-4
+    and dc_k[10:12] == [0.0, 359.5],
+    f"Siemens konkav: DC {dc_k}",
+)
+pruefe(
+    not any("RAA" in h for h in pp.programm(konkav, s_si_k, None, "Konkav").hinweise),
+    "Siemens: Satz zu Roll-over (gilt nur für Fanuc)",
+)
 
 # Zwei Nuten, die Klinge passt nur in die eine (der Kreis R 5 ist zu eng): Die Operation hobelt die,
 # die geht (bis 14.11. brach sie ganz ab, und am Grund der passenden blieb der Rest des Räumens).

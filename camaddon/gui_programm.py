@@ -950,6 +950,8 @@ class ProgrammDialog(QtGui.QDialog):
             titel.setStyleSheet(f"color: {GELB};")
             erklaerung = f"{erklaerung} {tr('pp.feld.hersteller')}"
             farbe = GELB
+        if feld == "spindel_achse_satz" and pp.spindel_achse_warnung(s):
+            erklaerung = f"{erklaerung} {pp.spindel_achse_warnung(s)}"  # Fanuc: Roll-over
         text = getattr(s, feld).replace("\n", " | ")
         schrift = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
         if feld == "wechselpunkt_mks" and s.wechselpunkt_vorschlaege:

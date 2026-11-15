@@ -88,6 +88,7 @@
     "pp.hinweis.spindel_winkel": "{steuerung} cannot orient the spindle per block – planing needs that. Under “Commands”, enter how this control positions the spindle.",
     "pp.hinweis.spindel_winkel_nie": "{steuerung} cannot set the spindle to an angle – planing a seal groove is not possible with it.",
     "pp.hinweis.spindel_achse_fehlt": "“Carry the spindle as a rotary axis”: for {steuerung}, “Spindle as axis on” or “… in the block” is missing – enter how your machine switches it. Until then the path stops at every block.",
+    "pp.hinweis.spindel_achse_rollover": "{steuerung}: C is written continuously. With roll-over on the axis (parameter 1008 ROAx = 1) only with RABx = 0 and RAAx = 0 (shortest path) – otherwise, where the angle falls, the blade turns almost a full revolution in the groove.",
     "pp.feld.spindel_winkel_vor": "Spindle angle before the block (planing)",
     "pp.feld.spindel_winkel_vor.tooltip": "Lines before every block of a planing path; {w} the angle of the stationary spindle (degrees), {w0} in whole degrees.",
     "pp.feld.spindel_winkel_satz": "Spindle angle in the block (planing)",
