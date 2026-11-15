@@ -69,6 +69,7 @@ ZWEI_AB = 1.0  # mm: steht davor höchstens so viel, sind „zwei gleiche Schnit
 TASCHE_REST = 1.0  # mm über einem Boden: so viel darf stehen, und die Tasche gilt als ausgeräumt
 FERTIG_ZEIGEN = "BetaFertigZeigen"  # Parameter: nach „Anlegen“ das Fenster „Angelegt“ (an)
 FERTIG_ZEILEN = 14  # so viele Operationen zeigt es ohne Blättern
+MINUTEN_IM_NEBENRECHNER_AB = 20000  # Befehle – die Zeit einer Operation im FertigFenster
 KATALOG_NACHSEHEN_MS = 150  # „Was gäbe es im Katalog?“: so oft sehen, ob der Faden fertig ist
 
 
@@ -3328,28 +3329,78 @@ class FertigFenster(QtGui.QDialog):
         )
         self._wechsel_minuten = self.wechsel * msp.wechselzeit_von(eintrag) / 60.0
         self._offen = list(self._zeilen)
+        self._ausstehend = set()  # Operationen, deren Zeit ein Nebenrechner rechnet
         self.minuten = 0.0
         self.fertig = False
         QtCore.QTimer.singleShot(0, self._naechste)
 
     def _naechste(self):
-        """Die Zeit der nächsten Operation – eine je Uhrtakt."""
-        from . import einrichtblatt as eb
-
+        """Die Zeit der nächsten Operation – eine je Uhrtakt; eine große in einem Nebenrechner
+        (_im_nebenrechner)."""
         if FertigFenster.offen is not self or not self._offen:
             return
         op, zeile = self._offen.pop(0)
         tc = getattr(op, "ToolController", None)
-        try:
-            minuten = eb.minuten(op, tc) if tc is not None else 0.0
-        except Exception:  # noqa: BLE001 – dann ohne Zeit, wie im Einrichtblatt
-            minuten = 0.0
-        zeile.setText(2, _minuten_text(minuten) if minuten > 0 else "–")
-        self._dauern[op.Name] = minuten
-        self.minuten += minuten
+        if tc is None:
+            self._eintragen(op, zeile, 0.0)
+        elif not self._im_nebenrechner(op, zeile, tc):
+            self._eintragen(op, zeile, self._rechnen(op, tc))
         if self._offen:
             QtCore.QTimer.singleShot(0, self._naechste)
+
+    @staticmethod
+    def _rechnen(op, tc):
+        from . import einrichtblatt as eb
+
+        try:
+            return eb.minuten(op, tc)
+        except Exception:  # noqa: BLE001 – dann ohne Zeit, wie im Einrichtblatt
+            return 0.0
+
+    def _im_nebenrechner(self, op, zeile, tc):
+        """Ab MINUTEN_IM_NEBENRECHNER_AB Befehlen rechnet ein Nebenrechner die Zeit
+        (einrichtblatt.minuten_gcode) – die Hobelbahn am Deckel (334 652 Befehle) stand sonst 1 s
+        im Fenster (gemessen 2026-11-15), so bleibt nur toGCode (0,08 s). False: hier rechnen."""
+        from . import einrichtblatt as eb
+        from . import nebenrechner as nr
+
+        try:
+            gross = int(op.Path.Size) >= MINUTEN_IM_NEBENRECHNER_AB
+        except Exception:  # noqa: BLE001
+            gross = False
+        if not gross:
+            return False
+        try:
+            pool = nr.pool()
+            if not pool.verfuegbar():
+                return False
+            auftrag = pool.auftrag(
+                "einrichtblatt", "minuten_gcode", op.Path.toGCode(), eb.vorschub_von(tc)
+            )
+        except nr.Fehler:
+            return False
+        self._ausstehend.add(op.Name)
+
+        def angekommen(a):
+            if FertigFenster.offen is not self:
+                return
+            ok = a.fehler is None and not a.abgebrochen
+            self._eintragen(op, zeile, a.ergebnis if ok else self._rechnen(op, tc), op.Name)
+
+        auftrag.bei_fertig = angekommen
+        return True
+
+    def _eintragen(self, op, zeile, minuten, ausstehend=None):
+        """Die Zeit einer Operation in ihre Zeile; ist es die letzte, die Balken und die Summe."""
+        self._ausstehend.discard(ausstehend)
+        zeile.setText(2, _minuten_text(minuten) if minuten > 0 else "–")
+        self._dauern[op.Name] = minuten
+        if self._offen or self._ausstehend:
             return
+        # In der Reihenfolge der Zeilen, wie bisher – auch wenn ein Nebenrechner später kam.
+        self.minuten = 0.0
+        for o, _z in self._zeilen:
+            self.minuten += self._dauern.get(o.Name, 0.0)
         laengste = max(self._dauern.values(), default=0.0)
         for o, z in self._zeilen:
             dauer = self._dauern.get(o.Name, 0.0)

@@ -235,6 +235,14 @@ def schritte(h):
     fertig = beta.FertigFenster.offen
     if fertig is not None:
         yield from h.warte_auf(lambda: fertig.fertig, 120000)
+        # Die Zeit der Hobelbahn (334 652 Befehle) rechnet ein Nebenrechner (einrichtblatt.
+        # minuten_gcode) – sie steht trotzdem in ihrer Zeile und in der Summe.
+        zeiten = [(op.Label, z.text(2)) for op, z in fertig._zeilen]
+        print("HOBELN Fertig", zeiten, fertig.summe.text(), flush=True)
+        h.pruefe(
+            all(t not in ("–", beta.tr("ba.frage.rechnet")) for _l, t in zeiten),
+            f"Zeiten: {zeiten}",
+        )
         fertig.close()
     yield from _programm_fenster(h, doc, job)
     Gui.Selection.clearSelection()

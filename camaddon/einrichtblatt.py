@@ -420,20 +420,43 @@ def minuten(op, tc, dynamik=(0.0, 0.0)):
     zählen ihre Grad wie mm (wie flanke_bahn), G93 wie „Auf der Maschine prüfen“ (der Satz dauert
     1 ÷ F s) – genauer rechnet dort abfahren mit den Achsen der Maschine. 0, wenn sie sich nicht
     rechnen lässt (unbekannte Sätze, kein Vorschub)."""
+    try:
+        befehle = op.Path.Commands
+    except Exception:  # noqa: BLE001
+        return 0.0
+    return _minuten(befehle, vorschub_von(tc), dynamik)
+
+
+def vorschub_von(tc):
+    """Der Vorschub des Controllers (mm/s) – für Sätze ohne F; 0 ohne."""
+    try:
+        return float(tc.HorizFeed.getValueAs("mm/s"))
+    except AttributeError:
+        return 0.0
+
+
+def minuten_gcode(gcode, vorgabe, dynamik=(0.0, 0.0)):
+    """minuten() für eine große Operation in einem Nebenrechner (FertigFenster in
+    gui_bearbeitung_beta): `gcode` ihr op.Path.toGCode(), `vorgabe` vorschub_von(Controller). Der
+    G-Code hat 6 Nachkommastellen – die Zeit weicht um Milliardstel ab (am Deckel 6,749539373
+    gegen 6,749539369 min), gezeigt wird sie auf Zehntel."""
+    import Path
+
+    return _minuten(Path.Path(gcode).Commands, vorgabe, dynamik)
+
+
+def _minuten(befehle, vorgabe, dynamik):
+    """minuten() aus den Befehlen der Operation; `vorgabe`: der Vorschub ohne F (mm/s)."""
     from . import fahrzeit as fz
     from . import reichweite as rw
 
     eilgang = (dynamik[0] or fz.EILGANG) / 60.0
     a = dynamik[1] or fz.BESCHLEUNIGUNG
-    try:
-        vorgabe = float(tc.HorizFeed.getValueAs("mm/s"))
-    except AttributeError:
-        vorgabe = 0.0
     unbekannt = []
     saetze = []
     letzter = letzte_rund = None
     try:
-        schritte = list(rw._bahn(op.Path.Commands, unbekannt.append))
+        schritte = list(rw._bahn(befehle, unbekannt.append))
     except Exception:  # noqa: BLE001
         return 0.0
     for s in schritte:
