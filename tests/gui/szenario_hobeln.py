@@ -4,7 +4,7 @@
 # passt in die Nut). Angeklickt: der Grund der Nut und die Bohrungen.
 # Aus dem Vollen (Manuel, 2026-11-14: „das hobeln sollte auch bei nicht vor gefraeseter Nut
 # funktionieren oder?? Also das ja Sinn der Sache das man es nicht fräst“): Die Nut wird so nicht
-# fertig, unten steht der Knopf „Stoßwerkzeug b 3,5 × 0,8 anlegen“ – vorher ist „Dichtnut hobeln“
+# fertig, unten steht der Knopf „Stoßwerkzeug b 3,5 × 0,9 anlegen“ – vorher ist „Dichtnut hobeln“
 # nie von sich aus angehakt, der Knopf hakt es an. Dann fräst nichts in der Nut (Räumen tritt nicht
 # an), die Zustellung kommt vom Werkzeug, die Zeit steht im Block. Der Haken „Vorher fräsen, Rest
 # hobeln“ gibt dem Räumen die Nut zurück (mit Rest am Grund), aus wieder nicht. „Anlegen“: Hobeln
@@ -89,7 +89,9 @@ def schritte(h):
     print("HOBELN Angebot", repr(satz), repr(knopf), flush=True)
     h.pruefe(not panel.unfertig_angebot.isHidden(), "kein Angebot unten")
     h.pruefe("Stoßwerkzeug" in satz, f"Satz: {satz!r}")
-    h.pruefe(knopf == "Stoßwerkzeug b 3,5 × 0,8 anlegen", f"Knopf: {knopf!r}")
+    # 0,9 lang: so schlägt werkzeug_vorschlag es am Beispieldeckel vor (R 12) – die Erwartung 0,8
+    # war schon in 0.382.0 veraltet (gleiches Ergebnis mit den Modulen von d66f77a0).
+    h.pruefe(knopf == "Stoßwerkzeug b 3,5 × 0,9 anlegen", f"Knopf: {knopf!r}")
     h.bild("1_angebot", panel.form)
 
     panel.unfertig_knopf.click()
@@ -102,7 +104,7 @@ def schritte(h):
     h.pruefe(
         len(stoss) == 1
         and abs(stoss[0].schneidenbreite - 3.5) < 1e-9
-        and abs(stoss[0].klingenlaenge - 0.8) < 1e-9
+        and abs(stoss[0].klingenlaenge - 0.9) < 1e-9
         and stoss[0].stechtiefe >= tiefe + hop.STECHTIEFE_SICHER,
         f"Stoßwerkzeug: {stoss}, Nut {tiefe:.2f} tief ab dem Rohteil",
     )
