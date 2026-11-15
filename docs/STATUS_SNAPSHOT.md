@@ -536,8 +536,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 P-2026-11-14-06) – in dieser Reihenfolge:**
 1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1**; seit 0.382.0 zeigt das Fenster
    den Rest an der Unterkante (Zahl, rot im Teil) mit Knopf „Restschlichten mit T… anhaken“ bzw. „Kugel Ø …
-   anlegen“. Möglich, noch nicht gebaut (Bahnänderung – erst Bild mit Zahlen an Manuel): zum Schluss eine
-   Runde mit der Spitze genau auf dem Teilboden.
+   anlegen“. **Gebaut, aber NICHT gepusht:** „Zum Schluss eine Runde auf dem Teilboden“ als Haken (aus) –
+   Zweig `bodenrunde-neu` (Commits 2d298953, 54667d40 auf 0.384.2), Bild
+   `docs/bilder/vorschlaege/unterkante_bodenrunde.png` dort (Kuppel R 40 Ø 6: Rest höchstens 0,82 → 0,53 mm,
+   +0,34 min). Prüfdateien grün; der Zweifler wurde am 15.11. angehalten (Wochenende abgeschlossen,
+   Nutzungsguthaben) – vor dem Push nachholen, dann Frage an Manuel: Haken vorbelegt an?
 2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
    über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). **0.380.0: auch „Bohrung fräsen“** („Weiter
    bearbeiten“ → „Löcher“: 29,7 → Leerfahrt → Messstopp Ø → 30 → Leerfahrt; der zweite Schnitt und die
