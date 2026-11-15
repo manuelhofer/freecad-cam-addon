@@ -58,6 +58,7 @@ immer volle Tiefe, mit ae Zustellung“).
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
+import contextlib
 import copy
 import dataclasses
 import hashlib
@@ -2132,25 +2133,24 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     messungen = {}  # Variante → was last() an ihr gemessen hat (_last_messen) – für _gebremst
 
     def messen(varianten):
-        """Die Last der `varianten`, je einmal gemessen – alle zugleich (_last_messen)."""
+        """Was last() an den `varianten` misst, je einmal – alle zugleich (_last_messen)."""
+        offen = [v for v in dict.fromkeys(varianten) if v not in messungen]
+        if offen:
+            gemessen = _last_messen([(ergebnisse[v][0], w, stand) for v in offen])
+            messungen.update(zip(offen, gemessen, strict=True))
+
+    def haelt_last(v):
+        """(hält sie die Last?, die größte Last) der Variante v – einmal gemessen, ausgewertet erst,
+        wenn es sie braucht."""
         # Auch „adaptiv“ wird gemessen, überall: Bis 0.350.4 galt „er hält sie nach seiner
         # Bauart“ und nur enge Stellen wurden gemessen. FreeCADs neuer Adaptiv-Kern (Clipper2,
         # Wochen-Build 2026.11.11) hält den Eingriff am Rand nicht mehr – an Manuels Testteil
         # 2,14 ae über 104 mm am Stück, ohne dass etwas bremste (test_testteil).
-        offen = [v for v in dict.fromkeys(varianten) if v not in lasten]
-        if not offen:
-            return
-        for v, messung in zip(
-            offen, _last_messen([(ergebnisse[v][0], w, stand) for v in offen]), strict=True
-        ):
-            messungen[v] = messung
+        if v not in lasten:
+            messen([v])
             stellen[v] = []
-            groesste, lang = _last_auswerten(*messung, w, stellen[v])
+            groesste, lang = _last_auswerten(*messungen[v], w, stellen[v])
             lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
-
-    def haelt_last(v):
-        """(hält sie die Last?, die größte Last) der Variante v – einmal gemessen."""
-        messen([v])
         return lasten[v]
 
     if "adaptiv" in ergebnisse:
@@ -2158,7 +2158,11 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
             # Alle zugleich, auch die, die es nicht mehr braucht, wenn eine schnellere hält: Auf
             # den Nebenrechnern kostet das keine Wartezeit – nacheinander waren es am Testteil
             # 1,55 + 0,72 + 0,89 s im Fenster. Ohne sie bleibt es bei einer nach der anderen.
-            messen(reihe)
+            # Scheitert die Messung vorab, misst haelt_last einzeln weiter: Bis 0.384.0 wurde eine
+            # Variante, die es nicht braucht, nie gemessen – ihr Fehler darf planen nicht kippen,
+            # und einer, den es braucht, kommt dort an seiner Stelle (Zweifler, 2026-11-15).
+            with contextlib.suppress(Exception):  # kommt, wo nötig, in haelt_last
+                messen(reihe)
         for variante in reihe:
             ok, groesste = haelt_last(variante)
             if ok:
@@ -3996,14 +4000,25 @@ def _last_volumen_verteilt(teile):
 
         for auftrag in erste + [x[3] for x in zweite]:
             auftrag.abbrechen()
+        # Eine Zeile im Bericht, der Traceback nur ins Protokoll: Er stand sonst bei jedem planen
+        # über fünf Zeilen im Bericht (Zweifler, 2026-11-15).
         FreeCAD.Console.PrintWarning(
-            f"CAM-Addon: Last auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+            f"CAM-Addon: Last auf den Nebenrechnern gescheitert, rechne hier: "
+            f"{_fehler_kurz(fehler)}\n"
         )
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Last auf den Nebenrechnern: {fehler}\n")
         return None
     volumen = [np.full(len(t[1]), np.nan) for t in teile]
     for (nummer, a, b, _auftrag), ergebnis in zip(zweite, ergebnisse, strict=True):
         volumen[nummer][a:b] = ergebnis
     return volumen
+
+
+def _fehler_kurz(fehler):
+    """Die letzte Zeile eines Fehlers aus dem Nebenrechner – bei einem Traceback Art und Satz
+    („AttributeError: …“) – für eine Warnung in einer Zeile."""
+    zeilen = [z.strip() for z in str(fehler).splitlines() if z.strip()]
+    return zeilen[-1] if zeilen else type(fehler).__name__
 
 
 def _last_quader_aus(x, y, gitter, fenster, hoehen):

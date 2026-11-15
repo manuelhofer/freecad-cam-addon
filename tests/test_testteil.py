@@ -26,6 +26,7 @@ import FreeCAD
 from camaddon import bahn as bn
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
+from camaddon import nebenrechner as nr
 from camaddon import pruefstand as ps
 from camaddon import raeumen as ra
 from camaddon import raeumen_bahn as rb
@@ -140,6 +141,67 @@ print(
     f"Raeumen ueber drei Hoehen: {bahn.variante} {bahn.zeit:.2f} min ({bahn.zeiten}), "
     f"{abgehoben(bahn)}-mal abgehoben, Last bis {groesste:.2f} ae – {ps.zeile(k)}"
 )
+# Die Last messen die Nebenrechner (raeumen_bahn._last_messen, zwei Durchgänge je Abschnitt der
+# Bahn): dieselben Zahlen, Stellen und Sätze wie hier nacheinander – und scheitert ein Auftrag
+# (hier: eine Funktion, die es im Arbeiter nicht gibt), rechnet es hier dasselbe, mit einer Zeile
+# im Bericht statt eines Tracebacks (Zweifler, 2026-11-15).
+
+
+def last_ganz(bahn_l):
+    stellen_l, saetze_l = [], {}
+    return rb.last(bahn_l, werte_fuer(), None, stellen_l, saetze_l), stellen_l, saetze_l
+
+
+verteilt = last_ganz(bahn)
+rb.LAST_VERTEILT = False
+try:
+    hier = last_ganz(bahn)
+finally:
+    rb.LAST_VERTEILT = True
+pruefe(
+    verteilt == hier, f"Last verteilt {verteilt[0]} ({len(verteilt[1])} Stellen), hier {hier[0]}"
+)
+pool = rb._last_pool()
+if pool is not None:
+    echt = pool.auftrag
+    pool.auftrag = lambda modul, funktion, *a: echt(modul, funktion + "_gibts_nicht", *a)
+    try:
+        kaputt = last_ganz(bahn)
+    finally:
+        pool.auftrag = echt
+    pruefe(kaputt == hier, f"Last nach gescheitertem Auftrag {kaputt[0]}, hier {hier[0]}")
+    try:
+        pool.warten([pool.auftrag("raeumen_bahn", "gibts_nicht")])
+        kurz = ""
+    except nr.Fehler as fehler_nr:
+        kurz = rb._fehler_kurz(fehler_nr)
+    pruefe("\n" not in kurz and "gibts_nicht" in kurz, f"Warnung beim Rückfall: {kurz!r}")
+# Mit Nebenrechnern misst planen alle Varianten vorab, auch die, die es nicht braucht (bis 0.384.0
+# nie gemessen). Scheitert das, misst es einzeln, was es braucht – dieselbe Bahn (der Adaptiv-Kern
+# bleibt gemerkt), statt dass planen scheitert. Nachgestellt am Testteil mit ae × 1,5: Wirft die
+# Messung von „rohteil“ und „inseln“, scheiterte planen; adaptiv hielt allein (Zweifler).
+messen_echt = rb._last_messen
+
+
+def messen_vorab_kaputt(bahnen):
+    if len(bahnen) > 1:
+        raise RuntimeError("die Messung vorab scheitert (nachgestellt)")
+    return messen_echt(bahnen)
+
+
+rb._last_messen = messen_vorab_kaputt
+try:
+    einzeln_gemessen = raeumen(PLATTE, INSEL, STUFE)
+finally:
+    rb._last_messen = messen_echt
+pruefe(
+    einzeln_gemessen.punkte == bahn.punkte
+    and (einzeln_gemessen.variante, einzeln_gemessen.gebremst, einzeln_gemessen.ueberlastet)
+    == (bahn.variante, bahn.gebremst, bahn.ueberlastet),
+    f"Messung vorab gescheitert: {einzeln_gemessen.variante}, {len(einzeln_gemessen.punkte)} "
+    f"statt {len(bahn.punkte)} Punkte",
+)
+print(f"Last verteilt = hier: {verteilt == hier} (Pool {pool is not None})")
 # Lokaler Versuch: Höherer Vorschub nur auf den nachgeprüften freien Adaptiv-Verbindungen.
 # Der Kern bleibt in derselben Sitzung gemerkt: Geometrie, Schnittvorschübe und Abtrag sind
 # exakt dieselben; der Prüfstand oben verlangt bereits 0 Abtrag im Schnellvorschub.
