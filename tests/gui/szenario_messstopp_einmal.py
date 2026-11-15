@@ -6,7 +6,11 @@
 # „In zwei gleichen Schnitten“ aus, „Messstopp davor“ an. Im Fenster: „Schlichten danach“ angehakt,
 # sein eigener Messstopp nicht. „Anlegen“: ein Messstopp (er misst die Nut 15,4 quer in Y), dann der
 # Wandzug – kein zweiter.
-# ZEITLIMIT: 600
+# Zweiter Fall (Zweifler 2026-11-15): In „Womit weiter?“ das Schruppen gewählt (Aufmaß 0,2): Die Nut
+# wird neu geschruppt, „Messstopp davor“ steht davor – zwischen Schruppen und Schlichten der Nut
+# bleibt der eigene Messstopp von „Schlichten danach“ (Manuel, 2026-10-17: schruppen, messen,
+# schlichten). Erwartet: Messstopp, Nut, Messstopp, Wandzug.
+# ZEITLIMIT: 900
 
 import FreeCAD
 import FreeCADGui as Gui
@@ -24,7 +28,11 @@ def schritte(h):
         erster.wahl_dezimalzeichen.setCurrentIndex(erster.wahl_dezimalzeichen.findData(","))
         erster.accept()
     yield 500
+    yield from _fall(h, "Nut", schruppen=False)
+    yield from _fall(h, "NutSchruppen", schruppen=True)
 
+
+def _fall(h, name, schruppen):
     import Path.Main.Job as PathJob
     from PySide import QtCore
 
@@ -41,7 +49,7 @@ def schritte(h):
     fraeser = wz.standardwerkzeug()
     wz.Bibliothek([fraeser]).speichern()
     ue.uebergeben(wz.Bibliothek([fraeser]))  # das ToolBit für den Controller der Nut
-    doc = FreeCAD.newDocument("Nut")
+    doc = FreeCAD.newDocument(name)
     teil = doc.addObject("Part::Feature", "Block")
     nut_form = (
         Part.makeBox(14, NUT_B, 8, V(51, NUT_Y - NUT_B / 2, 12))
@@ -64,8 +72,8 @@ def schritte(h):
         and abs(f.BoundBox.ZMin - 12.0) < 1e-6
     )
     # Das Schruppen, wie der Assistent es anlegt: die Nut mit 0,3 an den Wänden.
-    schruppen = next(e for e in fraeser.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
-    tc = js.controller_ohne_transaktion(doc, job, fraeser, schruppen)
+    einsatz = next(e for e in fraeser.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
+    tc = js.controller_ohne_transaktion(doc, job, fraeser, einsatz)
     nu.lege_an(job, tc, 4.0, 1.5, aufmass=0.3, schlichten=False, flaechen=[grund])
     job.addProperty("App::PropertyStringList", beta.EIGENSCHAFT_FLAECHEN, beta.GRUPPE, "")
     job.addProperty("App::PropertyInteger", beta.EIGENSCHAFT_ABSCHNITT, beta.GRUPPE, "")
@@ -88,13 +96,19 @@ def schritte(h):
     if frage is None:
         return
     h.pruefe(frage.abschnitt() == beta.SCHLICHTEN, f"vorgewählt: {frage.abschnitt()}")
+    if schruppen:  # noch einmal schruppen
+        frage.wahl[beta.SCHRUPPEN].click()
+        yield 300
+        frage.aufmass.setText("0,2")
+        yield 300
+        h.pruefe(frage.abschnitt() == beta.SCHRUPPEN, f"gewählt: {frage.abschnitt()}")
     if frage.zwei.isChecked():
         frage.zwei.click()  # von Hand aus (setChecked allein nähme die Vorgabe wieder)
     h.pruefe(not frage.zwei_wert(), "„In zwei gleichen Schnitten“ noch an")
     frage.messstopp.setChecked(True)
     yield 300
     print(ascii(f"Messen: {frage.messen_text.text()} / {frage.messstopp.text()}"), flush=True)
-    h.bild("1_womit_weiter", frage)
+    h.bild(f"1_womit_weiter_{name}", frage)
     frage.accept()
     yield from h.warte_auf(lambda: beta.BearbeitungPanel.offen is not None, 60000)
     panel = beta.BearbeitungPanel.offen
@@ -103,12 +117,21 @@ def schritte(h):
     if panel is None:
         h.pruefe(False, "„Weiter bearbeiten“ öffnet kein Fenster")
         return
+    if schruppen:  # vom Schritt „Schruppen“ zum Schlichten
+        h.bild(f"2a_schruppen_{name}", panel.form)
+        panel.weiter()
+        yield 2000
+        yield from h.warte_auf(lambda: not panel.vorschau_laeuft(), 300000)
+        yield 1000
     aktiv = [b.s.kennung for b in panel.aktive_bloecke()]
     eigener = panel.schlichten_danach.haken_felder["messstopp"].isChecked()
     print("EINMAL angehakt", aktiv, "eigener Messstopp", eigener, flush=True)
     h.pruefe("schlichtendanach" in aktiv, f"„Schlichten danach“ nicht angehakt: {aktiv}")
-    h.pruefe(not eigener, "„Schlichten danach“ mit eigenem Messstopp neben „Messstopp davor“")
-    h.bild("2_schlichten", panel.form)
+    h.pruefe(
+        eigener == schruppen,
+        f"„Schlichten danach“ eigener Messstopp {eigener} (neu geschruppt: {schruppen})",
+    )
+    h.bild(f"2_schlichten_{name}", panel.form)
     vorher = len(job.Operations.Group)
     panel.accept(bis_hier=True)
     yield from h.warte_auf(
@@ -118,7 +141,8 @@ def schritte(h):
     dazu = list(job.Operations.Group)[vorher:]
     arten = ["stopp" if ms.ist_messstopp(o) else "schnitt" for o in dazu]
     print("EINMAL dazu", [o.Label for o in dazu], arten, flush=True)
-    h.pruefe(arten == ["stopp", "schnitt"], f"Folge: {arten}")
+    soll = ["stopp", "schnitt", "stopp", "schnitt"] if schruppen else ["stopp", "schnitt"]
+    h.pruefe(arten == soll, f"Folge: {arten}")
     stopp = next((o for o in dazu if ms.ist_messstopp(o)), None)
     m = ms.merkmal_von(list(stopp.Gcode)) if stopp is not None else None
     print(ascii(f"EINMAL Messstopp: {m}"), flush=True)
@@ -133,7 +157,7 @@ def schritte(h):
     if stopp is not None:
         Gui.Selection.addSelection(stopp)
     yield 500
-    h.bild("3_job", None)
+    h.bild(f"3_job_{name}", None)
     with __import__("contextlib").suppress(Exception):
         Gui.Control.closeDialog()
     yield 500

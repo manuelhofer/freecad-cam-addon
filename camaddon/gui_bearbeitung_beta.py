@@ -2109,16 +2109,23 @@ class BetaPanel(BearbeitungPanel):
         """Wie im Assistenten – nur ohne den Messstopp, den „Schlichten danach“ nach einer Nut von
         sich aus anhakt, wenn „Weiter bearbeiten“ schon misst: mit zwei gleichen Schnitten
         zwischen ihnen (gangfolge), sonst mit „Messstopp davor“ vor den neuen Operationen
-        (_anlegen). Mit ihm standen zwei Halte da, die keiner verlangt hatte – bei zwei Schnitten
-        vor dem ersten Wandzug (Nut 15,4 nach dem Schruppen), mit „Messstopp davor“ zwei
+        (_anlegen) – dieser nur, wenn das Schruppen davor (Nut oder Räumen) nicht in diesem
+        Durchgang neu kommt. Mit ihm standen zwei Halte da, die keiner verlangt hatte – bei zwei
+        Schnitten vor dem ersten Wandzug (Nut 15,4 nach dem Schruppen), mit „Messstopp davor“ zwei
         hintereinander, beide an der Nut 15,4 (nachgestellt 2026-11-15, szenario_messstopp_einmal).
-        Von Hand angehakt bleibt er."""
+        Wird die Nut neu geschruppt, steht „Messstopp davor“ vor dem Schruppen: Dann bleibt der
+        eigene – schruppen, messen, schlichten (Manuel, 2026-10-17; Zweifler 2026-11-15: sonst
+        fehlte der Halt dazwischen). Von Hand angehakt bleibt er."""
         block = self.schlichten_danach
         haken = block.haken_felder.get("messstopp")
         vorher = bool(haken is not None and haken.isChecked())
         super()._schlichten_danach_einrichten(form)
         folge = getattr(self, "_beta_folge", None) or {}
-        misst = folge.get("ende") is not None or getattr(self, "_beta_messstopp", False)
+        raeumt = self.raeumen.aktiv() and not getattr(self, "_raeumen_bei_nut", False)
+        gross = self.raeumen if raeumt else self.nut
+        neu_geschruppt = gross.aktiv() and abschnitt(gross) >= (self._beta_ab or 0)
+        davor = getattr(self, "_beta_messstopp", False) and not neu_geschruppt
+        misst = folge.get("ende") is not None or davor
         if haken is None or vorher or not misst or not haken.isChecked():
             return
         alt = (self._fuellt, self._ruhig)
