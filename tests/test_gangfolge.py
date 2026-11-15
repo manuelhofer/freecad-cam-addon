@@ -515,6 +515,21 @@ pruefe(
 )
 FreeCAD.closeDocument(doc.Name)
 
+
+# Frage 3 (b): die Folge der Bohrung direkt hinter „Bohrung fräsen“, vor Senken und Gewinde.
+class _Op:
+    def __init__(self, name):
+        self.Name = name
+
+
+_b, _s, _g, _l, _m, _z = (
+    _Op(n) for n in ("Bohrung", "Senken", "Gewinde", "Leer", "Stopp", "Zweit")
+)
+_r = gf.direkt_dahinter([_b, _s, _g, _l, _m, _z], [_b], [_l, _m, _z])
+pruefe([o.Name for o in _r] == ["Bohrung", "Leer", "Stopp", "Zweit", "Senken", "Gewinde"],
+       f"direkt dahinter: {[o.Name for o in _r]}")  # fmt: skip
+pruefe(gf.direkt_dahinter([_b, _s], [], [_l]) == [_b, _s], "ohne Quelle unverändert")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

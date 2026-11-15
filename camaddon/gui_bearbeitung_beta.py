@@ -2202,6 +2202,10 @@ class BetaPanel(BearbeitungPanel):
                 tc = getattr(mit, "ToolController", None)
                 if tc is not None:
                     ms.korrektur_setzen(ergebnis.stopp, int(tc.ToolNumber))
+            if folge.get("nur_bohrungen") and ergebnis.alle:
+                # Direkt hinter „Bohrung fräsen“, vor Senken und Gewinde (Frage 3: „(b)“).
+                gruppe = list(self.job.Operations.Group)
+                self.job.Operations.Group = gf.direkt_dahinter(gruppe, neu, ergebnis.alle)
             if folge.get("messstopp") and ergebnis.stopp is None:
                 self._stopp_dahinter(davor_namen)
             if ergebnis.alle:

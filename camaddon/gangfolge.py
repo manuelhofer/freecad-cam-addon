@@ -233,3 +233,19 @@ def messmerkmal(form, flaechen, davor):
     except Exception:  # noqa: BLE001 – Part.OCCError: ein Name passt nicht mehr zum Modell
         return None
     return None if m is None else messen.soll(m, wand_rest(davor))
+
+
+def direkt_dahinter(gruppe, quellen, folge_ops):
+    """Die Reihenfolge der Operationen `gruppe`, in der die Folge `folge_ops` (Leerfahrt, Messstopp,
+    zweiter Schnitt …) direkt hinter der letzten ihrer `quellen` steht statt hinten am Job – bei den
+    Löchern vor Senken und Gewinde (Manuel, 2026-11-15, Frage 3: „Empfehlung: (b)“: die Bohrung ist
+    fertig und gemessen, bevor gesenkt wird). Die übrige Reihenfolge bleibt."""
+    folge_namen = {o.Name for o in folge_ops}
+    quellen_namen = {o.Name for o in quellen}
+    rest = [o for o in gruppe if o.Name not in folge_namen]
+    folge = [o for o in gruppe if o.Name in folge_namen]
+    stellen = [i for i, o in enumerate(rest) if o.Name in quellen_namen]
+    if not folge or not stellen:
+        return list(gruppe)
+    hinter = stellen[-1] + 1
+    return rest[:hinter] + folge + rest[hinter:]

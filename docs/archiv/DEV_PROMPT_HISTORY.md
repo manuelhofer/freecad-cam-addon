@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-23 messfolge-direkt-hinter-der-bohrung
+
+### EINGELESEN
+- Manuel, 2026-11-15, Frage 3 (wo kommen Messstopp und zweiter Schnitt der Bohrung hin?): „3. Empfehlung:
+  (b).“
+
+### DATEIEN
+- `camaddon/gangfolge.py` (direkt_dahinter), `camaddon/gui_bearbeitung_beta.py` (_folge_anhaengen bei den
+  Löchern), `tests/test_gangfolge.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` 0.385.1.
+
+### ERGEBNIS
+- „Weiter bearbeiten“ → „Löcher“ mit zwei Schnitten: Leerfahrt, Messstopp und der zweite Schnitt stehen
+  direkt hinter „Bohrung fräsen“, vor Senken und Gewinde aus demselben Schritt. Geprüft: test_gangfolge,
+  szenario_zwei_schnitte_bohrung.
 ## P-2026-11-15-22 restschlichten-von-selbst
 
 ### EINGELESEN

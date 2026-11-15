@@ -544,7 +544,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   (z. B. Horn Supermini 105, Paul Horn Nutstoßen, Mapal, Wohlhaupter …) mit Breite, Klingenlänge,
   seitlichem Freiwinkel, Stechtiefe in die Werkzeugkiste (Abrufe in menschlichem Maß).
 - *Frage 3 (Bohrung in zwei Schnitten):* **(b)** – Leerfahrt, Messstopp und zweiter Schnitt direkt hinter
-  „Bohrung fräsen“, vor Senken und Gewinde.
+  „Bohrung fräsen“, vor Senken und Gewinde. **Erledigt in 0.385.1** (gangfolge.direkt_dahinter).
 - *Frage 4:* **Restschlichten von selbst anhaken**, wenn an der Unterkante Rest bleibt und eine passende
   kleinere Kugel da ist – **erledigt in 0.385.0** (je Assistent einmal; abgewählt bleibt abgewählt; eine
   Kugel, die erst angelegt werden müsste, bleibt beim Knopf).
