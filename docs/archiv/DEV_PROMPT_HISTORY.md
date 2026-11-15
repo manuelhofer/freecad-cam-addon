@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-16 werkzeugverwaltung-geht-wieder-auf
+
+### EINGELESEN
+- Voller Szenario-Lauf in der Nacht auf 0.383.0: 178 von 196 grün; 17 rote, alle mit der
+  Werkzeugverwaltung: KeyError 'klingenlaenge' in gui_werkzeuge._tooltip beim Aufbau des Dialogs.
+
+### DATEIEN
+- `camaddon/gui_werkzeuge.py` (_tooltip: Stoßwerkzeug-Maße, .get statt KeyError); translations
+  (wv.klingenlaenge/spindelwinkel/freiwinkel.tooltip); `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.383.1.
+
+### ERGEBNIS
+- Seit 0.376.0 (Werkzeugart Stoßwerkzeug, Felder Klingenlänge/Spindelwinkel; 0.378.0 Freiwinkel) ging die
+  Werkzeugverwaltung nicht auf – damals nur Prüfdateien ohne Oberfläche gelaufen. Behoben; geprüft:
+  szenario_werkzeugverwaltung, test_sprache. Die übrigen roten Szenarien laufen danach noch einmal.
 ## P-2026-11-15-15 hobeln-ohne-halt
 
 ### EINGELESEN

@@ -1423,8 +1423,12 @@ def _tooltip(feld):
         "flankenwinkel": tr("wv.flankenwinkel.tooltip"),
         "einstellwinkel": tr("wv.einstellwinkel.tooltip"),
         "plattenwinkel": tr("wv.plattenwinkel.tooltip"),
+        # Stoßwerkzeug (seit 0.376.0 – ohne diese drei ging die Werkzeugverwaltung bis 0.383.0 nicht auf).
+        "klingenlaenge": tr("wv.klingenlaenge.tooltip"),
+        "spindelwinkel": tr("wv.spindelwinkel.tooltip"),
+        "freiwinkel": tr("wv.freiwinkel.tooltip"),
         wz.STEIGUNG: tr("wv.steigung.tooltip"),
-    }[feld]
+    }.get(feld, "")
 
 
 def _steigung_einheit():

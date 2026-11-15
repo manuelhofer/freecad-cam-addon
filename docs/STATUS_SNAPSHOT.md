@@ -623,6 +623,11 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Korrektur (0.383.1):* **Die Werkzeugverwaltung ging seit 0.376.0 nicht mehr auf** – die Tooltips der
+  neuen Maße des Stoßwerkzeugs (Klingenlänge, Spindelwinkel, Freiwinkel) fehlten, der Dialog brach beim
+  Aufbau ab. Gefunden im vollen Szenario-Lauf (17 rote Szenarien), behoben; die Tooltip-Tabelle fällt jetzt
+  nie mehr mit KeyError aus. Lehre: nach einer neuen Werkzeugart das Szenario der Werkzeugverwaltung laufen
+  lassen.
 - *Neu (0.383.0):* **Dichtnut hobeln ohne Halt je Satz** (Manuel, 14.11.: „die vorschläge … mit den
   funktionen … als option beim generieren des programs“): In „Programm schreiben“ die Gruppe „Dichtnut
   hobeln“ mit dem Haken „Spindel als Rundachse mitführen“ (Vorgabe aus). Siemens: M70, je Satz C=DC(w), M5
