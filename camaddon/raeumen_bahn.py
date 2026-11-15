@@ -150,8 +150,23 @@ RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.R
 # Anlegen, das Nachrechnen –, bleiben seine letzten Ergebnisse je Eingabe gemerkt. Je Fläche sind
 # es bis zu vier (die Helix kleiner, enger gerechnet): Mit 12 verdrängte „Rest räumen“ am Testteil
 # die des Räumens, und „adaptiv_frei“ rechnete eine andere Bahn als die Vorschau davor.
+# Jeder Nebenrechner hat seinen eigenen Merker: Was er vom Hauptprozess bekam oder selbst rechnete,
+# behält er (_adaptiv_mitschreiben), auch wenn der Hauptprozess es verdrängt oder geleert hat –
+# was er davon nimmt, kommt mit seiner Bahn in den Merker hier zurück, die Bahn bleibt so in sich
+# gleich. Wer zum Vergleich „ohne Merker“ rechnen will, leert _ADAPTIV und beendet die Arbeiter
+# (nebenrechner.pool().beenden()).
 ADAPTIV_GEMERKT = 48
 _ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
+# Was ein Nebenrechner für das Räumen lädt (nebenrechner.vorwaermen, die Assistenten beim
+# Öffnen): raeumen_bahn und, was es erst beim Rechnen holt – materialstand und restmaterial (für
+# last() und den Materialstand; sie bringen den Job und die CAM-Werkzeuge mit), ringgrenze (der
+# genaue Ring an der Wand, _Nachpruefen). Ohne sie lud der Arbeiter das beim ersten Auftrag: mit
+# nur raeumen_bahn vorgewärmt feiner() an der engen Nut 0,33 statt 0,16 s. Im Assistenten
+# „Bearbeitung“ brachte bearbeitung_vorschau das meiste schon mit – test_raeumen_verteilt hält
+# fest, dass ein vorgewärmter Arbeiter nichts mehr nachlädt. Der 4-Achs-Assistent wärmt sie mit
+# Absicht nicht vor: Sein erster Stich der Planbahn wartet einmal 0,09 s (0,23 statt 0,14 s), jeder
+# Arbeiter belegte sonst 34 MB mehr (151 statt 117 MB).
+NEBENRECHNER_MODULE = ("raeumen_bahn", "materialstand", "restmaterial", "ringgrenze")
 _BENUTZT = None  # {Schlüssel: Gebiete}, die ein Lauf brauchte (adaptiv_benutzt_beginnen)
 # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf – nur das Rauschen des
 # Rasters. Bis 0.350.4 waren es 2 %: Mit FreeCADs altem Adaptiv-Kern traf kein Weg je etwas, mit dem
@@ -2631,10 +2646,17 @@ class _Verteilt:
     def varianten(self, w, ebenen, schritt, varianten, mehrere):
         """{Variante: Auftrag} – je Variante einer, gleichzeitig (sie hängen nicht voneinander ab;
         am Testteil rechneten die vier nacheinander 6,4 s, P-2026-10-11-77). Leer, wenn der Pool
-        nicht annimmt."""
+        nicht annimmt.
+
+        „adaptiv“ geht als Erstes hinaus, die längste zuerst: Der Pool gibt die Aufträge in
+        der Reihenfolge an freie Arbeiter, und reicht der Speicher nicht für alle zugleich
+        (nebenrechner._naechster), wartete der Adaptiv-Kern als letzter auf einen Ring – am
+        Testteil kam die Bahn so 0,45 s später (abgeholt nach 4,58 statt 4,13 s; Prüflauf mit
+        6 GB). Das Wörterbuch bleibt in der Reihenfolge der Varianten: Abgeholt und ausgewertet
+        wird wie bisher."""
         auftraege = {}
         try:
-            for v in varianten:
+            for v in sorted(varianten, key=lambda v: v != "adaptiv"):
                 gemerkt = dict(_ADAPTIV) if v == "adaptiv" else None
                 auftraege[v] = self.auftrag(
                     "variante_rechnen", w, ebenen, schritt, v, mehrere, self.huellen,
@@ -2644,7 +2666,7 @@ class _Verteilt:
             for a in auftraege.values():
                 a.abbrechen()
             return {}
-        return auftraege
+        return {v: auftraege[v] for v in varianten}
 
     def abholen(self, auftraege, huellen):
         """({Variante: was _variante() ergab}, {id(_Stand): seine Zeit}) aus varianten() – wartet

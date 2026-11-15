@@ -6478,11 +6478,13 @@ IM_FREIEN_SCHNELL = {
 
 def _vorwaermen():
     """Die Nebenrechner starten und laden, was die Vorschau dort braucht, während man noch
-    Flächen anklickt – die erste Vorschau wartet dann nicht darauf (wie gui_vierachs)."""
+    Flächen anklickt – die erste Vorschau wartet dann nicht darauf (wie gui_vierachs). Für das
+    Räumen auch, was es erst beim Rechnen holt (raeumen_bahn.NEBENRECHNER_MODULE)."""
     from . import nebenrechner as nr
 
+    module = ["bearbeitung_vorschau", *rb.NEBENRECHNER_MODULE, "hoehenfeld", "freiwege"]
     try:
-        nr.pool().vorwaermen(["bearbeitung_vorschau", "raeumen_bahn", "hoehenfeld", "freiwege"])
+        nr.pool().vorwaermen(module)
     except Exception as fehler:  # noqa: BLE001 – ohne Vorwärmen rechnet die Vorschau wie bisher
         FreeCAD.Console.PrintLog(f"CAM-Addon: Nebenrechner vorwärmen: {fehler}\n")
 
