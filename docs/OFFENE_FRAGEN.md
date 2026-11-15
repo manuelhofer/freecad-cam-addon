@@ -52,3 +52,16 @@ und gemessen, bevor gesenkt wird, dafür ein Werkzeugwechsel mehr. Empfehlung: (
 passende kleinere Kugel da ist (abwählbar)? Heute muss man den Verweis anklicken.
 *Warum nur Manuel:* Was das Addon ohne Vorgabe wählt, entscheidet er.
 *Was die Antwort ändert:* die Vorgabe des Hakens „Restschlichten“ bei Rest an der Unterkante.
+
+## 5. Hobeln ohne Halt je Satz: wie heißt die Frässpindel deiner 840D als Achse? (seit 2026-11-15)
+
+**Die Frage:** Seit 0.383.0 gibt es in „Programm schreiben“ beim Hobeln den Haken „Spindel als Rundachse
+mitführen (ohne Halt je Satz)“ (Vorgabe aus). Für Siemens schreibt er `M70`, dann je Satz `C=DC(w)` in der
+Bahn, am Ende `M5`. Ob deine 840D (powerline) M70 annimmt und die Spindel als Achse „C“ heißt (oder SP1,
+C1 …), steht in den Maschinendaten. Probe im MDA **ohne Werkzeug im Eingriff**: „M70“, dann
+„G1 X10 C=DC(90) F500“, dann „M5“ – fährt die Spindel mit X auf 90° und kommt kein Alarm, passt die Vorgabe.
+*Warum nur Manuel:* Nur die Maschine zeigt es.
+*Was die Antwort ändert:* den vorbelegten Achsnamen (änderbar unter „Befehle“).
+Dazu, falls es geht: Hast du eine Heidenhain mit Option 96 (Zyklus 291), an der man in der Luft probieren
+kann, wohin Q336 die Schneide stellt? Dann ließe sich Interpolationsdrehen der runden Nut auch für
+Heidenhain einbauen.

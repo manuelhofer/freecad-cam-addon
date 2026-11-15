@@ -623,6 +623,15 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.383.0):* **Dichtnut hobeln ohne Halt je Satz** (Manuel, 14.11.: „die vorschläge … mit den
+  funktionen … als option beim generieren des programs“): In „Programm schreiben“ die Gruppe „Dichtnut
+  hobeln“ mit dem Haken „Spindel als Rundachse mitführen“ (Vorgabe aus). Siemens: M70, je Satz C=DC(w), M5
+  (Programmierhandbuch, MAPAL-Beispiel); Fanuc: Cs-Achse C fortlaufend, Ein/Aus vom Hersteller (Felder
+  leer), F so umgerechnet, dass X/Y/Z im Hub fahren, Hinweis zu Roll-over (RAAx/RABx = 0); LinuxCNC, Haas,
+  Mach, Mazak zum Selbsteintragen; Heidenhain, GRBL, woodWOP: geht nicht (Grund steht da). Nicht gebaut,
+  weil nicht belegt: TANG, Fanuc G41.1, Heidenhain 291 (Frage 5). Ohne Haken jede Zeile wie vorher (11
+  Steuerungen verglichen). Nebenbei: In „Programm schreiben“ rollte bei Heidenhain die Einstellungsspalte
+  zur Seite (zu langer Titel) – behoben.
 - *Neu (0.382.0):* **Rest an der Unterkante sichtbar, mit Knopf** – die Übersicht und der Block
   3D-Schlichten sagen, wie hoch der Rest am Teilboden bleibt, rot umrandet im Teil; der Knopf hakt das
   Restschlichten mit einer kleineren Kugel an (bzw. legt eine an: Schaft Ø 6, Hals, nur wenn Hals, Schaft

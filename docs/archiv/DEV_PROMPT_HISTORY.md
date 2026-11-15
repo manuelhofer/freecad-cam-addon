@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-15 hobeln-ohne-halt
+
+### EINGELESEN
+- Manuel, 2026-11-14: „die vorschläge die du da gegeben hast mit den funktionen finde ich dennoch wichtig
+  das du die einbaust und als option beim generieren des programs mit anbietest .. aber ich brauch das auch
+  für heidenhein für eigentlich alle steuerrungen“.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (spindel_achse_ein/_satz/_aus, spindel_achse_warnung), `gui_postprozessor*.py`
+  (Gruppe „Dichtnut hobeln“, Titel umbrochen); translations; `tests/test_hobeln.py`,
+  `tests/gui/szenario_hobeln.py`; Hilfe programm.html de/en (#hobeln); `docs/spezifikation_strategien.md`
+  13.10 (5b mit Quellen), `docs/OFFENE_FRAGEN.md` (Frage 5), `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.383.0.
+
+### ERGEBNIS
+- Haken „Spindel als Rundachse mitführen (ohne Halt je Satz)“, Siemens M70 / C=DC / M5, Fanuc Cs mit
+  F-Umrechnung und Roll-over-Hinweis; Quellen in ~/freecad_cam/wip/strategien/hobeln_ohne_halt/bau/quellen/.
+  Zweifler: uebernehmen (Funde nur Bedienung/klein: Roll-over-Hinweis, F-Grenze, verrollte Spalte –
+  in der Nacharbeit behoben). Ohne Haken 11 Steuerungen Zeile für Zeile gleich.
+- Geprüft: test_hobeln, test_postprozessor, test_postprozessor_nachfahren, test_sprache, test_hilfe;
+  szenario_hobeln (Bilder 6 und 7 angesehen).
 ## P-2026-11-15-14 rest-an-der-unterkante
 
 ### EINGELESEN
