@@ -520,6 +520,108 @@ for k in range(1, min(len(si_w), len(lc_w))):
     mitte_abw = max(mitte_abw, abs((lc_w[k] - soll + 180.0) % 360.0 - 180.0))
 pruefe(mitte_abw < 0.002, f"LinuxCNC nicht auf der Mitte zweier Winkel: {mitte_abw:.4f} Grad")
 
+# „Spindel als Rundachse mitführen (ohne Halt je Satz)“ – der Haken, vorbelegt aus (Manuel,
+# 2026-11-14: die Funktionen „als option beim generieren des programs“). Siemens: M70, je Satz
+# „C=DC(w)“ statt SPOS, M5 danach; Fanuc: Cs-Achse „C“ fortlaufend, F so, dass X, Y, Z im Hub
+# fahren, Ein/Aus trägt man ein (Maschinenhersteller); ohne Eintrag, an Heidenhain und GRBL: der
+# Grundweg.
+pruefe(not any(s0.spindel_achse for s0 in pp.STEUERUNGEN.values()), "Spindel als Achse vorbelegt")
+roh_w = [float(b.Name.strip("()").split()[1]) for b in op.Path.Commands
+         if b.Name.startswith("(SPINDEL ")]  # fmt: skip
+achse = {}
+for kennung in ("siemens", "fanuc", "linuxcnc", "heidenhain", "grbl"):
+    s_a = pp.steuerung(kennung).ersetzt(spindel_achse=True)
+    achse[kennung] = pp.programm(pp.abschnitte(job), s_a, None, "Hobeln")
+si_a = achse["siemens"].zeilen
+halt_a = max(i for i, z in enumerate(si_a) if {"M0", "M00"} & set(z.split()))
+c_si = [(i, z) for i, z in enumerate(si_a) if "C=DC(" in z]
+pruefe(len(c_si) == len(spos) and not any("SPOS" in z for z in si_a[halt_a:]),
+       f"Siemens mit Achse: {len(c_si)} Sätze mit C, {len(spos)} mit SPOS")  # fmt: skip
+m70 = [i for i, z in enumerate(si_a) if z == "M70"]
+m5_nach = [i for i, z in enumerate(si_a) if z == "M5" and c_si and i > c_si[-1][0]]
+zwischen = si_a[c_si[-1][0] + 1 : m5_nach[0]] if m5_nach else ["?"]
+pruefe(
+    len(m70) == 1
+    and halt_a < m70[0] < c_si[0][0]
+    and m5_nach
+    and all(z.startswith("G0 ") for z in zwischen),
+    f"Siemens M70/M5: {m70}, {m5_nach[:1]}, C {c_si[0][0]}…{c_si[-1][0]}, dazwischen {zwischen}",
+)
+m3_a = [z for z in si_a[halt_a:] if {"M3", "M03", "M4", "M04"} & set(z.split())]
+pruefe(not m3_a, f"Siemens mit Achse: Spindel dreht {m3_a[:2]}")
+# Der Winkel fortlaufend: DC fährt den kürzesten Weg (höchstens 180°) – Satz für Satz genau die
+# Drehung der Bahn, nie ein Sprung um 360°; je Satz der Winkel der Notiz (modulo 360), nicht die
+# Mitte.
+dc_w = [float(z.split("C=DC(")[1].split(")")[0]) for _i, z in c_si]
+pruefe(all(0.0 <= w < 360.0 for w in dc_w), f"DC außerhalb 0 … 360: {min(dc_w)} {max(dc_w)}")
+pruefe(len(dc_w) == len(roh_w), f"Winkel: {len(dc_w)} Sätze, {len(roh_w)} Notizen")
+abw_mod = max(
+    abs((a - b % 360.0 + 180.0) % 360.0 - 180.0) for a, b in zip(dc_w, roh_w, strict=False)
+)
+abw_weg = max(
+    abs((dc_w[k] - dc_w[k - 1] + 180.0) % 360.0 - 180.0 - (roh_w[k] - roh_w[k - 1]))
+    for k in range(1, min(len(dc_w), len(roh_w)))
+)
+groesster = max(abs(roh_w[k] - roh_w[k - 1]) for k in range(1, len(roh_w)))
+print(
+    f"Achse Siemens: {len(dc_w)} Sätze, Abweichung {abw_mod:.4f}°, Weg {abw_weg:.4f}°, größte"
+    f" Drehung je Satz {groesster:.2f}°, {roh_w[-1] - roh_w[0]:.0f}° gesamt"
+)
+pruefe(abw_mod < 0.0006 and abw_weg < 0.0012 and groesster < 90.0, "Winkel nicht fortlaufend")
+pruefe(
+    any("Spindel als Achse im Satz" in h for h in achse["siemens"].hinweise),
+    f"Siemens ohne Hinweis zum Achsnamen: {achse['siemens'].hinweise[:3]}",
+)
+# Fanuc ohne eingetragenes „Ein“, LinuxCNC ohne belegten Satz: der Grundweg und ein Satz dazu.
+for kennung in ("fanuc", "linuxcnc"):
+    pruefe(achse[kennung].zeilen == programme[kennung].zeilen, f"{kennung}: ohne Ein anders")
+    pruefe(
+        any("fehlt" in h and "Spindel als Achse ein" in h for h in achse[kennung].hinweise),
+        f"{kennung}: kein Hinweis {achse[kennung].hinweise[:3]}",
+    )
+for kennung, wort in (("heidenhain", "291"), ("grbl", "Winkel")):
+    pruefe(achse[kennung].zeilen == programme[kennung].zeilen, f"{kennung}: mit Haken anders")
+    pruefe(any(wort in h for h in achse[kennung].hinweise), f"{kennung}: {achse[kennung].hinweise}")
+# Fanuc mit eingetragenem Ein/Aus (Beispiel M-Befehle): C fortlaufend wie die Notiz, kein M19, und
+# F so, dass X, Y, Z mit dem Hub (6000 mm/min) fahren – F zählt C in Grad mit.
+s_f = pp.steuerung("fanuc").ersetzt(
+    spindel_achse=True, spindel_achse_ein="M199", spindel_achse_aus="M198"
+)
+fa = pp.programm(pp.abschnitte(job), s_f, None, "Hobeln").zeilen
+halt_f = max(i for i, z in enumerate(fa) if {"M0", "M00"} & set(z.split()))
+c_fa = [z for z in fa[halt_f:] if z.startswith("G") and re.search(r"\sC-?\d", z)]
+pruefe(fa.count("M199") == 1 and fa.count("M198") == 1, "Fanuc: Ein/Aus nicht je einmal")
+pruefe(not any(z.startswith("M19 ") for z in fa), "Fanuc mit Achse: noch M19")
+cf_w = [float(re.search(r"(?:^|\s)C(-?[\d.]+)", z).group(1)) for z in c_fa]
+pruefe(
+    len(cf_w) == len(roh_w) and max(abs(a - b) for a, b in zip(cf_w, roh_w, strict=False)) < 6e-4,
+    f"Fanuc: C nicht fortlaufend wie die Notiz ({len(cf_w)}, {len(roh_w)})",
+)
+stand_f, c_davor, f_fehler, f_saetze = {}, None, 0.0, 0
+eintauchen_f = tc.VertFeed.getValueAs("mm/min").Value
+f_faktor = 1.0
+for i_f, z in enumerate(fa):
+    if not z.startswith("G") or z.startswith("G53"):
+        continue  # nur Sätze im Werkstück
+    werte_f = dict(re.findall(r"(?:^|\s)([XYZCF])(-?[\d.]+)", z))
+    werte_f = {k: float(v) for k, v in werte_f.items()}
+    if i_f > halt_f and z.startswith("G1") and "C" in werte_f and c_davor is not None:
+        weg_xyz = math.dist([stand_f.get(a, 0.0) for a in "XYZ"],
+                            [werte_f.get(a, stand_f.get(a, 0.0)) for a in "XYZ"])  # fmt: skip
+        if weg_xyz > 1e-6:
+            gesamt_f = math.hypot(weg_xyz, werte_f["C"] - c_davor)
+            v_xyz = werte_f["F"] * weg_xyz / gesamt_f  # Hub oder Eintauchen (senkrecht)
+            f_fehler = max(f_fehler, min(abs(v_xyz - 6000.0), abs(v_xyz - eintauchen_f)))
+            f_saetze += 1
+            f_faktor = max(f_faktor, gesamt_f / weg_xyz)
+    stand_f.update({a: werte_f[a] for a in "XYZ" if a in werte_f})
+    c_davor = werte_f.get("C", c_davor)
+print(
+    f"Fanuc: {f_saetze} Sätze geprüft, X/Y/Z-Vorschub höchstens {f_fehler:.2f} mm/min daneben,"
+    f" F bis {f_faktor:.2f}-mal so groß"
+)
+pruefe(f_saetze > 100 and f_fehler < 0.05, f"Fanuc: F zählt C nicht mit ({f_fehler:.2f})")
+
 # Zwei Nuten, die Klinge passt nur in die eine (der Kreis R 5 ist zu eng): Die Operation hobelt die,
 # die geht (bis 14.11. brach sie ganz ab, und am Grund der passenden blieb der Rest des Räumens).
 # Ohne Räumen davor hobelt sie nichts – die Klinge stieße in volles Material.

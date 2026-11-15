@@ -221,23 +221,8 @@ Siemens without tool management: please check the tool name (S_TNAME) at the mac
 <li><b>Coolant</b> – as set at the operation: flood M8, mist M7, then M9. Off if you switch it
 by hand at the machine.</li>
 </ul>
-<p><b>Spindle angle when planing.</b> When planing a seal groove the spindle stands still (the
-shaping tool has 0 rpm, no M3) and turns into the direction of travel with every block. How the
-angle gets into the block is set by two commands: <b>Spindle angle before the block</b> (lines
-before it) and <b>Spindle angle in the block</b> (appended to the move); <code>{w}</code> is the angle in
-degrees. Preset: Siemens “SPOS=DC({w})” in the block, Heidenhain cycle 13 ORIENTATION with “L M19”
-before, LinuxCNC and Haas “M19 R{w}” before, Fanuc “M19 S{w0}” (whole degrees; the option
-“spindle orientation with angle” must be present – otherwise the machine only orients via a
-parameter), Mach4 “M19 S{w}”. Mazak orients to a fixed position from a parameter with M19 – enter
-what your machine can do there; otherwise the program says it is missing. GRBL and woodWOP cannot set
-the spindle to an angle. For a control that is not in the list, take the closest relative and enter
-the command. Every block
-then waits until the spindle is in position – the path stops briefly at each block. If your
-machine can move the spindle as a rotary axis along the path (Siemens after M70, depending on the
-machine “C”), enter that in the block, e.g. “C=DC({w})”, and the switch at the tool change. The
-spindle turns into direction above the groove, not inside it. <b>No manufacturer states how much
-a stationary spindle can take – go slowly on the first part, with little infeed and feed
-override.</b></p>
+<p>The spindle angle for seal groove planing is under <a href="#hobeln">Seal groove
+planing</a>.</p>
 <p><b>Older Siemens 840D (without SINUMERIK Operate).</b> There the measuring cycle parameters are
 variables set before the call (Siemens measuring cycles programming manual 04/2006); with
 <code>_KNUM=0</code> the cycle checks the tolerance without correcting, and with <code>_CBIT[2]=1</code>
@@ -262,6 +247,54 @@ positions: “SPOS[4]=0”, then “C4=…” in the blocks. The tool drive turn
 what, the postprocessor tells from the machine: the spindle the tool stations hang on (“Driven
 by”) is the drive; the other one is the main spindle. The names are in “Edit machine”; “New
 machine …” asks for the numbers on the lathe.</p>
+
+<a name="hobeln"></a>
+<h3>Seal groove planing</h3>
+<p>This group only appears when the job planes a seal groove.</p>
+<p><b>Spindle angle when planing (the basic way).</b> When planing a seal groove the spindle stands
+still (the shaping tool has 0 rpm, no M3) and turns into the direction of travel with every block.
+How the angle gets into the block is set by two commands: <b>Spindle angle before the block</b>
+(lines before it) and <b>Spindle angle in the block</b> (appended to the move); <code>{w}</code> is
+the angle in degrees. Preset: Siemens “SPOS=DC({w})” in the block, Heidenhain cycle 13 ORIENTATION
+with “L M19” before, LinuxCNC and Haas “M19 R{w}” before, Fanuc “M19 S{w0}” (whole degrees; the
+option “spindle orientation with angle” must be present – otherwise the machine only orients via a
+parameter), Mach4 “M19 S{w}”. Mazak orients to a fixed position from a parameter with M19 – enter
+what your machine can do there; otherwise the program says it is missing. GRBL and woodWOP cannot
+set the spindle to an angle. For a control that is not in the list, take the closest relative and
+enter the command. Every block then waits until the spindle is in position – the path stops
+briefly at each block. The spindle turns into direction above the groove, not inside it.</p>
+<p><b>Carry the spindle as a rotary axis (no stop per block).</b> Off by default. When ticked, the
+spindle moves as an axis in the motion block: it turns evenly from the angle of the previous block
+to that of the block while X, Y and Z move – the path no longer stops. Three commands for it:
+<b>Spindle as axis on</b> (before the first block of the planing path), <b>… in the block</b>
+(instead of the spindle angle; <code>{w}</code> 0 to 360°, <code>{wf}</code> continuous over
+several turns, <code>{w0}</code> whole degrees) and <b>… off</b> (after the planing path).</p>
+<ul>
+<li><b>Siemens 840D:</b> “M70”, then “C=DC({w})” in every block, afterwards “M5”. M70 switches the
+spindle to axis mode; under its axis name it then moves along the path like a rotary axis
+(Programming Manual Fundamentals 03/2013, ch. 7.4, p. 115–120: “N90 M2=70 / N100 X50 C180”). DC
+takes the shortest way – at most 180° (ch. 8.3.4); each block turns only a fraction of a degree,
+so there is no jump by a full turn. F stays the feed of X, Y, Z. The axis name (“C”, sometimes
+“SP1” or “C1”) is set by the machine – hence yellow; check it at the machine.</li>
+<li><b>Fanuc:</b> the spindle as Cs contour axis, “C{wf}” continuous. Switching to Cs mode is an
+M code set by the machine tool builder (without it: alarm 197) – enter it in “on” and “off”,
+otherwise the basic way stays and the program says so. Fanuc counts the rotation in the length of
+the block (degrees as mm), so the program writes an F into every block with which X, Y, Z move at
+the stroke feed (up to 6 times as large on the cover). With roll-over the axis must take the
+shortest way (parameter 1008: RABx = 0, RAAx = 0).</li>
+<li><b>LinuxCNC, Haas, Mach, Mazak:</b> no block documented – the spindle as an axis is up to the
+machine there (LinuxCNC: HAL wiring, switched e.g. with your own M1xx). Enter what your machine
+has for it; without an entry the basic way stays.</li>
+<li><b>Heidenhain:</b> not possible – the TNC does not drive the tool spindle as an axis in
+Klartext (not found in the manual). Cycle 291 couples it to the position relative to a circle
+centre (option 96) – that only fits a round groove and is not built in yet. GRBL and woodWOP: not
+possible.</li>
+</ul>
+<p>What the machine needs: a position-controlled spindle that the machine tool builder releases
+as an axis. Tangential control (Siemens TANG) and normal direction control (Fanuc G41.1/G42.1) are
+not built in: both make a rotary axis follow the path; none of the manuals says the main spindle
+may be that axis. <b>No manufacturer states how much a stationary spindle can take – go slowly on
+the first part, with little infeed and feed override, first in the air.</b></p>
 
 <a name="c_achse"></a>
 <h3>C axis (lathe)</h3>

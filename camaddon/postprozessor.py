@@ -149,6 +149,20 @@ class Steuerung:
     # Winkel 0 … 360 (Grad, drei Stellen). Leer beides: die Steuerung kann es nicht (Hinweis).
     spindel_winkel_vor: str = ""
     spindel_winkel_satz: str = ""
+    # … oder ohne Halt je Satz (Manuel, 2026-11-14: „die vorschläge … mit den funktionen … als
+    # option beim generieren des programs“): die Spindel als Rundachse im Bewegungssatz – mit dem
+    # Haken `spindel_achse` (vorbelegt aus) `spindel_achse_ein` vor dem ersten Satz mit Winkel,
+    # `spindel_achse_satz` am Satz statt des Grundwegs, `spindel_achse_aus` nach der Bearbeitung.
+    # {w} der Winkel 0 … 360, {wf} fortlaufend (ohne Sprung um 360°, mehr als eine Umdrehung),
+    # {w0} ganze Grad. Gilt nur, wenn Ein und Satz eingetragen sind – sonst Grundweg mit Hinweis.
+    spindel_achse: bool = False
+    spindel_achse_ein: str = ""
+    spindel_achse_satz: str = ""
+    spindel_achse_aus: str = ""
+    # Zählt F die Rundachse im Weg des Satzes mit (Fanuc: Grad wie mm, Bedienhandbuch 16i/18i-MB
+    # B-63534EN/02, 4.4 S. 46)? Dann bekommt jeder Satz mit Winkel ein F, mit dem X, Y, Z im
+    # Vorschub des Jobs fahren. Siemens nein: F gilt den Geometrieachsen (FGROUP-Grundstellung).
+    spindel_achse_f_mit: bool = False
     taster: str = ""
     taster_ein: str = ""
     taster_aus: str = ""
@@ -437,6 +451,9 @@ BEFEHLSFELDER = (
     "korrektur_aus",
     "spindel_winkel_vor",
     "spindel_winkel_satz",
+    "spindel_achse_ein",
+    "spindel_achse_satz",
+    "spindel_achse_aus",
     "taster",
     "taster_ein",
     "taster_aus",
@@ -500,6 +517,7 @@ HAKEN = (
     "tcpm",
     "bohrzyklen",
     "gewinde_synchron",
+    "spindel_achse",
 )
 
 # G94 im Kopf: Stand vom Programm davor G95 (Vorschub je Umdrehung), hieße F187 sonst 187 mm je
@@ -1177,6 +1195,80 @@ for _kennung, (_vor, _satz) in _SPINDEL_WINKEL.items():
     )
 SPINDEL_WINKEL_NIE = ("grbl", "woodwop", "woodwop_weeke")  # ohne Spindelorientierung
 SPINDEL_NOTIZ = "SPINDEL "  # der Kommentar mit dem Winkel vor einem Satz (hobeln_bahn.SPINDEL)
+# Die Spindel als Rundachse beim Hobeln – ohne Halt je Satz (Spezifikation Strategien 13.10,
+# Schritt 5b; Recherche vom 15.11., gelesen):
+# - Siemens 840D: „The spindle can also be operated as a path axis, synchronized axis or
+#   positioning axis at the address defined in the machine data … M70 switches the spindle directly
+#   to axis mode“, Beispiel „N90 M2=70 / N100 X50 C180 ; … traversed with linear interpolation
+#   synchronous to X“ (Programmierhandbuch Grundlagen 03/2013, 6FC5398-1BP40-3BA1, Kap. 7.4,
+#   S. 115–120). C=DC(…): „approaches the programmed position directly on the shortest path … a
+#   maximum range of 180°“, Wert 0 … 360 (Kap. 8.3.4, S. 163–164) – die Sätze drehen je um wenige
+#   Grad, ein Sprung um 360° entsteht so nicht, ob die Achse Modulo zählt oder nicht. F gilt den
+#   Geometrieachsen („In accordance with FGROUP(), the initial setting in the machine data
+#   applies: Geometry axes“, Kap. 7.1, S. 105). Den Namen der Achse legt die Maschine fest (gelb).
+#   Zurück in den Drehzahlbetrieb mit M5 (S1 Spindeln: „To terminate axis mode, M3, M4 or M5 can be
+#   used“ – nur als Suchtreffer, die Seite war nicht lesbar).
+# - Fanuc 16i/18i-MB: die Spindel als Cs-Konturachse; eingeschaltet über das Signal CON der PMC
+#   (Alarm 197 „movement along the Cs-axis when the signal CON … was off … consult the PMC ladder“,
+#   B-63534EN/02, Anhang G) – den M-Befehl dafür legt der Maschinenhersteller fest (gelb, leer). C
+#   fortlaufend: ohne Roll-over genau, mit Roll-over (Parameter 1008 ROAx) der kürzeste Weg bei
+#   RABx = 0 (20.2.1, S. 531); F zählt C mit (4.4, S. 46).
+# - Nicht belegt, nur mit eigenen Befehlen: LinuxCNC (die Spindel als C ist eine HAL-Verdrahtung
+#   der Maschine, Forum), Haas, Mach, Mazak. Heidenhain: im Klartext keine Werkzeugspindel als Achse
+#   gefunden, Zyklus 291 koppelt sie nur an einen Kreis (pp.haken.spindel_achse.klartext).
+# - TANG/TANGON (Siemens) und G41.1/G42.1 (Fanuc) führen eine Rundachse der Bahn nach – dass die
+#   Hauptspindel diese Achse sein darf, sagt keins der Handbücher (Siemens: „The following axis of
+#   the tangential coupling must be a rotary axis“, Funktionshandbuch Sonderfunktionen 08/2018,
+#   T3, S. 649; Fanuc: Parameter 5480, 14.11 S. 376) – nicht gebaut.
+_SPINDEL_ACHSE = {
+    "siemens": ("M70", "C=DC({w})", "M5", ("spindel_achse_satz",), False),
+    "fanuc": (
+        "",
+        "C{wf}",
+        "",
+        ("spindel_achse_ein", "spindel_achse_satz", "spindel_achse_aus"),
+        True,
+    ),
+}
+for _kennung, (_ein, _satz, _aus, _hersteller_felder, _f_mit) in _SPINDEL_ACHSE.items():
+    STEUERUNGEN[_kennung] = dataclasses.replace(
+        STEUERUNGEN[_kennung],
+        spindel_achse_ein=_ein,
+        spindel_achse_satz=_satz,
+        spindel_achse_aus=_aus,
+        spindel_achse_f_mit=_f_mit,
+        vom_hersteller=tuple(STEUERUNGEN[_kennung].vom_hersteller) + _hersteller_felder,
+    )
+
+
+def spindel_achse_grund(s):
+    """Warum die Spindel an dieser Steuerung nicht als Rundachse mitfahren kann – "" wenn sie es
+    kann (mit den Befehlen, die eingetragen sind oder einzutragen sind)."""
+    if s.dialekt == "klartext":
+        return tr("pp.haken.spindel_achse.klartext")
+    if s.dialekt != "gcode" or s.kennung in SPINDEL_WINKEL_NIE:
+        return tr("pp.haken.spindel_achse.nie", steuerung=s.name)
+    return ""
+
+
+def spindel_achse_wirksam(s):
+    """Fährt die Spindel beim Hobeln als Rundachse mit (Haken an, Ein und Satz eingetragen)?"""
+    return bool(
+        s.spindel_achse
+        and not spindel_achse_grund(s)
+        and s.spindel_achse_ein.strip()
+        and s.spindel_achse_satz.strip()
+    )
+
+
+def _winkel_werte(winkel):
+    """Die Platzhalter des Spindelwinkels: {w} 0 … unter 360 (drei Stellen), {wf} fortlaufend, {w0}
+    in ganzen Grad – 359,9996° heißt „0.000“, nicht „360.000“."""
+    w = _zahl(winkel % 360.0, 3)
+    if w == _zahl(360.0, 3):
+        w = _zahl(0.0, 3)
+    return {"w": w, "wf": _zahl(winkel, 3), "w0": str(int(round(winkel % 360.0)) % 360)}
+
 
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
 # Am Job, gemerkt von „Programm schreiben“ (gui_programm), gelesen auch vom Einrichtblatt:
@@ -1378,6 +1470,18 @@ def feld_text(feld):
             tr("pp.feld.spindel_winkel_satz"),
             tr("pp.feld.spindel_winkel_satz.tooltip"),
         ),
+        "spindel_achse_ein": (
+            tr("pp.feld.spindel_achse_ein"),
+            tr("pp.feld.spindel_achse_ein.tooltip"),
+        ),
+        "spindel_achse_satz": (
+            tr("pp.feld.spindel_achse_satz"),
+            tr("pp.feld.spindel_achse_satz.tooltip"),
+        ),
+        "spindel_achse_aus": (
+            tr("pp.feld.spindel_achse_aus"),
+            tr("pp.feld.spindel_achse_aus.tooltip"),
+        ),
         "taster": (tr("pp.feld.taster"), tr("pp.feld.taster.tooltip")),
         "taster_ein": (tr("pp.feld.taster_ein"), tr("pp.feld.taster_ein.tooltip")),
         "taster_aus": (tr("pp.feld.taster_aus"), tr("pp.feld.taster_aus.tooltip")),
@@ -1454,6 +1558,7 @@ def haken_text(feld):
             tr("pp.haken.gewinde_synchron"),
             tr("pp.haken.gewinde_synchron.erklaerung"),
         ),
+        "spindel_achse": (tr("pp.haken.spindel_achse"), tr("pp.haken.spindel_achse.erklaerung")),
     }.get(feld, (feld, ""))
 
 
@@ -2255,6 +2360,11 @@ def programm(
         messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
         spindel_winkel = None  # beim Hobeln: der Winkel der stehenden Spindel für den nächsten Satz
         spindel_davor = None  # … der Winkel (fortlaufend, Grad) aus der Notiz davor
+        # Mit dem Haken „Spindel als Rundachse“: der Winkel als Achswort im Satz, ohne Halt.
+        achse = spindel_achse_wirksam(s)
+        achse_an = False  # schon eingeschaltet (spindel_achse_ein) in dieser Bearbeitung
+        achse_davor = None  # der zuletzt geschriebene Winkel (fortlaufend) – für F (Fanuc)
+        f_roh = None  # das zuletzt gelesene F der Bahn (FreeCAD: mm/s)
         gemessen = None  # (messen.Merkmal, Toleranz) aus seiner Zeile „(MESSEN …)“
         korrigiert = None  # die Werkzeugnummer, deren Radius der Messzyklus korrigiert („KORR…“)
         im_messstopp = bool(abschnitt.messstopp)  # … und sein Halt (M0): Tür auf und zu
@@ -2283,6 +2393,17 @@ def programm(
                         roh = float(text_[len(SPINDEL_NOTIZ) :])
                     except ValueError:
                         roh = None
+                    if achse:
+                        # Die Spindel fährt den Winkel im Satz als Achse (fortlaufend) – vom Winkel
+                        # davor linear bis auf den des Satzes, keine Mitte nötig.
+                        spindel_winkel = roh
+                        continue
+                    if s.spindel_achse and "spindel_achse" not in gesehen:
+                        gesehen.add("spindel_achse")  # Haken an, aber nicht möglich: der Grundweg
+                        grund = spindel_achse_grund(s) or tr(
+                            "pp.hinweis.spindel_achse_fehlt", steuerung=s.name
+                        )
+                        hinweise.append(grund)
                     spindel_winkel = None if roh is None else roh % 360.0
                     if roh is not None and s.spindel_winkel_vor and spindel_davor is not None:
                         # Wer vor dem Satz dreht, dreht am alten Punkt: auf die Mitte zwischen dem
@@ -2487,6 +2608,29 @@ def programm(
                 woerter.append(laenge_offen)
                 laenge_offen = ""
             weg = _weg(stand, parameter) if bewegung else 0.0
+            if achse and bewegung and s.spindel_achse_f_mit:
+                if "F" in parameter and float(parameter["F"]) > 0.0:
+                    f_roh = float(parameter["F"])
+                if achse_an and gross not in ("G0", "G00") and f_roh is not None and not g93:
+                    # F zählt die Spindel (Grad wie mm) mit: so groß, dass X, Y, Z im Vorschub der
+                    # Bahn fahren – am Deckel (test_hobeln) bis 0,57° auf kurzen Sätzen in den
+                    # Bögen, F bis 6-mal so groß: ohne das führe die Klinge dort 6-mal langsamer.
+                    # Gerechnet mit den Zahlen, wie sie im Programm stehen (gerundet) – mit den
+                    # ungerundeten lag X, Y, Z bis 1 % daneben. Jeder Satz mit seinem F.
+                    dreh = (
+                        abs(round(spindel_winkel, 3) - round(achse_davor, 3))
+                        if spindel_winkel is not None and achse_davor is not None
+                        else 0.0
+                    )
+                    weg_r = math.sqrt(
+                        sum(
+                            (round(float(parameter[a]), stellen) - round(stand[a], stellen)) ** 2
+                            for a in ("X", "Y", "Z")
+                            if a in parameter and a in stand
+                        )
+                    )
+                    faktor_c = math.hypot(weg_r, dreh) / weg_r if weg_r > 1e-9 else 1.0
+                    parameter = dict(parameter, F=f_roh * faktor_c)
             davor = dict(stand)  # fortlaufend – für die Drehrichtung einer Moduloachse
             if bewegung:
                 stand.update({a: float(parameter[a]) for a in WEG_ADRESSEN if a in parameter})
@@ -2572,6 +2716,28 @@ def programm(
                         )
                     )
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert, stellen)))
+            if spindel_winkel is not None and bewegung and achse:
+                werte_w = _winkel_werte(spindel_winkel)
+                if not achse_an:  # vor dem ersten Satz mit Winkel: die Spindel wird Achse
+                    for feld_ in ("spindel_achse_ein", "spindel_achse_satz", "spindel_achse_aus"):
+                        _hersteller(s, feld_, hinweise, gesehen, zeilen)
+                    zeilen.extend(_zeilen(_fuellen(s.spindel_achse_ein, **werte_w)))
+                    achse_an = True
+                woerter.append(_fuellen(s.spindel_achse_satz, **werte_w).strip())
+                zu_gross = s.zahl_max and abs(spindel_winkel) > s.zahl_max
+                if zu_gross and "{wf}" in s.spindel_achse_satz and "zahl_max" not in gesehen:
+                    gesehen.add("zahl_max")  # fortlaufend über ±99999.999 (Fanuc): ein Alarm
+                    hinweise.append(
+                        tr(
+                            "pp.hinweis.zahl_zu_gross",
+                            adresse="C",
+                            wert=werte_w["wf"],
+                            steuerung=s.name,
+                            max=_zahl(s.zahl_max, 3),
+                        )
+                    )
+                achse_davor = spindel_winkel
+                spindel_winkel = None
             if spindel_winkel is not None and bewegung:
                 w_text = _zahl(spindel_winkel, 3)
                 w_ganz = str(int(round(spindel_winkel)) % 360)
@@ -2589,6 +2755,8 @@ def programm(
                 if vorschau is not None and saetze >= vorschau:
                     zeilen.append(_kommentar(s, tr("pp.vorschau_ende")))
                     return fertig(zeilen, saetze)
+        if achse_an:  # nach dem Hobeln: die Spindel wieder im Drehzahlbetrieb
+            zeilen.extend(_zeilen(s.spindel_achse_aus))
         if transmit:
             zeilen.extend(_zeilen(s.transmit_aus))
             zeilen.extend(_zeilen(s.kopf_drehen))  # zurück in die Ebene der Drehmaschine (G18)

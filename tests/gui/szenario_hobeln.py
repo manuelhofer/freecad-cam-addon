@@ -11,7 +11,9 @@
 # ab der Oberkante des Rohteils, keine Operation fräst in der Nut, die Bohrungen gehen durch.
 # Programm Siemens: SPOS je Satz, beim Hobeln keine Spindel an.
 # Bilder: 1_angebot (der Knopf), 2_hobeln (der Block), 3_vorschau (die Bahn im Teil),
-# 2b_vorfraesen (mit dem Haken), 4_uebersicht, 5_angelegt.
+# 2b_vorfraesen (mit dem Haken), 4_uebersicht, 5_angelegt; „Programm schreiben“ mit der Gruppe
+# „Dichtnut hobeln“: 6_programm_achse (Siemens, Haken „Spindel als Rundachse“ an),
+# 7_programm_heidenhain (der Haken grau mit dem Grund).
 # ZEITLIMIT: 1500
 import os
 import re
@@ -232,6 +234,7 @@ def schritte(h):
     if fertig is not None:
         yield from h.warte_auf(lambda: fertig.fertig, 120000)
         fertig.close()
+    yield from _programm_fenster(h, doc, job)
     Gui.Selection.clearSelection()
     Gui.activeDocument().activeView().viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")
@@ -239,3 +242,52 @@ def schritte(h):
     h.bild("5_angelegt")
     FreeCAD.closeDocument(doc.Name)
     yield 300
+
+
+def _programm_fenster(h, doc, job):
+    """„Programm schreiben“ mit dem Job: die Gruppe „Dichtnut hobeln“ – Siemens mit dem Haken
+    „Spindel als Rundachse mitführen“ (vorbelegt aus; angehakt M70 und C=DC statt SPOS), Heidenhain
+    mit dem Haken grau und dem Grund darunter. Bilder 6_programm_achse, 7_programm_heidenhain."""
+    from camaddon import gui_programm
+
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, job.Name)
+    yield 300
+    Gui.runCommand("CamAddon_ProgrammSchreiben")
+    yield 1500
+    d = gui_programm.ProgrammDialog.offen
+    h.pruefe(d is not None, "„Programm schreiben“ öffnet kein Fenster")
+    if d is None:
+        return
+    d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
+    yield 1500
+    haken = d.haken.get("spindel_achse")
+    h.pruefe(
+        haken is not None and haken.isEnabled() and not haken.isChecked(),
+        f"Siemens: Haken Spindel als Rundachse {haken}",
+    )
+    h.pruefe({"spindel_achse_ein", "spindel_winkel_satz"} <= set(d.felder), f"{sorted(d.felder)}")
+    if haken is not None:
+        haken.setChecked(True)
+        yield 1500
+        text = d._programm().text
+        h.pruefe(
+            "\nM70\n" in text and "C=DC(" in text and "SPOS=DC(" not in text,
+            "Siemens mit Haken: kein M70/C=DC oder noch SPOS",
+        )
+        d.einstellungen.ensureWidgetVisible(d.felder["spindel_achse_aus"][1])
+        yield 500
+        h.bild("6_programm_achse", d)
+        haken.setChecked(False)
+        yield 800
+    d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("heidenhain_tnc640"))
+    yield 1500
+    haken = d.haken.get("spindel_achse")
+    h.pruefe(haken is not None and not haken.isEnabled(), "Heidenhain: Haken nicht grau")
+    h.pruefe("spindel_achse_ein" not in d.felder, "Heidenhain: Felder der Achse da")
+    if haken is not None:
+        d.einstellungen.ensureWidgetVisible(haken)
+        yield 500
+    h.bild("7_programm_heidenhain", d)
+    d.close()
+    yield 500

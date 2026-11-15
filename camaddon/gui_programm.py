@@ -129,7 +129,22 @@ GRUPPEN = (
         ),
     ),
     ("glaetten", "glaetten", ()),
+    # Nur, wenn der Job eine Dichtnut hobelt (_hat_hobeln): der Spindelwinkel je Satz (Grundweg)
+    # und der Haken, mit dem die Spindel als Rundachse ohne Halt mitfährt.
+    (
+        "hobeln",
+        "hobeln",
+        (
+            "spindel_winkel_vor",
+            "spindel_winkel_satz",
+            "spindel_achse",
+            "spindel_achse_ein",
+            "spindel_achse_satz",
+            "spindel_achse_aus",
+        ),
+    ),
 )
+HOBELN_FELDER = set(GRUPPEN[-1][2])
 # Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
 NUR_DREHEN = {
     "rohteil_drehen",
@@ -225,6 +240,9 @@ HAKEN_VON = {
     "schwenken_aus": "schwenkzyklus",
     "tcpm_ein": "tcpm",
     "tcpm_aus": "tcpm",
+    "spindel_achse_ein": "spindel_achse",
+    "spindel_achse_satz": "spindel_achse",
+    "spindel_achse_aus": "spindel_achse",
 }
 
 
@@ -247,6 +265,7 @@ def gruppen_titel(gruppe):
         "simultan": tr("pp.gruppe.simultan"),
         "bohren": tr("pp.gruppe.bohren"),
         "glaetten": tr("pp.gruppe.glaetten"),
+        "hobeln": tr("pp.gruppe.hobeln"),
     }[gruppe]
 
 
@@ -258,6 +277,23 @@ def _erklaerung(text, einruecken=False, farbe=None):
         (f"color: {farbe};" if farbe else "") + (" margin-left: 22px;" if einruecken else "")
     )
     return zeile
+
+
+def _hobelt(job):
+    """Hat der Job (oder eine seiner Ebenen) eine Operation „Dichtnut hobeln“?"""
+    if job is None:
+        return False
+    try:
+        from . import hobeln as hop
+    except ImportError:  # ohne CAM-Workbench: keine Operationen des Addons
+        return False
+    ops = list(getattr(getattr(job, "Operations", None), "Group", []) or [])
+    while ops:
+        op = ops.pop()
+        if hop.ist_hobeln(op):
+            return True
+        ops.extend(getattr(getattr(op, "Operations", None), "Group", []) or [])  # Ebenen (3+2)
+    return False
 
 
 def _parameter():
@@ -787,6 +823,14 @@ class ProgrammDialog(QtGui.QDialog):
         drehen = self.info.drehmaschine
         if (feld in NUR_DREHEN and not drehen) or (feld in NUR_FRAESEN and drehen):
             return False
+        if feld in HOBELN_FELDER:
+            # Nur, wo der Job hobelt – sonst wären es sechs Zeilen, die nichts bewirken.
+            s = self.steuerung()
+            if drehen or s.dialekt == "mpr" or not self._hat_hobeln():
+                return False
+            if feld in ("spindel_achse_ein", "spindel_achse_satz", "spindel_achse_aus"):
+                return not pp.spindel_achse_grund(s)  # wo es nicht geht: nur der graue Haken
+            return True
         if feld in NUR_GCODE and self.steuerung().dialekt == "klartext":
             return False
         if feld in NUR_KLARTEXT and self.steuerung().dialekt != "klartext":
@@ -880,6 +924,22 @@ class ProgrammDialog(QtGui.QDialog):
         aufbau.addWidget(haken)
         self._erklaer(aufbau, erklaerung, einruecken=True)
         self.haken[feld] = haken
+        if feld == "spindel_achse":
+            grund = pp.spindel_achse_grund(s)
+            if grund:
+                # Grau, mit dem Grund in einem Satz darunter (immer zu sehen – sonst fragte man,
+                # warum der Haken nicht geht).
+                haken.setEnabled(False)
+                haken.setToolTip(grund)
+                aufbau.addWidget(_erklaerung(grund, True, GELB))
+            elif not pp.STEUERUNGEN[s.kennung].spindel_achse_satz:
+                self._erklaer(aufbau, tr("pp.haken.spindel_achse.eintragen"), True, GELB)
+
+    def _hat_hobeln(self):
+        """Hobelt der Job eine Dichtnut (hobeln.ist_hobeln) – gemerkt je Job."""
+        if getattr(self, "_hobeln_fuer", (None, False))[0] is not self.job:
+            self._hobeln_fuer = (self.job, _hobelt(self.job))
+        return self._hobeln_fuer[1]
 
     def _feld_bauen(self, aufbau, feld, s, geaendert):
         name, erklaerung = pp.feld_text(feld)

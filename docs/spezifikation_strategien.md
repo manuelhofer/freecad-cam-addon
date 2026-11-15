@@ -3302,10 +3302,51 @@ Daraus (Lesart, nach der gebaut wird):
    ORIENTIERUNG + `L M19` davor, LinuxCNC und Haas `M19 R` davor; Fanuc, Mazak, Mach und GRBL ohne
    Vorgabe – dann sagt das Programm, dass sie fehlt. Die Spindel dreht schon über der Nut in Richtung
    (nicht erst in der gefrästen Nut, wo die Klinge an die Wände stieße). **So hält die Bahn je Satz
-   an** (der nächste Satz erst, wenn die Spindel steht) – die Optionen ohne Halt (TANG, Spindel als
-   Rundachse, Interpolationsdrehen) sind noch offen. Der Plan war – `camaddon/postprozessor.py`, `klartext.py`: Spindel **steht** (kein M3, auch nicht nach
-   dem Messstopp), vor dem ersten Schnitt orientieren; je Satz der Winkel. **Vorher je Steuerung im
-   Handbuch nachlesen, wie der Winkel im Bewegungssatz mitfährt, ohne dass die Bahn je Satz anhält**
+   an** (der nächste Satz erst, wenn die Spindel steht).
+   **5b Ohne Halt je Satz – gebaut (2026-11-15):** Haken „Spindel als Rundachse mitführen (ohne Halt
+   je Satz)“ in der Gruppe „Dichtnut hobeln“ im Fenster „Programm schreiben“ (die Gruppe steht nur
+   da, wenn der Job hobelt), vorbelegt aus; drei Befehle `spindel_achse_ein`, `_satz`, `_aus`
+   ({w} 0 … 360, {wf} fortlaufend, {w0} ganze Grad). Je Satz der Winkel der Notiz selbst (keine
+   Mitte – die Achse dreht im Satz linear vom Winkel davor auf den des Satzes). Prüfung
+   `test_hobeln` (Deckel, 76 263 Sätze mit Winkel, 28 800° gesamt, höchstens 0,57° je Satz): Siemens
+   je Satz die Drehung der Bahn genau (kein Sprung um 360°), kein SPOS, kein M3; Fanuc X/Y/Z im
+   Vorschub der Bahn (F bis 6-mal so groß); ohne Haken jedes Programm aller elf Steuerungen Zeile
+   für Zeile wie in 0.382.0. Belegt (gelesen):
+   - *Siemens 840D:* `M70`, je Satz `C=DC({w})`, danach `M5`. Programmierhandbuch Grundlagen 03/2013
+     (6FC5398-1BP40-3BA1), Kap. 7.4, S. 115–120: Die Spindel fährt im Achsbetrieb „as a path axis,
+     synchronized axis or positioning axis at the address defined in the machine data“, „M70
+     switches the spindle directly to axis mode“, Beispiel „N90 M2=70 / N100 X50 C180 ; … linear
+     interpolation synchronous to X“; Kap. 8.3.4, S. 163–164: DC „on the shortest path … a
+     maximum range of 180°“, Wert 0 … 360; Kap. 7.1, S. 105: F gilt den Geometrieachsen
+     (FGROUP-Grundstellung). Den Achsnamen legt die Maschine fest (gelb). Offen: das Zurückschalten
+     mit M5 („To terminate axis mode, M3, M4 or M5 can be used“, S1 Spindeln) nur als Suchtreffer
+     gelesen, die Seite war nicht abrufbar.
+   - *Fanuc 16i/18i-MB:* die Spindel als Cs-Konturachse, je Satz `C{wf}`; das Umschalten macht ein
+     M-Befehl des Maschinenherstellers über das PMC-Signal CON (Alarm 197, B-63534EN/02 Anhang G) –
+     „ein“/„aus“ sind leer und gelb, ohne Eintrag bleibt der Grundweg (Hinweis). F zählt die
+     Rundachse in Grad wie mm (4.4, S. 46) – darum je Satz F = F · √(L² + ΔC²) ÷ L (mit den
+     gerundeten Zahlen des Programms). Roll-over (20.2.1, S. 531): nur mit RABx = 0, RAAx = 0
+     (kürzester Weg).
+   - *LinuxCNC, Haas, Mach, Mazak:* kein Satz belegt – Haken da, Befehle leer (selbst eintragen).
+     LinuxCNC: Spindel als C ist eine HAL-Verdrahtung der Maschine (nur Forum).
+   - *Heidenhain:* der Haken grau mit Grund – im Klartext keine Werkzeugspindel als Achse gefunden.
+     Zyklus 291 (Option 96; TNC 640 Zyklenhandbuch 10/2022, 1303406-22, 13.6, S. 428–433, Beispiel
+     S. 491: `CYCL DEF 291 … Q560=1 Q336=… Q216/Q217=Mitte Q561=0`, `CYCL CALL`, Kreis, Ende mit
+     Q560=0) koppelt die Spindel an die Lage zum Kreismittelpunkt – für die runde Nut; **offen**,
+     nicht gebaut: wie Q336 auf den Versatz des Stoßwerkzeugs abzubilden ist (das Handbuch richtet
+     die Schneide zur Mitte aus, die Klinge muss tangential stehen) – nur an der Maschine zu klären.
+   - *Interpolationsdrehen Siemens* (MAPAL: M70, SP=… im G2-Satz) ist mit dem Haken schon
+     abgedeckt: Die Achse dreht in jedem Satz mit, auch auf der runden Nut – ein eigener Haken
+     bräche nur die Sätze zu G2 zusammen.
+   - *Nicht gebaut, weil nicht belegt:* Siemens TANG/TANGON (Funktionshandbuch Sonderfunktionen
+     08/2018, 6FC5397-2BP40-6BA2, T3, S. 649–660: „The following axis … must be a rotary axis“,
+     nicht mit gedrehtem BKS/CYCLE800) und Fanuc G41.1/G42.1 (14.11, S. 373–376: an jedem Satz ein
+     eingeschobener Drehsatz, also auch ein Halt bei Ketten kurzer Geraden) – ob die Hauptspindel
+     deren Achse sein darf, sagt keins der Handbücher.
+   Der Plan war – `camaddon/postprozessor.py`, `klartext.py`: Spindel **steht** (kein M3, auch
+   nicht nach dem Messstopp), vor dem ersten Schnitt orientieren; je Satz der Winkel. **Vorher je
+   Steuerung im Handbuch nachlesen, wie der Winkel im Bewegungssatz mitfährt, ohne dass die Bahn
+   je Satz anhält**
    (Siemens: Spindel im Achsbetrieb als Rundachse im Satz; Heidenhain: nachlesen – M19/Zyklus 13 halten
    an, und die Steuerung kann Vorschub bei stehender Spindel sperren; Fanuc: Cs-Achse). Wo das nicht
    geht: Halt je Satz, und der Block sagt es. Optionen im Fenster „Programm schreiben“: TANG-Verband

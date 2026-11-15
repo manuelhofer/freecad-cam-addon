@@ -224,21 +224,8 @@ bei Tasche und Zapfen der Breite in X, bei Bohrung und Welle dem Ø, bei der Nut
 Radiuskorrektur fährt (eine Kontur oder „Schlichten danach“ mit G41/G42) – sonst misst er nur.
 Siemens ohne Werkzeugverwaltung: Den Werkzeugnamen (S_TNAME) bitte an der Maschine prüfen.</li>
 </ul>
-<p><b>Spindelwinkel beim Hobeln.</b> Beim Dichtnut-Hobeln steht die Spindel (das Stoßwerkzeug
-hat 0 U/min, kein M3) und dreht sich je Satz in Fahrtrichtung. Wie der Winkel in den Satz kommt,
-steht in zwei Befehlen: <b>Spindelwinkel vor dem Satz</b> (Zeilen davor) und <b>Spindelwinkel im
-Satz</b> (hängt am Bewegungssatz); <code>{w}</code> ist der Winkel in Grad. Vorbelegt: Siemens
-„SPOS=DC({w})“ im Satz, Heidenhain Zyklus 13 ORIENTIERUNG mit „L M19“ davor, LinuxCNC und Haas
-„M19 R{w}“ davor, Fanuc „M19 S{w0}“ (ganze Grad; die Option „Spindelorientierung mit Winkel“ muss
-da sein – sonst stellt die Maschine nur über einen Parameter), Mach4 „M19 S{w}“. Mazak stellt mit
-M19 eine feste Lage aus einem Parameter – dort trägst du ein, wie deine Maschine es kann; sonst sagt
-das Programm, dass es fehlt. GRBL und woodWOP können die Spindel nicht auf einen Winkel stellen. Für
-eine Steuerung, die nicht in der Liste steht, nimm die nächstverwandte und trag den Befehl ein. So wartet jeder Satz, bis die Spindel
-steht – die Bahn hält je Satz kurz an. Kann deine Maschine die Spindel als Rundachse in der Bahn
-mitfahren (Siemens nach M70, je nach Maschine „C“), trägst du das im Satz ein, etwa
-„C=DC({w})“, und das Umschalten beim Werkzeugwechsel. Die Spindel dreht schon über der Nut in
-Richtung, nicht erst in ihr. <b>Wie viel die stehende Spindel aushält, sagt kein Hersteller –
-am ersten Teil mit wenig Zustellung und Vorschub-Override langsam.</b></p>
+<p>Den Spindelwinkel beim Dichtnut-Hobeln findest du unter <a href="#hobeln">Dichtnut
+hobeln</a>.</p>
 <p><b>Ältere Siemens 840D (ohne SINUMERIK Operate).</b> Dort stehen die Parameter der Messzyklen
 als Variablen vor dem Aufruf (Siemens Messzyklen Programmierhandbuch 04/2006); mit <code>_KNUM=0</code>
 prüft der Zyklus die Toleranz ohne zu korrigieren, und mit <code>_CBIT[2]=1</code> hält er bei
@@ -263,6 +250,57 @@ und steht nie in der Bahn. Welche Spindel was tut, erkennt der Postprozessor an 
 An welcher Spindel die Werkzeugplätze hängen („Angetrieben von“), die ist der Antrieb; die
 andere ist die Hauptspindel. Die Namen stehen in „Maschine bearbeiten“; „Neue Maschine …“
 fragt bei der Drehmaschine nach den Nummern.</p>
+
+<a name="hobeln"></a>
+<h3>Dichtnut hobeln</h3>
+<p>Die Gruppe steht nur da, wenn der Job eine Dichtnut hobelt.</p>
+<p><b>Spindelwinkel beim Hobeln (der Grundweg).</b> Beim Dichtnut-Hobeln steht die Spindel (das
+Stoßwerkzeug hat 0 U/min, kein M3) und dreht sich je Satz in Fahrtrichtung. Wie der Winkel in den
+Satz kommt, steht in zwei Befehlen: <b>Spindelwinkel vor dem Satz</b> (Zeilen davor) und
+<b>Spindelwinkel im Satz</b> (hängt am Bewegungssatz); <code>{w}</code> ist der Winkel in Grad.
+Vorbelegt: Siemens „SPOS=DC({w})“ im Satz, Heidenhain Zyklus 13 ORIENTIERUNG mit „L M19“ davor,
+LinuxCNC und Haas „M19 R{w}“ davor, Fanuc „M19 S{w0}“ (ganze Grad; die Option
+„Spindelorientierung mit Winkel“ muss da sein – sonst stellt die Maschine nur über einen
+Parameter), Mach4 „M19 S{w}“. Mazak stellt mit M19 eine feste Lage aus einem Parameter – dort
+trägst du ein, wie deine Maschine es kann; sonst sagt das Programm, dass es fehlt. GRBL und
+woodWOP können die Spindel nicht auf einen Winkel stellen. Für eine Steuerung, die nicht in der
+Liste steht, nimm die nächstverwandte und trag den Befehl ein. So wartet jeder Satz, bis die
+Spindel steht – die Bahn hält je Satz kurz an. Die Spindel dreht schon über der Nut in Richtung,
+nicht erst in ihr.</p>
+<p><b>Spindel als Rundachse mitführen (ohne Halt je Satz).</b> Vorbelegt aus. Angehakt fährt die
+Spindel als Achse im Bewegungssatz mit: Vom Winkel des Satzes davor dreht sie gleichmäßig auf den
+des Satzes, während X, Y und Z fahren – die Bahn hält nicht mehr an. Drei Befehle dazu:
+<b>Spindel als Achse ein</b> (vor dem ersten Satz der Hobelbahn), <b>… im Satz</b> (statt des
+Spindelwinkels; <code>{w}</code> 0 bis 360°, <code>{wf}</code> fortlaufend über mehrere
+Umdrehungen, <code>{w0}</code> ganze Grad) und <b>… aus</b> (nach der Hobelbahn).</p>
+<ul>
+<li><b>Siemens 840D:</b> „M70“, dann je Satz „C=DC({w})“, danach „M5“. M70 schaltet die Spindel
+in den Achsbetrieb; unter ihrem Achsnamen fährt sie dann wie eine Rundachse in der Bahn mit
+(Programmierhandbuch Grundlagen 03/2013, Kap. 7.4, S. 115–120: „N90 M2=70 / N100 X50 C180“). DC
+fährt den kürzesten Weg – höchstens 180° (Kap. 8.3.4); die Sätze drehen je nur Bruchteile eines
+Grads, einen Sprung um eine ganze Umdrehung gibt es so nicht. F bleibt der Vorschub von X, Y,
+Z. Den Namen der Achse („C“, manchmal „SP1“ oder „C1“) legt die Maschine fest – deshalb gelb;
+an der Maschine prüfen.</li>
+<li><b>Fanuc:</b> die Spindel als Cs-Konturachse, „C{wf}“ fortlaufend. Das Umschalten in den
+Cs-Betrieb macht ein M-Befehl, den der Maschinenhersteller festlegt (ohne ihn: Alarm 197) – trag
+ihn in „ein“ und „aus“ ein, sonst bleibt es beim Grundweg und das Programm sagt es. Fanuc zählt
+die Drehung im Weg des Satzes mit (Grad wie mm), deshalb schreibt das Programm in jeden Satz ein
+F, mit dem X, Y, Z im Hub fahren (am Deckel bis 6-mal so groß). Mit Roll-over der Achse muss sie
+den kürzesten Weg nehmen (Parameter 1008: RABx = 0, RAAx = 0).</li>
+<li><b>LinuxCNC, Haas, Mach, Mazak:</b> kein Satz belegt – die Spindel als Achse ist dort Sache
+der Maschine (LinuxCNC: eine HAL-Verdrahtung, umgeschaltet etwa mit einem eigenen M1xx). Trag ein,
+was deine Maschine dafür hat; ohne Eintrag bleibt es beim Grundweg.</li>
+<li><b>Heidenhain:</b> geht nicht – die TNC führt die Werkzeugspindel im Klartext nicht als
+Achse (im Handbuch nicht gefunden). Zyklus 291 koppelt sie an die Lage zu einem Kreismittelpunkt
+(Option 96) – das passt nur zur runden Nut und ist noch nicht eingebaut. GRBL und woodWOP: geht
+nicht.</li>
+</ul>
+<p>Was es dafür an der Maschine braucht: eine lagegeregelte Spindel, die der Maschinenhersteller
+als Achse freigibt. Die Tangentialsteuerung (Siemens TANG) und die Normalenrichtung (Fanuc
+G41.1/G42.1) sind nicht eingebaut: Beide führen eine Rundachse nach, dass die Hauptspindel diese
+Achse sein darf, sagt keins der Handbücher. <b>Wie viel die stehende Spindel aushält, sagt kein
+Hersteller – am ersten Teil mit wenig Zustellung und Vorschub-Override langsam, zuerst in der
+Luft.</b></p>
 
 <a name="c_achse"></a>
 <h3>C-Achse (Drehmaschine)</h3>
