@@ -164,6 +164,17 @@ FREI_ZULAESSIG = 0.005
 LAST_FENSTER = 3.0  # mm
 LAST_SEHNE = 1.0  # mm
 LAST_SPIEL = 1.06
+# Die Last auf den Nebenrechnern (_last_messen): Was ein Stück der Bahn abträgt, hängt nur vom
+# Material vor ihm ab – und das Minimum je Zelle nicht von der Reihenfolge, in der die Stücke davor
+# abgefahren werden. So trägt erst jeder Abschnitt einer Bahn für sich ab (auf einmal), dann misst
+# je Auftrag ein Nebenrechner einen Abschnitt im Stand vor ihm, Stück für Stück; das Fenster bildet
+# nur noch die Mittel – dieselben Zahlen wie nacheinander. Bis 0.384.0 maß das Fenster die Varianten
+# nacheinander auf einem Kern: am Testteil (Ø 12, drei Höhen) 6,3 s von 7,3 s planen, an der Platte
+# 200 × 200 17,5 von 19,3 s (je Stück etwa 70 µs; die ganze Bahn auf einmal abgefahren 0,15 s).
+LAST_VERTEILT = True  # abschaltbar zum Vergleich
+LAST_VERTEILT_AB = 2000  # gemessene Stücke (etwa 0,14 s hier) – darunter misst es hier
+LAST_JE_AUFTRAG = 300  # gemessene Stücke – mindestens so viele je Auftrag
+LAST_AUFTRAEGE_JE_ARBEITER = 2  # wer früher fertig ist, nimmt den nächsten
 # Hält keine Bahn die Last – auch feiner gerechnet nicht –, senkt planen den Vorschub in den
 # Sätzen, wo sie sie sprengt (_gebremst): bis auf LAST_DAUERND, höchstens auf LAST_LANGSAMER.
 LAST_LANGSAMER = 0.3  # × Vorschub
@@ -2118,20 +2129,36 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     lasten = {}
 
     stellen = {}  # Variante → [(x, y)], wo sie die Last nicht hielt
+    messungen = {}  # Variante → was last() an ihr gemessen hat (_last_messen) – für _gebremst
+
+    def messen(varianten):
+        """Die Last der `varianten`, je einmal gemessen – alle zugleich (_last_messen)."""
+        # Auch „adaptiv“ wird gemessen, überall: Bis 0.350.4 galt „er hält sie nach seiner
+        # Bauart“ und nur enge Stellen wurden gemessen. FreeCADs neuer Adaptiv-Kern (Clipper2,
+        # Wochen-Build 2026.11.11) hält den Eingriff am Rand nicht mehr – an Manuels Testteil
+        # 2,14 ae über 104 mm am Stück, ohne dass etwas bremste (test_testteil).
+        offen = [v for v in dict.fromkeys(varianten) if v not in lasten]
+        if not offen:
+            return
+        for v, messung in zip(
+            offen, _last_messen([(ergebnisse[v][0], w, stand) for v in offen]), strict=True
+        ):
+            messungen[v] = messung
+            stellen[v] = []
+            groesste, lang = _last_auswerten(*messung, w, stellen[v])
+            lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
 
     def haelt_last(v):
         """(hält sie die Last?, die größte Last) der Variante v – einmal gemessen."""
-        if v not in lasten:
-            # Auch „adaptiv“ wird gemessen, überall: Bis 0.350.4 galt „er hält sie nach seiner
-            # Bauart“ und nur enge Stellen wurden gemessen. FreeCADs neuer Adaptiv-Kern (Clipper2,
-            # Wochen-Build 2026.11.11) hält den Eingriff am Rand nicht mehr – an Manuels Testteil
-            # 2,14 ae über 104 mm am Stück, ohne dass etwas bremste (test_testteil).
-            stellen[v] = []
-            groesste, lang = last(ergebnisse[v][0], w, stand, stellen[v])
-            lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
+        messen([v])
         return lasten[v]
 
     if "adaptiv" in ergebnisse:
+        if _last_pool() is not None:
+            # Alle zugleich, auch die, die es nicht mehr braucht, wenn eine schnellere hält: Auf
+            # den Nebenrechnern kostet das keine Wartezeit – nacheinander waren es am Testteil
+            # 1,55 + 0,72 + 0,89 s im Fenster. Ohne sie bleibt es bei einer nach der anderen.
+            messen(reihe)
         for variante in reihe:
             ok, groesste = haelt_last(variante)
             if ok:
@@ -2203,7 +2230,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
                 zeit_fein = zeit_von(fein[0])
                 if beste is None or zeit_fein < beste[0]:
                     beste = (zeit_fein, v, fein[0], fein[1], 0)
-            langsamer = _gebremst(ergebnisse[v][0], w, stand)
+            langsamer = _gebremst(ergebnisse[v][0], w, stand, messungen.get(v))
             if langsamer is not None:
                 st_v = copy.copy(ergebnisse[v][0])
                 st_v.punkte = langsamer[0]
@@ -3711,15 +3738,83 @@ def last(st, w, stand=None, stellen=None, saetze=None):
     Stellen (x, y), an denen die Last den Rahmen sprengt – kurz über LAST_KURZ · LAST_SPIEL, oder
     länger als zwei Radien am Stück über bahn.LAST_DAUERND. `saetze` (ein dict): dazu je Satz
     (Index des Punkts, zu dem er fährt) in einem Fenster, das den Rahmen sprengt, seine Last
-    ohne den Vorschubanteil – für _gebremst."""
+    ohne den Vorschubanteil – für _gebremst. Lange Bahnen messen die Nebenrechner
+    (_last_messen)."""
+    von, nach, saetze_bahn, volumen = _last_messen([(st, w, stand)])[0]
+    return _last_auswerten(von, nach, saetze_bahn, volumen, w, stellen, saetze)
+
+
+def _last_messen(bahnen):
+    """[(von, nach, Sätze, Volumen je Stück)] je Bahn (st, w, stand) – was last() misst, bevor es
+    mittelt (_last_stuecke, _last_volumen); alle zugleich: Die Stücke messen die Nebenrechner, je
+    Auftrag ein Abschnitt einer Bahn (_last_volumen_verteilt); ohne sie, oder bei kurzen Bahnen,
+    misst es hier, eine nach der anderen. Das Volumen hängt nur vom Weg ab, nicht vom Vorschub:
+    _gebremst mittelt so nach jedem gesenkten Satz neu, ohne noch einmal abzufahren."""
+    teile = []
+    for st, w, stand in bahnen:
+        von, nach, saetze = _last_stuecke(st, w)
+        teile.append((_last_quader(w, stand), von, nach, saetze, w.form))
+    verteilt = _last_volumen_verteilt(teile)
+    messungen = []
+    for nummer, (q, von, nach, saetze, form) in enumerate(teile):
+        if verteilt is None:
+            volumen = _last_volumen(q, von, nach, _gemessen(saetze, len(von)), form)
+        else:
+            volumen = verteilt[nummer]
+        messungen.append((von, nach, saetze, volumen))
+    return messungen
+
+
+def _last_quader(w, stand):
+    """Der Quader, in dem last() die Bahn abfährt: der Materialstand (eine Kopie) oder das
+    Rohteil als Kasten."""
     from . import materialstand as mst  # erst hier: es bringt den Job mit
     from . import restmaterial as rm
 
     if stand is not None:
-        q = mst._kopie(stand).quader
-    else:
-        x_von, x_bis, y_von, y_bis = w.rohteil
-        q = rm.Quader(x_von, x_bis, y_von, y_bis, w.oben - 1.0, w.oben, mst.SCHRITT)
+        return mst._kopie(stand).quader
+    x_von, x_bis, y_von, y_bis = w.rohteil
+    return rm.Quader(x_von, x_bis, y_von, y_bis, w.oben - 1.0, w.oben, mst.SCHRITT)
+
+
+def _last_stuecke(st, w):
+    """Die Stücke der Bahn `st` für last(): (von, nach, Sätze) – `von`, `nach` je Stück (x, y, z),
+    höchstens LAST_SEHNE lang; je Satz (Index des Punkts, zu dem er fährt; sein erstes Stück, das
+    Ende; die Tiefe seiner Lage, None, wo er nicht zählt; ae; Vorschubanteil)."""
+    from . import materialstand as mst  # erst hier: es bringt den Job mit
+
+    von, nach, saetze = [], [], []
+    breit = getattr(st, "breit", {})
+    for satz, (p, q) in enumerate(zip(st.punkte, st.punkte[1:], strict=False), 1):
+        anfang = len(von)
+        for a, b in mst.sehnen(p, q):
+            n = max(1, int(math.ceil(math.dist(a[:2], b[:2]) / LAST_SEHNE)))
+            for k in range(n):
+                von.append(tuple(a[i] + (b[i] - a[i]) * k / n for i in range(3)))
+                nach.append(tuple(a[i] + (b[i] - a[i]) * (k + 1) / n for i in range(3)))
+        eben = not q.eilgang and not q.eintauchen and abs(q.z - p.z) <= GLEICH
+        tiefe = st.tiefen.get(round(q.z, 4)) if eben else None
+        if not tiefe or tiefe <= GLEICH:
+            tiefe = None
+        ae = breit.get(round(q.z, 4), w.zeilenabstand)
+        saetze.append((satz, anfang, len(von), tiefe, ae, float(q.anteil)))
+        uhren.atmen()  # an der Platte 200 × 200 0,14 s – das Fenster zeichnet neu
+    return von, nach, saetze
+
+
+def _gemessen(saetze, anzahl):
+    """Je Stück: zählt es für die Last (liegt sein Satz in einer Lage)?"""
+    gemessen = np.zeros(anzahl, dtype=bool)
+    for _satz, anfang, ende, tiefe, _ae, _anteil in saetze:
+        if tiefe is not None:
+            gemessen[anfang:ende] = True
+    return gemessen
+
+
+def _last_volumen(q, von, nach, gemessen, form):
+    """Das Volumen (mm³), das jedes Stück (von, nach) abträgt – NaN, wo es nicht zählt (nicht
+    `gemessen`, oder neben dem Raster). Der Quader `q` fährt dabei alle ab: die gemessenen einzeln,
+    die anderen dazwischen am Stück. Auch im Nebenrechner (last_abschnitt)."""
     gewicht = np.ones(q.h.shape)
     gewicht[0, :] *= 0.5
     gewicht[-1, :] *= 0.5
@@ -3727,79 +3822,247 @@ def last(st, w, stand=None, stellen=None, saetze=None):
     gewicht[:, -1] *= 0.5
     sx, sy = float(q.x[1] - q.x[0]), float(q.y[1] - q.y[0])
     zelle = sx * sy
-    r = float(w.form.radius)
-    rand = r + 2.0 * max(sx, sy)
+    rand = float(form.radius) + 2.0 * max(sx, sy)
     nx, ny = q.h.shape
+    volumen = np.full(len(von), np.nan)
+    frei_von, frei_nach = [], []
+    for i, (a, b) in enumerate(zip(von, nach, strict=True)):
+        if not gemessen[i]:
+            frei_von.append(a)
+            frei_nach.append(b)
+            continue
+        if frei_von:
+            q.fahre_stuecke(frei_von, frei_nach, form)
+            frei_von, frei_nach = [], []
+        i0 = max(int(math.floor((min(a[0], b[0]) - rand - q.x[0]) / sx)), 0)
+        i1 = min(int(math.ceil((max(a[0], b[0]) + rand - q.x[0]) / sx)) + 1, nx)
+        j0 = max(int(math.floor((min(a[1], b[1]) - rand - q.y[0]) / sy)), 0)
+        j1 = min(int(math.ceil((max(a[1], b[1]) + rand - q.y[0]) / sy)) + 1, ny)
+        if i1 <= i0 or j1 <= j0:
+            continue
+        vorher = q.h[i0:i1, j0:j1].copy()
+        q.fahre_stuecke([a], [b], form)
+        gesenkt = np.where(np.isfinite(vorher), vorher - q.h[i0:i1, j0:j1], 0.0)
+        volumen[i] = float((gesenkt * gewicht[i0:i1, j0:j1]).sum()) * zelle
+    if frei_von:
+        q.fahre_stuecke(frei_von, frei_nach, form)
+    return volumen
+
+
+def _last_auswerten(von, nach, saetze, volumen, w, stellen=None, saetze_last=None):
+    """last() aus dem Volumen je Stück (_last_volumen): über LAST_FENSTER mm gemittelt, je Satz
+    mit seinem ae, seiner Lagentiefe und seinem Vorschubanteil."""
     groesste = lang = ueber = 0.0
     fenster = []  # [(Weg, Volumen, Satz, Last ohne Anteil)] der letzten Stücke, ≥ LAST_FENSTER
-    for satz, (von, nach) in enumerate(zip(st.punkte, st.punkte[1:], strict=False), 1):
-        sehnen = []
-        for a, b in mst.sehnen(von, nach):
-            n = max(1, int(math.ceil(math.dist(a[:2], b[:2]) / LAST_SEHNE)))
-            for k in range(n):
-                sehnen.append(
-                    (
-                        tuple(a[i] + (b[i] - a[i]) * k / n for i in range(3)),
-                        tuple(a[i] + (b[i] - a[i]) * (k + 1) / n for i in range(3)),
-                    )
-                )
-        eben = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
-        tiefe = st.tiefen.get(round(nach.z, 4)) if eben else None
-        ae = getattr(st, "breit", {}).get(round(nach.z, 4), w.zeilenabstand)
-        if not tiefe or tiefe <= GLEICH:
-            q.fahre_stuecke([s[0] for s in sehnen], [s[1] for s in sehnen], w.form)
+    for satz, anfang, ende, tiefe, ae, anteil in saetze:
+        uhren.atmen()  # an der Platte 200 × 200 0,07 s – das Fenster zeichnet neu
+        if tiefe is None:
             fenster, ueber = [], 0.0
             continue
-        for a, b in sehnen:
-            i0 = max(int(math.floor((min(a[0], b[0]) - rand - q.x[0]) / sx)), 0)
-            i1 = min(int(math.ceil((max(a[0], b[0]) + rand - q.x[0]) / sx)) + 1, nx)
-            j0 = max(int(math.floor((min(a[1], b[1]) - rand - q.y[0]) / sy)), 0)
-            j1 = min(int(math.ceil((max(a[1], b[1]) + rand - q.y[0]) / sy)) + 1, ny)
-            if i1 <= i0 or j1 <= j0:
+        for i in range(anfang, ende):
+            abgetragen = float(volumen[i])
+            if math.isnan(abgetragen):
                 continue
-            vorher = q.h[i0:i1, j0:j1].copy()
-            q.fahre_stuecke([a], [b], w.form)
-            gesenkt = np.where(np.isfinite(vorher), vorher - q.h[i0:i1, j0:j1], 0.0)
-            volumen = float((gesenkt * gewicht[i0:i1, j0:j1]).sum()) * zelle
+            a, b = von[i], nach[i]
             # Mit dem Vorschubanteil: Wo die Bahn langsamer fährt (enge Bögen, Austritt), ist die
             # Last je Zeit kleiner – sie zählt wie das Volumen je mm bei vollem Vorschub.
             stueck = math.dist(a[:2], b[:2])
-            roh = volumen / stueck / (ae * tiefe) if stueck > _WINZIG else 0.0
-            fenster.append((stueck, volumen * min(float(nach.anteil), 1.0), satz, roh))
+            roh = abgetragen / stueck / (ae * tiefe) if stueck > _WINZIG else 0.0
+            fenster.append((stueck, abgetragen * min(anteil, 1.0), satz, roh))
             weg = sum(f[0] for f in fenster)
             while len(fenster) > 1 and weg - fenster[0][0] >= LAST_FENSTER:
                 weg -= fenster.pop(0)[0]
             if weg < LAST_FENSTER * 0.999:
                 continue
-            last = sum(f[1] for f in fenster) / weg / (ae * tiefe)
-            groesste = max(groesste, last)
-            ueber = ueber + fenster[-1][0] if last > bn.LAST_DAUERND else 0.0
+            jetzt = sum(f[1] for f in fenster) / weg / (ae * tiefe)
+            groesste = max(groesste, jetzt)
+            ueber = ueber + fenster[-1][0] if jetzt > bn.LAST_DAUERND else 0.0
             lang = max(lang, ueber)
-            if last > bn.LAST_KURZ * LAST_SPIEL or ueber > 2.0 * float(w.form.radius):
+            if jetzt > bn.LAST_KURZ * LAST_SPIEL or ueber > 2.0 * float(w.form.radius):
                 if stellen is not None:
                     stellen.append((float(b[0]), float(b[1])))
-                if saetze is not None:
-                    for _weg, _vol, s, roh in fenster:
-                        saetze[s] = max(saetze.get(s, 0.0), roh)
+                if saetze_last is not None:
+                    for _weg, _vol, s, roh_s in fenster:
+                        saetze_last[s] = max(saetze_last.get(s, 0.0), roh_s)
     return groesste, lang
 
 
-def _gebremst(st, w, stand=None):
+def _last_pool():
+    """Der Pool der Nebenrechner für die Last – None, wenn es ihn nicht gibt (dann misst last()
+    hier) oder LAST_VERTEILT aus ist."""
+    if not LAST_VERTEILT:
+        return None
+    try:
+        from . import nebenrechner as nr
+    except ImportError:
+        return None
+    try:
+        pool = nr.pool()
+        if pool.verfuegbar() and pool.anzahl >= 2:
+            return pool
+    except nr.Fehler:
+        pass
+    return None
+
+
+def _last_grenzen(gemessen, je):
+    """[(von, bis)]: die Stücke in Abschnitte mit je etwa `je` gemessenen."""
+    summe = np.cumsum(gemessen)
+    gesamt = int(summe[-1]) if len(summe) else 0
+    teile = max(1, int(round(gesamt / je)))
+    grenzen = [0]
+    for k in range(1, teile):
+        i = int(np.searchsorted(summe, gesamt * k / teile))
+        if grenzen[-1] < i < len(gemessen):
+            grenzen.append(i)
+    grenzen.append(len(gemessen))
+    return list(zip(grenzen, grenzen[1:], strict=False))
+
+
+def _last_fenster(q, von, nach, rand):
+    """(i0, i1, j0, j1): die Zellen, die die Stücke (von, nach; je (n, 3)) bis `rand` neben sich
+    lesen – je Stück wie _last_volumen, für alle zusammen (das kleinste i0 …, dieselbe Rechnung)."""
+    sx, sy = float(q.x[1] - q.x[0]), float(q.y[1] - q.y[0])
+    nx, ny = q.h.shape
+    x_von = float(np.minimum(von[:, 0], nach[:, 0]).min())
+    x_bis = float(np.maximum(von[:, 0], nach[:, 0]).max())
+    y_von = float(np.minimum(von[:, 1], nach[:, 1]).min())
+    y_bis = float(np.maximum(von[:, 1], nach[:, 1]).max())
+    i0 = max(int(math.floor((x_von - rand - q.x[0]) / sx)), 0)
+    i1 = min(int(math.ceil((x_bis + rand - q.x[0]) / sx)) + 1, nx)
+    j0 = max(int(math.floor((y_von - rand - q.y[0]) / sy)), 0)
+    j1 = min(int(math.ceil((y_bis + rand - q.y[0]) / sy)) + 1, ny)
+    return i0, max(i1, i0), j0, max(j1, j0)
+
+
+def _last_volumen_verteilt(teile):
+    """Das Volumen je Stück (_last_volumen) für jedes der `teile` [(Quader, von, nach, Sätze,
+    Form)] auf den Nebenrechnern, in Abschnitten der Bahnen – None ohne sie, bei kurzen Bahnen
+    (LAST_VERTEILT_AB) oder wenn einer scheitert: Dann misst last() hier. Zwei Durchgänge (wie
+    freiwege._abfahren_verteilt): Erst trägt jeder Abschnitt für sich vom Quader ab (last_abtrag),
+    dann misst jeder seine Stücke im Stand vor ihm (last_abschnitt) – dem Minimum aus dem Quader und
+    dem Abtrag aller Abschnitte davor. Wartet; das Fenster zeichnet dabei neu."""
+    from . import restmaterial as rm
+
+    gemessen = [_gemessen(saetze, len(von)) for _q, von, _nach, saetze, _f in teile]
+    gesamt = sum(int(g.sum()) for g in gemessen)
+    if gesamt < LAST_VERTEILT_AB or any(type(t[0]) is not rm.Quader for t in teile):
+        return None
+    pool = _last_pool()
+    if pool is None:
+        return None
+    from . import nebenrechner as nr
+
+    je = max(LAST_JE_AUFTRAG, math.ceil(gesamt / (pool.anzahl * LAST_AUFTRAEGE_JE_ARBEITER)))
+    bahnen = []  # je Teil: (Quader, von, nach, gemessen, Form, Abschnitte, Rand)
+    erste, zweite = [], []
+    try:
+        for (q, von, nach, _saetze, form), g in zip(teile, gemessen, strict=True):
+            v = np.asarray(von, dtype=float).reshape(-1, 3)
+            n = np.asarray(nach, dtype=float).reshape(-1, 3)
+            raster = (q.x, q.y, q.gitter())
+            rand = float(form.radius) + 2.0 * max(float(q.x[1] - q.x[0]), float(q.y[1] - q.y[0]))
+            abschnitte = _last_grenzen(g, je)
+            bahnen.append((q, v, n, g, form, abschnitte, rand))
+            for a, b in abschnitte[:-1]:  # der letzte trägt für keinen danach ab
+                f = _last_fenster(q, v[a:b], n[a:b], rand)
+                i0, i1, j0, j1 = f
+                erste.append(
+                    pool.auftrag(
+                        "raeumen_bahn", "last_abtrag",
+                        *raster, f, q.h[i0:i1, j0:j1].copy(), v[a:b], n[a:b], form,
+                    )  # fmt: skip
+                )
+        abtraege = iter(pool.warten(erste, zwischendurch=nr.ereignisse_ohne_eingaben))
+        for nummer, (q, v, n, g, form, abschnitte, rand) in enumerate(bahnen):
+            raster = (q.x, q.y, q.gitter())
+            jetzt = q.h.copy()  # der Stand vor dem Abschnitt
+            for k, (a, b) in enumerate(abschnitte):
+                m = g[a:b]
+                if m.any():
+                    f = _last_fenster(q, v[a:b][m], n[a:b][m], rand)
+                    i0, i1, j0, j1 = f
+                    auftrag = pool.auftrag(
+                        "raeumen_bahn", "last_abschnitt",
+                        *raster, f, jetzt[i0:i1, j0:j1].copy(), v[a:b], n[a:b], m, form,
+                    )  # fmt: skip
+                    zweite.append((nummer, a, b, auftrag))
+                if k < len(abschnitte) - 1:
+                    i0, i1, j0, j1 = _last_fenster(q, v[a:b], n[a:b], rand)
+                    np.minimum(jetzt[i0:i1, j0:j1], next(abtraege), out=jetzt[i0:i1, j0:j1])
+        ergebnisse = pool.warten([x[3] for x in zweite], zwischendurch=nr.ereignisse_ohne_eingaben)
+    except nr.Fehler as fehler:
+        import FreeCAD
+
+        for auftrag in erste + [x[3] for x in zweite]:
+            auftrag.abbrechen()
+        FreeCAD.Console.PrintWarning(
+            f"CAM-Addon: Last auf den Nebenrechnern gescheitert, rechne hier: {fehler}\n"
+        )
+        return None
+    volumen = [np.full(len(t[1]), np.nan) for t in teile]
+    for (nummer, a, b, _auftrag), ergebnis in zip(zweite, ergebnisse, strict=True):
+        volumen[nummer][a:b] = ergebnis
+    return volumen
+
+
+def _last_quader_aus(x, y, gitter, fenster, hoehen):
+    """Im Nebenrechner: der Quader mit dem Raster (x, y) des Hauptprozesses (dieselben Zellen,
+    dieselbe Rundung) – die Höhen nur im `fenster` (i0, i1, j0, j1), daneben kein Material: Dort
+    liest und ändert der Abschnitt nichts, was zählt."""
+    from . import restmaterial as rm
+
+    q = rm.Quader(*gitter)
+    q.x = np.asarray(x, dtype=float)
+    q.y = np.asarray(y, dtype=float)
+    q.h = np.full((len(q.x), len(q.y)), -np.inf)
+    i0, i1, j0, j1 = fenster
+    q.h[i0:i1, j0:j1] = hoehen
+    return q
+
+
+def last_abtrag(x, y, gitter, fenster, hoehen, von, nach, form):
+    """Auf einem Nebenrechner: der erste Durchgang von _last_volumen_verteilt – die Höhen im
+    `fenster`, nachdem der Abschnitt (von, nach) sie abgefahren hat, auf einmal."""
+    from . import restmaterial as rm
+
+    q = _last_quader_aus(x, y, gitter, fenster, hoehen)
+    for _ in q.fahre_stuecke_schritte(von, nach, form, rm.TEILSCHRITTE_JE_BLOCK, verteilt=False):
+        pass
+    i0, i1, j0, j1 = fenster
+    return q.h[i0:i1, j0:j1]
+
+
+def last_abschnitt(x, y, gitter, fenster, hoehen, von, nach, gemessen, form):
+    """Auf einem Nebenrechner: der zweite Durchgang von _last_volumen_verteilt – _last_volumen
+    für den Abschnitt (von, nach), vom Stand vor ihm aus (`hoehen` im `fenster`)."""
+    q = _last_quader_aus(x, y, gitter, fenster, hoehen)
+    return _last_volumen(q, von.tolist(), nach.tolist(), gemessen, form)
+
+
+def _gebremst(st, w, stand=None, messung=None):
     """Die Punkte der Bahn `st` mit gesenktem Vorschub, wo sie die Last sprengt – je Satz bis
     auf bahn.LAST_DAUERND, höchstens auf LAST_LANGSAMER –, und wie viele Sätze es sind; None,
     wenn sie auch so nicht hält. Der letzte Weg, wenn nichts anderes die Last hält: eine Ecke,
     in die der Fräser nur längs der Wand kommt (am Testteil die Spitze der dreieckigen Tasche:
     2,3 ae, wie eng der Adaptiv-Kern auch rechnet) – Manuel, 2026-10-04: „perfektionismus ist …
-    dass keine Werkzeugbrüche entstehen“."""
+    dass keine Werkzeugbrüche entstehen“. `messung`: was last() an `st` schon gemessen hat
+    (_last_messen). Abgefahren wird höchstens einmal: Der gesenkte Vorschub ändert nur das Mittel,
+    nicht, was die Stücke abtragen – bis 0.384.0 fuhr jede Runde die Bahn neu ab, am Testteil
+    zweimal 1,55 s im Fenster."""
     punkte = list(st.punkte)
     gebremst = set()
-    probe = _Stand()
-    probe.tiefen, probe.breit = st.tiefen, getattr(st, "breit", {})
     r = float(w.form.radius)
+    if messung is None:
+        messung = _last_messen([(st, w, stand)])[0]
+    von, nach, saetze_bahn, volumen = messung
     for _runde in range(4):
-        probe.punkte = punkte
         saetze = {}
-        groesste, lang = last(probe, w, stand, None, saetze)
+        mit_anteil = [
+            (satz, anfang, ende, tiefe, ae, float(punkte[satz].anteil))
+            for satz, anfang, ende, tiefe, ae, _anteil in saetze_bahn
+        ]
+        groesste, lang = _last_auswerten(von, nach, mit_anteil, volumen, w, None, saetze)
         if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
             return punkte, len(gebremst)
         weiter = False
