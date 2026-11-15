@@ -623,6 +623,17 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Tempo (0.384.0):* **Alles vom Wochenende auf Auslastung geprüft** (Manuel, 15.11.: „ich hätte gerne das
+  du ALLES was dieses wochende gebaut wurde darauf kontrollieerst ob es wirklich alle resourcen maximal
+  auslastet !“). Drei Prüfer haben gemessen, ein Bauer verteilt, ein Zweifler nachgemessen; Bahnen und
+  Programme Satz für Satz gleich (Fingerabdrücke, .nc byte-gleich). Gewinne: Klick auf die Randkante einer
+  Kurvennut 8,6 → 0,3 s im Fenster (Bohrungssuche über 200 Wandstreifen, Sichtprüfung rechnete die Fläche
+  des Teils je Aufruf); 3D-Schlichten „Fläche entlang“ am Testteil Anlegen 8,7 → 1,2 s (1,6 → 15 Kerne),
+  Vorschau 14,2 → 1,7 s, alle Richtungen gleichzeitig; Unterkante-Empfehlung 3,4 → 0,4 s; Hobel-Vorschau im
+  Nebenrechner, je Nut ein Auftrag (Fensterpause 3,1 s weg), Anlegen 2 × 2,45 s → 0,4 s; Zeit großer
+  Operationen im FertigFenster im Nebenrechner; Katalog in Häppchen (Pause 0,74 s weg); 16 Szenarien warteten
+  ins Leere (szenario_hobeln 351 → 45 s). Offen: das Anlegen eines Räumens misst die Last seiner Varianten
+  nacheinander im Fenster (3,5–4,6 s auf einem Kern).
 - *Korrektur (0.383.1):* **Die Werkzeugverwaltung ging seit 0.376.0 nicht mehr auf** – die Tooltips der
   neuen Maße des Stoßwerkzeugs (Klingenlänge, Spindelwinkel, Freiwinkel) fehlten, der Dialog brach beim
   Aufbau ab. Gefunden im vollen Szenario-Lauf (17 rote Szenarien), behoben; die Tooltip-Tabelle fällt jetzt

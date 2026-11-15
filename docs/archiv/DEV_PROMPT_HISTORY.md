@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-18 auslastung-wochenende
+
+### EINGELESEN
+- Manuel, 2026-11-15 nachts: „aber das läuft nur auf einem prozessor ... ??“; „ich hätte gerne das du ALLES
+  was dieses wochende gebaut wurde darauf kontrollieerst ob es wirklich alle resourcen maximal auslastet !“;
+  „du bist abgestürtzt wegen arbeitspeicher engpass“; „aber alle kerne zum rechnen kann man da nicht
+  nehmen ?“.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `schlichten3d.py`, `empfehlung.py`, `vierachs_planbahn.py`,
+  `vierachs_flaechen.py`, `hobeln_bahn.py`, `hobeln.py`, `bearbeitung_vorschau.py`, `gui_bearbeitung.py`,
+  `gui_bearbeitung_beta.py`, `einrichtblatt.py`, `bahn.py`, `bogenfit.py`, `werkzeugwahl.py`; 16 Szenarien
+  (Wartebedingung „gerechnet“), `tests/test_vierachs_vierte_achse.py`; `docs/STATUS_SNAPSHOT.md`;
+  `package.xml` 0.384.0.
+
+### ERGEBNIS
+- Workflow: 3 Prüfer (nacheinander, nach dem Speicherabsturz um 4:58), Bauer, Zweifler (uebernehmen),
+  Nacharbeit. Bahnen/Programme Satz für Satz gleich. Kurvennut-Klick 8,6 → 0,3 s, 3D-Schlichten Fläche
+  entlang 8,7 → 1,2 s (15 Kerne), Hobel-Vorschau und -Anlegen aus dem Fenster, Katalog in Häppchen.
+- Geprüft: test_goldene_bahnen, test_hobeln, test_schlichten3d, test_vierachs_kurvennut, test_sprache,
+  test_einrichtblatt; szenario_testteil (längste Pause 1,2 s). Im Workflow: alle betroffenen Prüfdateien
+  und je Bereich Szenarien.
+- Lehren in den Notizen: Workflow-Agenten bekommen „ALLE KERNE NUTZEN“ und die Speicherbremse (schwere
+  Agenten nacheinander, Start nur bei ≥ 12 GB frei).
 ## P-2026-11-15-17 szenarien-nachts-artname
 
 ### EINGELESEN
