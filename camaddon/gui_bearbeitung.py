@@ -5872,6 +5872,7 @@ class _Block:
         from . import reichweite as rw
 
         self._empfehlung_kontext = None
+        unterkante = None
         if was[0] == "fehler":
             daten = was[2] if isinstance(was[2], dict) else {}
             pruefung = {
@@ -5880,16 +5881,22 @@ class _Block:
                 "flanke": daten.get("flanke"),
             }
             ecken = None
+        elif not getattr(was[2], "hinterschnitt", False):
+            # Von oben: eine Kugel für den Rest an der Unterkante (_mit_unterkante), deren Hals,
+            # Schaft und Halter frei bleiben – gerechnet wie die Empfehlungen (Zweifler
+            # 2026-11-15: die Kopie mit dem Schaft Ø 6 ihres Vorbilds fuhr ins Teil).
+            pruefung, ecken = {"pruefung": None, "ausspannen": None}, None
+            if self.s.kennung == "schlichten3d":
+                unterkante = getattr(was[2], "unterkante", None)
         else:
             bahn = was[2]
-            if not getattr(bahn, "hinterschnitt", False):
-                return
             pruefung = {"pruefung": bahn.pruefung, "ausspannen": bahn.ausspannen}
             # Einen Fräser für die Ecken schlägt nur das 3D-Schlichten vor (_mit_ecken).
             ecken = (
                 bahn.ecken if bahn.ecken_radius > 0 and self.s.kennung == "schlichten3d" else None
             )
-        if not pruefung["pruefung"] and not pruefung.get("flanke") and not ecken:
+        gesucht = pruefung["pruefung"] or pruefung.get("flanke") or ecken or unterkante is not None
+        if not gesucht:
             return
         bibliothek = self.panel.bibliothek
         if bibliothek is None or werkzeug is None:
@@ -5907,6 +5914,10 @@ class _Block:
             tuple(flaechen),
             bool(pruefung["pruefung"]),
             bool(ecken),
+            # Für die Unterkante: die Kugeln der Werkzeugverwaltung (nach „Kugel … anlegen“ ist
+            # eine da) und wie hoch der Rest steht.
+            _kugeln_der_verwaltung(bibliothek) if unterkante is not None else (),
+            round(unterkante.hoehe, 3) if unterkante is not None else None,
         )
         self._empfehlung_kontext = (schluessel, was)
         gemerkt = self.panel.__dict__.setdefault("_empfehlungen", {})
@@ -5931,6 +5942,7 @@ class _Block:
                 ecken,
                 werkzeug.kennung,
                 self.panel.werkzeugaufnahme(),
+                unterkante,
             )
         except Exception as fehler:  # noqa: BLE001 – dann eben ohne Empfehlung
             FreeCAD.Console.PrintLog(f"CAM-Addon: Empfehlung im Nebenrechner: {fehler}\n")
@@ -5982,7 +5994,7 @@ class _Block:
         kontext = getattr(self, "_empfehlung_kontext", None)
         if kontext is None or kontext[0] != schluessel:
             return
-        haupt, ecke = ergebnis if ergebnis else (None, None)
+        haupt, ecke, unten = (tuple(ergebnis or ()) + (None, None, None))[:3]
         _s, was = kontext
         if was[0] == "fehler":
             daten = dict(was[2]) if isinstance(was[2], dict) else {}
@@ -5992,11 +6004,14 @@ class _Block:
             return
         zeit, bahn = was[1], was[2]
         bahn.empfehlung, bahn.ecken_empfehlung = haupt, ecke
+        bahn.unterkante_empfehlung = unten
         self.ergebnis_basis = self._mit_unterkante(
             self._mit_ecken(self._mit_ausspannen(self.s.ergebnis_text(bahn, zeit), bahn), bahn),
             bahn,
         )
         self.ergebnis.setText(self.ergebnis_basis)
+        if unten is not None:
+            self.panel._empfehlung_da()  # die Übersicht nennt den Verweis auch
 
     def _ecken_werkzeug_anlegen(self):
         """„In der Werkzeugverwaltung anlegen und Restschlichten anhaken“: der vorgeschlagene
@@ -6109,8 +6124,7 @@ class _Block:
         """Hinter der Ergebniszeile des 3D-Schlichtens und Restschlichtens: Bleibt an der Unterkante
         Rest stehen (schlichten3d_bahn.Unterkante – unter den Teilboden fährt die Spitze nie,
         B-033), wie hoch; beim 3D-Schlichten der nächste Schritt als Verweis (Manuel: der nächste
-        Schritt ist ein Knopf) – „Restschlichten mit T… anhaken“ mit einer kleineren Kugel
-        (_unterkante_kugel), ohne eine „Kugel Ø … anlegen und Restschlichten anhaken“."""
+        Schritt ist ein Knopf, unterkante_verweis)."""
         unterkante = getattr(bahn, "unterkante", None)
         if unterkante is None or self.s.kennung not in ("schlichten3d", "restschlichten"):
             return text
@@ -6121,76 +6135,75 @@ class _Block:
         return f"{text} {verweis}" if verweis else text
 
     def unterkante_verweis(self):
-        """Der Verweis, der den Rest an der Unterkante kleiner macht (_mit_unterkante) – "" ohne:
-        nicht beim 3D-Schlichten, Restschlichten schon mit einer kleineren Kugel angehakt, oder
-        keine kleinere Kugel denkbar."""
-        if self.s.kennung != "schlichten3d":
+        """Was den Rest an der Unterkante kleiner macht (_mit_unterkante), aus der Empfehlung
+        (empfehlung.unterkante_vorschlag, im eigenen Auftrag, _empfehlung_anstossen):
+        „Restschlichten mit T… anhaken“ mit einer kleineren Kugel der Werkzeugverwaltung, „Kugel
+        Ø … anlegen und
+        Restschlichten anhaken“, oder dass eine mit freiem Schaft fehlt. "" ohne: nicht beim
+        3D-Schlichten, die Empfehlung noch nicht da, oder das Restschlichten ist schon mit einer
+        kleineren Kugel angehakt."""
+        if self.s.kennung != "schlichten3d" or self._unterkante_schon_kleiner():
             return ""
-        wahl = self._unterkante_kugel()
-        if wahl is None:
+        vorschlag = getattr(self.vorschau, "unterkante_empfehlung", None)
+        if vorschlag is None:
             return ""
-        kugel, d = wahl
+        d = einheiten.text(vorschlag.d, einheiten.LAENGE, 1)
+        bibliothek = self.panel.bibliothek
+        kugel = next(
+            (w for w in getattr(bibliothek, "werkzeuge", ()) if w.kennung == vorschlag.werkzeug),
+            None,
+        )
         if kugel is not None:
             magazin = self.panel.magazin()
             nummer = mg.genannt(kugel, magazin) if magazin else None
             knopf_ = tr("ba.s3.unter.ecken_rest", werkzeug=nummer or wz.nummer_text(kugel))
-            return f'<a href="restschlichten:{kugel.kennung}">{html.escape(knopf_)}</a>'
-        knopf_ = tr("ba.s3.unterkante.anlegen", d=einheiten.text(d, einheiten.LAENGE, 1))
-        return f'<a href="unterkante_kugel:{d:g}">{html.escape(knopf_)}</a>'
+            return f'<a href="unterkante_rest:{kugel.kennung}">{html.escape(knopf_)}</a>'
+        if vorschlag.werkzeug_neu:
+            knopf_ = tr("ba.s3.unterkante.anlegen", d=d)
+            return f'<a href="unterkante_kugel:">{html.escape(knopf_)}</a>'
+        return html.escape(tr("ba.s3.unterkante.fehlt", d=d), quote=False)
 
-    def _unterkante_kugel(self):
-        """(Kugel, Ø) fürs Restschlichten an der Unterkante – oder None. Wie hoch der Rest steht,
-        geht mit dem Radius (an der Kuppel R 40: Kugel Ø 6 bis 1,4 mm, Ø 2 bis 0,56, Ø 1 bis 0,14):
-        aus der Werkzeugverwaltung die größte Kugel bis zum halben Ø – ohne eine solche die
-        größte kleinere –, und das Restschlichten fährt nur das Band an der Unterkante. Ohne
-        kleinere Kugel (None, Ø): die übliche Größe bis zum halben Ø zum Anlegen. Ist das
-        Restschlichten schon mit einer kleineren Kugel angehakt: None."""
-        from . import empfehlung as em
-
+    def _unterkante_schon_kleiner(self):
+        """Ist das Restschlichten schon mit einer Kugel angehakt, deren Radius kleiner ist als der,
+        der den Rest an der Unterkante macht (beim Torus der Eckenradius)?"""
         werkzeug = self.fraeser()
-        bibliothek = self.panel.bibliothek
-        if werkzeug is None or bibliothek is None:
-            return None
-        d_jetzt = float(werkzeug.durchmesser or 0.0)
         rest = self.panel.restschlichten
         jetzt = rest.fraeser() if rest.aktiv() else None
-        if jetzt is not None and 0 < float(jetzt.durchmesser or 0.0) < d_jetzt - 1e-6:
-            return None
-        kleiner = [
-            w
-            for w in bibliothek.werkzeuge
-            if w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) < d_jetzt - 1e-6
-        ]
-        halb = [w for w in kleiner if float(w.durchmesser) <= d_jetzt / 2 + 1e-6]
-        if halb or kleiner:
-            return max(halb or kleiner, key=lambda w: float(w.durchmesser)), 0.0
-        if werkzeug.art != wz.KUGELFRAESER:
-            return None  # angelegt wird eine Kopie dieser Kugel (_unterkante_kugel_anlegen)
-        d = max((k for k in em.KUGEL_DURCHMESSER if k <= d_jetzt / 2 + 1e-6), default=0.0)
-        return (None, d) if d > 0 else None
+        form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+        if jetzt is None or form is None:
+            return False
+        return 0 < float(jetzt.durchmesser or 0.0) / 2 < s3op.eckenradius(form) - 1e-6
 
-    def _unterkante_kugel_anlegen(self, d):
-        """„Kugel Ø … anlegen und Restschlichten anhaken“: eine Kopie der Kugel dieses Blocks mit
-        dem Ø `d` – Schneidenlänge, ae, ap und fz mit dem Ø umgerechnet wie bei der Kugel für die
-        Ecken (empfehlung.neue_kugel), Schaft und Halter wie sie –, gespeichert, das
+    def _unterkante_kugel_anlegen(self):
+        """„Kugel Ø … anlegen und Restschlichten anhaken“: die Kugel der Empfehlung
+        (empfehlung.unterkante_vorschlag – Schaft, Hals, Schneide und Länge wie für die Ecken,
+        Hals, Schaft und Halter an der Unterkante frei) in die Werkzeugverwaltung, gespeichert, das
         Restschlichten mit ihr angehakt."""
-        werkzeug = self.fraeser()
+        vorschlag = getattr(self.vorschau, "unterkante_empfehlung", None)
         bibliothek = self.panel.bibliothek
-        if werkzeug is None or bibliothek is None or d <= 0:
+        if vorschlag is None or not vorschlag.werkzeug_neu or bibliothek is None:
             return
-        vorbild = next((w for w in bibliothek.werkzeuge if w.kennung == werkzeug.kennung), None)
-        if vorbild is None:
-            return
-        neu = bibliothek.kopiere(vorbild)
-        faktor = d / float(vorbild.durchmesser or d)
-        neu.durchmesser, neu.schneidenlaenge = d, float(vorbild.schneidenlaenge or 0.0) * faktor
-        neu.name = tr("ba.s3.unterkante.name", d=einheiten.text(d, einheiten.LAENGE, 1))
-        for einsaetze in neu.schnittwerte.values():
-            for e in einsaetze:
-                e.fz, e.ae, e.ap = e.fz * faktor, e.ae * faktor, e.ap * faktor
+        neu = wz.Werkzeug.aus_dict(vorschlag.werkzeug_neu)
+        if any(w.kennung == neu.kennung for w in bibliothek.werkzeuge):
+            return  # schon angelegt (ein zweiter Klick)
+        neu.nummer = bibliothek.naechste_nummer()
+        neu.name = tr(
+            "ba.s3.unterkante.name",
+            d=einheiten.text(neu.durchmesser, einheiten.LAENGE, 1),
+            laenge=einheiten.text(float(neu.gesamtlaenge or 0.0), einheiten.LAENGE, 0),
+        )
+        bibliothek.werkzeuge.append(neu)
         bibliothek.speichern()
         self.panel._werkzeuge_gespeichert()
-        self.panel.restschlichten_mit(neu.kennung)
+        self._unterkante_rest(neu.kennung)
+
+    def _unterkante_rest(self, kennung):
+        """Das Restschlichten mit der Kugel `kennung` angehakt – „Unter dem Rand“ nur, wenn das
+        3D-Schlichten es hat: Der Rest an der Unterkante ist einer von oben (an der 5-Achs-Fräse
+        rechnete es sonst mit hinterschnitt_bahn, ohne Messung der Unterkante, Zweifler)."""
+        kasten = self.haken_felder.get("hinterschnitt")
+        unter = bool(kasten is not None and kasten.isEnabled() and kasten.isChecked())
+        self.panel.restschlichten_mit(kennung, hinterschnitt=unter)
 
     def _vorbohrer_angebot(self):
         """Unter dem Räumen: Taucht es ins Volle ein und fehlt fürs Vorbohren ein Bohrer im
@@ -6302,7 +6315,10 @@ class _Block:
                 kasten.setChecked(True)
             return
         if ziel.startswith("unterkante_kugel:"):  # Kugel anlegen, Restschlichten an der Unterkante
-            self._unterkante_kugel_anlegen(float(ziel.split(":", 1)[1]))
+            self._unterkante_kugel_anlegen()
+            return
+        if ziel.startswith("unterkante_rest:"):  # Restschlichten an der Unterkante
+            self._unterkante_rest(ziel.split(":", 1)[1])
             return
         if ziel.startswith("anhaken:"):  # eine andere Strategie anhaken (wie von Hand)
             kennung = ziel.split(":", 1)[1]
@@ -6515,6 +6531,16 @@ def _zeit_im_freien(job, werkzeug, werte, bahn, vorschub, eintauchen):
         eintauchen,
         fw.freivorschub_fuer(job),
         job,
+    )
+
+
+def _kugeln_der_verwaltung(bibliothek):
+    """((Kennung, Ø, Schaft, Hals, Länge), …) der Kugelfräser – woran die Empfehlung für die
+    Unterkante hängt (Block._empfehlung_anstossen)."""
+    return tuple(
+        (w.kennung, w.durchmesser, w.schaft, w.hals_d, w.hals_laenge, w.gesamtlaenge, w.halter)
+        for w in getattr(bibliothek, "werkzeuge", ())
+        if w.art == wz.KUGELFRAESER
     )
 
 
@@ -7901,9 +7927,10 @@ class BearbeitungPanel:
             return False
         return eintrag is not None and eintrag.vorhanden and eintrag.art == msp.FRAESE_5
 
-    def restschlichten_mit(self, kennung):
+    def restschlichten_mit(self, kennung, hinterschnitt=True):
         """„Restschlichten mit T… anhaken“: der Block Restschlichten angehakt, mit dem Fräser
-        `kennung`, unter dem Rand wie das 3D-Schlichten."""
+        `kennung`, unter dem Rand wie das 3D-Schlichten – mit `hinterschnitt` False von oben (die
+        Unterkante, Block._unterkante_rest)."""
         block = self.restschlichten
         kennungen = [w.kennung for w in getattr(block, "_fraeser", [])]
         block.haken.setChecked(True)
@@ -7913,8 +7940,12 @@ class BearbeitungPanel:
             block.fraeser_von_hand = True
         kasten = block.haken_felder.get("hinterschnitt")
         if kasten is not None and kasten.isEnabled():
-            kasten.setChecked(True)
+            kasten.setChecked(bool(hinterschnitt))
         self.vorschau_starten()
+
+    def _empfehlung_da(self):
+        """Eine Empfehlung ist aus ihrem Auftrag gekommen (Block._empfehlung_zeigen) – im
+        Assistenten in Schritten zeigt die Übersicht sie auch."""
 
     def werkzeugaufnahme(self):
         """Die Werkzeugaufnahme der Spindel der gewählten Maschine („SK40“ …; maschine.

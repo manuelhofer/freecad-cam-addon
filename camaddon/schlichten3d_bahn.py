@@ -178,6 +178,11 @@ class Unterkante:
     hoehe: float  # mm über dem Teilboden: bis dort hinauf bleibt Rest auf der Fläche
     dicke: float  # mm, senkrecht gemessen: das meiste, das stehen bleibt
     linien: tuple = ()  # ((x, y, z), …) je Linienzug um den Rest – fürs Bild im Teil
+    # Wo eine kleinere Kugel den Rest wegnähme – (n, 2) x, y im Abstand `schritt` – und der
+    # Teilboden: für koerper_an_der_unterkante (bleiben Hals, Schaft und Halter dort frei?).
+    stellen: object = None
+    schritt: float = 0.0
+    boden: float = 0.0
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -634,8 +639,10 @@ def _unterkante(raster, netz_alle, w, davor=None):
     if not band.any():
         return None
     # Fürs Bild ein zusammenhängender Ring: Lücken bis zum Radius geschlossen (mindestens zwei
-    # Rasterschritte) – nach dem Restschlichten mit Kugel Ø 2 an der Kuppel sonst 30 Flecken.
-    weite = max(2.01 * max(sx, sy), 1.01 * R)
+    # Rasterschritte) – nach dem Restschlichten mit Kugel Ø 2 an der Kuppel sonst 30 Flecken; dort
+    # mit dem Radius der Kugel davor (`reichweite`: mit dem der kleinen blieben 27 Linienzüge,
+    # Zweifler 2026-11-15).
+    weite = max(2.01 * max(sx, sy), 1.01 * reichweite)
     bild = ~_erweitert(~_erweitert(band, weite, sx, sy), weite, sx, sy) & ueber_dem_teil
     hoehe = float(np.max(ideal[band])) - aufmass - w.boden
     from . import raeumen_bahn as rb
@@ -646,7 +653,7 @@ def _unterkante(raster, netz_alle, w, davor=None):
     feld = np.where(bild, np.maximum(rest, 1.01 * schwelle), np.minimum(rest, 0.99 * schwelle))
     for linie, geschlossen in rb._hoehenlinien(feld, xs, ys, schwelle):
         linie = rb._vereinfacht(linie, UNTERKANTE_LINIE, geschlossen)
-        if len(linie) < 2 or np.sum(np.hypot(*np.diff(linie[:, :2], axis=0).T)) < 2 * R:
+        if len(linie) < 2 or np.sum(np.hypot(*np.diff(linie[:, :2], axis=0).T)) < 2 * reichweite:
             continue  # ein Fleck, kürzer als die Kugel breit ist: im Bild nur Unruhe
         i = np.clip(np.rint((linie[:, 0] - xs[0]) / sx), 0, len(xs) - 1).astype(int)
         j = np.clip(np.rint((linie[:, 1] - ys[0]) / sy), 0, len(ys) - 1).astype(int)
@@ -657,7 +664,67 @@ def _unterkante(raster, netz_alle, w, davor=None):
         if geschlossen:
             punkte.append(punkte[0])
         linien.append(tuple(punkte))
-    return Unterkante(hoehe=max(hoehe, 0.0), dicke=float(rest.max()), linien=tuple(linien))
+    # Wo eine kleinere Kugel (bis R/2, empfehlung.unterkante_vorschlag) fährt: um den Rest, so
+    # weit ihr Radius und zwei Rasterschritte reichen (das Restschlichten fährt R/2 + Zeilenabstand
+    # um seinen Rest).
+    weit = _erweitert(band, 0.51 * R + 2.01 * max(sx, sy), sx, sy)
+    gx, gy = np.meshgrid(xs, ys, indexing="ij")
+    return Unterkante(
+        hoehe=max(hoehe, 0.0),
+        dicke=float(rest.max()),
+        linien=tuple(linien),
+        stellen=np.column_stack([gx[weit], gy[weit]]),
+        schritt=max(sx, sy),
+        boden=float(w.boden),
+    )
+
+
+# Hals, Schaft und Halter einer kleineren Kugel an der Unterkante (koerper_an_der_unterkante): so
+# viel Luft zum Teil mindestens – das Netz der Vorschau weicht bis VORSCHAU_TOLERANZ ab.
+KOERPER_LUFT = 0.2  # mm
+
+
+def koerper_an_der_unterkante(form_teil, unterkante, radius, koerper, netz=None):
+    """Wie weit (mm) Hals, Schaft oder Halter einer Kugel `radius` an der Unterkante ins Teil kämen
+    – > 0: so weit hinein, ≤ 0: so viel Luft; −inf: kein Körper dicker als die Kugel. Senkrecht,
+    wie die 3-Achs-Fräse fährt: die Spitze wie beim Restschlichten auf der Hüllfläche der Kugel,
+    nie unter dem Teilboden, an den Stellen `unterkante.stellen`; `koerper` [(von, bis, Radius)]
+    ab der Spitze (hinterschnitt_bahn.koerper_des_werkzeugs). Das 3D-Schlichten rechnet nur mit
+    der Kugel: Ein Körper, der nicht dicker ist, bleibt über ihr frei (von oben kommt sie zuerst
+    an), ein dickerer stößt an steilen Wänden an – Kugel Ø 3 mit Schaft Ø 6 ab 4,5 mm über der
+    Spitze an einer Kuppel R 20 mit 84° am Fuß 0,78 mm im Teil (Zweifler 2026-11-15, distToShape).
+    `netz`: das des Teils (vierachs_flaechen.vernetze(…).netz), wer mehrere Fräser prüft, vernetzt
+    einmal; None ohne Stellen."""
+    from . import fraeserform as ff
+    from . import vierachs_flaechen as vf
+
+    stellen = getattr(unterkante, "stellen", None)
+    if stellen is None or len(stellen) == 0 or radius <= 0:
+        return None
+    stellen = np.asarray(stellen, dtype=float).reshape(-1, 2)
+    s = float(unterkante.schritt)
+    x0, y0 = stellen.min(axis=0)
+    i = np.rint((stellen[:, 0] - x0) / s).astype(int)
+    j = np.rint((stellen[:, 1] - y0) / s).astype(int)
+    nx, ys = int(i.max()) + 1, y0 + s * np.arange(int(j.max()) + 1)
+    if netz is None:
+        netz = vf.vernetze(form_teil, VORSCHAU_TOLERANZ).netz
+    spitze = hf.je_zeile(netz, ff.kugel(float(radius)), ys, x0, s, nx, True)[i, j]
+    boden = float(unterkante.boden)
+    # Wohin die Spitze nur unter dem Teilboden käme, fährt sie nicht (_nie_unter_dem_boden).
+    gefahren = spitze >= boden - BODEN_GLEICH
+    if not gefahren.any():
+        return None
+    spitze, i, j = spitze[gefahren], i[gefahren], j[gefahren]
+    hoechstes = float(form_teil.BoundBox.ZMax)
+    schlimmst = -math.inf
+    for von, _bis, r in koerper:
+        if r <= radius + GLEICH or hoechstes - (float(spitze.min()) + von) <= schlimmst:
+            continue  # nicht dicker als die Kugel, oder höher als alles im Teil
+        # Die Stirn einer Scheibe so dick wie der Körper: das Höchste des Teils in ihrem Umkreis.
+        oben = hf.je_zeile(netz, ff.scheibe(float(r)), ys, x0, s, nx, True)[i, j]
+        schlimmst = max(schlimmst, float(np.max(oben - (spitze + von))))
+    return schlimmst
 
 
 def _stuecke(punkte, geschlossen, behalten):
@@ -1693,5 +1760,8 @@ def _im_winkel(form_teil, namen, w, toleranz):
     unterkante = bahn.unterkante
     if unterkante is not None:  # die Linien um den Rest ebenso
         linien = tuple(tuple((*zurueck(x, y), z) for x, y, z in li) for li in unterkante.linien)
-        unterkante = replace(unterkante, linien=linien)
+        stellen = unterkante.stellen
+        if stellen is not None and len(stellen):
+            stellen = np.column_stack(zurueck(stellen[:, 0], stellen[:, 1]))
+        unterkante = replace(unterkante, linien=linien, stellen=stellen)
     return replace(bahn, punkte=punkte, winkel=winkel, unterkante=unterkante)

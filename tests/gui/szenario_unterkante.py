@@ -3,13 +3,15 @@
 # Kugel nie unter den Teilboden – an der Unterkante bleibt ein Rest stehen; bis dahin sagte es
 # niemand (gesehen 2026-11-15: keine Fläche orange, nichts unter „Nicht fertig“).
 # 1. T1 der Standardfräser Ø 12, T3 eine Kugel Ø 6, T5 eine Kugel Ø 2. Die Kuppel anklicken,
-#    „Bearbeitung“, „Alles vorschlagen“: Die Übersicht sagt „An der Unterkante bleiben bis 1,… mm
-#    stehen (rot im Teil)“ mit dem Verweis „Restschlichten mit T5 anhaken“; der Satz unter
+#    „Bearbeitung“, „Alles vorschlagen“: Die Übersicht sagt „An der Unterkante bleibt ein Rest bis
+#    1,… mm hoch (rot im Teil)“ mit dem Verweis „Restschlichten mit T5 anhaken“ (der kommt aus
+#    einem eigenen Auftrag: Hals, Schaft und Halter von T5 bleiben frei); der Satz unter
 #    „3D-Schlichten“ ebenso (gerechnet: Kugel r 3 berührt zuletzt bei z = 1,5 ÷ 1,15 = 1,30). Im
 #    Teil eine rote Linie um den Rest. Der Verweis: „Restschlichten“ mit T5 angehakt, die
 #    Übersicht sagt weniger (gerechnet 0,49), ohne Verweis.
 # 2. Nur T1 und T3: Der Verweis heißt „Kugel Ø 3 anlegen und Restschlichten anhaken“; er legt eine
-#    Kugel Ø 3 an (T4) und hakt das Restschlichten mit ihr an.
+#    Kugel Ø 3 an, wie man sie kauft (Schaft Ø 6 mit Hals Ø 2,9 – nicht den Schaft Ø 6 des
+#    Vorbilds ab der Schneide, Zweifler 2026-11-15), und hakt das Restschlichten mit ihr an.
 # Bilder: 1_uebersicht, 2_teil (rote Linie am Fuß), 3_schlichten, 4_nach_rest, 5_anlegen,
 # 6_angelegt.
 # ZEITLIMIT: 1200
@@ -23,7 +25,7 @@ V = FreeCAD.Vector
 NEUES_FENSTER = True  # „Bearbeitung“ in Schritten
 
 
-def _kugel(wz, nummer, d):
+def _kugel(wz, nummer, d, **masse):
     k = wz.Werkzeug(
         nummer=nummer,
         name=f"Kugel {d:g}",
@@ -32,6 +34,7 @@ def _kugel(wz, nummer, d):
         schneiden=2,
         schneidenlaenge=3 * d,
         schneidstoff=wz.VHM,
+        **masse,
     )
     k.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=0.3, vc=150.0, fz=0.05)]
     return k
@@ -75,6 +78,12 @@ def _gerechnet(h, panel):
     yield 2000
 
 
+def _mit_verweis(h, panel):
+    """Warten, bis der Verweis der Empfehlung in der Übersicht steht (ein eigener Auftrag)."""
+    yield from h.warte_auf(lambda: _verweis(panel.uebersicht_text.text())[0] is not None, 120000)
+    yield 1000
+
+
 def _verweis(text):
     treffer = re.search(r"href=['\"]([^'\"]+)['\"]>([^<]*)</a>", text or "")
     return (treffer.group(1), treffer.group(2)) if treffer else (None, None)
@@ -93,7 +102,9 @@ def schritte(h):
     from camaddon import gui_bearbeitung_beta as beta
     from camaddon import werkzeuge as wz
 
-    wz.Bibliothek([wz.standardwerkzeug(), _kugel(wz, 3, 6.0), _kugel(wz, 5, 2.0)]).speichern()
+    # T5 20 mm ausgespannt: Der Halter bleibt über der Kuppel (10 hoch) – geschätzt wären es 11.
+    t5 = _kugel(wz, 5, 2.0, gesamtlaenge=50.0, ausspannlaenge=20.0)
+    wz.Bibliothek([wz.standardwerkzeug(), _kugel(wz, 3, 6.0), t5]).speichern()
     doc = FreeCAD.newDocument("Kuppel")
     doc.UndoMode = 1
     teil = doc.addObject("Part::Feature", "Kuppel")
@@ -112,6 +123,7 @@ def schritte(h):
         return
     block = panel.schlichten3d
     h.pruefe(block.aktiv() and block.fraeser().nummer == 3, "3D-Schlichten nicht mit T3")
+    yield from _mit_verweis(h, panel)
     satz = block.ergebnis.text()
     uebersicht = panel.uebersicht_text.text()
     print(ascii(f"3D-Schlichten: {satz!r}"), flush=True)
@@ -120,12 +132,15 @@ def schritte(h):
     h.pruefe(unterkante is not None and unterkante.linien, f"kein Rest gemessen: {unterkante}")
     hoehe = _hoehe(satz)
     h.pruefe(
-        "An der Unterkante bleiben bis" in satz and hoehe is not None and 1.2 <= hoehe <= 1.7,
+        "An der Unterkante bleibt ein Rest bis" in satz
+        and hoehe is not None
+        and 1.2 <= hoehe <= 1.7
+        and " hoch" in satz,
         f"Satz unter 3D-Schlichten: {satz!r}",
     )
     ziel, knopf = _verweis(uebersicht)
     h.pruefe(
-        "An der Unterkante bleiben bis" in uebersicht and "rot im Teil" in uebersicht,
+        "An der Unterkante bleibt ein Rest bis" in uebersicht and "rot im Teil" in uebersicht,
         f"Übersicht: {uebersicht!r}",
     )
     h.pruefe(knopf == "Restschlichten mit T5 anhaken", f"Verweis in der Übersicht: {knopf!r}")
@@ -185,6 +200,7 @@ def schritte(h):
     panel = gui_bearbeitung.BearbeitungPanel.offen
     if panel is None or panel.job is None:
         return
+    yield from _mit_verweis(h, panel)
     uebersicht = panel.uebersicht_text.text()
     ziel, knopf = _verweis(uebersicht)
     print(ascii(f"Übersicht ohne T5: {uebersicht!r}"), flush=True)
@@ -203,7 +219,13 @@ def schritte(h):
         f"Restschlichten nicht mit der neuen Kugel: {rest.fraeser()}",
     )
     if neu:
-        print(ascii(f"Neu: T{neu[0].nummer} {neu[0].name}, Schneide {neu[0].schneidenlaenge}"))
+        k = neu[0]
+        print(ascii(f"Neu: T{k.nummer} {k.name}, Schneide {k.schneidenlaenge}, Schaft {k.schaft}, "
+                    f"Hals {k.hals_d} x {k.hals_laenge}, L {k.gesamtlaenge}"), flush=True)  # fmt: skip
+        h.pruefe(
+            k.schaft == 6.0 and abs(k.hals_d - 2.9) < 1e-9 and k.hals_laenge == 9.0,
+            f"neue Kugel: Schaft {k.schaft}, Hals {k.hals_d} × {k.hals_laenge}",
+        )
     uebersicht = panel.uebersicht_text.text()
     print(ascii(f"Übersicht danach: {uebersicht!r}"), flush=True)
     h.pruefe(_hoehe(uebersicht) is not None and _hoehe(uebersicht) < 1.0, f"{uebersicht!r}")

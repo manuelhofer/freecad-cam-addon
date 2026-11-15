@@ -1623,11 +1623,19 @@ class BetaPanel(BearbeitungPanel):
         letzte = None
         for block in (self.schlichten3d, self.restschlichten):
             an = block.aktiv() and block.moeglich and abschnitt(block) >= von
-            if an and block.vorschau is not None:
+            # Unter dem Rand (hinterschnitt_bahn) misst keiner die Unterkante – dann sagt es der
+            # Block davor (Zweifler 2026-11-15: sonst verschwand die rote Linie, der Rest blieb).
+            unter = getattr(block.vorschau, "hinterschnitt", False)
+            if an and block.vorschau is not None and (not unter or letzte is None):
                 letzte = block
         if letzte is None:
             return None, None
         return letzte, getattr(letzte.vorschau, "unterkante", None)
+
+    def _empfehlung_da(self):
+        """Die Empfehlung für die Unterkante ist da: in der Übersicht ihr Verweis."""
+        if self._seite == UEBERSICHT and not self.geschlossen:
+            self._uebersicht_zeigen()
 
     def _uebersicht_unterkante(self):
         """Der Satz zum Rest an der Unterkante (rot im Teil) mit dem Verweis, der ihn kleiner macht

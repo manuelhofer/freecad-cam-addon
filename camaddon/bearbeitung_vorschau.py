@@ -94,12 +94,13 @@ def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit
     return bahn, _frei(argumente[0], bahn, zeit, job)
 
 
-def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme):
-    """(Empfehlung, Empfehlung für die Ecken) – neben der Vorschau des 3D-Schlichtens unter dem
-    Rand, in einem eigenen Auftrag (schlichten3d._empfehlung, _ecken_empfehlung; je None, wenn es
-    nichts zu empfehlen gibt). `daten`: {"pruefung", "ausspannen"} der Bahn oder ihres Fehlers
-    (unter dem Rand) oder {"flanke", "ausspannen"} (die Flanke, flanke._empfehlung),
-    `ecken`: Bahn.ecken, `kennung`: der Fräser in der Werkzeugverwaltung."""
+def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme, unterkante=None):
+    """(Empfehlung, Empfehlung für die Ecken, für die Unterkante) – neben der Vorschau des
+    3D-Schlichtens, in einem eigenen Auftrag (schlichten3d._empfehlung, _ecken_empfehlung,
+    _unterkante_empfehlung; je None, wenn es nichts zu empfehlen gibt). `daten`: {"pruefung",
+    "ausspannen"} der Bahn oder ihres Fehlers (unter dem Rand) oder {"flanke", "ausspannen"} (die
+    Flanke, flanke._empfehlung), `ecken`: Bahn.ecken, `unterkante`: Schlichtbahn.unterkante,
+    `kennung`: der Fräser in der Werkzeugverwaltung."""
     from . import schlichten3d
 
     job = _job(dokument, job_name)
@@ -112,7 +113,10 @@ def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme):
     elif daten and daten.get("pruefung"):
         haupt = schlichten3d._empfehlung(job, modell, daten, kennung, aufnahme)
     ecke = schlichten3d._ecken_empfehlung(job, modell, ecken, kennung, aufnahme) if ecken else None
-    return haupt, ecke
+    unten = None
+    if unterkante is not None:
+        unten = schlichten3d._unterkante_empfehlung(job, modell, unterkante, kennung, aufnahme)
+    return haupt, ecke, unten
 
 
 def _frei(form, bahn, zeit, job=None):

@@ -9,6 +9,7 @@
 # Teilboden endet: Dort lässt Ø 6 Rest (nie unter den Boden, B-033), Ø 2 fährt nur am Fuß und lässt
 # weniger. (c) Die Operation im Job: „Restschlichten T3“ mit Ø und Eckenradius davor, Art
 # „schlichten3d“.
+import math
 import os
 import pathlib
 import sys
@@ -168,6 +169,76 @@ pruefe(
 )
 pruefe(qa.h[draussen].min() >= -1e-6, f"neben dem Teil unter dem Boden: {qa.h[draussen].min()}")
 pruefe(np.min((qa.h - soll_a)[~draussen]) > -0.02, "ins Teil")
+# Nach dem Restschlichten ein paar Linienzüge um den Rest, nicht viele Flecken (Zweifler 2026-11-15:
+# mit dem Radius der kleinen Kugel geschlossen 27, mit dem der großen 10).
+pruefe(uk_k is None or len(uk_k.linien) <= 12, f"nach dem Rest {len(uk_k.linien)} Linienzüge")
+
+# --- (b3) Womit der Rest an der Unterkante kleiner wird: Hals, Schaft und Halter frei -----------
+# Eine Kuppel R 20, unten bei z 0 abgeschnitten, Mitte bei z −2: am Fuß 84° steil. Eine Kugel Ø 3
+# mit dem Schaft Ø 6 ihres Vorbilds ab 4,5 mm über der Spitze (wie „Kugel anlegen“ bis b290a573
+# kopierte) stößt senkrecht an – gerechnet: Spitze am Fuß bei r 21,15, z 0,31, die Innenkante des
+# Schafts bei r 18,15, dort steht die Kuppel bis z 6,40 – 1,6 mm über der Unterseite des Schafts
+# (der Zweifler maß längs der Bahn mit distToShape 0,78; die Kugel um die Achse statt der Scheibe).
+# Ein Schaft so dick wie die Kugel bleibt frei; die Kugel wie für die Ecken (Hals Ø 2,9 bis
+# 13,5 mm, dann Schaft Ø 6) auch.
+from camaddon import empfehlung as em
+
+steil = Part.makeSphere(20, V(30, 30, -2)).common(Part.makeBox(60, 60, 18, V(0, 0, 0)))
+steil_f = kugelflaechen(steil)
+uk_s = s3.planen(steil, steil_f, werte(gross_form, raster=s3.VORSCHAU_RASTER)).unterkante
+pruefe(uk_s is not None and uk_s.stellen is not None and len(uk_s.stellen) > 100, f"{uk_s}")
+schaft_6 = s3.koerper_an_der_unterkante(steil, uk_s, 1.5, [(4.5, 60.0, 3.0)])
+schaft_3 = s3.koerper_an_der_unterkante(steil, uk_s, 1.5, [(4.5, 60.0, 1.5)])
+mit_hals = s3.koerper_an_der_unterkante(steil, uk_s, 1.5, [(4.5, 13.5, 1.45), (13.5, 60.0, 3.0)])
+print(ascii(f"Unterkante 84°: Schaft Ø 6 ab 4,5 {schaft_6:+.3f}, Ø 3 {schaft_3}, mit Hals "
+            f"{mit_hals:+.3f} mm im Teil"))  # fmt: skip
+pruefe(1.4 < schaft_6 < 2.0, f"Schaft Ø 6 ab 4,5: {schaft_6}")
+pruefe(schaft_3 == -math.inf, f"Schaft wie die Kugel: {schaft_3}")
+pruefe(mit_hals < -s3.KOERPER_LUFT, f"mit Hals: {mit_hals}")
+
+
+def kugel_wz(nummer, d, **masse):
+    k = wz.Werkzeug(nummer=nummer, name=f"Kugel {d:g}", art=wz.KUGELFRAESER, durchmesser=d,
+                    schneiden=2, schneidstoff=wz.VHM, **masse)  # fmt: skip
+    k.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=0.3, vc=150.0, fz=0.06)]
+    return k
+
+
+k6 = kugel_wz(3, 6.0, schneidenlaenge=9.0, schaft=6.0, gesamtlaenge=60.0)
+# Nur die Ø 6: eine neue Kugel Ø 3 wie für die Ecken – Schaft Ø 6 mit Hals, frei.
+v = em.unterkante_vorschlag(steil, uk_s, k6, 3.0, wz.Bibliothek([k6]))
+neu = wz.Werkzeug.aus_dict(v.werkzeug_neu) if v is not None and v.werkzeug_neu else None
+print(
+    ascii(
+        f"Vorschlag nur Ø 6: {v and (v.d, v.werkzeug, round(v.luft, 2))}, neu "
+        f"{neu and (neu.durchmesser, neu.schaft, neu.hals_d, neu.hals_laenge, neu.gesamtlaenge)}"
+    )
+)
+pruefe(
+    neu is not None and neu.durchmesser == 3.0 and neu.schaft == 6.0
+    and abs(neu.hals_d - 2.9) < 1e-9 and neu.hals_laenge == 9.0 and v.luft >= s3.KOERPER_LUFT
+    and abs(neu.schnittwerte[wz.ALLE][0].fz - 0.03) < 1e-9,
+    f"neue Kugel: {v}",
+)  # fmt: skip
+# Eine Ø 3 mit Schaft Ø 6 ohne Hals in der Werkzeugverwaltung: stößt an – nicht sie, die neue.
+k3_kurz = kugel_wz(4, 3.0, schneidenlaenge=4.5, schaft=6.0, gesamtlaenge=50.0)
+v = em.unterkante_vorschlag(steil, uk_s, k6, 3.0, wz.Bibliothek([k6, k3_kurz]))
+pruefe(v is not None and not v.werkzeug and v.werkzeug_neu, f"Ø 3 ohne Hals angeboten: {v}")
+# Eine Ø 3 mit Schaft Ø 3, 30 mm ausgespannt: frei – die aus der Werkzeugverwaltung. (Ohne
+# Ausspannlänge geschätzt 14 mm heraus: Die Mutter ER16 stieße 2,6 mm in die 18 mm hohe Kuppel.)
+k3 = kugel_wz(5, 3.0, schneidenlaenge=9.0, gesamtlaenge=60.0, ausspannlaenge=30.0)
+v = em.unterkante_vorschlag(steil, uk_s, k6, 3.0, wz.Bibliothek([k6, k3_kurz, k3]))
+pruefe(v is not None and v.werkzeug == k3.kennung, f"Ø 3 mit Schaft Ø 3 nicht angeboten: {v}")
+# Ein Torus Ø 10 mit r 1 macht den Rest mit r 1: eine Kugel Ø 4 (r 2) hilft nicht – erst Ø 1.
+torus = wz.Werkzeug(nummer=6, name="Torus", art=wz.TORUSFRAESER, durchmesser=10.0, schneiden=4,
+                    eckradius=1.0)  # fmt: skip
+k4 = kugel_wz(7, 4.0)
+v = em.unterkante_vorschlag(steil, uk_s, torus, 1.0, wz.Bibliothek([torus, k4]))
+pruefe(v is not None and not v.werkzeug and not v.werkzeug_neu and v.d == 1.0, f"Torus: {v}")
+k1 = kugel_wz(8, 1.0, schneidenlaenge=1.5, schaft=6.0, hals_d=0.9, hals_laenge=20.0,
+              gesamtlaenge=60.0, ausspannlaenge=30.0)  # fmt: skip
+v = em.unterkante_vorschlag(steil, uk_s, torus, 1.0, wz.Bibliothek([torus, k4, k1]))
+pruefe(v is not None and v.werkzeug == k1.kennung, f"Torus mit Kugel Ø 1: {v}")
 
 # --- (c) Die Operation im Job ---------------------------------------------------------------------
 pruefe(s3op.eckenradius(ff.kugel(3.0)) == 3.0, "Eckenradius Kugel")

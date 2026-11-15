@@ -547,21 +547,7 @@ def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
     if d <= 0:
         return KEINE
     probe = wz.Bibliothek.aus_dict(bibliothek.als_dict())  # eine Kopie: nichts eintragen
-    neue = []
-    for laenge in KUGEL_LAENGEN:
-        if laenge < 6.0 * d:
-            continue
-        w = probe.kopiere(next(v for v in probe.werkzeuge if v.kennung == vorbild.kennung))
-        faktor = d / float(vorbild.durchmesser or d)
-        w.durchmesser, w.schneidenlaenge, w.gesamtlaenge = d, 1.5 * d, laenge
-        w.schaft = max(d, SCHAFT_KLEINSTER) if d < SCHAFT_KLEINSTER else d
-        w.hals_d, w.hals_laenge = (d - 0.1, 3.0 * d) if d < SCHAFT_KLEINSTER else (0.0, 0.0)
-        w.halter, w.ausspannlaenge, w.laenge_spindelnase = "", 0.0, 0.0
-        w.name = f"Kugelfräser Ø{d:g} × {laenge:g} (Vorschlag)"
-        for einsaetze in w.schnittwerte.values():
-            for e in einsaetze:
-                e.fz, e.ae, e.ap = e.fz * faktor, e.ae * faktor, e.ap * faktor
-        neue.append(w)
+    neue = _neue_kugeln(probe, vorbild, d)
     if not neue:
         return KEINE
     r = d / 2.0
@@ -586,6 +572,99 @@ def neue_kugel(form, ecken, vorbild, bibliothek, aufnahme="", magazin=None):
     ergebnis.anderes_werkzeug = True
     ergebnis.bestellen, ergebnis.besser = True, None  # der Fräser ist ohnehin neu
     return ergebnis
+
+
+def _neue_kugeln(probe, vorbild, d):
+    """[Werkzeug] – Kugelfräser Ø `d`, wie es sie zu kaufen gibt, je eine der KUGEL_LAENGEN (ab
+    6 · Ø), in `probe` (einer Kopie der Werkzeugverwaltung) eingetragen: Schneide 1,5 · Ø, unter
+    Ø 6 ein Schaft Ø 6 mit Hals Ø − 0,1 × 3 · Ø, ohne Halter und Ausspannlänge (dann der
+    vorgeschlagene); die Schnittwerte vom Kugelfräser `vorbild`, fz, ae, ap auf den Ø
+    umgerechnet."""
+    neue = []
+    for laenge in KUGEL_LAENGEN:
+        if laenge < 6.0 * d:
+            continue
+        w = probe.kopiere(next(v for v in probe.werkzeuge if v.kennung == vorbild.kennung))
+        faktor = d / float(vorbild.durchmesser or d)
+        w.durchmesser, w.schneidenlaenge, w.gesamtlaenge = d, 1.5 * d, laenge
+        w.schaft = max(d, SCHAFT_KLEINSTER) if d < SCHAFT_KLEINSTER else d
+        w.hals_d, w.hals_laenge = (d - 0.1, 3.0 * d) if d < SCHAFT_KLEINSTER else (0.0, 0.0)
+        w.halter, w.ausspannlaenge, w.laenge_spindelnase = "", 0.0, 0.0
+        w.name = f"Kugelfräser Ø{d:g} × {laenge:g} (Vorschlag)"
+        for einsaetze in w.schnittwerte.values():
+            for e in einsaetze:
+                e.fz, e.ae, e.ap = e.fz * faktor, e.ae * faktor, e.ap * faktor
+        neue.append(w)
+    return neue
+
+
+@dataclass
+class Unterkantenvorschlag:
+    """Womit der Rest an der Unterkante kleiner wird (unterkante_vorschlag): eine Kugel aus der
+    Werkzeugverwaltung (`werkzeug`, ihre Kennung) oder eine neue (`werkzeug_neu`, Werkzeug.als_dict
+    – noch nicht eingetragen); ohne beide fehlt eine Kugel Ø `d`, deren Hals, Schaft und Halter
+    frei bleiben."""
+
+    d: float = 0.0
+    werkzeug: str = ""
+    werkzeug_neu: dict = None
+    luft: float = 0.0  # mm – so viel Luft haben Hals, Schaft und Halter mindestens
+
+
+def unterkante_vorschlag(form, unterkante, werkzeug, radius, bibliothek, netz=None):
+    """Unterkantenvorschlag für den Rest an der Unterkante des 3D-Schlichtens mit `werkzeug` –
+    None, wenn keine kleinere Kugel denkbar ist. Wie hoch der Rest steht, geht mit dem Radius, der
+    ihn macht (`radius`: die Kugel, beim Torus der Eckenradius; an der Kuppel R 40 mit Ø 6 bis
+    1,4 mm, Ø 2 bis 0,56, Ø 1 bis 0,14): aus der Werkzeugverwaltung die größte Kugel bis zum
+    halben Radius, sonst die größte kleinere – ohne eine solche eine neue wie für die Ecken
+    (_neue_kugeln), in der kürzesten Länge, mit der es geht. Jede nur, wenn Hals, Schaft und
+    Halter senkrecht frei bleiben (schlichten3d_bahn.koerper_an_der_unterkante, mindestens
+    KOERPER_LUFT): Das 3-Achs-3D-Schlichten rechnet nur mit der Kugel (Zweifler 2026-11-15: eine
+    Kugel Ø 3 mit dem Schaft Ø 6 ihres Vorbilds ab 4,5 mm über der Spitze an einer Kuppel mit 84°
+    am Fuß senkrecht gerechnet bis 1,7 mm im Teil; mit Hals wie _neue_kugeln 7 mm frei). Nicht
+    empfehlen(): Es lässt die Achse kippen (hinterschnitt_bahn.suchen_stueck) – an der
+    3-Achs-Fräse hieße „frei“ dort ins Teil. Geht keine: nur `d`, die Größe, die fehlt."""
+    from . import reichweite as rw
+    from . import schlichten3d_bahn as sb
+    from . import werkzeuge as wz
+
+    if bibliothek is None or unterkante is None or radius <= 0:
+        return None
+    probe = wz.Bibliothek.aus_dict(bibliothek.als_dict())  # eine Kopie: nichts eintragen
+    for name in ("aufnahme_vorschlag", "magazin_fuer_pruefung"):
+        if hasattr(bibliothek, name):
+            setattr(probe, name, getattr(bibliothek, name))
+
+    def luft(w):
+        halter = probe.halter_fuer_pruefung(w)
+        laenge = rw.laenge_des_werkzeugs(w, probe)[0]
+        koerper = hb.koerper_des_werkzeugs(rw.masse_des_werkzeugs(w), laenge, halter)
+        tief = sb.koerper_an_der_unterkante(form, unterkante, w.durchmesser / 2, koerper, netz)
+        return None if tief is None else -tief
+
+    kleiner = sorted(
+        (
+            w
+            for w in probe.werkzeuge
+            if w.art == wz.KUGELFRAESER and 0 < float(w.durchmesser) / 2 < radius - 1e-6
+        ),
+        key=lambda w: (float(w.durchmesser) / 2 > radius / 2 + 1e-6, -float(w.durchmesser)),
+    )
+    for w in kleiner:
+        frei = luft(w)
+        if frei is not None and frei >= sb.KOERPER_LUFT:
+            return Unterkantenvorschlag(d=float(w.durchmesser), werkzeug=w.kennung, luft=frei)
+    vorbild = next((v for v in probe.werkzeuge if v.kennung == werkzeug.kennung), None)
+    d = max((k for k in KUGEL_DURCHMESSER if k / 2 <= radius / 2 + 1e-6), default=0.0)
+    if d <= 0:
+        return None
+    if vorbild is None or vorbild.art != wz.KUGELFRAESER:
+        return Unterkantenvorschlag(d=d)  # die Schnittwerte einer neuen kämen von einer Kugel
+    for w in _neue_kugeln(probe, vorbild, d):
+        frei = luft(w)
+        if frei is not None and frei >= sb.KOERPER_LUFT:
+            return Unterkantenvorschlag(d=d, werkzeug_neu=w.als_dict(), luft=frei)
+    return Unterkantenvorschlag(d=d)
 
 
 def einrichten(empfehlung, bibliothek):

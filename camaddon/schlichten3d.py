@@ -660,6 +660,33 @@ def _ecken_empfehlung(job, modell, ecken, kennung, aufnahme=""):
         return None
 
 
+def _unterkante_empfehlung(job, modell, unterkante, kennung, aufnahme=""):
+    """empfehlung.unterkante_vorschlag für den Rest an der Unterkante (schlichten3d_bahn.
+    Unterkante) des 3D-Schlichtens mit dem Fräser `kennung` – None ohne."""
+    from . import empfehlung as em
+    from . import magazin as mg
+    from . import werkzeuge as wz
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+    werkzeug = next((w for w in bibliothek.werkzeuge if w.kennung == kennung), None)
+    form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+    if form is None:
+        return None
+    mg.des_jobs(job, bibliothek)
+    if aufnahme:
+        bibliothek.aufnahme_vorschlag = aufnahme
+    try:
+        return em.unterkante_vorschlag(
+            vs._teil(modell), unterkante, werkzeug, eckenradius(form), bibliothek
+        )
+    except Exception as fehler:  # noqa: BLE001 – eine Empfehlung darf die Vorschau nicht stören
+        FreeCAD.Console.PrintWarning(f"CAM-Addon: Empfehlung für die Unterkante: {fehler}\n")
+        return None
+
+
 def lege_an(job, tc, grathoehe, aufmass=0.0, name=None, flaechen=(), davor=(0.0, 0.0)):
     """Legt „3D-Schlichten“ im Job an – mit `davor` (Ø, Eckenradius des Fräsers davor; Ø > 0)
     als „Restschlichten“ – ohne eigene Transaktion, die hält der Aufrufer. Die Endtiefe ist der
