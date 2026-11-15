@@ -67,7 +67,7 @@ def schritte(h):
     yield 1000
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke),
         300000,
     )
     yield 3000
@@ -94,7 +94,7 @@ def schritte(h):
     yield 300
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke),
         300000,
     )
     yield 1000

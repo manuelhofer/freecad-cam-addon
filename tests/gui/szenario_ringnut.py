@@ -60,7 +60,7 @@ def schritte(h):
 
     def fertig_gerechnet():
         return not panel.vorschau_laeuft() and all(
-            b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke
+            b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke
         )
 
     yield from h.warte_auf(fertig_gerechnet, 300000)

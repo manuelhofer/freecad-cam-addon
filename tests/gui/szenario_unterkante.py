@@ -70,7 +70,7 @@ def _oeffnen(h, doc, teil, kuppel):
 def _gerechnet(h, panel):
     def fertig():
         return not panel.vorschau_laeuft() and all(
-            b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke
+            b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke
         )
 
     yield 1000

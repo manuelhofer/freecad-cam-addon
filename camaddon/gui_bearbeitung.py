@@ -5037,6 +5037,9 @@ class _Block:
         self.vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
         self.tc_vorher = None  # beim Ändern: ihr Controller
         self.vorschau = None  # die grobe Bahn oder None
+        # Die Vorschau zu den jetzigen Eingaben ist durch – mit Bahn, mit rotem Satz oder ohne
+        # Fräser (vorschau_schritte); für die Szenarien: Ein Block mit rotem Satz hat keine Bahn.
+        self.gerechnet = False
         self.genau = []  # die genauen Bahnen des Räumens im Nebenrechner (_genau_starten, W-036)
         self.schon_weg = False  # „Hier ist nichts mehr zu tun“ (Materialstand, W-012)
         self.zeit = None  # Minuten der Vorschau (bahn.zeit) – für den Wettbewerb
@@ -5602,7 +5605,12 @@ class _Block:
     def vorschau_schritte(self, job, flaechen, zusatz=None):
         """vorschau_rechnen als Schritte (ein Generator): Rechnet die Strategie in einem
         Nebenrechner (`hintergrund`, P-2026-10-11-23), gibt er den Auftrag aus – weiter geht es,
-        wenn er erledigt ist; scheitert er, rechnet es hier."""
+        wenn er erledigt ist; scheitert er, rechnet es hier. Danach ist `gerechnet` wahr."""
+        self.gerechnet = False
+        yield from self._vorschau_schritte(job, flaechen, zusatz)
+        self.gerechnet = True
+
+    def _vorschau_schritte(self, job, flaechen, zusatz):
         self.vorschau = None
         self.zeit = None
         self.schon_weg = False
@@ -9854,6 +9862,7 @@ class BearbeitungPanel:
         self._vorschau_lauf_beenden()  # was noch zur Eingabe davor rechnet, ist veraltet
         for block in self.bloecke:
             block.vorschau = None
+            block.gerechnet = False
         self._vorschau_uhr.start()
         self._knoepfe_beschriften()
 
@@ -10881,7 +10890,7 @@ class BearbeitungPanel:
             # nichts“, und „Anlegen“ ging nicht. Es gibt den Haken ab (_schon_weg_abhaken).
             block.leeren()
             block.hinweis.setText(tr("ba.raeumen.bei_nut"))
-            block.schon_weg = True
+            block.schon_weg = block.gerechnet = True
             self._raeumen_bei_nut = True
             gerechnet[block] = woraus
             return True
@@ -10893,7 +10902,7 @@ class BearbeitungPanel:
                 block.hinweis.setText(tr("ba.kontur.beim_raeumen"))
             else:
                 block.hinweis.setText(tr("ba.kontur.kein_rohteil"))
-            block.schon_weg = True
+            block.schon_weg = block.gerechnet = True
             gerechnet[block] = woraus
             return True
         yield from block.vorschau_schritte(self.job, flaechen, zusatz)

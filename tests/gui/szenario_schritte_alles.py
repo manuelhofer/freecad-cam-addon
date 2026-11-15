@@ -58,7 +58,7 @@ def schritte(h):
     h.pruefe(len(panel.gewaehlte) > 10, f"gewählt: {panel.gewaehlte}")
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke),
         600000,
     )
     yield 4000

@@ -125,7 +125,7 @@ def schritte(h):
     h.pruefe(not panel.knopf_weiter.isVisible(), "„Weiter“ noch in der Übersicht")
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.gerechnet for b in panel.bloecke),
         600000,
     )
     yield 4000
