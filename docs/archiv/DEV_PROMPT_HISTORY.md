@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-19 raeumen-last-auf-dem-pool
+
+### EINGELESEN
+- Offen aus P-2026-11-15-18: Das Anlegen eines Räumens misst die Last seiner Varianten nacheinander im
+  Fenster (3,5–4,6 s auf einem Kern). Manuel: alle Ressourcen maximal auslasten, das Fenster nie anhalten.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (last in zwei Durchgängen auf dem Pool, _last_messen, _gebremst ohne neues
+  Abfahren, _fehler_kurz); `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.384.1.
+
+### ERGEBNIS
+- Testteil planen 7,25 → 1,7 s (Last 6,25 → 0,55 s), Platte 200 × 200 19,3 → 3,7 s; szenario_testteil 69 →
+  56 s, Fenster allein auf einem Kern 6,0 → 2,5 s; .nc byte-gleich, Fingerabdrücke gleich (Zweifler: 10
+  Fälle mit geänderten Werten, Fehlerfälle mit getötetem Arbeiter). Workflow Bauer + Zweifler (uebernehmen)
+  + Nacharbeit (Messung vorab darf planen nicht kippen; Warnung in einer Zeile).
+- Geprüft: test_raeumen, test_goldene_bahnen, test_testteil; im Workflow dazu test_materialstand,
+  test_pruefstand, test_simultan_planung, test_simultan_folge, szenario_testteil.
 ## P-2026-11-15-18 auslastung-wochenende
 
 ### EINGELESEN
