@@ -357,7 +357,7 @@ pruefe(
     and davor.punkt[2] > fahrt.stationen[erste_bahn].punkt[2] + 50.0,
     f"Anfahrt: {[(st.ziel, tuple(round(x, 1) for x in st.punkt)) for st in fahrt.stationen[:4]]}",
 )
-kollision = kb.kollision(fahrt, job, nullpunkt, bib)
+kollision = kb.kollision_parallel(fahrt, job, nullpunkt, bib)
 texte = [b.text() for b in kollision.befunde]
 print(ascii(f"Kollision: {len(fahrt.stationen)} Stationen, {texte[:3]}"))
 pruefe(not kollision.befunde, f"Befunde: {texte[:3]}")
@@ -651,7 +651,7 @@ for name, teilform, durchmesser, luecke in FAELLE:
         p = rw.Pruefung(asm, ma)
         nullpunkt = rw.nullpunkt(job, p)
         fahrt = ab.abfahrt(p, job, nullpunkt, bib)
-        texte = [b.text() for b in kb.kollision(fahrt, job, nullpunkt, bib).befunde]
+        texte = [b.text() for b in kb.kollision_parallel(fahrt, job, nullpunkt, bib).befunde]
         abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
         abtrag.bis_station(len(fahrt.stationen) - 1)
         reste[name, mit] = abtrag.vergleich()

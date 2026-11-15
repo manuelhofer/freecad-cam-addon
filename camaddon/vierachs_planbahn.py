@@ -456,6 +456,32 @@ def bohrungen(form, laengs, radial, namen):
     außen. Je Seite, von der sie gefräst wird, ein Paar: die Ebene (φ zur Öffnung, die Tiefe ihr
     Grund, längs und quer ihr Umriss) und die Bohrung im Rahmen der Ebene (_rahmen) – eine
     durchgehende von beiden Seiten, je bis zur Mitte der Stange."""
+    from . import vierachs_flaechen as vf
+
+    nummern = vf.nummern(namen)  # nur sie zählen (_bohrungen)
+    schluessel = (
+        form.hashCode(),
+        nummern,
+        tuple(float(w) for w in laengs),
+        tuple(float(w) for w in radial),
+    )
+    gemerkt = _BOHRUNGEN.get(schluessel)
+    if gemerkt is not None and gemerkt[0].isSame(form):
+        return list(gemerkt[1])
+    ergebnis = _bohrungen(form, laengs, radial, vf.namen(nummern))
+    _BOHRUNGEN[schluessel] = (form, tuple(ergebnis))
+    while len(_BOHRUNGEN) > 16:
+        del _BOHRUNGEN[next(iter(_BOHRUNGEN))]
+    return ergebnis
+
+
+# bohrungen(): (hashCode, Flächen, Achsen) → (Form, ((Ebene, Bohrung), …)) – der 4-Achs-Assistent
+# fragt je Klick 12- bis 14-mal dasselbe (gemessen 2026-11-15 an der Kurvennut).
+_BOHRUNGEN = {}
+
+
+def _bohrungen(form, laengs, radial, namen):
+    """bohrungen() ohne Merken."""
     import dataclasses
 
     import Part
@@ -472,6 +498,12 @@ def bohrungen(form, laengs, radial, namen):
         d = np.array(tuple(zylinder.Axis), dtype=float)
         if abs(float(d @ l_)) > GERADE:
             continue  # längs der Stange: keine Querbohrung
+        u0, u1, _v0, _v1 = flaeche.ParameterRange
+        if u1 - u0 < 2 * math.pi - 1e-6:
+            # Nur ein Stück eines Zylinders: bohrung_bahn.bohrungen nähme es ohnehin nicht (dieselbe
+            # Bedingung) – vorher hier vernetzt und die ganze Form kopiert, umsonst: Die Kurvennut
+            # des Testteils sind 201 Zylinderstreifen, 8,6 s je Klick im Fenster (2026-11-15).
+            continue
         mitte = np.array(tuple(zylinder.Center), dtype=float)
         punkte, _dreiecke = flaeche.copy().tessellate(VORSCHAU_TOLERANZ)
         if not punkte:
@@ -746,12 +778,43 @@ def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
     Flächen, deren Normale quer zum Strahl von der Achse steht (Wände, auch die runden Enden),
     außen ein geschlossener Rand, in der Abwicklung ein Band gleicher Breite mit zwei Enden.
     Unabhängig von der Art der Flächen (eine Freiformwand oder viele Zylinderstreifen)."""
-    import FreeCAD
-    import Part
-
     from . import vierachs_flaechen as vf
 
-    schluessel = (form.hashCode(), tuple(sorted(namen)), tuple(laengs), tuple(radial))
+    vorab = _wandartig_gemerkt(form, laengs, radial)
+    l_, u_, v_ = vorab["rahmen"]
+    wandartig, nachbarn = vorab["wandartig"], vorab["nachbarn"]
+    gewaehlt = {nr for nr in vf.nummern(namen) if nr in wandartig}
+    gruppen, gesehen = [], set()
+    for start in sorted(gewaehlt):
+        if start in gesehen:
+            continue
+        gruppe, offen = set(), [start]
+        while offen:
+            nr = offen.pop()
+            if nr in gruppe:
+                continue
+            gruppe.add(nr)
+            offen.extend(nachbarn[nr] - gruppe)
+        gesehen |= gruppe
+        gruppen.append(sorted(gruppe))
+    ergebnis = []
+    for gruppe in gruppen:
+        schluessel = (tuple(gruppe), float(toleranz))
+        nuten = vorab["gruppen"].get(schluessel)
+        if nuten is None:
+            nuten = _kurvennuten_der_gruppe(form, wandartig, gruppe, l_, u_, v_, toleranz)
+            vorab["gruppen"][schluessel] = nuten
+        ergebnis.extend(nuten)
+    return ergebnis
+
+
+def _wandartig_gemerkt(form, laengs, radial):
+    """Was kurvennuten() unabhängig von den gewählten Flächen braucht – je Form (isSame) und
+    Achse gemerkt: die Flächen, die wie eine Nutwand stehen, ihre Nachbarn über gemeinsame
+    Kanten und je Gruppe die fertigen Kurvennuten. Bis 0.383.2 hing das Merken an den gewählten
+    Namen, und der 4-Achs-Assistent fragt je Klick mit verschiedenen Teilmengen: 11- bis 12-mal
+    kalt je 0,25 s im Fenster (gemessen 2026-11-15)."""
+    schluessel = (form.hashCode(), tuple(laengs), tuple(radial))
     gemerkt = _KURVENNUTEN.get(schluessel)
     if gemerkt is not None and gemerkt[0].isSame(form):
         return gemerkt[1]
@@ -771,7 +834,6 @@ def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
         if lang < 1e-6 or abs(float(n @ strahl)) / lang > KURVE_WAND:
             continue  # zeigt nach außen oder innen: ein Grund, eine ebene Fläche, der Mantel
         wandartig[nummer] = flaeche
-    gewaehlt = {nr for nr in vf.nummern(namen) if nr in wandartig}
     an_kante = {}
     for nummer, flaeche in wandartig.items():
         for kante in flaeche.Edges:
@@ -780,28 +842,27 @@ def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
     for nummern_ in an_kante.values():
         for nr in nummern_:
             nachbarn[nr].update(nummern_)
-    gruppen, gesehen = [], set()
-    for start in sorted(gewaehlt):
-        if start in gesehen:
-            continue
-        gruppe, offen = set(), [start]
-        while offen:
-            nr = offen.pop()
-            if nr in gruppe:
-                continue
-            gruppe.add(nr)
-            offen.extend(nachbarn[nr] - gruppe)
-        gesehen |= gruppe
-        gruppen.append(sorted(gruppe))
+    vorab = {
+        "rahmen": (l_, u_, v_),
+        "wandartig": wandartig,
+        "nachbarn": nachbarn,
+        "gruppen": {},  # (Gruppe, Toleranz) → [Kurvennut]
+    }
+    _KURVENNUTEN[schluessel] = (form, vorab)
+    while len(_KURVENNUTEN) > 8:
+        del _KURVENNUTEN[next(iter(_KURVENNUTEN))]
+    return vorab
+
+
+def _kurvennuten_der_gruppe(form, wandartig, gruppe, l_, u_, v_, toleranz):
+    """[Kurvennut] – die Nuten einer Gruppe zusammenhängender Wände (kurvennuten())."""
+    import FreeCAD
+    import Part
+
     ergebnis = []
-    ketten = []  # [(Kette, Wände der Gruppe, r_aussen, r_innen)]
-    for gruppe in gruppen:
-        waende = [(nr, wandartig[nr]) for nr in gruppe]
-        aussen, r_aussen, r_innen = _rand_aussen(waende, l_, u_, v_, toleranz)
-        ketten.extend(
-            (k, waende, r_aussen, r_innen) for k in (Part.sortEdges(aussen) if aussen else ())
-        )
-    for kette, waende, r_aussen, r_innen in ketten:
+    waende = [(nr, wandartig[nr]) for nr in gruppe]
+    aussen, r_aussen, r_innen = _rand_aussen(waende, l_, u_, v_, toleranz)
+    for kette in Part.sortEdges(aussen) if aussen else ():
         draht = Part.Wire(kette)
         if not draht.isClosed():
             continue
@@ -821,8 +882,11 @@ def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
             continue  # nicht überall gleich breit: kein Fräser fährt sie mittig
         # Die Wände dieser Nut: die mit einer Kante in diesem Rand.
         namen_ = []
+        im_rand = {}  # hashCode → [Kante] – vorher je Wand jede Kante gegen jede (isSame)
+        for e in kette:
+            im_rand.setdefault(e.hashCode(), []).append(e)
         for nummer, flaeche in waende:
-            if any(any(k.isSame(e) for e in kette) for k in flaeche.Edges):
+            if any(any(k.isSame(e) for e in im_rand.get(k.hashCode(), ())) for k in flaeche.Edges):
                 namen_.append(f"Face{nummer + 1}")
         if not namen_:
             continue
@@ -850,9 +914,6 @@ def kurvennuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
                 float(grad.max()) + rand_f,
             )
         )
-    _KURVENNUTEN[schluessel] = (form, ergebnis)
-    while len(_KURVENNUTEN) > 8:
-        del _KURVENNUTEN[next(iter(_KURVENNUTEN))]
     return ergebnis
 
 

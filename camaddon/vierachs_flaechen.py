@@ -45,7 +45,7 @@ RAND = 1.0  # mm – so weit reicht das Raster von sicht_fuer() über die Enden 
 # Maßen, und ein Strahl genau auf einer Kante sieht beide Flächen zugleich.
 VERSATZ_A = vh.SCHRITT_A / 4
 _KLEIN = 1e-12
-_ZWISCHEN = {}  # sicht_fuer(): die letzten Ergebnisse – der Assistent fragt oft dasselbe
+_ZWISCHEN = {}  # sicht_fuer(): (Form, Sicht) der letzten – der Assistent fragt oft dasselbe
 _ZWISCHEN_HOECHSTENS = 4
 
 
@@ -372,26 +372,31 @@ def raster_a(a_von, a_bis):
 def sicht_fuer(form, laengs, radial, rand=RAND, toleranz=vh.TOLERANZ):
     """Die Sicht (Sicht) auf die Form (Part.Shape im Job) im Raster der Hüllfläche, `rand` (mm)
     über ihre Enden hinaus. Die letzten Ergebnisse bleiben gemerkt – für dieselbe Form (gleiche
-    Kennung, Fläche und Lage), Achse und Raster rechnet es nicht noch einmal."""
+    Kennung und Lage), Achse und Raster rechnet es nicht noch einmal."""
     kasten = form.BoundBox
+    # Ohne form.Area im Schlüssel (bis 0.383.2): OpenCascade rechnete den Flächeninhalt bei jedem
+    # Aufruf über alle Flächen, auch wenn die Sicht gemerkt war – 46 × 0,05–0,07 s im Fenster im
+    # Kurvennut-Szenario (2026-11-15). Stattdessen dieselbe Form (isSame, wie ft.volumen).
     schluessel = (
         form.hashCode(),
-        round(form.Area, 6),
         tuple(round(w, 6) for w in (kasten.XMin, kasten.YMin, kasten.ZMin, kasten.XMax)),
         tuple(round(float(w), 9) for w in laengs),
         tuple(round(float(w), 9) for w in radial),
         rand,
         toleranz,
     )
-    if schluessel not in _ZWISCHEN:
+    gemerkt = _ZWISCHEN.get(schluessel)
+    if gemerkt is None or not gemerkt[0].isSame(form):
         fnetz = vernetze(form, toleranz)
         l_, _u, _v = vh.rahmen(laengs, radial)
         a_teil = fnetz.netz.punkte @ l_
         a_werte = raster_a(float(a_teil.min()) - rand, float(a_teil.max()) + rand)
+        _ZWISCHEN.pop(schluessel, None)
         if len(_ZWISCHEN) >= _ZWISCHEN_HOECHSTENS:
             _ZWISCHEN.pop(next(iter(_ZWISCHEN)))
-        _ZWISCHEN[schluessel] = sicht(fnetz, laengs, radial, a_werte, vh.raster_phi())
-    return _ZWISCHEN[schluessel]
+        gemerkt = (form, sicht(fnetz, laengs, radial, a_werte, vh.raster_phi()))
+        _ZWISCHEN[schluessel] = gemerkt
+    return gemerkt[1]
 
 
 def bereich_fuer(form, laengs, radial, namen_, radius, toleranz=vh.TOLERANZ):
