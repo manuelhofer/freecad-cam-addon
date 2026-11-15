@@ -3997,6 +3997,9 @@ class _Schlichten3D(_Strategie):
                 ),
                 True,
             ),
+            # Zum Schluss eine Runde mit der Spitze auf dem Teilboden (schlichten3d_bahn.
+            # _bodenrunde) – eine neue Bahn, darum vorbelegt aus, bis Manuel sie im Bild sieht.
+            ("bodenrunde", tr("ba.s3.bodenrunde"), tr("ba.s3.bodenrunde.tooltip"), False),
         )
 
     def haken_verborgen(self, feld, block):
@@ -4004,6 +4007,13 @@ class _Schlichten3D(_Strategie):
         # nur Rauschen; Vorschlichten nur nach „Flanke grob, Spirale fertig“ (Frage „Wände“).
         if feld == "vorschlichten" and getattr(block.panel, "_weg", {}).get("waende") != "spirale":
             return True
+        if feld == "bodenrunde":
+            # Nur im 3D-Schlichten, und erst, wenn die Vorschau einen Rest an der Unterkante
+            # zeigt (oder der Haken schon sitzt): sonst fährt die Runde nirgends – nur Rauschen.
+            kasten = getattr(block, "haken_felder", {}).get(feld)
+            unten = getattr(getattr(block, "vorschau", None), "unterkante", None) is not None
+            an = kasten is not None and kasten.isChecked()
+            return self.kennung != "schlichten3d" or not (unten or an)
         return feld in KIPPHAKEN and not block.panel._fuenfachs()
 
     def haken_gesperrt(self, feld, block):
@@ -4057,6 +4067,8 @@ class _Schlichten3D(_Strategie):
             "eintauchen": werte.get("eintauchen", 0.0),
         }
         weiter.update(self._unter_dem_rand(werkzeug, werte, form))
+        if werte.get("bodenrunde"):  # ohne Haken die Bahn wie vorher, ohne neues Argument
+            weiter["bodenrunde"] = True
         return (form, werte["grathoehe"], list(flaechen)), weiter
 
     @staticmethod
@@ -4206,6 +4218,7 @@ class _Schlichten3D(_Strategie):
         s3op.stelle_weg(op, werte.get("wegkippen", False))
         s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
         s3op.vorschlichten(op, _vorschlichten_bis(werte))
+        s3op.bodenrunde(op, werte.get("bodenrunde", False))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
@@ -4214,6 +4227,7 @@ class _Schlichten3D(_Strategie):
         s3op.stelle_weg(op, werte.get("wegkippen", False))
         s3op.unter_dem_rand(op, werte.get("hinterschnitt", False), werte.get("spirale", True))
         s3op.vorschlichten(op, _vorschlichten_bis(werte))
+        s3op.bodenrunde(op, werte.get("bodenrunde", False))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
@@ -4226,6 +4240,7 @@ class _Schlichten3D(_Strategie):
             "wegkippen": bool(getattr(op, "Wegkippen", False)),
             "hinterschnitt": str(getattr(op, "Richtung", "")) == s3op.hb.HINTERSCHNITT,
             "spirale": bool(getattr(op, "UnterRandSpirale", False)),
+            "bodenrunde": bool(getattr(op, "Bodenrunde", False)),
         }
 
 
@@ -5187,6 +5202,7 @@ class _Block:
             self.haken_felder[feld] = kasten
             self._haken_texte[feld] = (text, tooltip)
             self.reihen.ganz(kasten)
+        self._haken_nach_vorschau()  # noch ohne Vorschau: was erst sie zeigt, bleibt verborgen
         innen.addWidget(self.reihen.widget)
         # Die Eintauchstelle je geschlossener Nut (W-012 E1; Manuel: „an einer von mir aus
         # wählbaren Position in der Nut … aber natürlich mit Vorschlag“, Frage 2: a).
@@ -5277,6 +5293,20 @@ class _Block:
             )
             warum = self.s.haken_gesperrt_warum(feld, self) if grund else None
             kasten.setToolTip(f"{tooltip}\n\n{warum}" if warum else tooltip)
+
+    def _haken_nach_vorschau(self):
+        """Haken, die erst die Vorschau sichtbar macht („Zum Schluss eine Runde auf dem Teilboden“
+        erst bei einem Rest an der Unterkante): nur sichtbar oder nicht (haken_verborgen)."""
+        kasten = getattr(self, "haken_felder", {}).get("bodenrunde")
+        if kasten is not None:
+            sichtbar = not self.s.haken_verborgen("bodenrunde", self)
+            kasten.setVisible(sichtbar)
+            if sichtbar:
+                # Verborgen sperrt haken_pruefen ihn und hängt „– geht …“ an – er geht immer.
+                text, tooltip = self._haken_texte["bodenrunde"]
+                kasten.setText(text)
+                kasten.setToolTip(tooltip)
+                kasten.setEnabled(True)
 
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}
@@ -5703,6 +5733,7 @@ class _Block:
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
         self._vorschau_knopf_zeigen()
+        self._haken_nach_vorschau()
         self._vorbohrer_angebot()
         self._empfehlung_anstossen(job, werkzeug, flaechen, ("bahn", zeit, self.vorschau))
         if self.s.kennung == "nut":
@@ -6460,6 +6491,7 @@ class _Block:
         self.material.setText(material)
         self.hinweis.setText(hinweis)
         self._vorschau_knopf_zeigen()
+        self._haken_nach_vorschau()
         self._vorbohrer_angebot()
         if self.s.kennung == "nut" and vorschau is not None:
             self.stellen_zeigen(getattr(vorschau, "stellen", None))

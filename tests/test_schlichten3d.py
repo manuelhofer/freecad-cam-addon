@@ -464,6 +464,66 @@ b_ohne = s3.planen(
 )  # fmt: skip
 pruefe(min(p.z for p in b_ohne.punkte) < -1.0, "Teilboden: ohne die Grenze nicht darunter")
 
+# --- Zum Schluss eine Runde auf dem Teilboden (Haken, vorbelegt aus) ----------------------------
+# Die Zeilen enden am letzten Rasterpunkt über dem Boden, unterschiedlich weit darüber; die Runde
+# fährt die Kugel einmal mit der Spitze genau auf dem Boden um den Fuß (die Kugel r 3 berührt die
+# Kuppel dort zuletzt: Mitte bei ρ = √(43² − 23²) = 36,33). Ohne Haken bleibt die Bahn Satz für
+# Satz; mit ihm kommt die Runde dazu: nie unter den Boden, nie ins Teil (auch nicht beim Eintauchen
+# daneben), im Quader am Fuß weniger Rest (gemessen 0,82 → 0,53 mm), die Anzeige ebenso.
+w_r = s3.Schlichtwerte(form=form, oben=21.0, sicher=26.0, vorschub=900.0, eintauchen=300.0)
+ohne_r = s3.planen(kappe, kappe_f, w_r)
+mit_r = s3.planen(kappe, kappe_f, s3.Schlichtwerte(**{**w_r.__dict__, "bodenrunde": True}))
+neu_r = mit_r.punkte[len(ohne_r.punkte) :]
+pruefe(
+    mit_r.punkte[: len(ohne_r.punkte)] == ohne_r.punkte and ohne_r.bodenrunden == 0,
+    "Runde: die Bahn davor nicht Satz für Satz wie ohne",
+)
+pruefe(mit_r.bodenrunden == 1, f"Runde: {mit_r.bodenrunden} Runden statt einer")
+schnitt_r = [p for p in neu_r if not p.eilgang]
+radien = [math.hypot(p.x, p.y) for p in schnitt_r]
+pruefe(
+    all(-1e-9 <= p.z <= 0.01 for p in schnitt_r) and min(radien) > 36.2 and max(radien) < 37.4,
+    f"Runde: z {min(p.z for p in schnitt_r):.4f}…{max(p.z for p in schnitt_r):.4f}, "
+    f"r {min(radien):.2f}…{max(radien):.2f}",
+)
+im_teil_r = min(kappe.distToShape(Part.Vertex(V(p.x, p.y, p.z + 3.0)))[0] - 3.0 for p in schnitt_r)
+pruefe(im_teil_r > -0.01, f"Runde: Kugel {im_teil_r:.4f} im Teil")
+tauchen = [p for p in neu_r if p.eintauchen]
+pruefe(
+    len(tauchen) == 1
+    and kappe.distToShape(Part.Vertex(V(tauchen[0].x, tauchen[0].y, 3.0)))[0] > 3.5,
+    "Runde: nicht neben der Kuppel eingetaucht",
+)
+pruefe(
+    mit_r.unterkante.dicke < ohne_r.unterkante.dicke - 0.05,
+    f"Runde: Anzeige {ohne_r.unterkante.dicke:.3f} → {mit_r.unterkante.dicke:.3f}",
+)
+netz_r = vf.vernetze(kappe, 0.005).netz
+fuss = {}
+for name, b_r in (("ohne", ohne_r), ("mit", mit_r)):
+    q_r = rm.Quader(25, 40, -8, 8, 0, 21, schritt=0.1)
+    p_r = b_r.punkte
+    q_r.fahre_stuecke(
+        [(a.x, a.y, a.z) for a, b in zip(p_r, p_r[1:], strict=False) if not b.eilgang],
+        [(b.x, b.y, b.z) for a, b in zip(p_r, p_r[1:], strict=False) if not b.eilgang],
+        form,
+    )
+    soll_r = hf.hoehen(netz_r, q_r.x, q_r.y)
+    am_fuss = (soll_r > hf.KEIN_TREFFER / 2) & (soll_r <= 6.0)
+    fuss[name] = float(np.max(q_r.h[am_fuss] - soll_r[am_fuss]))
+    pruefe(np.min(q_r.h[am_fuss] - soll_r[am_fuss]) > -0.02, f"Runde {name}: ins Teil")
+print(ascii(f"Runde: {ohne_r.zeit:.2f} → {mit_r.zeit:.2f} min, am Fuß höchstens {fuss['ohne']:.3f} "
+            f"→ {fuss['mit']:.3f} mm"))  # fmt: skip
+pruefe(fuss["mit"] < fuss["ohne"] - 0.15, f"Runde: am Fuß {fuss}")
+pruefe(mit_r.zeit < ohne_r.zeit + 0.6, f"Runde: {ohne_r.zeit:.2f} → {mit_r.zeit:.2f} min")
+# Ohne Rest an der Unterkante (die Kuppel auf der Platte) fährt sie nirgends: dieselbe Bahn.
+auf_platte = s3.planen(teil, kugel, werte(bodenrunde=True))
+pruefe(
+    auf_platte.bodenrunden == 0 and auf_platte.punkte == bahn.punkte,
+    "Runde: auf der Platte nicht dieselbe Bahn",
+)
+pruefe(op.Bodenrunde is False, "Operation: Runde auf dem Teilboden nicht vorbelegt aus")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

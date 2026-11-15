@@ -104,6 +104,7 @@ _FREI = 1e6  # mm – wo die Spitze nicht fährt (unter dem Teilboden): für den
 # sie nichts nimmt
 UNTERKANTE_LINIE = 0.05  # mm – so weit dürfen die Linien um den Rest an der Unterkante abweichen
 UNTERKANTE_SCHRITTE = 12.0  # so viele Rasterschritte je Radius misst _unterkante höchstens
+BODENRUNDE_ANFAHRT = 1.0  # mm – so weit neben der Runde auf dem Teilboden taucht die Kugel ein
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
 FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
@@ -147,6 +148,8 @@ class Schlichtwerte:
     rest: float = REST
     # z des Teilbodens: Tiefer fährt die Spitze nie (planen setzt ihn aus dem Teil; −inf: aus).
     boden: float = -math.inf
+    # Zum Schluss eine Runde mit der Spitze auf dem Teilboden (_bodenrunde) – nur auf Wahl.
+    bodenrunde: bool = False
 
 
 @dataclass
@@ -167,6 +170,7 @@ class Schlichtbahn:
     aequidistant: bool = False  # Ringe im gleichen Abstand (dann `zeilen` die Ringe)
     winkel: float = None  # Zeilen im Winkel: Grad zu X (dann `laengs_x` im gedrehten Teil)
     unterkante: object = None  # Unterkante: der Rest, den der Teilboden stehen lässt; None: keiner
+    bodenrunden: int = 0  # die Runden mit der Spitze auf dem Teilboden am Schluss (_bodenrunde)
 
 
 @dataclass
@@ -589,13 +593,14 @@ def _rest(raster, netz_alle, w, abstand):
     return _erweitert(rest > schwelle, w.form.radius + abstand, sx, sy), rest, davor
 
 
-def _unterkante(raster, netz_alle, w, davor=None):
+def _unterkante(raster, netz_alle, w, davor=None, runden=()):
     """Unterkante – oder None: der Rest, den der Teilboden an der Unterkante stehen lässt (B-033).
     Die Fläche, die der Fräser stehen lässt, wenn seine Spitze dort fährt, wo die Bahn fährt
     (`raster.gewaehlt`), gegen die, die er ohne den Boden ließe (`raster.ideal`, die Spitze auf
     `raster.roh`) – nur über dem Teil und nur in Reichweite der Lagen, die der Boden nahm (sonst
     zählte hier jede Kehle). Beim Restschlichten `davor` (aus _rest): Was der Fräser davor
-    stehen ließ, nimmt dieser nicht noch einmal weg – es zählt das Kleinere von beiden. An der
+    stehen ließ, nimmt dieser nicht noch einmal weg – es zählt das Kleinere von beiden. Mit
+    `runden` (_bodenrunde) nimmt die Kugel dazu weg, was sie auf ihnen stehen lässt. An der
     Kuppel R 40 mit Kugel Ø 6: bis 1,4 mm hoch, bis 0,44 mm dick (nachgerechnet im Schnitt: die
     Kugel berührt die Fläche zuletzt bei z = r/2 ÷ (1 + r/40) = 1,40)."""
     if raster.roh is None or not math.isfinite(getattr(w, "boden", -math.inf)):
@@ -619,6 +624,8 @@ def _unterkante(raster, netz_alle, w, davor=None):
         return feld[::k, ::k]
 
     ist = _schnitt(np.where(duenn(raster.gewaehlt), duenn(raster.z), _FREI), geformt, sx, sy)
+    if runden:
+        ist = np.minimum(ist, _schnitt_runden(xs, ys, runden, geformt))
     ideal = np.where(duenn(raster.ideal), duenn(raster.roh) + aufmass, _FREI)
     ideal = _schnitt(ideal, geformt, sx, sy)
     reichweite = R
@@ -916,6 +923,159 @@ def _hoehenlinien(raster, w, abstand_z):
     return punkte, laenge, hoehen, z_min
 
 
+def _bodenrunde(raster, w):
+    """[(punkte (n, 3), geschlossen)] – die Runde zum Schluss mit der Spitze auf dem Teilboden (nur
+    auf Wahl, Schlichtwerte.bodenrunde): je Insel, deren gewählte Flächen bis an den Boden reichen,
+    die Linie, auf der die Hüllfläche (ohne Boden, `raster.roh`) genau den Boden erreicht – dort
+    berührt die Kugel das Teil mit der Spitze auf dem Boden, tiefer kommt sie nie. Die Zeilen und
+    Höhenlinien enden unterschiedlich weit darüber (am letzten Rasterpunkt über dem Boden); die
+    Runde nimmt an der Unterkante weg, was diese Kugel überhaupt wegnehmen kann – an der Kuppel R 40
+    mit Kugel Ø 6 bleiben am Fuß höchstens 0,53 statt 0,82 mm (genau die Dicke, die die Kugel auf
+    dem Boden lässt), für 0,34 min mehr (im Quader gemessen 2026-11-15). Die Höhe jeder Ecke und
+    jeder Mitte dazwischen genau nachgerechnet (_Genau.ganz, das ganze Teil): liegt sie über dem
+    Boden, fährt die Spitze dort so hoch – nie ins Teil. Im Gleichlauf (das Material rechts)."""
+    from . import raeumen_bahn as rb
+
+    if raster is None or raster.roh is None or not math.isfinite(w.boden):
+        return []
+    weg = raster.ideal & raster.unter  # Lagen, die nur der Boden den gewählten Flächen nahm
+    if not weg.any():
+        return []
+    sx = float(raster.xs[1] - raster.xs[0])
+    sy = float(raster.ys[1] - raster.ys[0])
+    zelle = 1.51 * max(sx, sy)
+    # Nur, wo innen die gewählten Flächen die Höhe bestimmen und außen der Boden sie ihnen nahm –
+    # nicht um eine Platte oder eine nicht gewählte Wand, die auf dem Boden steht.
+    nah = _erweitert(weg, zelle, sx, sy) & _erweitert(raster.ideal & ~raster.unter, zelle, sx, sy)
+    aufmass = max(w.aufmass, 0.0)
+    feld = np.where(np.isfinite(raster.roh), raster.roh + aufmass, -np.inf)
+    stuecke = []
+    for linie, geschlossen in rb._hoehenlinien(feld, raster.xs, raster.ys, w.boden):
+        behalten = _luecken_gefuellt(
+            linie, geschlossen, raster.bei(nah, linie[:, 0], linie[:, 1]), w.form.radius
+        )
+        for teil, zu in _stuecke(linie, geschlossen, behalten):
+            teil = rb._vereinfacht(teil, TOLERANZ_GERADE, zu)
+            lang = float(np.sum(np.hypot(*np.diff(teil[:, :2], axis=0).T))) if len(teil) > 1 else 0
+            if len(teil) >= 2 and lang >= w.form.radius:  # kürzer: Anfahrt und Abfahrt für nichts
+                stuecke.append((_gerichtet(teil, zu, raster, w.gleichlauf), zu))
+    if not stuecke or raster.genau is None:
+        return []
+    # Die Ecken und die Mitten dazwischen auf einmal genau – liegt eine Mitte höher als die Gerade
+    # zwischen ihren Ecken, kommt sie dazu (eine Sehne über einer Insel liegt innen, zum Teil hin).
+    ecken = [np.vstack([t, t[:1]]) if zu else t for t, zu in stuecke]
+    mitten = [(e[1:] + e[:-1]) / 2 for e in ecken]
+    alle = np.vstack(ecken + mitten)
+    hoehe = raster.genau.ganz(alle[:, 0], alle[:, 1])
+    runden = []
+    k = 0
+    zm = sum(len(e) for e in ecken)
+    for (_teil, zu), e, m in zip(stuecke, ecken, mitten, strict=True):
+        z_e = np.maximum(hoehe[k : k + len(e)], w.boden)
+        z_m = np.maximum(hoehe[zm : zm + len(m)], w.boden)
+        k, zm = k + len(e), zm + len(m)
+        punkte = [(float(e[0, 0]), float(e[0, 1]), float(z_e[0]))]
+        for i in range(len(m)):
+            if z_m[i] > (z_e[i] + z_e[i + 1]) / 2 + TOLERANZ_GERADE:
+                punkte.append((float(m[i, 0]), float(m[i, 1]), float(z_m[i])))
+            punkte.append((float(e[i + 1, 0]), float(e[i + 1, 1]), float(z_e[i + 1])))
+        runden.append((np.array(punkte[:-1] if zu else punkte), zu))
+    return runden
+
+
+def _aussen(raster, punkt, richtung, w):
+    """(x, y) neben `punkt` – BODENRUNDE_ANFAHRT quer zur `richtung` (x, y), wo kein Teil ist –,
+    über dem die Kugel mit der Spitze auf dem Boden frei steht: Dort taucht die Runde ein
+    und fährt seitlich an (nicht senkrecht in den Rest an der Unterkante). None, wo es keine solche
+    Stelle gibt (dann senkrecht hinab, an der Hüllfläche entlang)."""
+    laenge = math.hypot(float(richtung[0]), float(richtung[1]))
+    if laenge < GLEICH:
+        return None
+    tx, ty = float(richtung[0]) / laenge, float(richtung[1]) / laenge
+    schritt = float(raster.xs[1] - raster.xs[0])
+    weit = max(BODENRUNDE_ANFAHRT, 2.0 * schritt)
+    t = np.arange(1.5 * schritt, weit + 1e-9, schritt / 2)
+    for nx, ny in ((-ty, tx), (ty, -tx)):
+        x = float(punkt[0]) + nx * t
+        y = float(punkt[1]) + ny * t
+        frei = True
+        for dx, dy in ((0, 0), (-1, -1), (1, -1), (-1, 1), (1, 1)):  # die Nachbarn im Raster dazu
+            z = raster.bei(raster.z, x + dx * schritt / 2, y + dy * schritt / 2)
+            frei &= bool(np.all(~np.isfinite(z) | (z <= w.boden + BODEN_GLEICH)))
+        if frei:
+            return float(x[-1]), float(y[-1])
+    return None
+
+
+def _mit_bodenrunde(bahn, runden, raster, w):
+    """Die Bahn mit den Runden auf dem Teilboden (_bodenrunde) am Schluss: je Runde im Eilgang über
+    sie, hinab wie jede Zeile (Eilgang bis über das Rohteil, dann mit dem Eintauchvorschub) neben
+    ihr, wo die Kugel frei steht (_aussen), seitlich an, einmal herum, seitlich ab und im Eilgang
+    hinauf. Die nächste Runde zuerst, eine geschlossene ab ihrer nächsten Ecke."""
+    punkte = list(bahn.punkte)
+    if punkte and punkte[-1].z < w.sicher - GLEICH:
+        punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, w.sicher))
+    offen = list(runden)
+    while offen:
+        ort = (punkte[-1].x, punkte[-1].y) if punkte else (0.0, 0.0)
+
+        def abstand(runde, ort=ort):
+            return float(np.min(np.hypot(runde[0][:, 0] - ort[0], runde[0][:, 1] - ort[1])))
+
+        nummer = min(range(len(offen)), key=lambda i: abstand(offen[i]))
+        teil, zu = offen.pop(nummer)
+        if zu:
+            i = int(np.argmin(np.hypot(teil[:, 0] - ort[0], teil[:, 1] - ort[1])))
+            teil = np.roll(teil, -i, axis=0)
+            teil = np.vstack([teil, teil[:1]])
+        hinein = _aussen(raster, teil[0], teil[1, :2] - teil[0, :2], w)
+        hinaus = _aussen(raster, teil[-1], teil[-1, :2] - teil[-2, :2], w)
+        x0, y0 = hinein if hinein is not None else (float(teil[0, 0]), float(teil[0, 1]))
+        z0 = w.boden if hinein is not None else float(teil[0, 2])
+        punkte.append(bn.Punkt(True, x0, y0, w.sicher))
+        punkte.append(bn.Punkt(True, x0, y0, min(w.sicher, max(z0, w.oben) + w.sicherheit)))
+        punkte.append(bn.Punkt(False, x0, y0, z0, True))
+        start = 0 if hinein is not None else 1
+        for px, py, pz in teil[start:]:
+            punkte.append(bn.Punkt(False, float(px), float(py), float(pz)))
+        if hinaus is not None:
+            punkte.append(bn.Punkt(False, hinaus[0], hinaus[1], w.boden))
+        punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, w.sicher))
+    laenge = sum(bn.weg(a, b) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang)
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    z_min = min(bahn.z_min, min(float(np.min(t[:, 2])) for t, _zu in runden))
+    return replace(
+        bahn, punkte=punkte, laenge=laenge, zeit=zeit, z_min=z_min, bodenrunden=len(runden)
+    )
+
+
+def _schnitt_runden(xs, ys, runden, form):
+    """(nx, ny) mm: die Fläche, die der Fräser `form` auf den Runden (_bodenrunde) stehen lässt –
+    die Spitze in Schritten von einer halben Rasterweite entlang jeder Runde; _FREI, wo er nicht
+    hinkommt (für _unterkante)."""
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    R = float(form.radius)
+    flaeche = np.full((len(xs), len(ys)), _FREI)
+    ni, nj = int(R / sx) + 1, int(R / sy) + 1
+    for teil, zu in runden:
+        ecken = np.vstack([teil, teil[:1]]) if zu else teil
+        for a, b in zip(ecken, ecken[1:], strict=False):
+            n = max(1, int(math.ceil(math.hypot(b[0] - a[0], b[1] - a[1]) / (min(sx, sy) / 2))))
+            for t in np.arange(n + 1) / n:
+                px, py, pz = a + t * (b - a)
+                i0 = int(round((px - xs[0]) / sx))
+                j0 = int(round((py - ys[0]) / sy))
+                i = np.arange(max(0, i0 - ni), min(len(xs), i0 + ni + 1))
+                j = np.arange(max(0, j0 - nj), min(len(ys), j0 + nj + 1))
+                if not len(i) or not len(j):
+                    continue
+                rho = np.hypot(xs[i][:, None] - px, ys[j][None, :] - py)
+                h = np.where(rho <= R, pz + form.hoehe(np.minimum(rho, R)), _FREI)
+                block = flaeche[i[0] : i[-1] + 1, j[0] : j[-1] + 1]
+                np.minimum(block, h, out=block)
+    return flaeche
+
+
 def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, raster, vorweg):
     """Die Bahn mit den Zeilen längs x (`laengs_x`) oder längs y – nach den Höhenlinien
     `vorweg` ([bahn.Punkt], Länge, Höhen, z_min); None, wo nichts zu fräsen ist. `box`: (x_von,
@@ -1078,6 +1238,11 @@ def genau_stueck(netz_alle, netz_rest, form, aufmass, x, y):
     return _Genau(netz_alle, netz_rest, form, aufmass)._rechnen(x, y)
 
 
+def ganz_stueck(netz_alle, netz_rest, form, aufmass, x, y):
+    """Auf einem Nebenrechner: die genauen Höhen des ganzen Teils an (x, y) – _Genau._ganz."""
+    return _Genau(netz_alle, netz_rest, form, aufmass)._ganz(x, y)
+
+
 class _Genau:
     """Die Hüllfläche an einzelnen Stellen genau – gegen die Dreiecke im Umkreis des Fräsers
     (hoehenfeld._je_zeile mit einem Teilnetz: gegen das ganze Netz 23 ms je Stelle). Nan, wo die
@@ -1120,7 +1285,16 @@ class _Genau:
             werte = self._rechnen(xa, ya)
         self._gerechnet.update(zip(stellen, werte.tolist(), strict=True))
 
-    def _verteilt(self, x, y):
+    def ganz(self, x, y):
+        """Die Hüllfläche des ganzen Teils an (x, y) genau, mit Aufmaß – ohne die Maske der
+        gewählten Flächen (für die Runde auf dem Teilboden, _bodenrunde); −inf, wo der Fräser
+        nichts trifft. Ab GENAU_VERTEILT_AB Stellen in Stücken auf den Nebenrechnern."""
+        x = np.atleast_1d(np.asarray(x, dtype=float))
+        y = np.atleast_1d(np.asarray(y, dtype=float))
+        werte = self._verteilt(x, y, "ganz_stueck") if len(x) >= GENAU_VERTEILT_AB else None
+        return werte if werte is not None else self._ganz(x, y)
+
+    def _verteilt(self, x, y, funktion="genau_stueck"):
         """Die Stellen in Stücken auf den Nebenrechnern – None ohne sie."""
         from . import hoehenfeld as hf
         from . import nebenrechner as nr
@@ -1131,7 +1305,7 @@ class _Genau:
         netze = [pool.gemeinsam("netz-" + hf._kennung(n).hex(), n) for n, _k in self.netze]
         auftraege = [
             pool.auftrag(
-                "schlichten3d_bahn", "genau_stueck", *netze, self.form, self.aufmass,
+                "schlichten3d_bahn", funktion, *netze, self.form, self.aufmass,
                 x[a:b], y[a:b],
             )  # fmt: skip
             for a, b in nr.stuecke(len(x), pool.anzahl, je_arbeiter=4, mindestens=16)
@@ -1153,29 +1327,38 @@ class _Genau:
         from . import hoehenfeld as hf
 
         ergebnis = np.full(len(x), np.nan)
-        r = float(self.form.radius) + 1e-6
         for k, (px, py) in enumerate(zip(x, y, strict=True)):
-            werte = []
-            for netz, kaesten in self.netze:
-                nah = (
-                    (kaesten[:, 0] <= px + r)
-                    & (kaesten[:, 1] >= px - r)
-                    & (kaesten[:, 2] <= py + r)
-                    & (kaesten[:, 3] >= py - r)
-                )
-                if not nah.any():
-                    werte.append(hf.KEIN_TREFFER)
-                    continue
-                dreiecke = netz.dreiecke[nah]
-                benutzt, neu = np.unique(dreiecke, return_inverse=True)
-                teil = vh.Netz(netz.punkte[benutzt], neu.reshape(dreiecke.shape), netz.toleranz)
-                werte.append(
-                    float(hf._je_zeile(teil, self.form, np.array([py]), px, 1.0, 1, True)[0, 0])
-                )
-            alle, rest = werte
+            alle, rest = (self._an(netz, kaesten, px, py) for netz, kaesten in self.netze)
             if np.isfinite(alle) and alle > hf.KEIN_TREFFER and alle > rest + MASKE:
                 ergebnis[k] = alle + self.aufmass
         return ergebnis
+
+    def _ganz(self, x, y):
+        """Die Hüllfläche des ganzen Teils an (x, y) genau (ganz), Stelle für Stelle."""
+        from . import hoehenfeld as hf
+
+        netz, kaesten = self.netze[0]
+        werte = np.array([self._an(netz, kaesten, px, py) for px, py in zip(x, y, strict=True)])
+        werte = np.where(np.isfinite(werte) & (werte > hf.KEIN_TREFFER), werte, -np.inf)
+        return werte + self.aufmass
+
+    def _an(self, netz, kaesten, px, py):
+        """Die Spitze an (px, py) gegen die Dreiecke von `netz` im Umkreis des Fräsers."""
+        from . import hoehenfeld as hf
+
+        r = float(self.form.radius) + 1e-6
+        nah = (
+            (kaesten[:, 0] <= px + r)
+            & (kaesten[:, 1] >= px - r)
+            & (kaesten[:, 2] <= py + r)
+            & (kaesten[:, 3] >= py - r)
+        )
+        if not nah.any():
+            return hf.KEIN_TREFFER
+        dreiecke = netz.dreiecke[nah]
+        benutzt, neu = np.unique(dreiecke, return_inverse=True)
+        teil = vh.Netz(netz.punkte[benutzt], neu.reshape(dreiecke.shape), netz.toleranz)
+        return float(hf._je_zeile(teil, self.form, np.array([py]), px, 1.0, 1, True)[0, 0])
 
 
 def _dreieck_kaesten(netz):
@@ -1752,7 +1935,12 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     # Was an der Unterkante stehen bleibt, sagt der Assistent – gezeigt im Teil (B-033).
     if raster is None and math.isfinite(w.boden):
         raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
-    unterkante = _unterkante(raster, netz_alle, w, davor) if raster is not None else None
+    # Auf Wahl zum Schluss je Insel eine Runde mit der Spitze auf dem Teilboden; ohne sie bleibt
+    # die Bahn Satz für Satz, wie sie war.
+    runden = _bodenrunde(raster, w) if getattr(w, "bodenrunde", False) else []
+    unterkante = _unterkante(raster, netz_alle, w, davor, runden) if raster is not None else None
+    if runden:
+        beste = _mit_bodenrunde(beste, runden, raster, w)
     return replace(_nie_unter_dem_boden(beste, w), unterkante=unterkante)
 
 

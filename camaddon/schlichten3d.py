@@ -76,6 +76,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Grenzwinkel = sb.GRENZWINKEL
         obj.Winkel = sb.WINKEL_VORGABE
         obj.Einseitig = False
+        obj.Bodenrunde = False  # zum Schluss eine Runde auf dem Teilboden – nur auf Wahl
         obj.Randgang = False
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
@@ -119,6 +120,8 @@ class Schlichten3D(PathOp.ObjectOp):
             self._vorschlichten_vorbelegen(obj)  # gespeichert davor: ohne, wie damals
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
+        if "Bodenrunde" in neu:
+            obj.Bodenrunde = False  # gespeichert vor der Runde auf dem Teilboden: ohne, wie damals
         if "Winkel" in neu:
             obj.Winkel = sb.WINKEL_VORGABE  # gilt nur mit der Richtung „winkel“
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
@@ -145,6 +148,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyAngle", "Grenzwinkel", tr("s3.eigenschaft.grenzwinkel")),
             ("App::PropertyAngle", "Winkel", tr("s3.eigenschaft.winkel")),
             ("App::PropertyBool", "Einseitig", tr("s3.eigenschaft.einseitig")),
+            ("App::PropertyBool", "Bodenrunde", tr("s3.eigenschaft.bodenrunde")),
             ("App::PropertyBool", "Randgang", tr("s5p.eigenschaft.randgang")),
             ("App::PropertyLength", "BahnGrathoehe", tr("s5p.eigenschaft.bahngrat")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
@@ -365,6 +369,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         richtung=str(obj.Richtung),
         winkel=float(obj.Winkel),
         einseitig=bool(obj.Einseitig),
+        bodenrunde=bool(getattr(obj, "Bodenrunde", False)),
         grenzwinkel=float(obj.Grenzwinkel),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         sicher=float(obj.SafeHeight),
@@ -486,6 +491,7 @@ def bahn_fuer(
     oben=None,
     winkel=sb.WINKEL_VORGABE,
     einseitig=False,
+    bodenrunde=False,
     sicher=None,
     sicherheit=vb.SICHERHEIT,
     vorschub=0.0,
@@ -510,7 +516,8 @@ def bahn_fuer(
     `spirale`: wo es rundum geht, als Spirale hinab (hinterschnitt_bahn._spirale);
     `vorschlichten_bis` (z): unter dem Rand bis dort hinauf erst mit `vorschlichten_aufmass` mehr
     vorschlichten (VORSCHLICHTEN_AB), dann fertig (hinterschnitt_bahn.hintereinander);
-    `nur_vorschlichten`: nur dieses (für einen eigenen Nebenrechner).
+    `nur_vorschlichten`: nur dieses (für einen eigenen Nebenrechner); `bodenrunde`: zum Schluss
+    je Insel eine Runde mit der Spitze auf dem Teilboden (schlichten3d_bahn._bodenrunde).
     ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
@@ -568,6 +575,7 @@ def bahn_fuer(
         richtung=richtung,
         winkel=winkel,
         einseitig=einseitig,
+        bodenrunde=bool(bodenrunde),
         grenzwinkel=grenzwinkel,
         sicherheit=sicherheit,
         schritt=schritt,
@@ -792,6 +800,13 @@ def vorschlichten(obj, bis):
     obj.Vorschlichten = bis is not None
     if bis is not None:
         obj.VorschlichtenBis = float(bis)
+
+
+def bodenrunde(obj, an_):
+    """Setzt „Zum Schluss eine Runde auf dem Teilboden“ (schlichten3d_bahn._bodenrunde). Ohne
+    eigene Transaktion."""
+    if "Bodenrunde" in obj.PropertiesList:
+        obj.Bodenrunde = bool(an_)
 
 
 def stelle_an(obj, anstellen, kippachse=None):
