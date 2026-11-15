@@ -635,8 +635,10 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   ins Leere (szenario_hobeln 351 → 45 s). Offen: das Anlegen eines Räumens misst die Last seiner Varianten
   nacheinander im Fenster (3,5–4,6 s auf einem Kern) – **behoben in 0.384.1**: die Last aller Varianten auf den
   Nebenrechnern, gebremst ohne neues Abfahren; Testteil planen 7,3 → 1,7 s, Platte 200 × 200 19,3 → 3,7 s,
-  Fenster allein auf einem Kern im Szenario 6,0 → 2,5 s; Bahnen Satz für Satz gleich. Offen: feiner() und
-  der Adaptiv-Kern rechnen beim ersten Anlegen weiter im Hauptprozess.
+  Fenster allein auf einem Kern im Szenario 6,0 → 2,5 s; Bahnen Satz für Satz gleich. **0.384.2:** auch der
+  Adaptiv-Kern und feiner() auf den Nebenrechnern (Merker hin und zurück, Konturen binär statt als
+  BREP-Text, damit der Arbeiter Bit für Bit dasselbe rechnet) – Rechenzeit im Hauptprozess am Testteil
+  4,3 → 0,7 s, Platte 6,7 → 1,6 s; 13 von 15 Fällen bitgleich, 2 auf 1 µm, Programme byte-gleich.
 - *Korrektur (0.383.1):* **Die Werkzeugverwaltung ging seit 0.376.0 nicht mehr auf** – die Tooltips der
   neuen Maße des Stoßwerkzeugs (Klingenlänge, Spindelwinkel, Freiwinkel) fehlten, der Dialog brach beim
   Aufbau ab. Gefunden im vollen Szenario-Lauf (17 rote Szenarien), behoben; die Tooltip-Tabelle fällt jetzt

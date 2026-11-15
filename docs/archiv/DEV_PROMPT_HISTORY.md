@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-20 raeumen-adaptiv-feiner-auf-dem-pool
+
+### EINGELESEN
+- Offen aus P-2026-11-15-19: Adaptiv-Kern und feiner() rechnen beim ersten Anlegen eines Räumens im
+  Hauptprozess (Platte 200 × 200 mehrere Sekunden auf einem Kern).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (_Verteilt, adaptiv_merken, _adaptiv_mitschreiben, feiner_rechnen, _Draht,
+  adaptiv zuerst bestellt); `tests/test_raeumen_verteilt.py` (neu); `docs/STATUS_SNAPSHOT.md`;
+  `package.xml` 0.384.2.
+
+### ERGEBNIS
+- Hauptprozess Testteil 4,27 → 0,72 s, Platte 6,72 → 1,63 s, vorgegebenes inseln mit feiner 6,76 →
+  0,55 s. Zweifler (uebernehmen): 19 Schritte mit geänderten Werten gleiche Fingerabdrücke wie die Basis,
+  Merker in beide Richtungen, genaue Vorschau nachgestellt. Nacharbeit: adaptiv zuerst hinaus, Vorwärmen
+  vollständig.
+- Geprüft: test_raeumen, test_raeumen_verteilt, test_goldene_bahnen, test_testteil; im Workflow dazu
+  test_materialstand, test_pruefstand, test_simultan_planung, test_simultan_folge, szenario_testteil.
 ## P-2026-11-15-19 raeumen-last-auf-dem-pool
 
 ### EINGELESEN
