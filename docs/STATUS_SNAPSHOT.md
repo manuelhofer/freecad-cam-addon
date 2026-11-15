@@ -534,8 +534,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 **Auftrag vom 2026-11-14 (Manuels Antworten auf die Fragen 1 bis 4, wörtlich im Verlauf
 P-2026-11-14-06) – in dieser Reihenfolge:**
-1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1.** Offen dazu: den Rest an der
-   Unterkante im Fenster zeigen (heute bleibt er stehen, ohne dass es jemand sagt).
+1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1**; seit 0.382.0 zeigt das Fenster
+   den Rest an der Unterkante (Zahl, rot im Teil) mit Knopf „Restschlichten mit T… anhaken“ bzw. „Kugel Ø …
+   anlegen“. Möglich, noch nicht gebaut (Bahnänderung – erst Bild mit Zahlen an Manuel): zum Schluss eine
+   Runde mit der Spitze genau auf dem Teilboden.
 2. *„Weiter bearbeiten“ mit Messen dazwischen und Leerfahrten:* **erledigt in 0.373.0** (Wände und Böden
    über „Schlichten danach“, 3D-Schlichten über sein Aufmaß). **0.380.0: auch „Bohrung fräsen“** („Weiter
    bearbeiten“ → „Löcher“: 29,7 → Leerfahrt → Messstopp Ø → 30 → Leerfahrt; der zweite Schnitt und die
@@ -621,6 +623,13 @@ P-2026-11-14-06) – in dieser Reihenfolge:**
   an der Wand an.
   Testteil durch den ganzen Weg: 13,82 min (vorher 13,76; „Räumen T3“ im Job 0,44 statt 0,37 min), nichts im
   Teil. Voller Lauf aller 188 Oberflächen-Szenarien auf 0.368.1: alle grün (13.11. abends).
+- *Neu (0.382.0):* **Rest an der Unterkante sichtbar, mit Knopf** – die Übersicht und der Block
+  3D-Schlichten sagen, wie hoch der Rest am Teilboden bleibt, rot umrandet im Teil; der Knopf hakt das
+  Restschlichten mit einer kleineren Kugel an (bzw. legt eine an: Schaft Ø 6, Hals, nur wenn Hals, Schaft
+  und Halter an der Unterkante frei bleiben – Zweifler-Fund: die erste Fassung kopierte die Kugel mit dem
+  dicken Schaft, der bei steilem Fuß 0,78 mm ins Teil gefahren wäre). Restschlichten sieht den Teilboden
+  jetzt auch (sagte vorher am Fuß einer Kuppel „Kein Rest“). Dazu: Mit „Messstopp davor“ nur ein Messhalt
+  vor dem Schlichten der Nut (vorher zwei); „In zwei gleichen Schnitten“ geht mit einem Klick aus.
 - *Neu (0.381.0):* **Messmerkmal „Nut“ – die Nut in zwei gleichen Schnitten mit Messen dazwischen.** Die
   Breite quer zur Mittellinie (gerade Nut in der Mitte, Bogennut in der Bogenmitte, Ringnut radial), mit
   Messzyklus je Steuerung: Siemens CYCLE977 (S_MVAR 3, S_MA), Heidenhain 425 MESSEN BREITE INNEN (iTNC 530

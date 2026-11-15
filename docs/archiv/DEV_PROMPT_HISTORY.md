@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-14 rest-an-der-unterkante
+
+### EINGELESEN
+- STATUS, Auftrag vom 14.11. Punkt 1: „Offen dazu: den Rest an der Unterkante im Fenster zeigen (heute
+  bleibt er stehen, ohne dass es jemand sagt).“ Beobachtung aus 0.381.0: zwei Messhalte hintereinander.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (Rest an der Unterkante, koerper_an_der_unterkante),
+  `camaddon/restschlichten*.py`, `camaddon/empfehlung.py` (unterkante_vorschlag, _neue_kugeln),
+  `camaddon/gui_bearbeitung.py`, `gui_bearbeitung_beta.py`; translations; `tests/test_schlichten3d.py`,
+  `tests/test_restschlichten.py`, `tests/gui/szenario_unterkante.py`, `szenario_messstopp_einmal.py`;
+  Hilfe de/en; `docs/OFFENE_FRAGEN.md` (Frage 4), `docs/STATUS_SNAPSHOT.md`; `package.xml` 0.382.0.
+
+### ERGEBNIS
+- Rest an der Unterkante gemessen (Kuppel R 40, Ø 6: 1,39, gerechnet 1,40), gezeigt (Satz, rot im Teil),
+  Knopf Restschlichten (Kuppel R 25: 1,07 → 0,37 mm). Messhalt nur einmal. Workflow Bauer + Zweifler
+  (Sicherheit: angelegte Kugel mit dickem Schaft 0,78 mm ins Teil; Messstopp fehlte nach neuem Schruppen)
+  + Nacharbeit (behoben). Ohne Knopf alle 3D-Schlichtbahnen Satz für Satz gleich (17 Fälle).
+- Geprüft: test_schlichten3d, test_restschlichten, test_empfehlung, test_sprache, test_materialstand,
+  test_restmaterial, test_goldene_bahnen, test_testteil, test_pruefstand; Szenarien unterkante,
+  messstopp_einmal, zwei_schnitte_nut, beta_schritte (Bilder angesehen).
 ## P-2026-11-15-13 messmerkmal-nut
 
 ### EINGELESEN

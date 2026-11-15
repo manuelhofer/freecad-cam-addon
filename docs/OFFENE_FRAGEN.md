@@ -43,3 +43,12 @@ heute **hinten am Job**, also nach Senken und Gewinde aus demselben Schritt (wie
 und gemessen, bevor gesenkt wird, dafür ein Werkzeugwechsel mehr. Empfehlung: (b).
 *Warum nur Manuel:* Reihenfolge an der Maschine ist Werkstattpraxis.
 *Was die Antwort ändert:* wo „Anlegen“ die Folge einsortiert. Bis zur Antwort: (a).
+
+## 4. Rest an der Unterkante: Restschlichten von selbst anhaken? (seit 2026-11-15)
+
+**Die Frage:** Seit 0.382.0 sagt die Übersicht nach dem 3D-Schlichten „An der Unterkante bleibt ein Rest bis
+1,3 mm hoch“ (rot im Teil) und bietet „Restschlichten mit T5 anhaken“ an (Kuppel R 20, Kugel Ø 6 → mit
+Ø 2 bleiben 0,3 mm). Soll das Restschlichten in diesem Fall **von selbst angehakt** sein, wenn eine
+passende kleinere Kugel da ist (abwählbar)? Heute muss man den Verweis anklicken.
+*Warum nur Manuel:* Was das Addon ohne Vorgabe wählt, entscheidet er.
+*Was die Antwort ändert:* die Vorgabe des Hakens „Restschlichten“ bei Rest an der Unterkante.
