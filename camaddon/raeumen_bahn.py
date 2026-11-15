@@ -152,7 +152,7 @@ RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.R
 # die des Räumens, und „adaptiv_frei“ rechnete eine andere Bahn als die Vorschau davor.
 ADAPTIV_GEMERKT = 48
 _ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
-_BENUTZT = None  # die Schlüssel, die ein Lauf brauchte (adaptiv_benutzt_beginnen) – sonst None
+_BENUTZT = None  # {Schlüssel: Gebiete}, die ein Lauf brauchte (adaptiv_benutzt_beginnen)
 # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf – nur das Rauschen des
 # Rasters. Bis 0.350.4 waren es 2 %: Mit FreeCADs altem Adaptiv-Kern traf kein Weg je etwas, mit dem
 # neuen (Clipper2, Wochen-Build 2026.11.11) nahmen die Wege an Manuels Platte damit 85 mm³ im
@@ -2033,6 +2033,16 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     Räumen (materialstand, W-012) – was die Operationen davor weggenommen haben, fräst es nicht
     noch einmal, und die Bahn sagt, was noch zu tun ist. ValueError mit einem Satz, wenn es
     nicht geht."""
+    verteilt = []  # _Verteilt, wenn es Nebenrechner gibt: seine Daten gelten bis zum Ende
+    try:
+        return _planen(netz, werte, ebenen, konturen, schritt, stand, verteilt)
+    finally:
+        for v in verteilt:
+            v.vergessen()
+
+
+def _planen(netz, werte, ebenen, konturen, schritt, stand, verteilt_halter):
+    """planen(); `verteilt_halter` bekommt den _Verteilt, den planen() am Ende freigibt."""
     w = werte
     form = w.form
     r = float(form.radius)
@@ -2058,6 +2068,9 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         elif w.morph_tasche and w.variante in (None, RINGE):
             varianten = (*varianten, "morph")  # die Morph-Spirale (_ringe_morph_tasche) dazu
     huellen = {}  # je Fläche die Hüllfläche im Raster – für jede Variante dieselbe
+    verteilt = _Verteilt.anlegen(netz, w, folge, konturen, schritt, stand, huellen)
+    if verteilt is not None:
+        verteilt_halter.append(verteilt)
     ergebnisse = {}
     davor = []  # wer vorher an den Flächen weggenommen hat (für den Satz, wenn nichts zu tun ist)
 
@@ -2069,21 +2082,16 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         )
 
     def zeit_von(st):
-        return bn.zeit(
-            st.punkte,
-            w.vorschub if w.vorschub > 0 else 1000.0,
-            w.eintauchen or None,
-            eilgang=w.eilgang or None,
-            beschleunigung=w.beschleunigung or None,
-        )
+        return _zeit(st, w)
 
-    # Die Ringe gleichzeitig auf den Nebenrechnern, der Adaptiv-Kern derweil hier (sein Merker
-    # _ADAPTIV bleibt hier: Er rechnet bei gleicher Eingabe nicht dasselbe, und „adaptiv mit
-    # Freivorschub“ soll genau die Bahn der automatischen Wahl wiederholen). Ausgewertet wird in
-    # der Reihenfolge der Varianten – auch ein Fehler kommt, wo er nacheinander käme.
-    unterwegs, gemeinsam = _varianten_auftraege(
-        netz, w, ebenen, konturen, schritt, stand, varianten, folge, huellen
-    )
+    # Alle Varianten gleichzeitig auf den Nebenrechnern (_Verteilt), auch der Adaptiv-Kern: Sein
+    # Merker _ADAPTIV geht als Abzug mit, und was er gebraucht hat, kommt zurück – „adaptiv mit
+    # Freivorschub“ wiederholt so genau die Bahn der automatischen Wahl, das Anlegen die der
+    # genauen Vorschau. Ohne Nebenrechner hier, eine nach der anderen. Ausgewertet wird in der
+    # Reihenfolge der Varianten – auch ein Fehler kommt, wo er nacheinander käme.
+    unterwegs = {}
+    if verteilt is not None:
+        unterwegs = verteilt.varianten(w, ebenen, schritt, varianten, len(varianten) > 1)
     hier = {}
     try:
         for variante in varianten:
@@ -2093,14 +2101,14 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
                 except Exception as fehler:  # noqa: BLE001 – kommt an seiner Stelle
                     hier[variante] = fehler
     finally:
-        verteilt = _varianten_abholen(unterwegs, gemeinsam, huellen)
+        geliefert, zeiten = verteilt.abholen(unterwegs, huellen) if unterwegs else ({}, {})
     for variante in varianten:
         if variante in hier:
             gerechnet = hier[variante]
             if isinstance(gerechnet, Exception):
                 raise gerechnet
-        elif variante in verteilt:
-            gerechnet = verteilt[variante]
+        elif variante in geliefert:
+            gerechnet = geliefert[variante]
         else:
             gerechnet = rechnen(variante, w)  # der Arbeiter lieferte nicht: hier, mit seinem Fehler
         if gerechnet is None:
@@ -2109,7 +2117,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         davor = st.davor
         if st.flaechen == 0:
             continue
-        ergebnisse[variante] = (st, zeit_von(st))
+        ergebnisse[variante] = (st, zeiten[id(st)] if id(st) in zeiten else zeit_von(st))
     if not ergebnisse:
         if davor:
             from . import materialstand as mst  # erst hier: es bringt den Job mit
@@ -2185,33 +2193,18 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     verdichtet = 1
 
     def feiner(v):
-        """Die Variante v feiner gerechnet, so dass sie die Last hält – (_Stand, Teilung) oder
-        None. Die Ringe nur dort, wo sie sie sprengten: zwischen zwei Ringe Teilstücke
-        (_teilstuecke), zwei, drei, vier Schritte statt einem (Manuel, 2026-10-04: „wenn es nur
-        ein kurzes Stück ist nur diesen einen Bereich neu aufteilen“). Der Adaptiv-Kern nur auf
-        den Flächen, wo er eng arbeitet (_Stand.eng): mit 0,7 und 0,5 × seinem Schritt. Der Rest
-        der Bahn bleibt; gemessen wird mit dem ae der Vorgabe."""
-        if v == "inseln" and stellen.get(v):
-            orte = list(stellen[v])
-            versuche = [{"verdichten": None, "teilung": t} for t in (2, 3, 4)]
-        elif v == "adaptiv" and ergebnisse[v][0].eng:
-            orte = []
-            versuche = [{"adaptiv_enger": f} for f in ADAPTIV_ENGER]
-        else:
+        """Die Variante v feiner gerechnet, so dass sie die Last hält (_feiner_versuche) –
+        (_Stand, Teilung) oder None. Auf einem Nebenrechner, wenn die Varianten dort rechneten:
+        Die Versuche hängen aneinander, aber das Fenster wartet nicht (am Testteil mit „inseln“
+        5 s auf einem Kern). Liefert der Arbeiter nicht, hier."""
+        orte, eng = stellen.get(v), ergebnisse[v][0].eng
+        if not ((v == "inseln" and orte) or (v == "adaptiv" and eng)):
             return None
-        for versuch in versuche:
-            if "verdichten" in versuch:
-                versuch["verdichten"] = tuple(orte)
-            w_fein = dataclasses.replace(w, **versuch)
-            gerechnet = rechnen(v, w_fein)
-            if gerechnet is None or gerechnet[0] != v or gerechnet[1].flaechen == 0:
-                return None
-            noch = []
-            groesste, lang = last(gerechnet[1], w_fein, stand, noch)
-            if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
-                return gerechnet[1], versuch.get("teilung", 1)
-            orte += noch
-        return None
+        if verteilt is not None:
+            fein = verteilt.feiner(w, ebenen, schritt, v, len(varianten) > 1, orte, eng)
+            if fein is not _NICHT_VERTEILT:
+                return fein
+        return _feiner_versuche(rechnen, v, w, stand, r, orte, eng)
 
     gebremst = 0
     # Schnellere, die die Last nicht hielten, feiner gerechnet (Frage 2, Antwort A: „das was
@@ -2350,6 +2343,17 @@ def _tasche_um(ebene, konturen):
     return beste[0] if beste else None
 
 
+def _zeit(st, w):
+    """Die Zeit (min) der Bahn `st` mit den Werten `w` (bahn.zeit) – nach ihr fällt die Variante."""
+    return bn.zeit(
+        st.punkte,
+        w.vorschub if w.vorschub > 0 else 1000.0,
+        w.eintauchen or None,
+        eilgang=w.eilgang or None,
+        beschleunigung=w.beschleunigung or None,
+    )
+
+
 def _folge(ebenen, konturen):
     """[(Ebene, Tasche um sie oder None)] in der Reihenfolge des Räumens (Spezifikation
     Strategien 13.5, T1; Manuels Testteil): die offenen Flächen von unten nach oben – jede Stelle
@@ -2391,102 +2395,301 @@ def _variante(netz, w, folge, konturen, r, schritt, stand, huellen, variante, me
     return variante, st
 
 
-def variante_rechnen(netz, w, ebenen, konturen, schritt, stand, variante, mehrere, huellen=None):
+@dataclass(frozen=True)
+class _Draht:
+    """Ein Draht für einen Nebenrechner, bitgenau: binär (Part.Shape.exportBinary) statt als
+    BREP-Text (nebenrechner.Form). Der Text rundet: An Manuels Testteil lagen nach ihm Ecken,
+    BoundBox und discretize() von vier der fünf Konturen um die letzte Stelle daneben, und die
+    Bahn des Adaptiv-Kerns aus dem Nebenrechner wich an einem Punkt um 5e-15 mm von der im
+    Hauptprozess ab. So rechnet ein Arbeiter genau, was der Hauptprozess rechnete."""
+
+    daten: bytes
+
+    @classmethod
+    def von(cls, draht):
+        """_Draht aus einem Part.Wire."""
+        import os
+        import tempfile
+
+        nummer, pfad = tempfile.mkstemp(suffix=".brp")
+        os.close(nummer)
+        try:
+            draht.exportBinary(pfad)
+            with open(pfad, "rb") as datei:
+                return cls(datei.read())
+        finally:
+            with contextlib.suppress(OSError):
+                os.remove(pfad)
+
+    def form(self):
+        """Der Draht wieder als Part.Shape."""
+        import os
+        import tempfile
+
+        import Part
+
+        nummer, pfad = tempfile.mkstemp(suffix=".brp")
+        try:
+            with os.fdopen(nummer, "wb") as datei:
+                datei.write(self.daten)
+            form = Part.Shape()
+            form.importBinary(pfad)
+            return form
+        finally:
+            with contextlib.suppress(OSError):
+                os.remove(pfad)
+
+
+# Die Schalter, die man zum Vergleich umlegt: Ein Arbeiter rechnet mit denen des Hauptprozesses
+# (variante_rechnen, feiner_rechnen). Bis 0.384.1 galt ein umgelegter GENAU_ECKE nur für die
+# Varianten, die hier rechneten (test_raeumen legt ihn um, die vorgegebene Variante rechnete
+# hier); seit alle auf den Nebenrechnern rechnen, ginge er sonst ganz verloren.
+_SCHALTER = ("GENAU_ECKE", "LAST_VERTEILT")
+
+
+def _schalter():
+    """{Name: Wert} der Schalter (_SCHALTER) hier."""
+    return {name: globals()[name] for name in _SCHALTER}
+
+
+@contextlib.contextmanager
+def _mit_schaltern(schalter):
+    """Rechnet mit den Schaltern `schalter` ({Name: Wert}, _schalter) – danach wieder mit den
+    eigenen."""
+    vorher = _schalter()
+    globals().update({n: w for n, w in (schalter or {}).items() if n in _SCHALTER})
+    try:
+        yield
+    finally:
+        globals().update(vorher)
+
+
+def _ausgepackt(konturen):
+    """Die Konturen aus einem Nebenrechner-Auftrag (_konturen_verpackt) wieder mit Draht."""
+    ergebnis = []
+    for draht, k in konturen:
+        if isinstance(draht, _Draht):
+            draht = draht.form()
+        draht = draht.Wires[0] if draht.ShapeType == "Wire" else draht
+        ergebnis.append(dataclasses.replace(k, draht=draht))
+    return ergebnis
+
+
+def variante_rechnen(
+    netz, w, ebenen, konturen, schritt, stand, variante, mehrere, huellen=None, gemerkt=None,
+    schalter=None,
+):  # fmt: skip
     """Auch im Nebenrechner: _variante() für eine Variante – (ihr Ergebnis, die Hüllflächen
-    {Fläche: Raster}). `konturen`: [(Draht als Form, Kontur ohne Draht)] (ein Part.Wire lässt sich
-    nicht pickeln; _konturen_verpackt); `huellen`: die schon gerechneten (_huellen_vorab)."""
-    konturen = [
-        dataclasses.replace(k, draht=draht.Wires[0] if draht.ShapeType == "Wire" else draht)
-        for draht, k in konturen
-    ]
+    {Fläche: Raster}, was sie vom Adaptiv-Kern brauchte {Schlüssel: Gebiete}, ihre Zeit (_zeit)
+    oder None). Die Zeit gleich mit: an der Platte 200 × 200 je Variante 0,15 s, die sonst das
+    Fenster rechnete. `konturen`: [(Draht als _Draht, Kontur ohne Draht)] (ein Part.Wire lässt
+    sich nicht pickeln; _konturen_verpackt); `huellen`: die schon gerechneten (_huellen_vorab);
+    `gemerkt`: der Merker des Adaptiv-Kerns im Hauptprozess (_adaptiv_mitschreiben); `schalter`:
+    seine Schalter (_mit_schaltern)."""
+    konturen = _ausgepackt(konturen)
     folge = _folge(ebenen, konturen)
     huellen = dict(huellen or {})
-    ergebnis = _variante(
-        netz, w, folge, konturen, float(w.form.radius), schritt, stand, huellen, variante, mehrere
-    )
-    return ergebnis, huellen
+    with _mit_schaltern(schalter), _adaptiv_mitschreiben(gemerkt) as benutzt:
+        ergebnis = _variante(
+            netz, w, folge, konturen, float(w.form.radius), schritt, stand, huellen, variante,
+            mehrere,
+        )  # fmt: skip
+    zeit = None
+    if ergebnis is not None and ergebnis[1].flaechen:
+        zeit = _zeit(ergebnis[1], w)
+    return ergebnis, huellen, benutzt, zeit
+
+
+def feiner_rechnen(
+    netz, w, ebenen, konturen, schritt, stand, huellen, variante, mehrere, orte, eng, gemerkt=None,
+    schalter=None,
+):  # fmt: skip
+    """Auch im Nebenrechner: feiner() aus planen für eine Variante (_feiner_versuche) – (ihr
+    Ergebnis oder None, was es vom Adaptiv-Kern brauchte). Argumente wie variante_rechnen; `orte`
+    und `eng` wie bei _feiner_versuche."""
+    konturen = _ausgepackt(konturen)
+    folge = _folge(ebenen, konturen)
+    huellen = dict(huellen or {})
+    r = float(w.form.radius)
+
+    def rechnen(v, w_v):
+        return _variante(netz, w_v, folge, konturen, r, schritt, stand, huellen, v, mehrere)
+
+    with _mit_schaltern(schalter), _adaptiv_mitschreiben(gemerkt) as benutzt:
+        ergebnis = _feiner_versuche(rechnen, variante, w, stand, r, orte, eng)
+    return ergebnis, benutzt
+
+
+def _feiner_versuche(rechnen, v, w, stand, r, orte, eng):
+    """Die Variante v feiner gerechnet, so dass sie die Last hält – (_Stand, Teilung) oder
+    None. Die Ringe („inseln“) nur dort, wo sie sie sprengten (`orte`, [(x, y)]): zwischen zwei
+    Ringe Teilstücke (_teilstuecke), zwei, drei, vier Schritte statt einem (Manuel, 2026-10-04:
+    „wenn es nur ein kurzes Stück ist nur diesen einen Bereich neu aufteilen“). Der Adaptiv-Kern
+    nur, wo er eng arbeitet (`eng`, _Stand.eng): mit 0,7 und 0,5 × seinem Schritt. Der Rest der
+    Bahn bleibt; gemessen wird mit dem ae der Vorgabe. `rechnen(Variante, Werte)` wie in planen.
+    Ein Versuch hängt am vorigen (was der sprengte, kommt zu `orte`) – sie laufen nacheinander."""
+    if v == "inseln" and orte:
+        orte = list(orte)
+        versuche = [{"verdichten": None, "teilung": t} for t in (2, 3, 4)]
+    elif v == "adaptiv" and eng:
+        orte = []
+        versuche = [{"adaptiv_enger": f} for f in ADAPTIV_ENGER]
+    else:
+        return None
+    for versuch in versuche:
+        if "verdichten" in versuch:
+            versuch["verdichten"] = tuple(orte)
+        w_fein = dataclasses.replace(w, **versuch)
+        gerechnet = rechnen(v, w_fein)
+        if gerechnet is None or gerechnet[0] != v or gerechnet[1].flaechen == 0:
+            return None
+        noch = []
+        groesste, lang = last(gerechnet[1], w_fein, stand, noch)
+        if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
+            return gerechnet[1], versuch.get("teilung", 1)
+        orte += noch
+    return None
 
 
 def _konturen_verpackt(konturen, nr):
-    """Die Konturen für einen Nebenrechner: [(Draht als nebenrechner.Form, Kontur ohne Draht)]."""
-    return [(nr.Form.von(k.draht), dataclasses.replace(k, draht=None)) for k in konturen]
+    """Die Konturen für einen Nebenrechner: [(Draht als _Draht, Kontur ohne Draht)] – als
+    nebenrechner.Form (BREP-Text, rundet), wenn das FreeCAD keinen binären Weg kennt."""
+    verpackt = []
+    for k in konturen:
+        try:
+            draht = _Draht.von(k.draht)
+        except Exception:  # noqa: BLE001 – ohne exportBinary: wie bis 0.384.1
+            draht = nr.Form.von(k.draht)
+        verpackt.append((draht, dataclasses.replace(k, draht=None)))
+    return verpackt
 
 
-def _varianten_auftraege(netz, w, ebenen, konturen, schritt, stand, varianten, folge, huellen):
-    """({Variante: Auftrag}, [Schlüssel der gemeinsamen Daten]) – die Ringe (alle Varianten außer
-    „adaptiv“) je auf einem Nebenrechner, gleichzeitig (sie hängen nicht voneinander ab; am
-    Testteil rechneten die vier Varianten nacheinander 6,4 s, P-2026-10-11-77). Leer, wenn es
-    nichts zu verteilen gibt oder keine Nebenrechner."""
-    import secrets
+class _Verteilt:
+    """Die Rechnungen eines Räumens auf den Nebenrechnern (planen): einmal das Teil, der
+    Materialstand und die Hüllflächen als gemeinsame Daten, die Konturen verpackt – dann je
+    Variante ein Auftrag (variante_rechnen) und für feiner() danach einer je Variante
+    (feiner_rechnen), mit denselben Daten. `vergessen()` am Ende gibt sie frei.
 
-    fremd = [v for v in varianten if v != "adaptiv"]
-    if len(varianten) < 2 or not fremd:
-        return {}, []
-    try:
-        from . import nebenrechner as nr
-    except ImportError:
-        return {}, []
-    auftraege, schluessel = {}, []
-    try:
-        pool = nr.pool()
-        if not pool.verfuegbar():
-            return {}, []
-        _huellen_vorab(netz, w, folge, float(w.form.radius), schritt, huellen)
+    Alle Varianten rechnen so, auch der Adaptiv-Kern und eine vorgegebene allein: Bis 0.384.1
+    rechnete „adaptiv“ im Hauptprozess, weil sein Merker (_ADAPTIV) dort liegt – am Testteil
+    3,5 s, an der Platte 200 × 200 5,4 s CPU auf einem Kern im Fenster (der Kern selbst 3,1 und
+    4,6 s, mit Oberfläche auf einem Nebenrechner, Lage für Lage gewartet; das Raster davor, die
+    Nadeln, das Abfahren seiner Gebiete hier), die vorgegebene „inseln“ am Testteil 1 s und
+    feiner() danach 5 s. Der Merker geht als Abzug mit, was der Arbeiter vom Kern brauchte, kommt
+    in den Merker hier zurück (_adaptiv_mitschreiben): Rechnet danach jemand hier dasselbe, fährt
+    er dieselbe Bahn."""
+
+    def __init__(self, pool, nr, netz, stand, huellen, konturen):
+        import secrets
+
+        self.pool, self.nr = pool, nr
+        self.schluessel = []
         gemeinsam = []
         for name, wert in (("netz", netz), ("stand", stand), ("huellen", dict(huellen))):
             if wert is None:
                 gemeinsam.append(None)
                 continue
             kennung = f"raeumen-{name}-{secrets.token_hex(8)}"
-            schluessel.append(kennung)
+            self.schluessel.append(kennung)
             gemeinsam.append(pool.gemeinsam(kennung, wert))
-        verpackt = _konturen_verpackt(konturen, nr)
-        for v in fremd:
-            auftraege[v] = pool.auftrag(
-                "raeumen_bahn",
-                "variante_rechnen",
-                gemeinsam[0],
-                w,
-                ebenen,
-                verpackt,
-                schritt,
-                gemeinsam[1],
-                v,
-                True,
-                gemeinsam[2],
-            )
-    except nr.Fehler:
-        for a in auftraege.values():
-            a.abbrechen()
-        for kennung in schluessel:
-            pool.vergessen(kennung)
-        return {}, []
-    return auftraege, schluessel
+        self.netz, self.stand, self.huellen = gemeinsam
+        self.konturen = _konturen_verpackt(konturen, nr)
+
+    @classmethod
+    def anlegen(cls, netz, w, folge, konturen, schritt, stand, huellen):
+        """_Verteilt – oder None ohne Nebenrechner. Rechnet vorher die Hüllflächen
+        (_huellen_vorab) in `huellen`."""
+        try:
+            from . import nebenrechner as nr
+        except ImportError:
+            return None
+        try:
+            pool = nr.pool()
+            if not pool.verfuegbar():
+                return None
+            _huellen_vorab(netz, w, folge, float(w.form.radius), schritt, huellen)
+            return cls(pool, nr, netz, stand, huellen, konturen)
+        except nr.Fehler:
+            return None
+
+    def auftrag(self, funktion, w, ebenen, schritt, *weiter, gemerkt=None):
+        """Ein Auftrag `funktion` (variante_rechnen, feiner_rechnen) mit den gemeinsamen Daten."""
+        return self.pool.auftrag(
+            "raeumen_bahn",
+            funktion,
+            self.netz,
+            w,
+            ebenen,
+            self.konturen,
+            schritt,
+            self.stand,
+            *weiter,
+            gemerkt=gemerkt,
+            schalter=_schalter(),
+        )
+
+    def varianten(self, w, ebenen, schritt, varianten, mehrere):
+        """{Variante: Auftrag} – je Variante einer, gleichzeitig (sie hängen nicht voneinander ab;
+        am Testteil rechneten die vier nacheinander 6,4 s, P-2026-10-11-77). Leer, wenn der Pool
+        nicht annimmt."""
+        auftraege = {}
+        try:
+            for v in varianten:
+                gemerkt = dict(_ADAPTIV) if v == "adaptiv" else None
+                auftraege[v] = self.auftrag(
+                    "variante_rechnen", w, ebenen, schritt, v, mehrere, self.huellen,
+                    gemerkt=gemerkt,
+                )  # fmt: skip
+        except self.nr.Fehler:
+            for a in auftraege.values():
+                a.abbrechen()
+            return {}
+        return auftraege
+
+    def abholen(self, auftraege, huellen):
+        """({Variante: was _variante() ergab}, {id(_Stand): seine Zeit}) aus varianten() – wartet
+        (das Fenster zeichnet dabei neu); ihre Hüllflächen kommen in `huellen`, was sie vom
+        Adaptiv-Kern brauchten, in den Merker hier. Was ein Arbeiter nicht lieferte, fehlt – das
+        rechnet planen() dann selbst, mit genau seinem Fehler."""
+        with contextlib.suppress(self.nr.Fehler):  # die anderen gelten
+            self.pool.warten(list(auftraege.values()), zwischendurch=self._zwischendurch)
+        ergebnisse, zeiten = {}, {}
+        for v, a in auftraege.items():
+            if a.fertig and a.fehler is None and not a.abgebrochen:
+                ergebnisse[v], ihre, benutzt, zeit = a.ergebnis
+                for name, huelle in ihre.items():
+                    huellen.setdefault(name, huelle)
+                adaptiv_merken(benutzt, gebraucht=True)
+                if zeit is not None:
+                    zeiten[id(ergebnisse[v][1])] = zeit
+        return ergebnisse, zeiten
+
+    def feiner(self, w, ebenen, schritt, v, mehrere, orte, eng):
+        """feiner_rechnen auf einem Nebenrechner – (_Stand, Teilung) oder None wie
+        _feiner_versuche; _NICHT_VERTEILT, wenn der Arbeiter nicht lieferte."""
+        try:
+            orte = list(orte or ())
+            auftrag = self.auftrag(
+                "feiner_rechnen", w, ebenen, schritt, self.huellen, v, mehrere, orte, eng,
+                gemerkt=dict(_ADAPTIV) if v == "adaptiv" else None,
+            )  # fmt: skip
+            ergebnis, benutzt = self.pool.warten([auftrag], zwischendurch=self._zwischendurch)[0]
+        except self.nr.Fehler:
+            return _NICHT_VERTEILT
+        adaptiv_merken(benutzt, gebraucht=True)
+        return ergebnis
+
+    def _zwischendurch(self):
+        return self.nr.ereignisse_ohne_eingaben()
+
+    def vergessen(self):
+        """Gibt die gemeinsamen Daten frei – hier und in den Arbeitern."""
+        for kennung in self.schluessel:
+            self.pool.vergessen(kennung)
+        self.schluessel = []
 
 
-def _varianten_abholen(auftraege, gemeinsam, huellen):
-    """{Variante: was _variante() ergab} aus _varianten_auftraege – wartet (das Fenster zeichnet
-    dabei neu); ihre Hüllflächen kommen in `huellen` (für feiner() danach). Was ein Arbeiter nicht
-    lieferte, fehlt – das rechnet planen() dann selbst, mit genau seinem Fehler."""
-    if not auftraege:
-        return {}
-    from . import nebenrechner as nr
-
-    pool = nr.pool()
-    try:
-        pool.warten(list(auftraege.values()), zwischendurch=nr.ereignisse_ohne_eingaben)
-    except nr.Fehler:
-        pass  # die anderen gelten; die gescheiterte rechnet planen() selbst
-    finally:
-        for kennung in gemeinsam:
-            pool.vergessen(kennung)
-    ergebnisse = {}
-    for v, a in auftraege.items():
-        if a.fertig and a.fehler is None and not a.abgebrochen:
-            ergebnisse[v], ihre = a.ergebnis
-            for name, huelle in ihre.items():
-                huellen.setdefault(name, huelle)
-    return ergebnisse
+_NICHT_VERTEILT = object()  # _Verteilt.feiner: der Arbeiter lieferte nicht – dann hier
 
 
 def _feld_der_flaeche(netz, w, ebene, tasche, r, schritt, huellen=None):
@@ -3212,27 +3415,56 @@ def adaptiv_benutzt_beginnen():
     – für die genaue Bahn des Räumens schon während der Vorschau (bearbeitung_vorschau
     .raeumen_genau, W-036)."""
     global _BENUTZT
-    _BENUTZT = set()
+    _BENUTZT = {}
 
 
 def adaptiv_benutzt():
     """{Schlüssel: Gebiete} – was seit adaptiv_benutzt_beginnen gebraucht wurde; danach merkt er
     sich nichts mehr."""
     global _BENUTZT
-    ergebnis = {k: _ADAPTIV[k] for k in (_BENUTZT or ()) if k in _ADAPTIV}
+    ergebnis = dict(_BENUTZT or {})
     _BENUTZT = None
     return ergebnis
 
 
-def adaptiv_merken(eintraege):
+def adaptiv_merken(eintraege, gebraucht=False):
     """Nimmt Ergebnisse des Adaptiv-Kerns aus einem Nebenrechner in _ADAPTIV auf (adaptiv_benutzt
     dort): Rechnet das Räumen hier mit genau dieser Eingabe, trifft es sie – und fährt genau die
-    Bahn, die der Nebenrechner gerechnet hat (der Kern rechnet nie zweimal dasselbe)."""
-    for schluessel, gebiete in (eintraege or {}).items():
+    Bahn, die der Nebenrechner gerechnet hat (der Kern rechnet nie zweimal dasselbe). `gebraucht`:
+    Sie gehören zu der Bahn, die hier gerade entsteht – merkt sich ein Lauf, was er braucht
+    (adaptiv_benutzt_beginnen), zählen sie dazu: Die genaue Bahn der Vorschau (raeumen_genau)
+    rechnet die Varianten selbst auf Nebenrechnern."""
+    eintraege = eintraege or {}
+    for schluessel, gebiete in eintraege.items():
         _ADAPTIV[schluessel] = gebiete
         _ADAPTIV.move_to_end(schluessel)
     while len(_ADAPTIV) > ADAPTIV_GEMERKT:
         _ADAPTIV.popitem(last=False)
+    if gebraucht and _BENUTZT is not None:
+        _BENUTZT.update(eintraege)
+
+
+@contextlib.contextmanager
+def _adaptiv_mitschreiben(gemerkt=None):
+    """Für eine Rechnung im Nebenrechner (variante_rechnen, feiner_rechnen): nimmt erst den Merker
+    des Hauptprozesses auf (`gemerkt`, ein Abzug von _ADAPTIV) – was er schon kennt, etwa aus der
+    genauen Bahn der Vorschau, nimmt der Arbeiter genau so, statt den Kern neu zu fragen (der
+    rechnet nie zweimal dasselbe) – und liefert danach in dem Wörterbuch, das es gibt, was die
+    Rechnung vom Kern brauchte: Der Hauptprozess übernimmt es (adaptiv_merken), und rechnet er
+    danach selbst damit, fährt er genau diese Bahn. Verschachtelt sicher: Ein Arbeiter rechnet,
+    während er auf seine Unteraufträge wartet, auch selbst welche davon (Unterpool.warten) – was
+    die äußere Rechnung mitschreibt, bleibt, und das hier Gebrauchte zählt dort mit."""
+    global _BENUTZT
+    adaptiv_merken(gemerkt)
+    aussen, _BENUTZT = _BENUTZT, {}
+    benutzt = {}
+    try:
+        yield benutzt
+    finally:
+        benutzt.update(_BENUTZT)
+        if aussen is not None:
+            aussen.update(benutzt)
+        _BENUTZT = aussen
 
 
 def _adaptiv_gebiete(material, grenzen, einstellungen):
@@ -3526,16 +3758,18 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
             )
         )
         schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
-        if _BENUTZT is not None:
-            _BENUTZT.add(schluessel)
         gebiete = _ADAPTIV.get(schluessel)
         if gebiete is not None:
             _ADAPTIV.move_to_end(schluessel)
-            return gebiete
-        gebiete = _adaptiv_gebiete(material, grenzen, einstellungen)
-        _ADAPTIV[schluessel] = gebiete
-        while len(_ADAPTIV) > ADAPTIV_GEMERKT:
-            _ADAPTIV.popitem(last=False)
+        else:
+            gebiete = _adaptiv_gebiete(material, grenzen, einstellungen)
+            _ADAPTIV[schluessel] = gebiete
+            while len(_ADAPTIV) > ADAPTIV_GEMERKT:
+                _ADAPTIV.popitem(last=False)
+        if _BENUTZT is not None:
+            # Mit dem Ergebnis selbst, nicht nur dem Schlüssel: Braucht ein Lauf mehr als
+            # ADAPTIV_GEMERKT, fiele ein frühes sonst aus dem Merker, bevor es abgeholt ist.
+            _BENUTZT[schluessel] = gebiete
         return gebiete
 
     # Findet der Kern mit der Helix ADAPTIV_HELIX keinen Anfang („Start point not found“: eine
