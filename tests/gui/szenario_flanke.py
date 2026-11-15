@@ -125,7 +125,7 @@ def schritte(h):
     flanke, s3 = panel.flanke, panel.schlichten3d
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
         300000,
     )
     yield from h.warte_auf(lambda: flanke.zeit is not None and s3.zeit is not None, 300000)

@@ -221,7 +221,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             w_nut = dataclasses.replace(w, rest=tiefe)  # aus dem Vollen: ab der Oberkante
         if not grund:
             try:
-                bahn = hb.planen(nut, w_nut)
+                bahn = hb.planen(nut, w_nut, mit_zeit=False)  # die Zeit braucht hier keiner
             except ValueError as fehler:
                 grund = str(fehler)
         if grund:
@@ -362,17 +362,20 @@ class Hobelvorschau:
     nicht_passend: list  # [(Grund der Nut, Satz)] – gewählt, aber nicht zu hobeln
     namen: list  # die Gründe, die gehobelt werden – sie sind danach fertig
     zeit: float  # Minuten
+    geplant: list = None  # aus einem Nebenrechner: hobeln_bahn.geplant() fürs Fenster
+    zeit_mit: tuple = None  # (Vorschub, Eintauchen) mm/min, mit denen `zeit` gerechnet ist
 
 
 def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumlaeufe=1,
              vorschub=0.0, eintauchen=0.0, wand_aufmass=0.0, vorgefraest=None, oben=None,
              aus_dem_vollen=True):  # fmt: skip
-    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen() (kein
-    Nebenrechner). Nuten, die nicht gehen, mit ihrem Satz in `nicht_passend`; geht keine,
-    ValueError mit dem ersten Satz. `oben`: die Oberkante des Materials über den Nuten (None: das
-    Rohteil). `aus_dem_vollen`: die ganze Nut ab `oben`; sonst nur `rest` über dem Grund, und
-    `vorgefraest` sind die Gründe, die ein Block davor bis auf den Rest fräst (None: nicht
-    prüfen) – die anderen gehen nicht; `wand_aufmass` zählt nur dann."""
+    """Die Hobelbahn für den Assistenten (gui_bearbeitung) – je gewählte Nut planen(); im Fenster
+    in einem Nebenrechner (bearbeitung_vorschau.hobeln). Nuten, die nicht gehen, mit ihrem Satz
+    in `nicht_passend`; geht keine, ValueError mit dem ersten Satz. `oben`: die Oberkante des
+    Materials über den Nuten (None: das Rohteil). `aus_dem_vollen`: die ganze Nut ab `oben`;
+    sonst nur `rest` über dem Grund, und `vorgefraest` sind die Gründe, die ein Block davor bis
+    auf den Rest fräst (None: nicht prüfen) – die anderen gehen nicht; `wand_aufmass` zählt nur
+    dann."""
     form_teil = vs._teil(job.Model.Group)
     gewaehlt = list(flaechen)
     alle = [n for n in hb.alle_hobelnuten(form_teil) if set(n.flaechen) & set(gewaehlt)]
@@ -414,8 +417,11 @@ def vorschau(job, werkzeug, flaechen, zustellung=ZUSTELLUNG, rest=REST, leerumla
         fehler = ValueError(nicht[0][1])
         fehler.daten = {"waende": waende}  # der Assistent bietet „Schlichten danach“ an
         raise fehler
-    zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None)
-    return Hobelvorschau(punkte, je_nut, nicht, namen_, zeit)
+    if len(je_nut) == 1:  # dieselben Punkte, dieselbe Zeit: nicht noch einmal (0,6 s am Deckel)
+        zeit = je_nut[0]["zeit"]
+    else:
+        zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None)
+    return Hobelvorschau(punkte, je_nut, nicht, namen_, zeit, zeit_mit=(w.vorschub, w.eintauchen))
 
 
 def werkzeug_vorschlag(nuten, tiefe=None):

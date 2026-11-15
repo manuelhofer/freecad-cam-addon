@@ -233,10 +233,21 @@ def befehle_gefasst(befehle, toleranz=TOLERANZ, stellen=STELLEN):
 def gefasst(befehle, toleranz=TOLERANZ, stellen=STELLEN):
     """befehle_gefasst Stück für Stück (ein Generator): Wer nur den Anfang braucht – die Vorschau
     im Fenster –, rechnet nur den Anfang."""
+    folge = 0  # so viele G1 hintereinander
+    kette_moeglich = False
     for name, werte in befehle:
-        if name.upper() in NICHT_MIT or any(a in werte for a in NICHT_ADRESSEN):
+        gross = name.upper()
+        if gross in NICHT_MIT or any(a in werte for a in NICHT_ADRESSEN):
             yield from befehle
             return
+        folge = folge + 1 if gross in GERADE else 0
+        kette_moeglich = kette_moeglich or folge >= MIN_STUECKE
+    if not kette_moeglich:
+        # Nie MIN_STUECKE G1 hintereinander: Nichts lässt sich fassen – dieselben Befehle, ohne sie
+        # einzeln durchzugehen. Beim Hobeln steht vor jedem Satz der Spindelwinkel (eine Notiz):
+        # am Deckel 334 652 Befehle, ein Drittel der Zeit des Programms (gemessen 2026-11-15).
+        yield from befehle
+        return
     ort = {"X": None, "Y": None, "Z": None}
     f_gilt = None
     kette = []  # die Befehle der laufenden Kette

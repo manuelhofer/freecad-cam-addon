@@ -4776,7 +4776,7 @@ class _Hobeln(_Strategie):
     der Nut statt quer. Vorgefräst ist sie bis auf den Rest über dem Grund (das Räumen lässt ihn
     dort, BearbeitungPanel._zusatz). Nicht von sich aus angehakt: ob gehobelt wird, entscheidet
     man selbst (Strategiewahl). Fehlt ein Stoßwerkzeug, legt es ein Knopf an (_hobeln_angebot).
-    Die Vorschau rechnet hier – am Deckel unter 0,1 s: kein Nebenrechner."""
+    Die Vorschau rechnet ein Nebenrechner (hintergrund)."""
 
     kennung = "hobeln"
     gemerkt = GEMERKT_STOSSWERKZEUG
@@ -4857,21 +4857,36 @@ class _Hobeln(_Strategie):
     def _leer(werte):
         return max(int(round(float(werte.get("leerumlaeufe", 1.0) or 0.0))), 0)
 
+    def _weiter(self, werte):
+        """Die Schlüsselwörter für hobeln.vorschau – reine Daten (auch für den Nebenrechner)."""
+        return {
+            "zustellung": werte["zustellung"],
+            "rest": werte["rest"],
+            "leerumlaeufe": self._leer(werte),
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "wand_aufmass": float(werte.get("wand_aufmass", 0.0) or 0.0),
+            "vorgefraest": set(werte["vorgefraest"]) if "vorgefraest" in werte else None,
+            "oben": werte.get("oben"),
+            "aus_dem_vollen": not werte.get("vorfraesen"),
+        }
+
     def vorschau(self, job, werkzeug, werte, flaechen):
-        return hop.vorschau(
-            job,
-            werkzeug,
-            flaechen,
-            zustellung=werte["zustellung"],
-            rest=werte["rest"],
-            leerumlaeufe=self._leer(werte),
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            wand_aufmass=float(werte.get("wand_aufmass", 0.0) or 0.0),
-            vorgefraest=set(werte["vorgefraest"]) if "vorgefraest" in werte else None,
-            oben=werte.get("oben"),
-            aus_dem_vollen=not werte.get("vorfraesen"),
-        )
+        return hop.vorschau(job, werkzeug, flaechen, **self._weiter(werte))
+
+    def zeit(self, bahn, vorschub, eintauchen):
+        """Die Zeit der Vorschau – schon gerechnet, wenn mit demselben Vorschub (bn.zeit über die
+        167 000 Sätze am Deckel stand sonst 0,5 s im Fenster)."""
+        if getattr(bahn, "zeit_mit", None) == (float(vorschub), float(eintauchen or 0.0)):
+            return bahn.zeit
+        return super().zeit(bahn, vorschub, eintauchen)
+
+    def hintergrund(self, werkzeug, werte, flaechen):
+        """Die Vorschau in einem Nebenrechner (bearbeitung_vorschau.hobeln): Im Fenster stand es
+        dafür am Deckel 2,3 bis 3,2 s je geänderter Eingabe (gemessen 2026-11-15; bis 0.383.2
+        hieß es hier „unter 0,1 s“). Die Spurlagen kommen mit zurück (hobeln_bahn.geplant), so
+        rechnet „Anlegen“ sie nicht noch einmal."""
+        return "hobeln", (werkzeug, list(flaechen), self._weiter(werte))
 
     def ergebnis_text(self, bahn, zeit):
         """Je Nut eine Zeile – „Face19: 3,6 breit, 2,7 tief, 265 lang, kleinster Radius 12 – 6
@@ -5647,6 +5662,8 @@ class _Block:
                 flb.geplant_merken(self.vorschau)
             elif isinstance(self.vorschau, hsb.Bahn):
                 hsb.geplant_merken(self.vorschau)
+            elif isinstance(self.vorschau, hop.Hobelvorschau):
+                hbn.geplant_merken(self.vorschau.geplant)
         else:
             try:
                 self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)

@@ -689,9 +689,33 @@ def _weich(stellen, versaetze, d_spur):
     return [d_spur + v for v in s]
 
 
+# _versatz_erlaubt: (Nutbreite, Klingenbreite, Länge, |Radius|, Schritt, Freiwinkel) → Versatz. Die
+# Stellen einer Nut haben nur wenige verschiedene Radien (am Deckel 101, gerundet 2), gefragt wurde
+# je Stelle und Spur: 2200 Mal je planen(), mit 40 Halbierungen zu je einem _ueberstand – die halbe
+# Zeit von planen() am Deckel (1,4 von 2,5 s, gemessen 2026-11-15).
+_ERLAUBT = OrderedDict()
+ERLAUBT_GEMERKT = 4096
+
+
 def _versatz_erlaubt(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0):
     """So weit darf die Spur in einer Kurve mit `radius` (der Mittellinie) zur Außenwand hin liegen,
-    damit die Klinge dort (_ueberstand, außen) vor ihr bleibt – −inf: nirgends."""
+    damit die Klinge dort (_ueberstand, außen) vor ihr bleibt – −inf: nirgends. Gemerkt (_ERLAUBT,
+    genau dieselben Werte)."""
+    schluessel = (
+        float(nut.breite), float(breite), float(laenge), abs(float(radius)), float(schritt),
+        float(freiwinkel),
+    )  # fmt: skip
+    wert = _ERLAUBT.get(schluessel)
+    if wert is None:
+        wert = _versatz_rechnen(nut, breite, laenge, radius, schritt, freiwinkel)
+        _ERLAUBT[schluessel] = wert
+        while len(_ERLAUBT) > ERLAUBT_GEMERKT:
+            _ERLAUBT.popitem(last=False)
+    return wert
+
+
+def _versatz_rechnen(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0):
+    """_versatz_erlaubt ohne Merken."""
     r = abs(radius)
     if not math.isfinite(r):
         return math.inf
@@ -758,9 +782,57 @@ def _spur_planen(nut, w, stellen, d_spur, kruemmung, mehrere):
     )  # fmt: skip
 
 
-def planen(nut, werte):
+# Die Spurlagen je Nut und Klinge (_spurlagen) – auch die aus den Nebenrechnern (geplant_merken):
+# „Anlegen“ rechnete sonst im Fenster noch einmal, was die Vorschau gerade geplant hatte (am Deckel
+# 3,1 s Neuberechnung der Operation, gemessen 2026-11-15).
+_SPURLAGEN = OrderedDict()
+SPURLAGEN_GEMERKT = 16
+
+
+def _spurlagen_schluessel(nut, w):
+    """Wovon die Spurlagen abhängen: die Nut und die Klinge, nicht Höhen, Vorschub, Umläufe."""
+    return (nut, float(w.breite), float(w.laenge), max(float(w.schritt), 0.05), float(w.freiwinkel))
+
+
+def _spurlagen(nut, w):
+    """(Stellen ab dem Anfang, m, gerade, Spuren, [Spur je Spur]) für planen() – gemerkt."""
+    schluessel = _spurlagen_schluessel(nut, w)
+    gemerkt = _SPURLAGEN.get(schluessel)
+    if gemerkt is not None:
+        _SPURLAGEN.move_to_end(schluessel)
+        return gemerkt
+    stellen = _stellen_je_stueck(nut, max(w.schritt, 0.05))
+    c, m, gerade = _anfang(nut, stellen)
+    stellen = stellen[c:] + stellen[:c]  # die Stelle, an der die Klinge ins Material kommt, zuerst
+    spuren = _spuren(nut, w.breite)
+    kruemmung = _kruemmung(stellen, w.laenge) if len(spuren) > 1 else None
+    reihen = [_spur_planen(nut, w, stellen, d, kruemmung, len(spuren) > 1) for d in spuren]
+    ergebnis = (stellen, m, gerade, spuren, reihen)
+    _SPURLAGEN[schluessel] = ergebnis
+    while len(_SPURLAGEN) > SPURLAGEN_GEMERKT:
+        _SPURLAGEN.popitem(last=False)
+    return ergebnis
+
+
+def geplant():
+    """Die gemerkten Spurlagen [(Schlüssel, Spurlagen)] – ein Nebenrechner gibt sie mit der
+    Vorschau zurück, das Fenster nimmt sie auf (geplant_merken)."""
+    return list(_SPURLAGEN.items())
+
+
+def geplant_merken(eintraege):
+    """Merkt Spurlagen aus geplant() (eines Nebenrechners) – planen() trifft sie dann."""
+    for schluessel, wert in eintraege or ():
+        _SPURLAGEN[schluessel] = wert
+        _SPURLAGEN.move_to_end(schluessel)
+    while len(_SPURLAGEN) > SPURLAGEN_GEMERKT:
+        _SPURLAGEN.popitem(last=False)
+
+
+def planen(nut, werte, mit_zeit=True):
     """Die Hobelbahn (Hobelbahn) für die Nut `nut` (Hobelnut) mit den Werten `werte`
-    (Hobelwerte). ValueError mit einem Satz, wenn es nicht geht.
+    (Hobelwerte). ValueError mit einem Satz, wenn es nicht geht. Ohne `mit_zeit` ist die Zeit nan
+    (die Operation braucht nur die Punkte; über alle 167 000 Sätze am Deckel 0,6 s).
 
     Der Ablauf: Über dem Anfang (_anfang: auf dem längsten geraden Stück, sonst an der flachsten
     Stelle) dreht die Spindel in Richtung, im Eilgang hinab bis über die Nut, im Eintauchvorschub
@@ -786,14 +858,9 @@ def planen(nut, werte):
     z_oben_material = nut.z_boden + max(w.rest, 0.0)  # aus dem Vollen auch über der Nut (Rohteil)
     if z_oben_material < z_ende:
         z_oben_material = z_ende
-    stellen = _stellen_je_stueck(nut, max(w.schritt, 0.05))
-    c, m, gerade = _anfang(nut, stellen)
-    stellen = stellen[c:] + stellen[:c]  # die Stelle, an der die Klinge ins Material kommt, zuerst
+    stellen, m, gerade, spuren, reihen = _spurlagen(nut, w)
     n = len(stellen)
     hoch = max(nut.z_oben, z_oben_material + UEBER_MATERIAL) + w.sicherheit
-    spuren = _spuren(nut, w.breite)
-    kruemmung = _kruemmung(stellen, w.laenge) if len(spuren) > 1 else None
-    reihen = [_spur_planen(nut, w, stellen, d, kruemmung, len(spuren) > 1) for d in spuren]
     punkte, winkel_, spur_, stelle_ = [], [], [], []
     letzter_winkel = None
 
@@ -870,5 +937,5 @@ def planen(nut, werte):
             lage = (reihe[0][0], reihe[0][1], z_bei(j, k * umlauf))
     setze((True, lage[0], lage[1], w.sicher, False), None)  # senkrecht hinaus
     laenge = bn.laenge(punkte)
-    zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None)
+    zeit = bn.zeit(punkte, w.vorschub, w.eintauchen or None) if mit_zeit else math.nan
     return Hobelbahn(punkte, winkel_, len(spuren), gesamt, laenge, zeit, spur_, stelle_, gerade)

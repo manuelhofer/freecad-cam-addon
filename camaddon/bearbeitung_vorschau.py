@@ -94,6 +94,20 @@ def schlichten3d_wegkippen(dokument, job_name, werkzeug, argumente, weiter, zeit
     return bahn, _frei(argumente[0], bahn, zeit, job)
 
 
+def hobeln(dokument, job_name, werkzeug, flaechen, weiter, zeit):
+    """(Hobelvorschau, None) – hobeln.vorschau mit dem Stoßwerkzeug `werkzeug` (werkzeuge.Werkzeug)
+    über die Flächen `flaechen`, `weiter` ihre Schlüsselwörter. Die Spurlagen gehen mit
+    (Hobelvorschau.geplant, hobeln_bahn.geplant_merken): „Anlegen“ trifft sie im Fenster. Die
+    Hobelbahn fährt nicht im Freien (`zeit` ist None)."""
+    from . import hobeln as hop
+    from . import hobeln_bahn as hb
+
+    job = _job(dokument, job_name)
+    vorschau = hop.vorschau(job, werkzeug, flaechen, **weiter)
+    vorschau.geplant = hb.geplant()
+    return vorschau, _frei(None, vorschau, zeit, job)
+
+
 def empfehlung(dokument, job_name, daten, ecken, kennung, aufnahme, unterkante=None):
     """(Empfehlung, Empfehlung für die Ecken, für die Unterkante) – neben der Vorschau des
     3D-Schlichtens, in einem eigenen Auftrag (schlichten3d._empfehlung, _ecken_empfehlung,

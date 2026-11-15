@@ -75,7 +75,7 @@ def schritte(h):
     bohren, r3, s3 = panel.bohren, panel.schruppen3d, panel.schlichten3d
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
         400000,
     )
     yield 3000

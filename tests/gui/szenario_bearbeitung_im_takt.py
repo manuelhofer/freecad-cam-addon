@@ -65,7 +65,7 @@ def schritte(h):
     beginn = time.perf_counter()
     yield from h.warte_auf(
         lambda: not panel.vorschau_laeuft()
-        and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke),
+        and all(b.vorschau is not None or not b.aktiv() or b.hinweis.text() for b in panel.bloecke),
         300000,
     )
     dauer = time.perf_counter() - beginn
