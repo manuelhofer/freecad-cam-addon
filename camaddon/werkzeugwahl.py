@@ -144,12 +144,64 @@ def katalog_werkzeuge():
     """Alle Werkzeuge des Katalogs der Hersteller, nur mit Maßen (_Katalogwerkzeug; einmal gebaut;
     auch aus einem Faden – gui_bearbeitung_beta.im_katalog: ohne Zwischenspeicher der
     Werkzeugkiste dauert das erste Mal 7 s)."""
+    global _LAEDT
     with _KATALOG_SPERRE:
+        if not _KATALOG and _GELIEFERT:  # aus dem Nebenrechner, in Häppchen unterwegs: der Rest
+            daten, gebaut, k = _GELIEFERT
+            gebaut.extend(_Katalogwerkzeug(d) for d in daten[k:])
+            _KATALOG.extend(gebaut)
+            _GELIEFERT.clear()
+            _LAEDT = False
         if not _KATALOG:
             from . import werkzeugkiste as wk
 
             _KATALOG.extend(_Katalogwerkzeug(d) for d in _katalog_daten(wk.reihen()))
     return _KATALOG
+
+
+# So viele Katalogwerkzeuge baut das Fenster je Uhrtakt aus den Tupeln des Nebenrechners (etwa
+# 0,1 s): Am Stück waren es 320 000 – 0,7 bis 2 s Pause im Fenster (szenario_ringnut,
+# szenario_hobeln; gemessen 2026-11-15).
+HAEPPCHEN = 20000
+_GELIEFERT = []  # [Tupel, schon gebaut, Stelle] – solange _aus_den_daten in Häppchen baut
+
+
+def _aus_den_daten(daten):
+    """Baut _KATALOG aus den Tupeln eines Nebenrechners (katalog_daten) – mit Fenster in Häppchen
+    je Uhrtakt (HAEPPCHEN), dieselben Werkzeuge in derselben Reihenfolge; fertig erst mit dem
+    letzten (katalog_bereit)."""
+    global _LAEDT
+    try:
+        from PySide import QtCore, QtGui
+
+        fenster = QtGui.QApplication.instance() is not None
+    except ImportError:
+        fenster = False
+    if not fenster:
+        with _KATALOG_SPERRE:
+            if not _KATALOG:
+                _KATALOG.extend(_Katalogwerkzeug(d) for d in daten)
+        _LAEDT = False
+        return
+    with _KATALOG_SPERRE:
+        _GELIEFERT[:] = [list(daten), [], 0]
+
+    def schritt():
+        global _LAEDT
+        with _KATALOG_SPERRE:
+            if _GELIEFERT:
+                daten_, gebaut, k = _GELIEFERT
+                gebaut.extend(_Katalogwerkzeug(d) for d in daten_[k : k + HAEPPCHEN])
+                _GELIEFERT[2] = k + HAEPPCHEN
+                if _GELIEFERT[2] < len(daten_):
+                    QtCore.QTimer.singleShot(0, schritt)
+                    return
+                if not _KATALOG:
+                    _KATALOG.extend(gebaut)
+                _GELIEFERT.clear()
+        _LAEDT = False
+
+    QtCore.QTimer.singleShot(0, schritt)
 
 
 def _katalog_daten(reihen):
@@ -304,12 +356,13 @@ def katalog_laden_im_hintergrund():
 
             def fertig(a):
                 global _LAEDT, _OHNE_NEBENRECHNER
-                _LAEDT = False
                 if a.ergebnis is None:
+                    _LAEDT = False
                     _OHNE_NEBENRECHNER = True  # beim nächsten Ruf wie bisher im Fenster
                 elif not _KATALOG:
-                    with _KATALOG_SPERRE:
-                        _KATALOG.extend(_Katalogwerkzeug(d) for d in a.ergebnis)
+                    _aus_den_daten(a.ergebnis)  # mit Fenster in Häppchen; _LAEDT bis zum Ende
+                else:
+                    _LAEDT = False
 
             auftrag.bei_fertig = fertig
             return

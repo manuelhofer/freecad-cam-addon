@@ -162,6 +162,7 @@ def geaendert():
     from . import empfehlung, werkzeugkiste_datei, werkzeugwahl
 
     werkzeugwahl._KATALOG.clear()
+    werkzeugwahl._GELIEFERT.clear()  # was noch in Häppchen gebaut wird, galt den alten
     empfehlung._KATALOG.clear()
     werkzeugkiste_datei._mitgeliefert = None  # beim nächsten Mal neu (und neu zwischengespeichert)
 
