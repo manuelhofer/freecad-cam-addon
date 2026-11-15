@@ -532,6 +532,26 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Auftrag vom 2026-11-15 (Manuels Antworten auf die Fragen 1 bis 5, wörtlich im Verlauf P-2026-11-15-21):**
+- *Nullpunkt, Tisch/Tisch mit Rohr im Futter:* wie Manuel einrichtet – Rohr senkrecht (durch das Loch zum
+  Tisch schauen): **X/Y 0 mittig im Rohr, Z 0 die vom Tisch entfernteste Stelle** (oben an der Stirn),
+  ungeschwenkt. Heute schreibt das Addon „Nullpunkt nach dem Schwenken“ (0.376.0) – umbauen auf seinen
+  Nullpunkt; den Abstand zur Schwenkachse nimmt dann die Steuerung aus ihrer Kinematik (CYCLE800/TRAORI,
+  PLANE/M128) – Achtung, der Zweifler von 0.376.0 fand: ohne TCPM hinge das Programm an der Futterhöhe.
+- *Nullpunkt, 4. Achse:* **Y/Z mittig auf der Rohrachse, Z 0 am höchsten Punkt (Mantel oben), X 0 an einer
+  Stirn** – heute „auf der Achse der Stange, an der Stirn“: Z um den Radius verschieben, Einrichtblatt.
+- *Hobelklingen:* „such welche raus die es gibt ... nehm sie mit in die liste auf“ – Hersteller-Stoßwerkzeuge
+  (z. B. Horn Supermini 105, Paul Horn Nutstoßen, Mapal, Wohlhaupter …) mit Breite, Klingenlänge,
+  seitlichem Freiwinkel, Stechtiefe in die Werkzeugkiste (Abrufe in menschlichem Maß).
+- *Frage 3 (Bohrung in zwei Schnitten):* **(b)** – Leerfahrt, Messstopp und zweiter Schnitt direkt hinter
+  „Bohrung fräsen“, vor Senken und Gewinde.
+- *Frage 4:* **Restschlichten von selbst anhaken**, wenn an der Unterkante Rest bleibt und eine passende
+  kleinere Kugel da ist.
+- *Frage 5 (Hobeln ohne Halt):* „bau das doch so das es immer funktioniert nicht speziell auf meine
+  maschinen“ – für Fräsmaschinen, die nicht drehen; an seiner Drehmaschine wäre es Stechdrehen, aber auch
+  dort muss eine außermittige eckige Nut gehobelt werden können: **C4 (Hauptspindel, das Teil) und C1
+  (Werkzeugspindel, die Klinge) zusammen rechnen.**
+
 **Auftrag vom 2026-11-14 (Manuels Antworten auf die Fragen 1 bis 4, wörtlich im Verlauf
 P-2026-11-14-06) – in dieser Reihenfolge:**
 1. *3D-Schlichten nie unter den Teilboden* (B-033): **erledigt in 0.372.1**; seit 0.382.0 zeigt das Fenster

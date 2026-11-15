@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-15-21 antworten-fragen-1-bis-5
+
+### EINGELESEN
+- Manuel, 2026-11-15, zu Frage 1 (Nullpunkt Rohr im Futter auf dem Rundtisch): „nullpunkt liegt vorne
+  mittig ? also sagen wir mal es ist ein rundtisch der in alle richtugnen schwenken kann .. dann ist z0 vom
+  tisch die entfernteste stelle .. und wenn das rohr senkrecht also man durch das loch zum tisch schauen kann
+  ist mittig im rohr xy0 ... bei einer 4ten achse schaut das anders aus .. da ist mittig vom rohr 0 und in z
+  richtung der höchste punkt und länge meist x eine seite 0 ..“
+- Zu Frage 2 (Freiwinkel der Hobelklingen): „such welche raus die es gibt ... nehm sie mit in die liste auf
+  ...“
+- „3. Empfehlung: (b).“ – „4. ja von selbst anhacken“
+- Zu Frage 5 (Hobeln ohne Halt, 840D): „bau das doch so das es immer funktioniert nicht speziell auf meine
+  maschinen .. bei mir wäre das eh stechdrehen .. da macht hobeln keinen sinn .. es geht doch mehr für
+  fräsmaschinen die eben nicht drehen können.. aber du hast natürlich recht .. bei mir auf der maschine muss
+  eine auser mittige eckige nut auch hobeln gehen .. und da sollte man einfach die c4 (hauptspindel) und die
+  C1 (werkzeug spindel) berechnen ... um die nut herstellen zu können“
+- „antworten notieren .. kleinigkeiten kannst du noch bauen bis zum kompletten nutzungslimit !!!“
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Fragen 1–5 beantwortet, raus), `docs/STATUS_SNAPSHOT.md` (Auftrag vom 15.11.).
+
+### ERGEBNIS
+- Aufträge: Nullpunkt Tisch/Tisch ungeschwenkt (XY Rohrmitte, Z oben an der Stirn) mit Schwenkzyklus;
+  Nullpunkt 4. Achse Z am höchsten Punkt; Hersteller-Stoßwerkzeuge in die Werkzeugkiste; Messfolge der
+  Bohrung direkt dahinter (b); Restschlichten an der Unterkante von selbst anhaken; Hobeln an der
+  Drehmaschine mit C4 + C1 (außermittige eckige Nut).
 ## P-2026-11-15-20 raeumen-adaptiv-feiner-auf-dem-pool
 
 ### EINGELESEN
