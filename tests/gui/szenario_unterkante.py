@@ -220,8 +220,10 @@ def schritte(h):
     )
     if neu:
         k = neu[0]
-        print(ascii(f"Neu: T{k.nummer} {k.name}, Schneide {k.schneidenlaenge}, Schaft {k.schaft}, "
-                    f"Hals {k.hals_d} x {k.hals_laenge}, L {k.gesamtlaenge}"), flush=True)  # fmt: skip
+        masse = f"Schaft {k.schaft}, Hals {k.hals_d} x {k.hals_laenge}, L {k.gesamtlaenge}"
+        print(
+            ascii(f"Neu: T{k.nummer} {k.name}, Schneide {k.schneidenlaenge}, {masse}"), flush=True
+        )
         h.pruefe(
             k.schaft == 6.0 and abs(k.hals_d - 2.9) < 1e-9 and k.hals_laenge == 9.0,
             f"neue Kugel: Schaft {k.schaft}, Hals {k.hals_d} × {k.hals_laenge}",
