@@ -539,8 +539,16 @@ Rundung mit der Kugel in Tiefenstufen, (2) die Kantenrundungen mit Radienfräser
 Einzelschritten (Kammhöhe einstellbar), (3) hinten Überlauf 3 mm (einstellbar) in die Stange zum Abstechen,
 vorn Anlauf in der Luft. Steigung muss genau erkannt werden (heute 4,970 statt 5,000).
 
-**Runde auf dem Teilboden (0.389.0, P-2026-11-21-07):** gebaut, gegengeprüft, Haken aus; Frage 2 in
-OFFENE_FRAGEN (vorbelegt an?).
+**Runde auf dem Teilboden (0.389.0):** gebaut, gegengeprüft; der Haken bleibt aus (Manuel, 21.11.,
+P-2026-11-21-08).
+
+**Zu bauen – Rohr ungeschwenkt einrichten unter TRAORI / M128 (P-2026-11-21-08):** Manuels Ablauf: Rohr
+steht im (nicht genau ausgerichteten) Futter auf dem waagerechten Rundtisch, Mitte über 4 Punkte und Z oben
+angetastet, dann A 90° schwenken und mit C um das Rohr. Das geht nur, wenn die Steuerung Schwenken und
+Drehen aus ihrer Kinematik mitrechnet – die Sätze also unter TRAORI (Siemens) bzw. M128/TCPM (Heidenhain)
+schreiben statt CYCLE800 + C als Achse (0.388.0). Danach den Haken vorbelegt an.
+
+**Dichtnut hobeln:** für Fräsmaschinen fertig. Offen: an der Drehmaschine mit C4 + C1 (außermittige Nut).
 
 **Auftrag vom 2026-11-15 (Manuels Antworten auf die Fragen 1 bis 5, wörtlich im Verlauf P-2026-11-15-21):**
 - **Beide Nullpunkte gebaut in 0.388.0 (P-2026-11-21-04):** 4. Achse zählt Z vom Mantel oben; Rohr im

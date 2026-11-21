@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-08 antworten-rohr-ungeschwenkt-und-bodenrunde
+
+### EINGELESEN
+- Manuel, 2026-11-21, zu Frage 1 (dreht die Steuerung den geschwenkten Rahmen mit, wenn C fährt?): „also ..
+  bei einer maschine mit tisch tisch schwenkung .. haben wir einmal einen drehtisch der sich um 360 grad
+  drehen kann wens sein muss auch kontinuerilich .. und wir haben eine schwenkplatte auf der dieser tisch
+  sich befindet .. plan war ja weil wir am mantel dieses rohreres etwas bearbeiten müssen ... wir schwenken
+  den rundtisch der horizontal steht auf senkrecht um 90 grad .. und können so das mittig aufgespannte rohr
+  bearbeiten ... theoretisch muss das nicht mal mittig sein weil wir haben ja die koordinaten vorher
+  angetastet heist wir stellen das rohr senkrecht auf den horizontal stehenden tisch ... in ein drei backen
+  futter das auch nicht perfekt ausgerichtet ist .. dann tasten wir es an .. holen eben über 4 punkte die
+  mitte des rohreres und die z oben an der strin ... dann lassen wir eben die ich dnke es ist die a achse ..
+  um 90 grad schwenken .. somit steht das rohr horizontal im raum und wir können unsere bahn fahren ... also
+  die frage die du da stellst .. verstehe ich nicht .. bei diesem ablauf ..“
+- zu Frage 2 (Runde auf dem Teilboden vorbelegt an?): „also das is so ne sache .. keine ahnung was du damit
+  meinst .. ist der boden vorher schon mit einem anderen werkzeug bearbeitet worden wenn ja .. muss der
+  boden nicht nochmal nachgefahren werden oder ? wenn nein ists doch logisch das die letzte bearbeitung
+  alles sauber macht .. es macht für mich nur keinen sinn ein gerades stück mit einem kugel fräser zu
+  bearbeiten daher wundert mich die frage etwas ...“
+- „das mit der nut rauskratzen ist fertig ? wenn nein bitte erstmal darum kümmern ... das bauteil was wir
+  zum nutrauskratzen hatten ... ist ja ok soweit oder ?“
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md`, `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Frage 1 war falsch gestellt (eine Frage an die Steuerung, nicht an seinen Ablauf). Sein Ablauf – nicht
+  genau mittig gespannt, ungeschwenkt angetastet, dann schwenken und mit C um das Rohr – geht nur, wenn die
+  Steuerung Schwenken UND Drehen aus ihrer Kinematik mitrechnet: Siemens TRAORI, Heidenhain M128/TCPM. Dann
+  gibt es auch die Annahme über den Rahmen nicht mehr. Zu bauen: „Rohr ungeschwenkt einrichten“ schreibt
+  die Sätze unter TRAORI bzw. M128 (statt CYCLE800 + C als Achse); danach kann der Haken vorbelegt an sein.
+  Frage raus.
+- Frage 2: Der Haken bleibt aus (Manuel sieht keinen Sinn darin; die Runde galt dem Fuß der gewölbten
+  Fläche, nicht dem Boden). Frage raus, Vorbelegung unverändert.
+- Dichtnut hobeln: für Fräsmaschinen fertig (Assistent, aus dem Vollen, alle Steuerungen, runde Klinge,
+  gegengeprüft); Beispielteil beispiele/dichtnut_deckel.FCStd in Ordnung. Offen: Hobeln an der Drehmaschine
+  mit C4 + C1 (außermittige Nut), an keiner Maschine gefahren.
 ## P-2026-11-21-07 runde-auf-dem-teilboden
 
 ### EINGELESEN
