@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-06 auftrag-rundgewinde-fraesen-und-freecad-vorschau-haenger
+
+### EINGELESEN
+- Manuel, 2026-11-21: „das probeteil ... ist ein rundgewinde mit einer steigung von ca 5mm .. das auf der
+  clx gefräst werden muss .. erst die rundung 3 tief .. dann müssen wirgendwie in einzelschritten die
+  rundungen an den oberkandten hergestellt werden ... es gibt auch radien fräser .. aber es muss nicht nur
+  mit radien fräsern funktionieren sondarn auch mit kugelfräsern und dann in einzelschritten ... hinten wird
+  dann abgestochen also das ganze kommt wieder auf eine stange gesetzt .. und muss 3 mm (einstellbar) drüber
+  gefertigt werden damit man abstechen kann ... fragen dazu ?“
+- Zum Absturz in FreeCAD: „folgendes problem .. das teil ist mit der kontur die da gewendelt wird
+  gespeichert .. in testteil name ist rundgewinde ausen ... und es jetzt auf umgekehrt stelle .. stürzt
+  irgendwie das freecad ab .. finde raus weshalb ... sag mir direkt warum“ – „kannst du das problem lösen
+  und auf github schauen obs schon ein pr oder sowas dafür gibt wenn nein die lösung posten ?“
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Rundgewinde: Lesart (ohne Rückfrage) im STATUS; die vorhandene Wendelnut-Erkennung (W-030) findet das
+  Teil, aber Steigung 4,970 statt 5,000. Bau läuft als Workflow (Zweig `rundgewinde`).
+- FreeCAD-Hänger: kein Fehler des Addons. Aus dem Speicherabbild: Die neue Vorschau (Part Design) startet
+  über den Fortschrittsbalken (processEvents) mitten in der laufenden Abzieh-Rechnung eine zweite – die
+  wartet ewig in OSD_ThreadPool. Im unsichtbaren Fenster nachgestellt; mit „Vorschau-Überlagerung
+  anzeigen“ aus läuft es durch. Offene Meldung FreeCAD/FreeCAD#31457, PR #32553 am 09.11. ungemergt
+  geschlossen; Kommentar mit Stapel, Ausweg und Fix-Vorschlag (ungebaut) gepostet:
+  https://github.com/FreeCAD/FreeCAD/issues/31457#issuecomment-7059528076
 ## P-2026-11-21-05 runde-klinge-gegenpruefung
 
 ### EINGELESEN

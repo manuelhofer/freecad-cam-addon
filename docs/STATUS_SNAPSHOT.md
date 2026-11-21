@@ -532,6 +532,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Auftrag vom 2026-11-21 – Rundgewinde außen fräsen (wörtlich im Verlauf P-2026-11-21-06), in Arbeit (Zweig
+`rundgewinde`, Workflow):** Manuels Probeteil `~/freecad_cam/testteile/rundgewinde_ausen.FCStd` (nur lesen):
+Ø 110 × 100, Wendelnut Steigung 5, 4 breit, 3 tief, Grund R 2, Oberkanten R 0,5. An der CLX mit C: (1) die
+Rundung mit der Kugel in Tiefenstufen, (2) die Kantenrundungen mit Radienfräser ODER Kugel in
+Einzelschritten (Kammhöhe einstellbar), (3) hinten Überlauf 3 mm (einstellbar) in die Stange zum Abstechen,
+vorn Anlauf in der Luft. Steigung muss genau erkannt werden (heute 4,970 statt 5,000).
+
 **Auftrag vom 2026-11-15 (Manuels Antworten auf die Fragen 1 bis 5, wörtlich im Verlauf P-2026-11-15-21):**
 - **Beide Nullpunkte gebaut in 0.388.0 (P-2026-11-21-04):** 4. Achse zählt Z vom Mantel oben; Rohr im
   Futter ungeschwenkt als Haken „Rohr ungeschwenkt einrichten“ (aus, bis Frage 1 in OFFENE_FRAGEN
