@@ -31,3 +31,13 @@ und falsch angenommen fräst jeder Satz um den C-Winkel verdreht ins Teil.
 *Was die Antwort ändert:* Bleibt der Rahmen stehen, wird der Haken vorbelegt an (dein Einrichten ist dann
 der Standard). Dreht er mit, schreibe ich die C-Sätze unter TRAORI.
 *Bis dahin:* Haken aus – es gilt der bisherige Weg „Nullpunkt nach dem Schwenken“.
+
+## 2. 3D-Schlichten: „Zum Schluss eine Runde auf dem Teilboden“ – vorbelegt an? (seit 2026-11-21)
+
+**Die Frage:** Seit 0.389.0 gibt es beim 3D-Schlichten unter „Werte ändern“ den Haken „Zum Schluss eine Runde
+auf dem Teilboden“ (aus). Mit ihm fährt die Kugel am Ende einmal um die Unterkante, Spitze auf dem Boden.
+Bild mit Zahlen: [unterkante_bodenrunde.png](bilder/vorschlaege/unterkante_bodenrunde.png) – Kuppel R 40,
+Kugel Ø 6: Rest am Fuß höchstens 0,82 → 0,53 mm, Zeit 12,08 → 12,42 min (+0,34). Soll der Haken
+**vorbelegt an** sein?
+*Warum nur Manuel:* Was das Addon ohne Vorgabe wählt, ändere ich nie allein.
+*Was die Antwort ändert:* ja → angehakt, sobald die Flächen den Teilboden erreichen; nein → bleibt aus.

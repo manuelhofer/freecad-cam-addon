@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-07 runde-auf-dem-teilboden
+
+### EINGELESEN
+- Kein neuer Auftrag: der Vorschlag aus der Frage zur Unterkante (15.11., Zweig `bodenrunde-neu`), jetzt
+  gegengeprüft. Manuel, 2026-11-21: „kannst du einfach noch weiter bauen das die woche auch noch was
+  passiert“.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (_bodenrunde, _aussen, boden_erreicht), `camaddon/schlichten3d.py`,
+  `camaddon/gui_bearbeitung.py`, `help/*/bearbeitung.html`, `translations/*.json`,
+  `tests/test_schlichten3d.py`, `tests/gui/szenario_bodenrunde.py`,
+  `docs/bilder/vorschlaege/unterkante_bodenrunde.png`, `docs/OFFENE_FRAGEN.md`, `package.xml` 0.389.0.
+
+### ERGEBNIS
+- 3D-Schlichten: Haken „Zum Schluss eine Runde auf dem Teilboden“ (unter „Werte ändern“, **vorbelegt
+  aus**; erscheint, wenn die gewählten Flächen den Teilboden erreichen). Die Kugel fährt am Ende je Insel
+  einmal um die Unterkante, Spitze auf dem Boden, nie darunter. Kuppel R 40, Kugel Ø 6: Rest am Fuß
+  höchstens 0,82 → 0,53 mm, im Mittel 0,087 → 0,044 mm, Zeit 12,08 → 12,42 min. Restschlichten mit einer
+  kleineren Kugel bleibt für den Rest nötig.
+- Gegenprüfung: ohne Haken 32 Fälle Satz für Satz wie vorher; die Runde an 15 Gegenfällen nie unter dem
+  Boden, Kugel höchstens 0,0038 mm im Teil. Ein Fund der Schwere Sicherheit: Die Eintauchstelle 1 mm neben
+  der Runde wurde nur im Raster geprüft – stand knapp dahinter eine nicht gewählte Wand, tauchte die Kugel
+  bis 0,28 mm in sie ein. Behoben (Eintauchstelle und Weg gegen das ganze Teil; nachher −0,0006 mm), mit
+  Prüffall (Kamm 6,2/6,3/6,4).
+- Frage 2 in OFFENE_FRAGEN: Haken vorbelegt an?
+- Geprüft nach der Übernahme: test_schlichten3d, test_restschlichten, test_goldene_bahnen, test_testteil,
+  test_sprache, szenario_bodenrunde (Bild 2_mit angesehen).
 ## P-2026-11-21-06 auftrag-rundgewinde-fraesen-und-freecad-vorschau-haenger
 
 ### EINGELESEN
