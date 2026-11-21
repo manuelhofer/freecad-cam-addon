@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-01 hobelklinge-horn-supermini-105
+
+### EINGELESEN
+- Manuel, 2026-11-21, zu Frage 1 (Länge der Klinge hinter der Schneide), mit Bild der Maßtabelle (Horn
+  Supermini 105, LA105.1030.22: WF 1,9; REL/RER 0,1; OAL 40; LU 15; DMIN 10; CW 3; CDX 15; BD 7) und zwei
+  Verweisen (Kuhn-Fachmedien „Nutenfertigung: Hobeln im Eilgang“, Horn-eShop la105103022ti25): „das ist die
+  schneide oder so ählich .. es wird etwa das hier sein .. da müssen wir dann zwar auf die drehrichtung
+  achten .. weil die auf eine seite rund ist .. aber ok .. die länge hinter der schneide ist 7 mm aber die
+  ist ja auch rund geschliffen .. also der kleinste drehdurchmesser wäre 10mm also ein radius von 5mm ..
+  sollte gehen“
+- „bitte weekly holen fals es was neues gibt !“
+
+### DATEIEN
+- `docs/OFFENE_FRAGEN.md` (Frage 1 raus), `docs/STATUS_SNAPSHOT.md`.
+
+### ERGEBNIS
+- Lesart: Die Klinge ist ein Axial-Einstechwerkzeug – Schneide 3 breit (CW), hinter der Schneide 7 mm
+  (BD), auf einer Seite rund geschliffen. Der Hersteller nennt den kleinsten Durchmesser (DMIN 10 →
+  Radius 5); das Addon nimmt dieses Katalogmaß statt eines Rechtecks, und zwar nur für Kurven zur runden
+  Seite hin – daraus folgt die Fahrtrichtung. Bau als eigener Auftrag (neues Maß „kleinster Radius“ und
+  „runde Seite“ am Stoßwerkzeug).
+- Wochen-Build 2026.11.18 (FreeCAD 27.1 dev, Revision 20261117) geholt, Starter-Verweis nachgezogen;
+  test_hobeln, test_testteil, test_goldene_bahnen und szenario_werkzeugverwaltung darin grün.
 ## P-2026-11-15-23 messfolge-direkt-hinter-der-bohrung
 
 ### EINGELESEN
