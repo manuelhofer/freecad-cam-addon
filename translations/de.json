@@ -2660,6 +2660,7 @@
     "ho.fehler.werkzeug": "Dichtnut hobeln braucht ein Stoßwerkzeug aus der Werkzeugverwaltung (Schneidenbreite, Klinge hinter der Schneide, Spindelwinkel).",
     "ho.fehler.keine": "Keine umlaufende Nut gewählt – den Grund oder eine Wand der Nut anklicken.",
     "ho.grund.nicht_vorgefraest": "Davor fräst nichts die Nut bis auf den Rest ({rest} über dem Grund) – die Klinge stieße in volles Material. Zuerst räumen, mit einem Fräser, der hineinpasst.",
+    "ho.grund.runde_seite_fehlt": "Die Klinge hat eine runde Seite, aber es ist nicht eingetragen, welche – in der Werkzeugverwaltung „Ausführung“ auf links oder rechts stellen (in Schnittrichtung, von oben gesehen).",
     "ho.grund.stechtiefe": "Die Klinge reicht {stech} tief, die Nut braucht {noetig} ab der Oberkante des Materials – sonst stößt der Schaft ans Teil.",
     "hn.text": "{breite} breit, {tiefe} tief, {laenge} lang{radius}",
     "hn.radius": ", kleinster Radius {r}",

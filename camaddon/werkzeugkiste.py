@@ -847,6 +847,67 @@ def _einstechen():
             ),
             gemeinsam={"schneidstoff": wz.VHM},
         ),
+        # Hobelklingen der Hersteller (Manuel, 2026-11-15: „such welche raus die es gibt ... nehm sie
+        # mit in die liste auf“; 2026-11-21: seine ist etwa die LA105.1030.22). Aufgenommen ist nur,
+        # was eine Nut längs hobelt – Platten zum Nutstoßen in Bohrungen (Horn S117/N105, GARANT,
+        # SlotCut) sind ein anderes Verfahren. Hinter der Schneide gilt die Breite des Rohlings (7).
+        Reihe(
+            kennung="horn-speed-forming-p105",
+            art=wz.STOSSWERKZEUG,
+            hersteller="Paul Horn",
+            titel="Speed-Forming P105 (Hobeln mit orientierter Spindel)",
+            quelle=(
+                "Horn-eShop und world of tools 1/22: Breite w, Stechtiefe tmax, Platte 45 lang, "
+                "Rohling 7 breit – hinter der Schneide gilt vorsichtig der ganze Rohling (7 mm), "
+                "einen Freiwinkel nennt Horn nicht. Kleinster Nutdurchmesser laut eShop 150 mm. "
+                "Zustellung je Hub höchstens 0,3 mm."
+            ),
+            groessen=tuple(
+                {
+                    "schneidenbreite": b,
+                    "klingenlaenge": 7.0,
+                    "stechtiefe": float(t),
+                    "gesamtlaenge": 45.0,
+                    "name": f"Horn P105 B{str(b).replace('.', ',').removesuffix(',0')}",
+                    "artikel": artikel,
+                    "link": f"https://www.horn-eshop.us/en-US/{kurz}",
+                }
+                for b, t, artikel, kurz in (
+                    (1.5, 12, "P105.1515.12.75.01 EG35", "p1051515127501eg35"),
+                    (2.0, 16, "P105.2020.16.75.01 EG35", "p1052020167501eg35"),
+                    (2.5, 22, "P105.2520.22.75.01 EG35", "p1052520227501eg35"),
+                )
+            ),
+            gemeinsam={"schneidstoff": wz.VHM},
+            bezeichnung="Horn Speed-Forming, Sorte EG35",
+        ),
+        Reihe(
+            kennung="horn-supermini-la105",
+            art=wz.STOSSWERKZEUG,
+            hersteller="Paul Horn",
+            titel="Supermini 105 Axial-Einstechen, eine Seite rund (LA105.1030.22)",
+            quelle=(
+                "Maßtabelle im Horn-eShop: Schnittbreite CW 3, Schnitttiefe CDX 15, Körper BD 7, "
+                "Gesamtlänge OAL 40, kleinster Durchmesser DMIN 10 – die runde Seite also Radius 5. "
+                "Welche Seite die runde ist („Ausführung“) und den Freiwinkel der geraden Seite an "
+                "der Klinge nachsehen und eintragen."
+            ),
+            groessen=(
+                {
+                    "schneidenbreite": 3.0,
+                    "klingenlaenge": 7.0,
+                    "klingenradius": 5.0,
+                    "stechtiefe": 15.0,
+                    "gesamtlaenge": 40.0,
+                    "schaft": 7.0,
+                    "name": "Horn LA105 B3",
+                    "artikel": "LA105.1030.22",
+                    "link": "https://www.horn-eshop.de/de-DE/product-de/la105103022ti25",
+                },
+            ),
+            gemeinsam={"schneidstoff": wz.VHM},
+            bezeichnung="Horn Supermini 105, TI25",
+        ),
         Reihe(
             kennung="beispiel-gewindedrehen",
             art=wz.GEWINDEDREHWERKZEUG,

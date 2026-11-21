@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-03 hobelklingen-in-der-herstellerliste
+
+### EINGELESEN
+- Manuel, 2026-11-15 (Frage 2): „such welche raus die es gibt ... nehm sie mit in die liste auf“;
+  2026-11-21: „es wird etwa das hier sein“ (Horn LA105.1030.22), „die länge hinter der schneide ist 7 mm“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (zwei Reihen), `camaddon/hobeln.py` (klinge_grund), `translations/*.json`,
+  `tests/test_hobeln.py`, `tests/test_werkzeuge.py`, `package.xml` 0.387.0.
+
+### ERGEBNIS
+- „Werkzeuge der Hersteller“: Horn Speed-Forming P105 (b 1,5 / 2 / 2,5; hinter der Schneide vorsichtig
+  der ganze Rohling, 7 mm) und Horn Supermini LA105.1030.22 (b 3, runde Seite R 5, Stechtiefe 15).
+  Nicht aufgenommen: die 114 Platten zum Nutstoßen in Bohrungen (Horn S117/N105/N110, GARANT, SlotCut,
+  Iscar) – ein anderes Verfahren als das Hobeln längs einer Nut.
+- Runde Seite ohne „Ausführung“: Das Hobeln lehnt ab und sagt, was einzustellen ist – welche Seite der
+  LA105 rund ist, steht in keiner Tabelle, geraten stieße die gerade Seite an die Außenwand.
+- Geprüft: test_hobeln, test_werkzeuge, test_werkzeugkiste, test_sprache, szenario_werkzeugkiste.
 ## P-2026-11-21-02 hobeln-runde-klinge
 
 ### EINGELESEN

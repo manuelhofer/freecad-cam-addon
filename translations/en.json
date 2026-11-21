@@ -2660,6 +2660,7 @@
     "ho.fehler.werkzeug": "Planing a seal groove needs a shaping tool from the tool library (edge width, blade behind the edge, spindle angle).",
     "ho.fehler.keine": "No closed groove selected – click the bottom or a wall of the groove.",
     "ho.grund.nicht_vorgefraest": "Nothing before this mills the groove down to the remainder ({rest} above the floor) – the blade would hit solid material. Clear it first, with a cutter that fits.",
+    "ho.grund.runde_seite_fehlt": "The blade has a round side, but which one is not set – set “Hand” to left or right in the tool manager (in cutting direction, seen from above).",
     "ho.grund.stechtiefe": "The blade reaches {stech} deep, the groove needs {noetig} from the top of the material – otherwise the shank hits the part.",
     "hn.text": "{breite} wide, {tiefe} deep, {laenge} long{radius}",
     "hn.radius": ", smallest radius {r}",

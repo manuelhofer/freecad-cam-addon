@@ -344,6 +344,13 @@ def klinge_grund(nut, werkzeug, wand_aufmass=0.0, tiefe=None):
     Oberkante des Materials ist (`tiefe`, ohne: die Nut selbst) – darüber stieße der Schaft ans
     Teil; oder die Wände stehen über dem Rest noch `wand_aufmass` vor (das Fräsen davor ließ
     Aufmaß an der Wand)."""
+    from . import werkzeuge as wz
+
+    # Eine runde Seite ohne Angabe, welche: nicht raten – falsch herum stieße die gerade Seite an.
+    if float(getattr(werkzeug, "klingenradius", 0.0) or 0.0) > 0 and getattr(
+        werkzeug, "ausfuehrung", ""
+    ) not in (wz.LINKS, wz.RECHTS):
+        return tr("ho.grund.runde_seite_fehlt")
     grund = hb.klinge_pruefen(
         nut,
         float(werkzeug.schneidenbreite),

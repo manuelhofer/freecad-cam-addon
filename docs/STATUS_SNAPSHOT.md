@@ -550,8 +550,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   **Beantwortet 2026-11-21 (P-2026-11-21-01):** Manuels Klinge ist etwa Horn Supermini 105
   LA105.1030.22 (Schneide 3 breit, 7 mm hinter der Schneide, eine Seite rund, DMIN 10 → Radius 5; auf
   die Fahrtrichtung achten). **Gebaut in 0.386.0 (P-2026-11-21-02):** Maß „Runde Seite: Radius“ +
-  „Ausführung“ am Stoßwerkzeug, Fahrtrichtung daraus, Klinge darf so breit sein wie die Nut. Offen: die
-  recherchierten Klingen in die Herstellerliste; der Freiwinkel der geraden Seite (trägt Manuel ein).
+  „Ausführung“ am Stoßwerkzeug, Fahrtrichtung daraus, Klinge darf so breit sein wie die Nut. Horn P105 und
+  LA105 stehen seit 0.387.0 in der Herstellerliste. Offen: Ausführung (welche Seite rund ist) und
+  Freiwinkel der geraden Seite trägt Manuel an seiner Klinge ein.
   GARANT-Richtwerte (Prospekt 2018): Stahl < 750 vf 8000, ap 0,11; INOX 5000, 0,05–0,06; Alu 8000,
   0,20 je Hub – das Addon bleibt bei Manuels 0,08 (× Faktor der Werkstoffklasse).
 - *Frage 3 (Bohrung in zwei Schnitten):* **(b)** – Leerfahrt, Messstopp und zweiter Schnitt direkt hinter

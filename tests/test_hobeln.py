@@ -787,6 +787,18 @@ print(
         f"kleinster Radius {hb.kleinster_radius_fuer(3.0, 3.0, 7.0, freiwinkel=1.0, rund=5.0):.3f}"
     )
 )
+# Runde Seite ohne Ausführung: nicht raten.
+from camaddon import hobeln as _hop_rund
+from camaddon import werkzeuge as _wz_rund
+
+_la105 = _wz_rund.Werkzeug(nummer=7, art=_wz_rund.STOSSWERKZEUG, schneidenbreite=3.0, klingenlaenge=7.0,
+                           klingenradius=5.0, freiwinkel=1.0, stechtiefe=15.0)  # fmt: skip
+pruefe("Ausführung" in _hop_rund.klinge_grund(nut_r10, _la105), "runde Seite ohne Ausführung")
+_la105.ausfuehrung = _wz_rund.LINKS
+pruefe(
+    _hop_rund.klinge_grund(nut_r10, _la105) == "",
+    "LA105: " + _hop_rund.klinge_grund(nut_r10, _la105),
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

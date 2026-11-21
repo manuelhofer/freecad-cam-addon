@@ -540,6 +540,37 @@ from camaddon import hobeln as _ho
 pruefe(_ho.rund_von(rund) == 5.0 and _ho.rund_von(stoss) == 0.0, "rund_von")
 rund.ausfuehrung = ""
 pruefe(_ho.rund_von(rund) == -5.0, "rund_von ohne Ausführung: rechts")
+# Aus der Liste der Hersteller: Horn Speed-Forming (3) und die LA105 mit runder Seite.
+from camaddon import werkzeugkiste as _wk
+
+_p105 = _wk.werkzeuge(_wk.reihe("horn-speed-forming-p105"))
+_la = _wk.werkzeuge(_wk.reihe("horn-supermini-la105"))
+pruefe(
+    [w.schneidenbreite for w in _p105] == [1.5, 2.0, 2.5]
+    and all(w.klingenlaenge == 7.0 and w.klingenradius == 0.0 for w in _p105),
+    f"Horn P105: {[(w.schneidenbreite, w.klingenlaenge) for w in _p105]}",
+)
+pruefe(
+    len(_la) == 1
+    and (_la[0].klingenradius, _la[0].ausfuehrung, _la[0].stechtiefe) == (5.0, "", 15.0),
+    f"Horn LA105: {_la[0].klingenradius}, {_la[0].ausfuehrung!r}",
+)
+# Ohne Ausführung rät rund_von rechts – das Hobeln lehnt so ein Werkzeug aber ab (klinge_grund).
+# Aus der Liste der Hersteller: Horn Speed-Forming (3) und die LA105 mit runder Seite.
+from camaddon import werkzeugkiste as _wk
+
+_p105 = _wk.werkzeuge(_wk.reihe("horn-speed-forming-p105"))
+_la = _wk.werkzeuge(_wk.reihe("horn-supermini-la105"))
+pruefe(
+    [w.schneidenbreite for w in _p105] == [1.5, 2.0, 2.5]
+    and all(w.klingenlaenge == 7.0 and w.klingenradius == 0.0 for w in _p105),
+    f"Horn P105: {[(w.schneidenbreite, w.klingenlaenge) for w in _p105]}",
+)
+pruefe(
+    len(_la) == 1
+    and (_la[0].klingenradius, _la[0].ausfuehrung, _la[0].stechtiefe) == (5.0, "", 15.0),
+    f"Horn LA105: {_la[0].klingenradius}, {_la[0].ausfuehrung!r}",
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))
