@@ -533,6 +533,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 ## Nächster Schritt (konkret)
 
 **Auftrag vom 2026-11-15 (Manuels Antworten auf die Fragen 1 bis 5, wörtlich im Verlauf P-2026-11-15-21):**
+- **Beide Nullpunkte gebaut in 0.388.0 (P-2026-11-21-04):** 4. Achse zählt Z vom Mantel oben; Rohr im
+  Futter ungeschwenkt als Haken „Rohr ungeschwenkt einrichten“ (aus, bis Frage 1 in OFFENE_FRAGEN
+  beantwortet ist: dreht die Steuerung den Rahmen mit C mit?).
 - *Nullpunkt, Tisch/Tisch mit Rohr im Futter:* wie Manuel einrichtet – Rohr senkrecht (durch das Loch zum
   Tisch schauen): **X/Y 0 mittig im Rohr, Z 0 die vom Tisch entfernteste Stelle** (oben an der Stirn),
   ungeschwenkt. Heute schreibt das Addon „Nullpunkt nach dem Schwenken“ (0.376.0) – umbauen auf seinen

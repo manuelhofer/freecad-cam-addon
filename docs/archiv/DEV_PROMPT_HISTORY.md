@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-04 nullpunkte-wie-manuel-einrichtet
+
+### EINGELESEN
+- Manuel, 2026-11-15 (Antwort auf Frage 1, wörtlich in P-2026-11-15-21): „nullpunkt liegt vorne mittig ? …
+  dann ist z0 vom tisch die entfernteste stelle .. und wenn das rohr senkrecht … ist mittig im rohr xy0 ...
+  bei einer 4ten achse … da ist mittig vom rohr 0 und in z richtung der höchste punkt und länge meist x
+  eine seite 0“.
+
+### DATEIEN
+- `camaddon/postprozessor.py`, `schwenken.py`, `vierachs_rohteil.py`, `abfahren.py`, `einrichtblatt.py`,
+  `reichweite.py`, `steuerung.py`, Programm- und Prüffenster, `help/*/vierachs.html`, `translations/*.json`,
+  `tests/test_vierachs_vierte_achse.py`, `tests/test_vierachs_geschwenkt.py`, `tests/test_postprozessor.py`,
+  `tests/gui/szenario_vierachs_geschwenkt.py`, `docs/OFFENE_FRAGEN.md`, `package.xml` 0.388.0.
+
+### ERGEBNIS
+- **4. Achse an der Fräse:** Das Programm zählt Z vom Mantel oben (Achse + Radius); Y 0 auf der Achse, X 0
+  an der Stirn. Kopf und Einrichtblatt sagen es und nennen die Korrektur bei abweichendem Stangen-Ø
+  (Z 0 = Mantel oben − (Ist-Ø − Soll-Ø)/2). Messsätze werden mit verschoben. Dabei behoben:
+  Abfahrt.am_werkstueck ließ den Versatz an Stationen ohne Drehung weg (Abtrag lag 25 mm im Teil).
+- **Rohr im Futter auf dem Rundtisch (Tisch/Tisch):** neuer Haken „Rohr ungeschwenkt einrichten“ (nur
+  Siemens/Heidenhain, **vorbelegt aus**): X 0 Y 0 mittig im Rohr, Z 0 oben an der Stirn der Stange, dann
+  CYCLE800 bzw. PLANE SPATIAL; ein Nullpunkt für den ganzen Job, kein G55. Aus: wie bisher „Nullpunkt
+  nach dem Schwenken“, Zeile für Zeile wie 0.385.1 (im Test belegt).
+- Warum aus: Der Zweifler rechnete nach (1370 Sätze je Steuerung auf ≤ 0,0007 mm), fand aber, dass der Weg
+  davon abhängt, dass die Steuerung den geschwenkten Rahmen beim Drehen von C nicht mitdreht – nicht
+  belegt. Mit Haken steht deshalb im Kopf: „Vor dem ersten Teil: C einmal ohne Teil bei geschwenktem Tisch
+  fahren …“. Frage 1 in OFFENE_FRAGEN.
+- Das Prüffenster sagt jetzt, wovon „Spitze im Programm“ zählt und wo G54 im Programm liegt.
+- Workflow: Bauer (076fcb50) → Zweifler (nacharbeiten, 5 Funde) → Nacharbeit (2137c89b). Programme
+  anderer Maschinen unverändert (5 Beispiele × 7 Maschinen × 4 Steuerungen).
+- Geprüft nach der Übernahme im Wochen-Build 18.11.: test_vierachs_vierte_achse, _geschwenkt, _eilgang,
+  test_postprozessor, test_einrichtblatt, test_programmkopf, test_sprache, test_goldene_bahnen,
+  szenario_vierachs_vierte_achse (Bild 5b_pruefen), szenario_vierachs_geschwenkt (Bilder 5b, 6, 7).
 ## P-2026-11-21-03 hobelklingen-in-der-herstellerliste
 
 ### EINGELESEN
