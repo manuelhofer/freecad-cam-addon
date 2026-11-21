@@ -523,6 +523,74 @@ pruefe(
     "Runde: auf der Platte nicht dieselbe Bahn",
 )
 pruefe(op.Bodenrunde is False, "Operation: Runde auf dem Teilboden nicht vorbelegt aus")
+# Eintauchen und Ausfahren neben der Runde nicht in eine nicht gewählte Wand hinter dem Raster
+# (Gegenprüfung 2026-11-21): eine Rippe 40 × 10 × 12 mit 80° Entformschräge (gewählt) zwischen zwei
+# senkrechten, nicht gewählten Rippen, am Fuß Spalt d, über Querstege verbunden. Das Raster reicht
+# bis zum Kasten der Schrägen ± R; die Stelle 1 mm neben der Runde lag dahinter, die Kugel tauchte
+# bis 0,28 mm in die Wand ein (d 6,2) und fuhr dort im Eilgang hinauf. Jetzt jeder neue Satz, auch
+# Eintauchen und Eilgang, alle 0,1 mm: Kugel mit Schaft nie im Teil. Im groben Raster der Vorschau
+# sieht die Unterkante dort keinen Rest – die Flächen erreichen den Boden trotzdem (für den Haken).
+
+
+def kamm(d):
+    e = 12.0 / math.tan(math.radians(80.0))
+    unten = Part.makePolygon(
+        [V(-20, -5, 0), V(20, -5, 0), V(20, 5, 0), V(-20, 5, 0), V(-20, -5, 0)]
+    )
+    oben = Part.makePolygon(
+        [V(-20 + e, -5 + e, 12), V(20 - e, -5 + e, 12), V(20 - e, 5 - e, 12),
+         V(-20 + e, 5 - e, 12), V(-20 + e, -5 + e, 12)]
+    )  # fmt: skip
+    rippe = Part.makeLoft([unten, oben], True)
+    weitere = [
+        Part.makeBox(52, 4, 12, V(-26, -5 - d - 4, 0)),
+        Part.makeBox(52, 4, 12, V(-26, 5 + d, 0)),
+        Part.makeBox(4, 2 * (5 + d + 4), 12, V(-30, -5 - d - 4, 0)),
+        Part.makeBox(4, 2 * (5 + d + 4), 12, V(26, -5 - d - 4, 0)),
+        Part.makeBox(4, 10 + 2 * d + 2, 2, V(-2, -5 - d - 1, 10)),
+    ]
+    k = rippe.fuse(weitere).removeSplitter()
+    schraegen = [
+        f"Face{i + 1}"
+        for i, f in enumerate(k.Faces)
+        if f.BoundBox.XMin >= -20.01 and f.BoundBox.XMax <= 20.01 and f.BoundBox.YMin >= -5.01
+        and f.BoundBox.YMax <= 5.01 and f.BoundBox.ZMax - f.BoundBox.ZMin > 1.0
+    ]  # fmt: skip
+    return k, schraegen
+
+
+def mit_schaft_frei(k, p, r=3.0):
+    achse = Part.Edge(Part.LineSegment(V(p[0], p[1], p[2] + r), V(p[0], p[1], p[2] + r + 60)))
+    return k.distToShape(achse)[0] - r
+
+
+for d in (6.2, 6.3, 6.4):
+    k, schraegen = kamm(d)
+    w_k = s3.Schlichtwerte(form=ff.kugel(3.0), oben=13.0, sicher=18.0, vorschub=900.0,
+                           eintauchen=300.0)  # fmt: skip
+    ohne_k = s3.planen(k, schraegen, w_k)
+    mit_k = s3.planen(k, schraegen, s3.Schlichtwerte(**{**w_k.__dict__, "bodenrunde": True}))
+    neu_k = mit_k.punkte[len(ohne_k.punkte) - 1 :]
+    proben = []
+    for a, b in zip(neu_k, neu_k[1:], strict=False):
+        n = max(1, int(math.ceil(math.dist((a.x, a.y, a.z), (b.x, b.y, b.z)) / 0.1)))
+        proben += [
+            (a.x + (b.x - a.x) * t / n, a.y + (b.y - a.y) * t / n, a.z + (b.z - a.z) * t / n)
+            for t in range(n + 1)
+        ]
+    frei_k = min(mit_schaft_frei(k, p) for p in proben)
+    pruefe(
+        mit_k.bodenrunden > 0 and frei_k > -0.01 and min(p[2] for p in proben) > -1e-9,
+        f"Runde am Kamm d {d}: {mit_k.bodenrunden} Runden, Kugel mit Schaft {frei_k:.4f} im Teil",
+    )
+grob_k = s3.planen(
+    k, schraegen, s3.Schlichtwerte(**{**w_k.__dict__, "schritt": 0.5, "raster": 0.5})
+)
+pruefe(
+    grob_k.boden_erreicht and ohne_k.boden_erreicht and not auf_platte.boden_erreicht,
+    f"Boden erreicht: Vorschau {grob_k.boden_erreicht}, Kuppel auf der Platte "
+    f"{auf_platte.boden_erreicht}",
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

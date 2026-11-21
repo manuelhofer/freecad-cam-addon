@@ -4009,9 +4009,14 @@ class _Schlichten3D(_Strategie):
             return True
         if feld == "bodenrunde":
             # Nur im 3D-Schlichten, und erst, wenn die Vorschau einen Rest an der Unterkante
-            # zeigt (oder der Haken schon sitzt): sonst fährt die Runde nirgends – nur Rauschen.
+            # zeigt oder die gewählten Flächen den Teilboden erreichen (im groben Raster der
+            # Vorschau fehlt ein dünner Rest sonst, die fertige Bahn hat ihn) oder der Haken schon
+            # sitzt: sonst fährt die Runde nirgends – nur Rauschen.
             kasten = getattr(block, "haken_felder", {}).get(feld)
-            unten = getattr(getattr(block, "vorschau", None), "unterkante", None) is not None
+            vorschau = getattr(block, "vorschau", None)
+            unten = getattr(vorschau, "unterkante", None) is not None or bool(
+                getattr(vorschau, "boden_erreicht", False)
+            )
             an = kasten is not None and kasten.isChecked()
             return self.kennung != "schlichten3d" or not (unten or an)
         return feld in KIPPHAKEN and not block.panel._fuenfachs()

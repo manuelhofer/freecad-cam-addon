@@ -171,6 +171,10 @@ class Schlichtbahn:
     winkel: float = None  # Zeilen im Winkel: Grad zu X (dann `laengs_x` im gedrehten Teil)
     unterkante: object = None  # Unterkante: der Rest, den der Teilboden stehen lässt; None: keiner
     bodenrunden: int = 0  # die Runden mit der Spitze auf dem Teilboden am Schluss (_bodenrunde)
+    # Die gewählten Flächen reichen bis an den Teilboden (dort nahm er ihnen Lagen): Dann kann eine
+    # Runde auf dem Boden etwas wegnehmen, auch wenn das grobe Raster der Vorschau keinen Rest an
+    # der Unterkante sieht (Rippe mit 80° Schräge: in der Vorschau keiner, fertig 0,22 mm).
+    boden_erreicht: bool = False
 
 
 @dataclass
@@ -987,7 +991,14 @@ def _aussen(raster, punkt, richtung, w):
     """(x, y) neben `punkt` – BODENRUNDE_ANFAHRT quer zur `richtung` (x, y), wo kein Teil ist –,
     über dem die Kugel mit der Spitze auf dem Boden frei steht: Dort taucht die Runde ein
     und fährt seitlich an (nicht senkrecht in den Rest an der Unterkante). None, wo es keine solche
-    Stelle gibt (dann senkrecht hinab, an der Hüllfläche entlang)."""
+    Stelle gibt (dann senkrecht hinab, an der Hüllfläche entlang).
+    Das Raster reicht nur bis zum Kasten der gewählten Flächen ± R, und raster.bei nimmt außerhalb
+    den Randwert – eine nicht gewählte Wand knapp dahinter sähe es nicht: An einer Rippe mit 80°
+    Entformschräge zwischen senkrechten, nicht gewählten Rippen (Spalt 6,2 … 6,4 mm am Fuß, Kugel
+    Ø 6) tauchte die Kugel bis 0,28 mm tief in die Wand des Fertigteils ein und fuhr im Eilgang an
+    derselben Stelle hinauf (Gegenprüfung 2026-11-21). Darum die Eintauchstelle und der seitliche
+    Weg zur Runde zusätzlich gegen das ganze Teil genau (_Genau.ganz: mit der Hüllfläche der Kugel
+    samt Schaft von oben ist dort auch die Achse darüber frei); ohne _Genau nur im Raster."""
     laenge = math.hypot(float(richtung[0]), float(richtung[1]))
     if laenge < GLEICH:
         return None
@@ -995,6 +1006,7 @@ def _aussen(raster, punkt, richtung, w):
     schritt = float(raster.xs[1] - raster.xs[0])
     weit = max(BODENRUNDE_ANFAHRT, 2.0 * schritt)
     t = np.arange(1.5 * schritt, weit + 1e-9, schritt / 2)
+    rand = schritt / 2 + GLEICH
     for nx, ny in ((-ty, tx), (ty, -tx)):
         x = float(punkt[0]) + nx * t
         y = float(punkt[1]) + ny * t
@@ -1002,6 +1014,14 @@ def _aussen(raster, punkt, richtung, w):
         for dx, dy in ((0, 0), (-1, -1), (1, -1), (-1, 1), (1, 1)):  # die Nachbarn im Raster dazu
             z = raster.bei(raster.z, x + dx * schritt / 2, y + dy * schritt / 2)
             frei &= bool(np.all(~np.isfinite(z) | (z <= w.boden + BODEN_GLEICH)))
+        if frei and raster.genau is not None:
+            z = raster.genau.ganz(x, y)
+            frei = bool(np.all(np.isneginf(z) | (z <= w.boden + BODEN_GLEICH)))
+        elif frei:  # ohne _Genau: außerhalb des Rasters nichts für frei halten
+            frei = bool(
+                np.all((x >= raster.xs[0] - rand) & (x <= raster.xs[-1] + rand))
+                and np.all((y >= raster.ys[0] - rand) & (y <= raster.ys[-1] + rand))
+            )
         if frei:
             return float(x[-1]), float(y[-1])
     return None
@@ -1941,7 +1961,10 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     unterkante = _unterkante(raster, netz_alle, w, davor, runden) if raster is not None else None
     if runden:
         beste = _mit_bodenrunde(beste, runden, raster, w)
-    return replace(_nie_unter_dem_boden(beste, w), unterkante=unterkante)
+    erreicht = (
+        raster is not None and raster.roh is not None and bool(np.any(raster.ideal & raster.unter))
+    )
+    return replace(_nie_unter_dem_boden(beste, w), unterkante=unterkante, boden_erreicht=erreicht)
 
 
 def richtung_stueck(
