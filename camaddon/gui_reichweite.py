@@ -654,6 +654,12 @@ class PruefPanel:
             zeile.addWidget(mit_einheit(feld, einheiten.einheit(einheiten.LAENGE)), 1)
             self.felder_nullpunkt[achse] = feld
         aufbau.addLayout(zeile)
+        # Zählt das Programm von einem anderen G54 (an der 4. Achse oben auf dem Mantel …): wo
+        # (abfahren.programm_nullpunkt_text) – die Felder bleiben der Nullpunkt des Jobs.
+        self.nullpunkt_programm = QtGui.QLabel()
+        self.nullpunkt_programm.setWordWrap(True)
+        self.nullpunkt_programm.hide()
+        aufbau.addWidget(self.nullpunkt_programm)
 
         # Oben je Prüfung ein Urteil, ohne Blättern zu sehen (Durchsicht W-004, D-10); die
         # Einzelheiten stehen darunter, die Verweise führen hin.
@@ -948,6 +954,9 @@ class PruefPanel:
         aufnahme = self.werkstueckaufnahme()
         self._pruefung_bereit(aufnahme)
         job, nullpunkt = self.job(), self.nullpunkt()
+        satz = ab.programm_nullpunkt_text(job, self.pruefung)
+        self.nullpunkt_programm.setText(satz)
+        self.nullpunkt_programm.setVisible(bool(satz))
         if self._fuenfachs_vorrechnen(job, nullpunkt):
             return  # die Nebenrechner rechnen die 5-Achs-Programme; danach noch einmal
         if _saetze(job) >= IM_TAKT_AB:

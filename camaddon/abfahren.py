@@ -84,11 +84,76 @@ class OperationAbfahrt:
     # In geschwenkter Lage: so weit liegt der Nullpunkt des Programms vom Nullpunkt des Jobs
     # (reichweite.Pruefung.versatz) – die Punkte der Stationen zählen von dort; None: keiner.
     versatz: tuple = None
+    # Wovon „Spitze im Programm“ zählt, wenn nicht vom Nullpunkt des Jobs (bezug_text): „Z 0 oben
+    # auf dem Mantel“ …; leer: vom Nullpunkt des Jobs.
+    bezug: str = ""
 
     @property
     def einspannung(self):
         """Wie das Werkzeug in der Aufnahme sitzt (reichweite.Einspannung)."""
         return rw.Einspannung(self.laenge, self.lage)
+
+
+def bezug_text(op, job, versatz, pruefung):
+    """Wovon die Punkte der Operation im Programm zählen, in Worten fürs Prüffenster – „“, wenn
+    vom Nullpunkt des Jobs. An der 4. Achse Z 0 oben auf dem Mantel (wie das Programm); das Rohr
+    im Futter auf dem Rundtisch in geschwenkter Lage vom Nullpunkt nach dem Schwenken. Schreibt
+    die Steuerung des Jobs es ungeschwenkt mit ihrem Schwenkzyklus (postprozessor.lage_mit_zyklus),
+    zählt ihr Programm von der Stirn der Stange – die Zeile sagt es (Zweifler 2026-11-15)."""
+    from . import vierachs_operation as vo
+    from . import vierachs_rohteil as vr
+
+    try:
+        if vr.im_tischfutter(job):
+            from . import einrichtblatt as eb
+            from . import postprozessor as pp
+
+            s = eb.steuerung_des_jobs(job)
+            vorn = vr.stirn_oben(job) or 0.0
+            werte = {"zyklus": pp._zyklus_name(s), "vorn": eb._zahl(vorn), "mm": eb._mm()}
+            if vo.ist_rundum(op) and vo.schwenk(op):
+                if pp.lage_mit_zyklus(s):
+                    return tr("ab.bezug.zyklus_geschwenkt", **werte)
+                return tr("ab.bezug.geschwenkt")
+            if pp.lage_mit_zyklus(s) and vorn > 1e-6:
+                return tr("ab.bezug.stirn_teil", **werte)
+            return ""
+        if versatz is not None and pruefung.vierte_achse():
+            return tr("ab.bezug.mantel")
+    except Exception:  # noqa: BLE001 – ohne ihn fehlt nur der Zusatz in der Zeile
+        return ""
+    return ""
+
+
+def programm_nullpunkt_text(job, pruefung):
+    """Ein Satz unter dem Nullpunkt im Prüffenster: wo G54 im Programm liegt, wenn nicht am
+    Nullpunkt des Jobs – an der 4. Achse oben auf dem Mantel, das Rohr im Futter auf dem
+    Rundtisch nach dem Schwenken oder (Schwenkzyklus) an der Stirn der Stange; „“ sonst."""
+    from . import einrichtblatt as eb
+    from . import vierachs_rohteil as vr
+
+    try:
+        if vr.im_tischfutter(job):
+            from . import postprozessor as pp
+
+            s = eb.steuerung_des_jobs(job)
+            if pp.lage_mit_zyklus(s):
+                vorn = vr.stirn_oben(job) or 0.0
+                return tr(
+                    "rw.nullpunkt.zyklus",
+                    zyklus=pp._zyklus_name(s),
+                    vorn=eb._zahl(vorn),
+                    mm=eb._mm(),
+                )
+            return tr("rw.nullpunkt.geschwenkt")
+        mantel = vr.mantel_oben(job)
+        if mantel is not None and pruefung is not None and pruefung.vierte_achse():
+            return tr(
+                "rw.nullpunkt.mantel", r=eb._zahl(mantel), d=eb._zahl(2.0 * mantel), mm=eb._mm()
+            )
+    except Exception:  # noqa: BLE001 – ohne ihn fehlt nur der Satz
+        return ""
+    return ""
 
 
 def _anstoss(op):
@@ -496,6 +561,7 @@ def abfahrt_schritte(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 _ebene_text(ebene, pruefung, aufnahme) if geschwenkt else "",
                 _anstoss(op),
                 versatz,
+                "" if geschwenkt else bezug_text(op, job, versatz, pruefung),
             )
         )
         anflug_von = WECHSEL if nummer else HOME  # woher die erste Station kommt (ziel)

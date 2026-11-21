@@ -873,6 +873,18 @@ def stirn_oben(job):
     return rohteil.Placement.Base.dot(laengs) + float(rohteil.Height)
 
 
+def stirn_weg(job):
+    """Der Weg (dx, dy, dz in mm, im Job) vom Nullpunkt des Jobs zur Stirn der Stange im Futter
+    auf dem Rundtisch, längs ihrer Achse (laengs · stirn_oben) – None ohne diese Lage. Dort liegt
+    G54 mit dem Schwenkzyklus (schwenken.lage_mit_zyklus); auch wenn das Rohteil im Job gedreht
+    ist, nicht nur längs Job-Z (Zweifler 2026-11-15)."""
+    oben = stirn_oben(job)
+    if oben is None:
+        return None
+    laengs = job.Stock.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    return (float(laengs.x) * oben, float(laengs.y) * oben, float(laengs.z) * oben)
+
+
 def vorn_laenge(job):
     """So weit reicht die Stange des Jobs vor die Stirn des Teils (mm) – Stange.vorn, wie der Job
     sie hat: mit Reitstock der Zapfen für die Zentrierbohrung. Aus einstellung(); sieht der Job

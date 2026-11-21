@@ -111,15 +111,17 @@ angeklickten Fläche und dieser Maschine, vorgewählt.</li>
 <b>„C, A −90° – Rohr im Futter auf dem Rundtisch, Werkzeug von oben“</b>: Das Rohr steht senkrecht im
 Dreibackenfutter mitten auf C, die Stange ist um Spannlänge und Lücke länger. Das Programm fährt
 hoch über Rohr und Futter, über die Achse von C, schwenkt A fest auf −90, dann dreht C, und das
-Werkzeug kommt von oben; danach schwenkt es genauso zurück. <b>Den Nullpunkt richtest du
-ungeschwenkt ein</b>, wie gewohnt: Rohr senkrecht, X 0 Y 0 mittig im Rohr, Z 0 oben an der Stirn der
-Stange. Den Weg zur Schwenkachse nimmt dann die Steuerung aus ihrer Kinematik – mit ihrem
-Schwenkzyklus (Siemens CYCLE800, Heidenhain PLANE SPATIAL; Haken „Mit dem Schwenkzyklus der
-Steuerung“). Ohne Schwenkzyklus (Haken aus oder eine Steuerung ohne) richtest du ihn <b>nach dem
-Schwenken</b> ein: A auf −90, C auf 0, auf der Achse von C, an der Stirn des Teils – so hängt das
+Werkzeug kommt von oben; danach schwenkt es genauso zurück. <b>Den Nullpunkt richtest du nach dem
+Schwenken ein</b>: A auf −90, C auf 0, auf der Achse von C, an der Stirn des Teils – so hängt das
 Programm nicht an der Höhe des Futters; fährt der Job auch ungeschwenkt (die Stirn von oben),
-bekommt die geschwenkte Lage dann den nächsten Nullpunkt (G55). Welcher Weg gilt, steht im Kopf des
-Programms und im Einrichtblatt.
+bekommt die geschwenkte Lage den nächsten Nullpunkt (G55). Ungeschwenkt einrichten wie gewohnt –
+Rohr senkrecht, X 0 Y 0 mittig im Rohr, Z 0 oben an der Stirn der Stange – geht mit dem Haken
+„Rohr ungeschwenkt einrichten“ (Siemens CYCLE800, Heidenhain PLANE
+SPATIAL): Den Weg zur Schwenkachse nimmt dann die Steuerung aus ihrer Kinematik. Der Haken ist
+vorbelegt aus: Ob die Steuerung den Rahmen beim Drehen von C fest im Raum lässt, ist an keiner
+Maschine geprüft – nimmt sie ihn mit, fräst sie an falscher Stelle. Vor dem ersten Teil deshalb C
+einmal ohne Teil bei geschwenktem Tisch fahren (so steht es auch im Kopf des Programms). Welcher
+Weg gilt, steht im Kopf des Programms und im Einrichtblatt.
 Die Bahn im Job zeigt FreeCAD richtig um das Teil, ein Maschinenprogramm wird sie
 aber nur mit <a href="programm.html">Programm schreiben</a> des Addons – FreeCADs eigene
 Postprozessoren kennen das Schwenken nicht, ein Kommentar vorn in der Bahn sagt das. A in
@@ -130,7 +132,8 @@ liegt die Stange längs X im Futter, das Werkzeug kommt von oben. Sie steckt mit
 den Backen; „Auf der Maschine prüfen“ legt sie auf die Achse A, die Spannfläche an die Stirn der
 Backen. <b>Den Nullpunkt richtest du wie gewohnt ein</b>: quer auf der Achse der Stange, Z 0 oben
 auf dem Mantel (das Einrichtblatt nennt den Ø), längs an der Stirn des Teils – das Programm zählt
-Z von dort.</li>
+Z von dort. Weicht der gemessene Ø der Stange ab, gilt Z 0 = Mantel oben − (Ist-Ø − Soll-Ø)/2
+(also Achse + Radius aus dem Modell); auch das steht im Einrichtblatt und im Kopf.</li>
 <li>Eine Maschine <b>ohne Rundachse</b> für die Stange (eine 3-Achs-Fräse)
 steht grau da: „… – keine Rundachse für die Stange“.</li>
 <li><b>Ohne Maschine</b> weist du der Stange den Buchstaben selbst zu:

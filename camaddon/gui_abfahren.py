@@ -1178,9 +1178,18 @@ class Abspieler(QtGui.QWidget):
         except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
             FreeCAD.Console.PrintLog(f"CAM-Addon: Spitze: {fehler}\n")
             return ""
-        text = html.escape(
-            tr("ab.spitze", punkt=rw.punkt_text(spitze, pruefung.x_durchmesser, pruefung.umgekehrt))
-        )
+        punkt = rw.punkt_text(spitze, pruefung.x_durchmesser, pruefung.umgekehrt)
+        # Wovon sie zählt, wenn nicht vom Nullpunkt des Jobs (abfahren.bezug_text): wie das
+        # Programm – an der 4. Achse vom Mantel oben, in geschwenkter Lage nach dem Schwenken.
+        nummer = station.operation
+        operationen = self.abfahrt.operationen
+        bezug = ""
+        if nummer is not None and 0 <= nummer < len(operationen):
+            bezug = operationen[nummer].bezug
+        if bezug:
+            text = html.escape(tr("ab.spitze_bezug", bezug=bezug, punkt=punkt))
+        else:
+            text = html.escape(tr("ab.spitze", punkt=punkt))
         if self.angehalten:
             soll = rw.punkt_text(
                 rw._programmpunkt(station.punkt, station.rund),

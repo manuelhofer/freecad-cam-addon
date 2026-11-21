@@ -110,7 +110,11 @@ GRUPPEN = (
     ),
     ("rundachse", "rundachse", ("rundachse_plus", "rundachse_minus")),
     ("vorschub", "vorschub", ("g93", "vorschub_zeit", "vorschub_minute", "vorschub_minute_drehen")),
-    ("schwenken", "schwenken", ("schwenkzyklus", "schwenken", "schwenken_aus")),
+    (
+        "schwenken",
+        "schwenken",
+        ("schwenkzyklus", "rohr_ungeschwenkt", "schwenken", "schwenken_aus"),
+    ),
     ("simultan", "simultan", ("tcpm", "tcpm_ein", "tcpm_aus")),
     (
         "bohren",
@@ -176,6 +180,7 @@ NUR_FRAESEN = {
     "laenge_ein",
     "vorschub_minute",
     "schwenkzyklus",
+    "rohr_ungeschwenkt",
     "schwenken",
     "schwenken_aus",
     "bohren",
@@ -848,6 +853,10 @@ class ProgrammDialog(QtGui.QDialog):
             # Nur, wo die Vorlage die Transformation kennt (Siemens): Fanuc G12.1 und Haas G112
             # fahren X und C mit X je nach Parameter im Radius oder Durchmesser – nicht gebaut.
             return bool(pp.steuerung(self.kennung()).transmit_ein)
+        if feld == "rohr_ungeschwenkt":
+            # Nur, wo die Steuerung das Rohr im Futter mit ihrem Zyklus schwenken kann (Siemens,
+            # Heidenhain) – vorbelegt aus (postprozessor.Steuerung.rohr_ungeschwenkt).
+            return bool(pp.steuerung(self.kennung()).lage_mit_zyklus)
         if feld == "wechselpunkt_mks":
             return not self.info.wechsel_wks
         if feld == "wechselpunkt_wks":

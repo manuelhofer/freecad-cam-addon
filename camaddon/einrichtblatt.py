@@ -719,10 +719,12 @@ def nullpunkt_text(job, tr, info=None, steuerung=None):
             "raus": _zahl(laenge - vr.spannlaenge(grundjob(job))),
         }
         if mantel is not None:
-            return tr("eb.nullpunkt.mantel_reitstock", d=_zahl(2.0 * mantel), **werte)
+            return tr(
+                "eb.nullpunkt.mantel_reitstock", d=_zahl(2.0 * mantel), r=_zahl(mantel), **werte
+            )
         return tr("eb.nullpunkt.stange_reitstock", **werte)
     if mantel is not None:
-        return tr("eb.nullpunkt.mantel", mm=_mm(), d=_zahl(2.0 * mantel))
+        return tr("eb.nullpunkt.mantel", mm=_mm(), d=_zahl(2.0 * mantel), r=_zahl(mantel))
     if vr.ist_stange(job, rohteil):
         return tr("eb.nullpunkt.stange")
     form = getattr(rohteil, "Shape", None)
@@ -781,10 +783,13 @@ def _nullpunkt_geschwenkt(job, tr, steuerung=None):
     if pp.lage_mit_zyklus(s):
         vorn = vr.stirn_oben(job) or 0.0
         if vorn > 1e-6:
-            return tr(
+            text = tr(
                 "eb.nullpunkt.zyklus_aufmass", mm=_mm(), vorn=_zahl(vorn), zyklus=pp._zyklus_name(s)
             )
-        return tr("eb.nullpunkt.zyklus", zyklus=pp._zyklus_name(s))
+        else:
+            text = tr("eb.nullpunkt.zyklus", zyklus=pp._zyklus_name(s))
+        # Ungeprüft, ob die Steuerung den Rahmen beim Drehen von C fest lässt (wie im Kopf).
+        return f"{text}. {tr('pp.kopf.zyklus_probelauf')}"
     schwenk = vr.schwenk_anzeige(job).rstrip("°")
     ops = [o for o in getattr(getattr(job, "Operations", None), "Group", []) if o.Active]
     ohne = [o for o in ops if not (vo.ist_rundum(o) and vo.schwenk(o)) and not pp.ohne_arbeit(o)]

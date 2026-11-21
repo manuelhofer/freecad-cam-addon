@@ -304,8 +304,13 @@ class Steuerung:
     # mittig im rohr xy0“) – den Abstand zur Schwenkachse nimmt die Steuerung aus ihrer Kinematik
     # (lage_mit_zyklus). Nur wo C danach als Achse im geschwenkten Rahmen fahren darf: Siemens
     # CYCLE800, Heidenhain PLANE SPATIAL; Fanuc G68.2 noch nicht (ob C unter G68.2 fahren darf, ist
-    # ungeprüft).
+    # ungeprüft). Das kann die Steuerung – geschrieben wird es nur mit `rohr_ungeschwenkt`.
     lage_mit_zyklus: bool = False
+    # Der Haken dazu, vorbelegt aus (Zweifler 2026-11-15): Ob die Steuerung den Rahmen nach
+    # CYCLE800 / PLANE SPATIAL fest im Raum lässt, während C programmiert dreht, ist an keiner
+    # Maschine belegt – nimmt sie ihn mit, läge jeder Satz um den C-Winkel verdreht am Teil. Aus:
+    # Nullpunkt nach dem Schwenken (wie 0.376.0); an: im Kopf ein Probelauf ohne Teil.
+    rohr_ungeschwenkt: bool = False
     # 5 Achsen simultan mit TCPM (Manuel, 2026-10-03: „TCPM bleibt aus … später als Haken“): die
     # Steuerung führt die Spitze – im Programm die Spitze im Werkstück und die Rundachsen je
     # Punkt, F in mm/min statt G93 ({t}: Werkzeugnummer). Aus oder leer: ohne TCPM, die
@@ -521,6 +526,7 @@ HAKEN = (
     "transmit",
     "g93",
     "schwenkzyklus",
+    "rohr_ungeschwenkt",
     "tcpm",
     "bohrzyklen",
     "gewinde_synchron",
@@ -1415,10 +1421,10 @@ class Abschnitt:
     # eingerichtet, Z 0 an der Stirn der Stange. Mit einer Steuerung, die das kann
     # (lage_mit_zyklus), schreibt das Programm sie so; sonst `fest`.
     lage_zyklus: tuple = None
-    # Im Job mit dem Rohr im Futter auf dem Rundtisch: so weit (mm) steht die Stirn der Stange über
-    # dem Nullpunkt des Jobs (vierachs_rohteil.stirn_oben) – mit dem Schwenkzyklus zählt auch eine
-    # Bearbeitung ohne Schwenken von dort. None: kein solcher Job.
-    stirn_oben: float = None
+    # Im Job mit dem Rohr im Futter auf dem Rundtisch: der Weg (dx, dy, dz in mm, im Job) vom
+    # Nullpunkt des Jobs zur Stirn der Stange, längs ihrer Achse (vierachs_rohteil.stirn_weg) – mit
+    # dem Schwenkzyklus zählt auch eine Bearbeitung ohne Schwenken von dort. None: kein solcher Job.
+    stirn_oben: tuple = None
 
 
 @dataclass
@@ -1589,6 +1595,10 @@ def haken_text(feld):
         "transmit": (tr("pp.haken.transmit"), tr("pp.haken.transmit.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
+        "rohr_ungeschwenkt": (
+            tr("pp.haken.rohr_ungeschwenkt"),
+            tr("pp.haken.rohr_ungeschwenkt.erklaerung"),
+        ),
         "tcpm": (tr("pp.haken.tcpm"), tr("pp.haken.tcpm.erklaerung")),
         "bohrzyklen": (tr("pp.haken.bohrzyklen"), tr("pp.haken.bohrzyklen.erklaerung")),
         "gewinde_synchron": (
@@ -1810,8 +1820,9 @@ _NULLPUNKT = re.compile(r"G5([4-9])|G59\.([1-9])|G54\.1\s*P(\d+)")
 
 def lage_mit_zyklus(s):
     """Schreibt die Steuerung `s` das Rohr im Futter auf dem Rundtisch („C, A −90°“) mit ihrem
-    Schwenkzyklus – ungeschwenkt eingerichtet (Steuerung.lage_mit_zyklus, Haken „Schwenkzyklus“)?"""
-    return bool(s.schwenkzyklus and s.schwenken and s.lage_mit_zyklus)
+    Schwenkzyklus – ungeschwenkt eingerichtet? Nur, wo sie es kann (Steuerung.lage_mit_zyklus), mit
+    dem Haken „Schwenkzyklus“ und dem eigenen, vorbelegt aus (Steuerung.rohr_ungeschwenkt)."""
+    return bool(s.schwenkzyklus and s.schwenken and s.lage_mit_zyklus and s.rohr_ungeschwenkt)
 
 
 def _zyklus_name(s):
@@ -1823,37 +1834,58 @@ def _zyklus_name(s):
 
 
 def _lage_im_zyklus(abschnitte, s, hinweise, info):
-    """(Abschnitte, dz): Mit dem Schwenkzyklus (lage_mit_zyklus) die Abschnitte in geschwenkter
-    Lage mit ihren Sätzen im Zyklus (Abschnitt.lage_zyklus) und dem Nullpunkt des Jobs (G54 statt
-    G55 für „nach dem Schwenken“); die übrigen Bearbeitungen des Jobs zählen dann ebenso von der
-    Stirn der Stange (Abschnitt.stirn_oben, um dz verschoben). Ohne Zyklus bleibt alles und ein
-    Hinweis sagt, dass der Nullpunkt erst nach dem Schwenken eingerichtet wird. Mit einer Ebene
-    (3+2) im selben Programm bleibt es ebenso: Deren Bezugspunkt zählt vom Nullpunkt des Jobs."""
+    """(Abschnitte, Versatz (dx, dy, dz)): Mit dem Schwenkzyklus (lage_mit_zyklus) die Abschnitte in
+    geschwenkter Lage mit ihren Sätzen im Zyklus (Abschnitt.lage_zyklus) und dem Nullpunkt des Jobs
+    (G54 statt G55 für „nach dem Schwenken“); die übrigen Bearbeitungen des Jobs zählen dann ebenso
+    von der Stirn der Stange (Abschnitt.stirn_oben, um den Versatz verschoben). Ohne Zyklus bleibt
+    alles und ein Hinweis sagt, dass der Nullpunkt erst nach dem Schwenken eingerichtet wird. Mit
+    einer Ebene (3+2) im selben Programm bleibt es ebenso: Deren Bezugspunkt zählt vom Nullpunkt des
+    Jobs."""
     lage = [a for a in abschnitte if a.lage_zyklus is not None]
     if not lage:
-        return abschnitte, 0.0
+        return abschnitte, OHNE_VERSATZ
     if not lage_mit_zyklus(s) or any(a.schwenkung is not None for a in abschnitte):
         umgekehrt = set(getattr(info, "umgekehrt", ()) or ())
         schwenk = fest_text(lage[0].fest.rund, umgekehrt) if lage[0].fest is not None else ""
         hinweis = tr("pp.hinweis.lage_ohne_zyklus", steuerung=s.name, schwenk=schwenk)
         if hinweis not in hinweise:
             hinweise.append(hinweis)
-        return abschnitte, 0.0
-    neu, dz = [], 0.0
+        return abschnitte, OHNE_VERSATZ
+    neu, versatz = [], OHNE_VERSATZ
     for a in abschnitte:
+        weg = tuple(-float(w) for w in a.stirn_oben) if a.stirn_oben else OHNE_VERSATZ
         if a.lage_zyklus is not None:
             befehle, schwenkung, nullpunkte = a.lage_zyklus
             a = dataclasses.replace(
                 a, befehle=list(befehle), schwenkung=schwenkung, fest=None, nullpunkte=nullpunkte
             )
-        elif a.stirn_oben:
-            a = dataclasses.replace(
-                a, befehle=sw.verschoben(a.befehle, (0.0, 0.0, -float(a.stirn_oben)))
-            )
-        if a.stirn_oben:
-            dz = -float(a.stirn_oben)
+        elif any(weg):
+            a = dataclasses.replace(a, befehle=sw.verschoben(a.befehle, weg))
+        if any(weg):
+            versatz = weg
         neu.append(a)
-    return neu, dz
+    return neu, versatz
+
+
+OHNE_VERSATZ = (0.0, 0.0, 0.0)
+
+
+def _merkmal_verschoben(gemessen, versatz):
+    """(messen.Merkmal, Toleranz) um `versatz` (dx, dy, dz) verschoben – die Messsätze zählen vom
+    selben Nullpunkt wie die Bahn (an der 4. Achse Z vom Mantel oben)."""
+    if not gemessen or not any(versatz):
+        return gemessen
+    m, toleranz = gemessen
+    dx, dy, dz = (float(w) for w in versatz)
+    m = dataclasses.replace(
+        m,
+        x=m.x + dx,
+        y=m.y + dy,
+        z_oben=m.z_oben + dz,
+        z_unten=m.z_unten + dz,
+        z_mess=m.z_mess + dz,
+    )
+    return m, toleranz
 
 
 def vierte_achse(info):
@@ -2130,13 +2162,13 @@ def programm(
     zeilen, hinweise = [], []
     # Das Rohr im Futter auf dem Rundtisch: mit dem Schwenkzyklus ungeschwenkt eingerichtet, wo die
     # Steuerung ihn kann (_lage_im_zyklus); an der 4. Achse Z vom Mantel oben (Abschnitt.mantel).
-    abschnitte, dz = _lage_im_zyklus(abschnitte, s, hinweise, info)
+    abschnitte, versatz_zyklus = _lage_im_zyklus(abschnitte, s, hinweise, info)
+    versatz = versatz_zyklus
     mantel = next((a.mantel for a in abschnitte if a.mantel is not None), None)
     if mantel is not None and vierte_achse(info):
-        dz = -float(mantel)
-    if rohteil is not None and dz:
-        (x0, y0, z0), (x1, y1, z1) = rohteil
-        rohteil = ((x0, y0, z0 + dz), (x1, y1, z1 + dz))
+        versatz = (0.0, 0.0, -float(mantel))
+    if rohteil is not None and any(versatz):
+        rohteil = tuple(tuple(p + v for p, v in zip(e, versatz, strict=True)) for e in rohteil)
     if s.dialekt == "klartext":
         if info.drehmaschine:
             hinweise.append(tr("pp.hinweis.klartext_drehen"))
@@ -2238,10 +2270,15 @@ def programm(
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
         befehle_roh = abschnitt.befehle
+        # Die Messsätze (MESSEN …) zählen vom selben Nullpunkt wie die Bahn (_merkmal_verschoben).
+        versatz_messen = OHNE_VERSATZ
         if abschnitt.mantel is not None and vierte_achse(info):
             # An der 4. Achse: Z 0 oben auf dem Mantel (Manuel, 2026-11-15) – die Bahn im Job zählt
             # von der Achse der Stange.
-            befehle_roh = sw.verschoben(befehle_roh, (0.0, 0.0, -float(abschnitt.mantel)))
+            versatz_messen = (0.0, 0.0, -float(abschnitt.mantel))
+            befehle_roh = sw.verschoben(befehle_roh, versatz_messen)
+        elif any(versatz_zyklus) and abschnitt.lage_zyklus is None:
+            versatz_messen = versatz_zyklus  # schon verschoben (_lage_im_zyklus)
         if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
             try:
                 befehle_roh = abschnitt.befehle_tcpm(bei_null=s.tcpm_bei_null)
@@ -2546,7 +2583,7 @@ def programm(
                     continue
                 notiz(text_)
                 if text_.startswith(ms.MESSEN + " "):
-                    gemessen = ms.merkmal_von([name_])
+                    gemessen = _merkmal_verschoben(ms.merkmal_von([name_]), versatz_messen)
                     korrigiert = ms.korrektur_von([name_])
                 messstopp = messstopp or name_ == ms.KOMMENTAR
                 im_messstopp = im_messstopp or name_ == ms.KOMMENTAR
@@ -3522,7 +3559,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 # eigene Postprozessoren – hier wird die Bahn eins.
                 befehle = [b for b in befehle if not b.Name.startswith(vo.KOMMENTAR_GESCHWENKT)]
                 # Mit dem Schwenkzyklus (wenn die Steuerung ihn kann): ungeschwenkt eingerichtet.
-                lage_zyklus = sw.lage_mit_zyklus(befehle, fest, fuer_op, vr.stirn_oben(job) or 0.0)
+                lage_zyklus = sw.lage_mit_zyklus(befehle, fest, fuer_op, vr.stirn_weg(job))
                 befehle = sw.befehle_ohne_zyklus(befehle, fest)
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
@@ -3609,7 +3646,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 lage_zyklus=(
                     None if lage_zyklus is None else (lage_zyklus[0], lage_zyklus[1], nullpunkte)
                 ),
-                stirn_oben=None if geschwenkt else vr.stirn_oben(job),
+                stirn_oben=None if geschwenkt else vr.stirn_weg(job),
             )
         )
     return _nullpunkt_geschwenkt(ergebnis)
@@ -4137,6 +4174,9 @@ def _kopfzeilen(s, abschnitte, marken, info=None):
                 ),
             )
         )
+        # Ungeprüft, ob die Steuerung den Rahmen beim Drehen von C fest im Raum lässt
+        # (Steuerung.rohr_ungeschwenkt): vor dem ersten Teil ohne Teil ausprobieren.
+        zeilen.append(_kommentar(s, tr("pp.kopf.zyklus_probelauf")))
     # An der 4. Achse: wo Z 0 liegt – oben auf dem Mantel, mit dem Ø, an dem man antastet.
     mantel = next((a for a in abschnitte if a.mantel is not None), None)
     if mantel is not None and vierte_achse(info):
@@ -4147,6 +4187,17 @@ def _kopfzeilen(s, abschnitte, marken, info=None):
                     "pp.kopf.nullpunkt_mantel",
                     register=(mantel.nullpunkte[0] if mantel.nullpunkte else "G54"),
                     d=_mm(2.0 * float(mantel.mantel)),
+                ),
+            )
+        )
+        # Das Maß hängt am echten Ø der Stange (Zweifler 2026-11-15): wie man Z 0 korrigiert.
+        zeilen.append(
+            _kommentar(
+                s,
+                tr(
+                    "pp.kopf.mantel_messen",
+                    d=_mm(2.0 * float(mantel.mantel)),
+                    r=f"{float(mantel.mantel):.3f}".rstrip("0").rstrip("."),
                 ),
             )
         )

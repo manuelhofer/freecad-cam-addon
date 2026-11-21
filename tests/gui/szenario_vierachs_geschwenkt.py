@@ -200,7 +200,54 @@ def schritte(h):
     yield 1000
     h.bild("5_am_ende")
     h.bild("5b_pruefen", pruef.form)
+    # Wovon das Programm zählt (Zweifler 2026-11-15): unter dem Nullpunkt ein Satz, an der Spitze
+    # „vom Nullpunkt nach dem Schwenken“ – der Haken „Rohr im Futter ungeschwenkt“ ist aus.
+    satz = pruef.nullpunkt_programm.text()
+    h.pruefe(
+        pruef.nullpunkt_programm.isVisible() and "nach dem Schwenken" in satz, f"Satz: {satz!r}"
+    )
+    spitze = spieler.spitze.text()
+    h.pruefe("nach dem Schwenken" in spitze, f"Spitze: {spitze!r}")
+    yield from _programm_fenster(h, pruef)
     pruef.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300
+
+
+def _programm_fenster(h, pruef):
+    """„Programm schreiben“ aus dem Prüffenster, Siemens: der Haken „Rohr im Futter ungeschwenkt
+    einrichten (Schwenkzyklus)“ steht vorbelegt aus, das Programm schwenkt mit A (Bild
+    6_programm_aus); angehakt CYCLE800 und im Kopf der Probelauf ohne Teil (Bild 7_programm_an)."""
+    d = pruef.programm_schreiben()
+    yield 1500
+    d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
+    yield from h.warte_auf(lambda: not d.rechnet(), 120000)
+    yield 800
+    haken = d.haken.get("rohr_ungeschwenkt")
+    h.pruefe(haken is not None and not haken.isChecked(), f"Haken Rohr ungeschwenkt: {haken}")
+    text = d.vorschau.toPlainText()
+    h.pruefe("G0 A1=-90.000" in text and "CYCLE800(1" not in text, "Haken aus: nicht mit A")
+    if haken is not None:
+        d.einstellungen.ensureWidgetVisible(haken)
+        d.einstellungen.horizontalScrollBar().setValue(0)
+    yield 500
+    h.bild("6_programm_aus", d)
+    if haken is not None:
+        haken.setChecked(True)
+        yield 800
+        yield from h.warte_auf(lambda: not d.rechnet(), 120000)
+        yield 800
+        text = d.vorschau.toPlainText()
+        h.pruefe(
+            "CYCLE800(1" in text and "C einmal ohne Teil" in text,
+            "Haken an: kein CYCLE800 oder kein Probelauf im Kopf",
+        )
+        d.einstellungen.ensureWidgetVisible(haken)
+        d.einstellungen.horizontalScrollBar().setValue(0)
+        yield 500
+        h.bild("7_programm_an", d)
+        haken.setChecked(False)
+        yield 800
+    d.close()
+    yield 500

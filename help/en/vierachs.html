@@ -103,15 +103,17 @@ machine, preselected.</li>
 <b>“C, A −90° – tube in the chuck on the rotary table, tool from above”</b>: the tube stands upright
 in a three-jaw chuck in the middle of C, the bar is longer by the clamping length and the gap. The
 program moves up above tube and chuck, over the C axis, tilts A to −90 and keeps it there, then C
-turns and the tool comes from above; afterwards it tilts back the same way. <b>Set the origin
-untilted</b>, as usual: tube upright, X 0 Y 0 in the centre of the tube, Z 0 on top of the bar's
-front face. The control then takes the distance to the swivel axis from its kinematics – with its
-swivel cycle (Siemens CYCLE800, Heidenhain PLANE SPATIAL; option “With the control's swivel
-cycle”). Without the swivel cycle (option off or a control without one) set it <b>after
+turns and the tool comes from above; afterwards it tilts back the same way. <b>Set the origin after
 tilting</b>: A at −90, C at 0, on the C axis, at the front face of the part – that way the program
 does not depend on the height of the chuck; if the job also runs untilted (the front face from
-above), the tilted setup then gets the next origin (G55). Which way applies is in the program
-header and on the setup sheet.
+above), the tilted setup gets the next origin (G55). Setting it up untilted as usual – tube
+upright, X 0 Y 0 in the centre of the tube, Z 0 on top of the bar's front face – works with the
+option “Set up the tube unswivelled” (Siemens CYCLE800, Heidenhain PLANE
+SPATIAL): the control then takes the distance to the swivel axis from its kinematics. The option is
+off by default: whether the control keeps the frame fixed in space while C turns has not been
+checked on any machine – if it rotates the frame with C, it cuts in the wrong place. So before the
+first part, run C once without a part with the table tilted (the program header says so too).
+Which way applies is in the program header and on the setup sheet.
 FreeCAD shows the path in the job correctly around the part, but it only becomes a machine
 program with the add-on's <a href="programm.html">Write program</a> – FreeCAD's own post processors
 do not know about the tilt, and a comment at the start of the path says so. A in its home position
@@ -121,7 +123,9 @@ machine …”: an indexing head A along X with a three-jaw chuck, a tailstock o
 bar lies along X in the chuck and the tool comes from above. It sits in the jaws by the clamping
 length; “Check on machine” puts it on the A axis, the clamping face at the front of the jaws.
 <b>Set the origin as usual</b>: across on the bar axis, Z 0 on top of the bar (the setup sheet gives
-the Ø), along at the front face of the part – the program counts Z from there.</li>
+the Ø), along at the front face of the part – the program counts Z from there. If the measured bar
+Ø differs, Z 0 = top of the bar − (actual Ø − nominal Ø)/2 (that is, axis + radius from the
+model); the setup sheet and the header say so too.</li>
 <li>A machine <b>without a rotary axis</b> for the bar (a 3-axis mill) is shown
 greyed out: “… – no rotary axis for the bar”.</li>
 <li><b>Without a machine</b> you assign the letter to the bar yourself:

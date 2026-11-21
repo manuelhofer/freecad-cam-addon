@@ -1032,19 +1032,19 @@ def zurueck_aus_der_lage(schwenkung):
     return saetze
 
 
-def lage_mit_zyklus(befehle, fest, maschine, oben=0.0):
+def lage_mit_zyklus(befehle, fest, maschine, oben=None):
     """Die geschwenkte Lage („C, A −90°“, `fest`: schwenkung_der_operation) mit dem Schwenkzyklus
     der Steuerung: (Sätze, Schwenkung) – oder None ohne Abbildung.
 
-    Eingerichtet wird ungeschwenkt, wie Manuel einrichtet (2026-11-15): X, Y 0 mittig im Rohr,
-    auf der Achse von C, Z 0 `oben` (mm, längs der Achse) über dem Nullpunkt des Jobs – an der
-    Stirn der Stange (vierachs_rohteil.stirn_oben). Der Zyklus schwenkt um diesen Punkt: Den Weg
-    zur Schwenkachse nimmt die Steuerung aus ihrer Kinematik, das Programm hängt so nicht an der
-    Höhe des Futters (der Fund des Zweiflers von 0.376: 5 mm tiefer gespannt waren ohne Zyklus mit
-    G54 bei A 0 7,07 mm neben der Bahn). Die Ebene des Zyklus ist die Drehung der Lage selbst
-    (Abbildung ohne Versatz, umgekehrt): Im geschwenkten Rahmen stehen dieselben X, Y, Z wie
-    „nach dem Schwenken eingerichtet“, nur um den Weg von der Stirn des Teils zur Stirn der Stange
-    verschoben; C dreht darin wie an einer liegenden 4. Achse.
+    Eingerichtet wird ungeschwenkt, wie Manuel einrichtet (2026-11-15): X, Y 0 mittig im Rohr, auf
+    der Achse von C, Z 0 an der Stirn der Stange – `oben`: der Weg (dx, dy, dz, im Job) vom
+    Nullpunkt des Jobs dorthin, längs der Stangenachse (vierachs_rohteil.stirn_weg; None: 0). Der
+    Zyklus schwenkt um diesen Punkt: Den Weg zur Schwenkachse nimmt die Steuerung aus ihrer
+    Kinematik, das Programm hängt so nicht an der Höhe des Futters (der Fund des Zweiflers von
+    0.376: 5 mm tiefer gespannt waren ohne Zyklus mit G54 bei A 0 7,07 mm neben der Bahn). Die Ebene
+    des Zyklus ist die Drehung der Lage selbst (Abbildung ohne Versatz, umgekehrt): Im geschwenkten
+    Rahmen stehen dieselben X, Y, Z wie „nach dem Schwenken eingerichtet“, nur um den Weg von der
+    Stirn des Teils zur Stirn der Stange verschoben; C dreht darin wie an einer liegenden 4. Achse.
 
     `befehle`: die Sätze der Bahn im Job (ohne den Kommentar vorn). Die Sätze ohne Vorspann (kein
     „G0 A…“ – das stellt der Zyklus), zum ersten Punkt auf der Schwenkhöhe darüber und hinunter
@@ -1054,7 +1054,7 @@ def lage_mit_zyklus(befehle, fest, maschine, oben=0.0):
     import numpy
 
     a = numpy.array(fest.abbildung.a, dtype=float)
-    d = numpy.array((0.0, 0.0, float(oben)))
+    d = numpy.array(tuple(float(w) for w in oben) if oben is not None else (0.0, 0.0, 0.0))
     ad = a @ d  # wohin der Weg zur Stirn der Stange geschwenkt ist (im Programm)
     rahmen = Abbildung(fest.abbildung.a, tuple(float(-w) for w in ad))
     hoehe_rahmen = None if fest.hoehe is None else float(fest.hoehe) - float(ad[2])

@@ -314,6 +314,11 @@ for kennung, muster in (
         any(re.search(r"Z 0 oben auf dem Mantel, (Ø|D) 60\b", z) for z in programm.zeilen[:30]),
         f"{kennung}: Kopf ohne Z 0 oben auf dem Mantel",
     )
+    # … und was bei abweichendem Ø der Stange gilt (Zweifler 2026-11-15).
+    pruefe(
+        any(re.search(r"Ist-(Ø|D) .*Achse \+ 30\b", z) for z in programm.zeilen[:30]),
+        f"{kennung}: Kopf ohne Korrektur für den Ø der Stange",
+    )
     werte = [float(w) for z in programm.zeilen for w in re.findall(muster, z.split(";")[0])]
     gleich = [x for x in werte if wie_die_bahn(x)]
     print(
@@ -419,6 +424,13 @@ pruefe(
     f"Nullpunkt ohne Zapfen {vr.REITSTOCK_ZAPFEN} oder Ausspannlänge {raus}: {null_text}",
 )
 pruefe(f"Z 0 oben auf dem Mantel, Ø {eb._zahl(60.0)} mm" in null_text, f"Mantel: {null_text}")
+pruefe(
+    "Ø der Stange messen" in null_text and f"(= Achse + {eb._zahl(30.0)} mm)" in null_text,
+    f"Mantel ohne Korrektur für den Ø: {null_text}",
+)
+# Das Prüffenster sagt, wovon das Programm zählt (abfahren.programm_nullpunkt_text).
+satz_pruef = ab.programm_nullpunkt_text(job, p)
+pruefe("oben auf dem Mantel" in satz_pruef, f"Prüffenster: {satz_pruef!r}")
 # Ohne Maschine mit 4. Achse (keine Maschine am Job): wie bisher auf der Achse.
 achse_text = eb.nullpunkt_text(job, sprache.tr, pp.Maschineninfo())
 pruefe("Mantel" not in achse_text and "auf der Achse" in achse_text, f"ohne: {achse_text}")
@@ -426,6 +438,7 @@ sprache.setze_sprache("en")
 englisch = eb.nullpunkt_text(job, sprache.tr, info)
 sprache.setze_sprache("de")
 pruefe("Z 0 on top of the bar" in englisch, f"englisch: {englisch}")
+pruefe("actual Ø" in englisch, f"englisch ohne Korrektur: {englisch}")
 # Mit Planaufmaß 15 ist der Zapfen 15 lang – nicht „mindestens 10“.
 doc15 = FreeCAD.newDocument("RohrPlan15")
 teil15 = doc15.addObject("Part::Feature", "Rohr")
@@ -454,6 +467,8 @@ pruefe(
     and davor.punkt[2] > fahrt.stationen[erste_bahn].punkt[2] + 50.0,
     f"Anfahrt: {[(st.ziel, tuple(round(x, 1) for x in st.punkt)) for st in fahrt.stationen[:4]]}",
 )
+bezuege = {o.bezug for o in fahrt.operationen}
+pruefe(bezuege == {sprache.tr("ab.bezug.mantel")}, f"Spitze zählt von: {bezuege}")
 kollision = kb.kollision_parallel(fahrt, job, nullpunkt, bib)
 texte = [b.text() for b in kollision.befunde]
 print(ascii(f"Kollision: {len(fahrt.stationen)} Stationen, {texte[:3]}"))

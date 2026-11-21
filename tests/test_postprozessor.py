@@ -1126,6 +1126,15 @@ pruefe(
     f"Messen mit Taster: {nach_t[:14]}",
 )
 i = nach_t.index(aufruf) if aufruf in nach_t else 0
+# An der 4. Achse (Z 0 oben auf dem Mantel, Abschnitt.mantel): die Messsätze zählen vom selben
+# Nullpunkt wie die Bahn – Z um den Radius tiefer, X und Y wie im Job (Zweifler 2026-11-15).
+vierte = pp.Maschineninfo("4. Achse", rundachsen={"A": "A"})
+mantel_m = [dataclasses.replace(a_, mantel=30.0) for a_ in (bohren, messen_m, weiter_2)]
+z_mantel = pp.programm(mantel_m, mit_taster, vierte, "M").zeilen
+aufruf_mantel = "O<messen_tasche> CALL [0.000] [0.000] [59.400] [39.400] [-38.500] [0.020]"
+pruefe(aufruf_mantel in z_mantel, f"Messen an der 4. Achse: {[x for x in z_mantel if 'CALL' in x]}")
+z_ohne_vierte = pp.programm(mantel_m, mit_taster, fraese, "M").zeilen
+pruefe(aufruf in z_ohne_vierte, "Messen ohne 4. Achse verschoben")
 pruefe(
     any("T99" in x for x in nach_t[:i]) and any("T2" in x for x in nach_t[i:]),
     f"Taster ein-, T2 wieder eingewechselt: {nach_t[:i + 8]}",
