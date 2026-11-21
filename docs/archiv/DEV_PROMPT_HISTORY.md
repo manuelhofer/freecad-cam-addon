@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-05 runde-klinge-gegenpruefung
+
+### EINGELESEN
+- Kein neuer Auftrag: Gegenprüfung (Zweifler, eingefrorener Baum 16f40769 gegen ab334aba) der runden
+  Klinge aus P-2026-11-21-02/-03. Urteil „nacharbeiten“, fünf Funde.
+
+### DATEIEN
+- `camaddon/hobeln_bahn.py` (_kruemmung über KRUEMMUNG_WEG, endliche Lagen in _spur_planen, _anfang mit
+  dem ganzen geraden Zug, klinge_pruefen mit Gegenkurven, Überfahrt zwischen den Spuren),
+  `camaddon/werkzeugkiste.py`, `translations/*.json`, `tests/test_hobeln.py`, `package.xml` 0.388.1.
+
+### ERGEBNIS
+- Was hielt (74 Fälle, eigener fein abgetasteter Umriss gegen die echten Wände): größtes Eindringen
+  0,0013 mm, mit ± 0,5° Winkelfehler 0,0024 mm (unter VOLL 0,003); Seite und Umlaufsinn stimmen; Bahnen
+  ohne runde Seite byte-gleich zu vorher; rund wird überall durchgereicht.
+- Fund 1 (Sicherheit, seit 0.386.0): Freiform-Nut (Erdnuss) gab eine Bahn aus lauter NaN statt einer
+  Ablehnung – Scheinradien aus 0,001 mm kurzen Stücken. Krümmung jetzt über wenigstens 0,05 mm Weg,
+  nicht endliche Lagen sind ein Fehler mit Satz. Die Erdnuss wird jetzt gehobelt (4144 Punkte, 2 Spuren).
+- Fund 2: runde Seite links und eine Gerade aus zwei Strecken – die Einfahrt lief durch den Bogen
+  (Spindel drehte 89° in der Rampe). _anfang nimmt die erste Stelle des ganzen Zugs in Fahrtrichtung.
+- Fund 3: nach innen gewölbte Stücke (Niere): Die Vorprüfung sagt jetzt, dass dort die gerade Seite außen
+  liegt, statt „geht“ und dann „kürzere Klinge“.
+- Fund 4: Tooltip „Ausführung“ sagt, was sie beim Stoßwerkzeug heißt (nicht das L/R im Artikel).
+- Fund 5: zwei Spuren in vorgefräster Nut – zurück an den Anfang im Eilgang über der Oberkante der Nut,
+  nicht im Vorschub schräg zwischen den Wänden (kratzte mit ± 0,5° 0,005 mm an). Aus dem Vollen
+  unverändert.
+- Ungeprüft: ob das Modell der Rundung zur echten LA105 passt (Lage der Schneide zur Spindelachse) – das
+  zeigt erst Manuels Klinge.
+- Geprüft: test_hobeln (mit den fünf Fällen), test_werkzeuge, test_werkzeugkiste, test_sprache,
+  szenario_hobeln.
 ## P-2026-11-21-04 nullpunkte-wie-manuel-einrichtet
 
 ### EINGELESEN

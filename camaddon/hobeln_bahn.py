@@ -400,21 +400,23 @@ def _ueberstand(r, breite, laenge, schritt, r_mitte=None, freiwinkel=0.0, rund=0
     return max(weitest - (r + b2), 0.0), max((r - b2) - naechst, 0.0) + sehne
 
 
-def kleinster_radius_fuer(nut_breite, breite, laenge, schritt=SCHRITT, freiwinkel=0.0, rund=0.0):
+def kleinster_radius_fuer(
+    nut_breite, breite, laenge, schritt=SCHRITT, freiwinkel=0.0, rund=0.0, gegen=False
+):
     """Der kleinste Radius der Mittellinie, den eine Klinge (`breite` breit, der Körper `laenge`
     hinter der Schneide) in einer Nut der Breite `nut_breite` fahren kann: Sie ragt dort nach
     keiner Seite weiter als bis SPIEL vor die Wand (_ueberstand). 0: jede Kurve; inf: die Klinge
     ist zu breit, oder sie stößt schon auf einer Geraden an (WINKEL_FEHLER). `rund`: der Radius
-    ihrer runden Seite (sie zeigt nach außen – so wählt planen() die Fahrtrichtung)."""
+    ihrer runden Seite (sie zeigt nach außen – so wählt planen() die Fahrtrichtung; `gegen`: in
+    einer Gegenkurve, dort zeigt sie nach innen)."""
     luft = _halbe_luft(nut_breite, breite) - breite / 2.0
     if breite > nut_breite + 1e-6:
         return math.inf
 
+    seite = -abs(rund) if gegen else abs(rund)
+
     def geht(r):
-        return (
-            max(_ueberstand(r, breite, laenge, schritt, None, freiwinkel, abs(rund)))
-            <= luft + 1e-12
-        )
+        return max(_ueberstand(r, breite, laenge, schritt, None, freiwinkel, seite)) <= luft + 1e-12
 
     if not geht(math.inf):
         return math.inf
@@ -448,6 +450,15 @@ def klinge_pruefen(nut, breite, laenge, schritt=SCHRITT, freiwinkel=0.0, rund=0.
         return tr(
             "hn.grund.klinge_radius", r=_mm(nut.r_min), noetig=_mm(noetig), laenge=_mm(laenge)
         )
+    if rund:
+        # Kurven, die andersherum laufen als die Nut: dort liegt die gerade Seite außen.
+        gegen = [s.radius for s in nut.segmente if s.bogen is not None and s.uhr]
+        if gegen:
+            noetig = kleinster_radius_fuer(
+                nut.breite, breite, laenge, schritt, freiwinkel, rund, gegen=True
+            )
+            if min(gegen) < noetig - 1e-9:
+                return tr("hn.grund.klinge_gegenkurve", r=_mm(min(gegen)), noetig=_mm(noetig))
     return ""
 
 
@@ -619,7 +630,7 @@ def _anfang(nut, stellen):
     wenigsten Drehung auf ±2 mm), die Rampe LUFT_BOGEN davor."""
     seg = nut.segmente
     n_seg = len(seg)
-    beste, beste_laenge = None, 0.0
+    beste, beste_laenge, beste_zug = None, 0.0, ()
     if any(s.bogen is not None for s in seg):
         # Bei einem Stück anfangen, vor dem keine Gerade ohne Knick liegt.
         erster = next(
@@ -633,21 +644,28 @@ def _anfang(nut, stellen):
             if seg[k].bogen is not None:
                 i += 1
                 continue
-            laenge, j = 0.0, i
+            laenge, j, zug = 0.0, i, []
             while j < n_seg:
                 kk = (erster + j) % n_seg
                 vorher = (erster + j - 1) % n_seg
                 if seg[kk].bogen is not None or (j > i and _knick(seg[vorher], seg[kk]) >= 1e-6):
                     break
                 laenge += seg[kk].laenge
+                zug.append(kk)
                 j += 1
             if laenge > beste_laenge:
-                beste, beste_laenge = k, laenge
+                beste, beste_laenge, beste_zug = k, laenge, tuple(zug)
             i = max(j, i + 1)
     n = len(stellen)
     weg = _weg(stellen)
     if beste is not None and beste_laenge >= GERADE_MIN:
-        s0 = next(i for i, p in enumerate(stellen) if p[3] == beste)
+        # Die erste Stelle des Zugs in Fahrtrichtung – die Stellen können andersherum laufen
+        # (runde Klinge links), dann liegt sie am anderen Ende des Zugs.
+        s0 = next(
+            (i for i, p in enumerate(stellen)
+             if p[3] in beste_zug and stellen[i - 1][3] not in beste_zug),
+            next(i for i, p in enumerate(stellen) if p[3] == beste),
+        )  # fmt: skip
         luft, m = 0.0, 0
         while luft < beste_laenge / 2.0 - 1e-9 and m < n - 1:
             m += 1
@@ -679,16 +697,26 @@ def _spuren(nut, breite):
     return [-frei + 2 * frei * k / (anzahl - 1) for k in range(anzahl)]
 
 
+KRUEMMUNG_WEG = 0.05  # mm
+
+
 def _kruemmung(stellen, laenge):
     """Je Stelle der kleinste Krümmungsradius (mit Vorzeichen: + Linkskurve) über die Länge der
     Klinge dahinter – dort schwenkt ihre hintere Ecke aus; inf auf Geraden."""
     n = len(stellen)
     radien = []
     for i in range(n):
-        x0, y0, r0 = stellen[i - 1][:3]
-        x1, y1, r1 = stellen[i][:3]
-        ds = math.hypot(x1 - x0, y1 - y0)
-        dr = (r1 - r0 + math.pi) % (2 * math.pi) - math.pi
+        # Über wenigstens KRUEMMUNG_WEG: Stücke einer Freiform, deren Stellen nur 0,001 auseinander
+        # liegen, ergaben sonst Scheinradien (0,1 statt 17) und daraus einen Versatz ins Unendliche.
+        ds, dr, k = 0.0, 0.0, i
+        while k > i - n:
+            x0, y0, r0 = stellen[k - 1][:3]
+            x1, y1, r1 = stellen[k][:3]
+            ds += math.hypot(x1 - x0, y1 - y0)
+            dr += (r1 - r0 + math.pi) % (2 * math.pi) - math.pi
+            k -= 1
+            if ds >= KRUEMMUNG_WEG:
+                break
         radien.append(ds / dr if abs(dr) > 1e-9 else math.inf)
     ergebnis = []
     for i in range(n):
@@ -798,6 +826,7 @@ def _spur_planen(nut, w, stellen, d_spur, kruemmung, mehrere):
             erlaubt = _versatz_erlaubt(
                 nut, w.breite, w.laenge, radius, w.schritt, w.freiwinkel, aussen
             )
+            erlaubt = max(erlaubt, -nut.breite / 2.0)  # −inf: die genaue Prüfung unten lehnt ab
             if radius > 0:  # Linkskurve: die Außenwand liegt rechts (−)
                 reihe[i] = max(reihe[i], -erlaubt)
             elif radius < 0:
@@ -806,6 +835,10 @@ def _spur_planen(nut, w, stellen, d_spur, kruemmung, mehrere):
     for _versuch in range(12):
         lage = _spur_lage(stellen, reihe)
         luft, seite = _klinge_luft(nut, lage, w.breite, w.laenge, w.freiwinkel, w.rund)
+        if not all(math.isfinite(v) for p in lage for v in p[:2]) or not all(
+            math.isfinite(float(v)) for v in luft
+        ):
+            raise ValueError(tr("hn.grund.klinge_eng"))
         zu_nah = [i for i in range(len(lage)) if luft[i] < -1e-4]
         if not zu_nah:
             return lage
@@ -986,10 +1019,14 @@ def planen(nut, werte, mit_zeit=True):
                 material = z_oben_material if k == 1 else z_bei(j, (k - 1) * umlauf - luft_weg)
                 oben = material + UEBER_MATERIAL
                 if lage is not None and gerade:
-                    ueber_allem = z_oben_material + UEBER_MATERIAL
+                    # Zurück an den Anfang der Geraden, die Spindel steht: aus dem Vollen knapp über
+                    # dem Material im Vorschub. Vorgefräst läge das zwischen den Wänden, und die
+                    # Klinge führe dort schräg quer von Spur zu Spur (mit ± 0,5° kratzte ihre
+                    # hintere Ecke die Innenwand an) – dann im Eilgang über der Oberkante der Nut.
+                    frei = nut.z_oben <= z_oben_material + 1e-9
+                    ueber_allem = max(z_oben_material, nut.z_oben) + UEBER_MATERIAL
                     setze((True, lage[0], lage[1], ueber_allem, False), None)
-                    # in der Nut zurück an den Anfang der Geraden – über allem, die Spindel steht
-                    setze((False, x0, y0, ueber_allem, False), winkel_bei(r0))
+                    setze((not frei, x0, y0, ueber_allem, False), winkel_bei(r0))
                     if oben < ueber_allem - 1e-9:
                         setze((False, x0, y0, oben, True), winkel_bei(r0))
                 else:

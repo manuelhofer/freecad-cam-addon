@@ -890,7 +890,7 @@ def _einstechen():
                 "Maßtabelle im Horn-eShop: Schnittbreite CW 3, Schnitttiefe CDX 15, Körper BD 7, "
                 "Gesamtlänge OAL 40, kleinster Durchmesser DMIN 10 – die runde Seite also Radius 5. "
                 "Welche Seite die runde ist („Ausführung“) und den Freiwinkel der geraden Seite an "
-                "der Klinge nachsehen und eintragen."
+                "der Klinge nachsehen und eintragen – das „L“ im Artikel heißt nicht von selbst „links“."
             ),
             groessen=(
                 {

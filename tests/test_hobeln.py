@@ -800,6 +800,97 @@ pruefe(
     "LA105: " + _hop_rund.klinge_grund(nut_r10, _la105),
 )
 
+# Gegenprüfung der runden Klinge (2026-11-21), fünf Funde:
+# (1) Freiform (Erdnuss, r = 25 + 8·cos 2φ): nie eine Bahn mit NaN – eine endliche Bahn oder ein Satz.
+from camaddon import kontur_bahn as _kb_rund
+
+_pts = [
+    V((25 + 8 * math.cos(2 * f)) * math.cos(f), (25 + 8 * math.cos(2 * f)) * math.sin(f), 0)
+    for f in (2 * math.pi * k / 120 for k in range(120))
+]
+_bs = Part.BSplineCurve()
+_bs.interpolate(_pts, PeriodicFlag=True)
+nut_erdnuss = hb.hobelnuten(deckel(ring_um(Part.Wire([_bs.toShape()]))))[0]
+for _b, _l, _fw, _rund in ((2.6, 1.6, 0.0, 0.0), (2.0, 4.0, 0.0, -4.0), (2.0, 4.0, 0.0, 4.0)):
+    _w = hb.Hobelwerte(breite=_b, laenge=_l, versatz=0.0, zustellung=0.1, rest=0.2, sicher=15.0,
+                       vorschub=3000.0, freiwinkel=_fw, rund=_rund)  # fmt: skip
+    try:
+        _bahn = hb.planen(nut_erdnuss, _w)
+        pruefe(
+            all(
+                math.isfinite(q.x) and math.isfinite(q.y) and math.isfinite(q.z)
+                for q in _bahn.punkte
+            ),
+            f"Erdnuss {_b} × {_l} rund {_rund}: Bahn mit NaN",
+        )
+        print(
+            ascii(
+                f"Erdnuss {_b}x{_l} rund {_rund}: {len(_bahn.punkte)} Punkte, {_bahn.spuren} Spuren"
+            )
+        )
+    except ValueError as _f:
+        pruefe("inf" not in str(_f) and "nan" not in str(_f), f"Erdnuss: Satz mit inf/nan: {_f}")
+        print(ascii(f"Erdnuss {_b}x{_l} rund {_rund}: {_f}"))
+# (2) Gerade aus zwei Strecken ohne Knick, runde Seite links (Fahrt andersherum): Die Einfahrt bleibt
+# auf dem geraden Stück – der Spindelwinkel steht über Rampe und Eintritt.
+_neu = []
+for _s in nut_r10.segmente:
+    if _s.bogen is None and _s.laenge > 20:
+        _m = _s.bei(0.2)
+        _neu += [_kb_rund._Strecke(_s.von, _m), _kb_rund._Strecke(_m, _s.nach)]
+    else:
+        _neu.append(_s)
+nut_geteilt = dataclasses.replace(nut_r10, segmente=tuple(_neu))
+for _rund in (-5.0, 5.0):
+    _w = dataclasses.replace(w_rechts, rund=_rund, rest=0.2)
+    _bahn = hb.planen(nut_geteilt, _w)
+    _z_mat = nut_geteilt.z_boden + 0.2
+    _k = next(i for i, q in enumerate(_bahn.punkte) if not q.eilgang and q.z < _z_mat - 1e-9)
+    _ws = [_bahn.winkel[i] for i in range(_k + 1)
+           if not _bahn.punkte[i].eilgang and _bahn.winkel[i] is not None]  # fmt: skip
+    pruefe(_bahn.gerade and max(_ws) - min(_ws) < 0.01,
+           f"geteilte Gerade, rund {_rund}: Winkel dreht in der Einfahrt um {max(_ws) - min(_ws)}")  # fmt: skip
+# (3) Niere mit einem nach innen gewölbten Bogen R 10: Die Vorprüfung sagt es, statt „geht“.
+_t = math.radians(60)
+
+
+def _pol(r, a):
+    return V(r * math.cos(a), r * math.sin(a), 0)
+
+
+_c1, _c2 = _pol(20, _t), _pol(20, -_t)
+_niere = Part.Wire([
+    Part.Arc(_pol(30, -_t), _pol(30, 0), _pol(30, _t)).toShape(),
+    Part.Arc(_pol(30, _t), _c1 + _pol(10, _t + math.pi / 2), _pol(10, _t)).toShape(),
+    Part.Arc(_pol(10, _t), _pol(10, 0), _pol(10, -_t)).toShape(),
+    Part.Arc(_pol(10, -_t), _c2 + _pol(10, -_t - math.pi / 2), _pol(30, -_t)).toShape(),
+])  # fmt: skip
+nut_niere = hb.hobelnuten(deckel(ring_um(_niere)))[0]
+_grund = hb.klinge_pruefen(nut_niere, 3.0, 7.0, freiwinkel=1.0, rund=-5.0)
+pruefe("nach innen gewölbt" in _grund, f"Niere, runde Klinge: {_grund!r}")
+pruefe(
+    hb.klinge_pruefen(nut_r10, 3.0, 7.0, freiwinkel=1.0, rund=-5.0) == "",
+    "Rechteck: keine Gegenkurve",
+)
+# (5) Zwei Spuren, vorgefräst (Rest 0,5): zurück an den Anfang über der Oberkante der Nut, nicht zwischen
+# den Wänden.
+_w = hb.Hobelwerte(breite=2.9, laenge=7.0, versatz=0.0, zustellung=0.1, rest=0.5, sicher=15.0,
+                   vorschub=3000.0, rund=-5.0)  # fmt: skip
+_w36 = dataclasses.replace(_w, breite=2.6, laenge=3.0)
+for _wk in (_w, _w36):
+    try:
+        _bahn = hb.planen(nut_r10, _wk)
+    except ValueError:
+        continue
+    if _bahn.spuren < 2:
+        continue
+    _lang = [
+        (a, b) for a, b in zip(_bahn.punkte, _bahn.punkte[1:], strict=False)
+        if math.hypot(b.x - a.x, b.y - a.y) > 5.0
+    ]  # fmt: skip
+    pruefe(_lang and all(b.eilgang and b.z >= nut_r10.z_oben + hb.UEBER_MATERIAL - 1e-9 for _a, b in _lang),
+           f"Überfahrt zwischen den Spuren unter der Oberkante: {[round(b.z, 2) for _a, b in _lang]}")  # fmt: skip
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
