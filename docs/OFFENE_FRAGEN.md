@@ -8,16 +8,4 @@ durch Prüfläufe ersetzt: Was Manuel entscheiden muss, wird hier gefragt, nicht
 
 Je Frage: **die Frage** – *Warum nur Manuel* – *Was die Antwort ändert* – seit wann.
 
-Die Fragen 1 bis 4 und die Frage zur Dichtnut hat Manuel am 2026-11-14 beantwortet (Verlauf
-P-2026-11-14-06 und P-2026-11-14-10).
-
-Die Fragen 1 bis 5 vom 14./15.11. hat Manuel am 2026-11-15 beantwortet (Verlauf P-2026-11-15-21; die
-Aufträge daraus stehen im STATUS unter „Nächster Schritt“).
-
-Die Frage 1 vom 15.11. (Hobelklingen: Länge hinter der Schneide) hat Manuel am 2026-11-21 beantwortet
-(Verlauf P-2026-11-21-01).
-
-Die Fragen 1 und 2 vom 21.11. (Rohr ungeschwenkt, Runde auf dem Teilboden) hat Manuel am selben Tag
-beantwortet (Verlauf P-2026-11-21-08).
-
 **Zurzeit ist keine Frage offen.**
