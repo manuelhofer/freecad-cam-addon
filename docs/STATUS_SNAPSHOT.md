@@ -532,6 +532,18 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Stand beim Anhalten am 2026-11-21 (Manuel: „zum ende kommen und den update post … und dann ruhen“):**
+GitHub main = 0.389.0; Wochen-Update gepostet (Discussion 7, Archiv im Zweig `forum`,
+post_211126_13_wochenupdate). Zwei Arbeiten liegen UNFERTIG und ungepusht auf eigenen Zweigen:
+- `rundgewinde` (Arbeitsbaum `.claude/worktrees/wf_9dac7ff4-80b-1`, Commits bb00ec52, 6b84547a): Kern und
+  Assistent gebaut, der zweite Bauer wurde angehalten – Prüfungen/Szenario nicht bestätigt, kein Zweifler.
+  Weiter: `$S/wf_rundgewinde2.js` als Vorlage (Skript im Scratchpad, sonst aus dem Verlauf der Sitzung).
+- `bodenrunde-von-selbst` (in wt_f52): Manuel, 21.11.: „wenn dadurch die gemoetrie besser an das hinkommt
+  was gefordert ist .. muss der benutzer darauf hingewiesen werden und der hacken muss gesetzt werden ! aber
+  halt mit dem hinweis "hey ... das dauert nen bissi länger"“. Haken geht von selbst an und zeigt „dauert
+  0,2 min länger“; FEHLER: nach dem Abwählen bekommt der Block keine Vorschau mehr (szenario_bodenrunde rot).
+Danach: Hobeln an der Drehmaschine (C4 + C1), Rohr ungeschwenkt unter TRAORI/M128.
+
 **Auftrag vom 2026-11-21 – Rundgewinde außen fräsen (wörtlich im Verlauf P-2026-11-21-06), in Arbeit (Zweig
 `rundgewinde`, Workflow):** Manuels Probeteil `~/freecad_cam/testteile/rundgewinde_ausen.FCStd` (nur lesen):
 Ø 110 × 100, Wendelnut Steigung 5, 4 breit, 3 tief, Grund R 2, Oberkanten R 0,5. An der CLX mit C: (1) die
