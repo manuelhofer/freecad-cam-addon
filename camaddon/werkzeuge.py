@@ -90,6 +90,7 @@ LAENGEN_FELDER = (
     "schneidenbreite",
     "stechtiefe",
     "klingenlaenge",
+    "klingenradius",
 )
 WINKEL_FELDER = (
     "eintauchwinkel",
@@ -304,6 +305,7 @@ def feld_text(feld, art):
         "plattenwinkel": tr("wv.plattenwinkel"),
         "stechtiefe": tr("wv.stechtiefe"),
         "klingenlaenge": tr("wv.klingenlaenge"),
+        "klingenradius": tr("wv.klingenradius"),
         "spindelwinkel": tr("wv.spindelwinkel"),
         "freiwinkel": tr("wv.freiwinkel"),
         "ausfuehrung": tr("wv.ausfuehrung"),
@@ -584,6 +586,10 @@ class Werkzeug:
     # Länge · tan(Winkel) je Seite schmaler; in der Kurve schwenkt ihre hintere Ecke dann weniger
     # weit aus (Manuel, 2026-11-14, Frage 2: „C und D“). 0: ein Rechteck.
     freiwinkel: float = 0.0
+    # Stoßwerkzeug: Eine Seite der Klinge ist rund geschliffen, mit diesem Radius (mm; Katalog:
+    # halber kleinster Nutdurchmesser, DMIN ÷ 2) – welche, sagt `ausfuehrung` (links/rechts in
+    # Schnittrichtung, sonst rechts). 0: gerade (Manuel, 2026-11-21, Horn Supermini 105).
+    klingenradius: float = 0.0
     ausfuehrung: str = ""  # RECHTS, LINKS, NEUTRAL (Drehwerkzeuge)
     drehrichtung: str = ""  # RECHTS (M3) oder LINKS (M4); leer = wie üblich (dreht_links)
     # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
@@ -1239,6 +1245,8 @@ ARTDATEN = {
             "stechtiefe",
             "spindelwinkel",
             "freiwinkel",
+            "klingenradius",
+            "ausfuehrung",
             "gesamtlaenge",
             "schaft",
         )
@@ -1330,6 +1338,7 @@ NEUE_FELDER = (
     "klingenlaenge",
     "spindelwinkel",
     "freiwinkel",
+    "klingenradius",
 )
 # Die Beispiele je Art, wie bis P-2026-09-26-55 als eigene Tabellen.
 BEISPIELE = {art: daten.beispiel for art, daten in ARTDATEN.items()}

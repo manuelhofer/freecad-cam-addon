@@ -530,6 +530,16 @@ pruefe(
     f"Stoßwerkzeug gespeichert/gelesen: {zurueck.klingenlaenge}, {zurueck.spindelwinkel}",
 )
 pruefe(wz.artdaten(wz.STOSSWERKZEUG).gruppe == wz.GRUPPE_FRAESEN, "Stoßwerkzeug nicht beim Fräsen")
+# Die runde Seite (Radius) und ihre Ausführung werden gespeichert und gelesen (2026-11-21).
+rund = wz.Werkzeug(nummer=9, art=wz.STOSSWERKZEUG, schneidenbreite=3.0, klingenlaenge=7.0,
+                   klingenradius=5.0, ausfuehrung=wz.LINKS)  # fmt: skip
+zurueck = wz.Werkzeug.aus_dict(rund.als_dict())
+pruefe((zurueck.klingenradius, zurueck.ausfuehrung) == (5.0, wz.LINKS), "runde Klinge gespeichert")
+from camaddon import hobeln as _ho
+
+pruefe(_ho.rund_von(rund) == 5.0 and _ho.rund_von(stoss) == 0.0, "rund_von")
+rund.ausfuehrung = ""
+pruefe(_ho.rund_von(rund) == -5.0, "rund_von ohne Ausführung: rechts")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

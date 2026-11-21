@@ -730,6 +730,64 @@ pruefe(
 )
 print(ascii(f"Ueberstand R10 2.6x1.4: Rechteck {rechteck_a[0]:.4f}, 2 Grad {trapez_a[0]:.4f}"))
 
+# Rund geschliffene Klinge (Manuel, 2026-11-21, Horn Supermini 105: Schneide 3 breit, „auf eine seite
+# rund … ein radius von 5mm“): so breit wie die Nut, die runde Seite zeigt zur Außenwand – daraus die
+# Fahrtrichtung. Als Rechteck geht dieselbe Klinge nicht.
+nut_r10 = hb.hobelnuten(teil)[0]
+umriss = hb.klingen_umriss(3.0, 7.0, 1.0, rund=-5.0)
+pruefe(
+    max(v for _u, v in umriss) == 1.5 and min(v for _u, v in umriss) == -1.5
+    and min(u for u, _v in umriss) > -4.6,
+    f"Umriss der runden Klinge: {umriss}",
+)  # fmt: skip
+pruefe(
+    hb.klinge_pruefen(nut_r10, 3.0, 7.0) != "", "Rechteck 3 × 7 in der Nut 3: muss abgelehnt sein"
+)
+pruefe(
+    "Freiwinkel" in hb.klinge_pruefen(nut_r10, 3.0, 7.0, rund=-5.0),
+    "runde Klinge ohne Freiwinkel: " + hb.klinge_pruefen(nut_r10, 3.0, 7.0, rund=-5.0),
+)
+pruefe(
+    hb.klinge_pruefen(nut_r10, 3.0, 7.0, freiwinkel=1.0, rund=-5.0) == "",
+    "runde Klinge: " + hb.klinge_pruefen(nut_r10, 3.0, 7.0, freiwinkel=1.0, rund=-5.0),
+)
+import dataclasses
+
+w_rechts = hb.Hobelwerte(
+    breite=3.0, laenge=7.0, versatz=0.0, zustellung=0.08, rest=2.0, sicher=30.0, vorschub=3000.0,
+    freiwinkel=1.0, rund=-5.0,
+)  # fmt: skip
+w_links = dataclasses.replace(w_rechts, rund=5.0)
+bahn_r, bahn_l = hb.planen(nut_r10, w_rechts), hb.planen(nut_r10, w_links)
+pruefe(bahn_r.spuren == 1 and bahn_l.spuren == 1, f"runde Klinge: Spuren {bahn_r.spuren}")
+
+
+def umlaufsinn(b):
+    """> 0: gegen den Uhrzeigersinn (Fläche des ersten Umlaufs)."""
+    p = [(q.x, q.y) for q, s in zip(b.punkte, b.spur, strict=True) if s is not None][:400]
+    return sum(a[0] * c[1] - c[0] * a[1] for a, c in zip(p, p[1:], strict=False))
+
+
+pruefe(
+    umlaufsinn(bahn_r) > 0 > umlaufsinn(bahn_l),
+    "runde Seite rechts: links herum; links: rechts herum",
+)
+# Die runde Seite an der Innenwand (falsche Fahrtrichtung): Die gerade Seite stieße an die Außenwand.
+lagen = hb._spurlagen(nut_r10, w_rechts)[4][0]
+luft_richtig, _s = hb._klinge_luft(nut_r10, lagen, 3.0, 7.0, 1.0, -5.0)
+luft_falsch, _s = hb._klinge_luft(nut_r10, lagen, 3.0, 7.0, 1.0, 5.0)
+pruefe(min(luft_richtig) > -1e-4 and min(luft_falsch) < -0.05,
+       f"runde Klinge: Luft richtig {min(luft_richtig)}, falsch herum {min(luft_falsch)}")  # fmt: skip
+# Der Kreis R 5,5 (Außenwand R 7): geht mit der runden Klinge R 5; eine mit R 9 nicht.
+pruefe(hb.kleinster_radius_fuer(3.0, 3.0, 7.0, freiwinkel=1.0, rund=5.0) < 5.5, "rund 5 in R 5,5")
+pruefe(hb.kleinster_radius_fuer(3.0, 3.0, 7.0, freiwinkel=1.0, rund=9.0) > 5.5, "rund 9 in R 5,5")
+print(
+    ascii(
+        f"runde Klinge: Luft {min(luft_richtig):.4f}, falsch herum {min(luft_falsch):.4f}, "
+        f"kleinster Radius {hb.kleinster_radius_fuer(3.0, 3.0, 7.0, freiwinkel=1.0, rund=5.0):.3f}"
+    )
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

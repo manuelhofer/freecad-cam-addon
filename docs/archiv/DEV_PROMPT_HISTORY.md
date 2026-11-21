@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-11-21-02 hobeln-runde-klinge
+
+### EINGELESEN
+- Manuel, 2026-11-21 (wörtlich in P-2026-11-21-01): die Klinge ist „auf eine seite rund … der kleinste
+  drehdurchmesser wäre 10mm also ein radius von 5mm“, „da müssen wir dann zwar auf die drehrichtung achten“.
+- „ok kannst du einfach noch weiter bauen das die woche auch noch was passiert wir haben leider nur heute
+  zeit .. und brauchen heute abend dann auch einfach einen "wochen aktualisierungs post auf github" mit der
+  info nicht viel zeit die woche ..“ – „bis heute abend bauen bitte und dann erst den post machen !!“
+
+### DATEIEN
+- `camaddon/hobeln_bahn.py` (klingen_umriss mit `rund`, _halbe_luft/VOLL, _ueberstand, klinge_pruefen,
+  _klinge_luft, _spurlagen: Fahrtrichtung), `camaddon/hobeln.py` (rund_von), `camaddon/werkzeuge.py`
+  (klingenradius; Stoßwerkzeug mit Ausführung), `camaddon/gui_werkzeuge.py`, `translations/*.json`,
+  `tests/test_hobeln.py`, `tests/test_werkzeuge.py`, `tests/gui/szenario_werkzeugverwaltung.py`,
+  `package.xml` 0.386.0.
+
+### ERGEBNIS
+- Stoßwerkzeug: neues Maß „Runde Seite: Radius“ (Katalog DMIN ÷ 2) und „Ausführung“ (links/rechts in
+  Schnittrichtung, leer = rechts). Die Klinge rechnet mit ihrem wahren Umriss (eine Seite rund, die andere
+  gerade, sie endet, wo die Rundung die gerade Seite trifft). Liegt die runde Seite links, fährt die Bahn
+  im Uhrzeigersinn, sonst wie bisher dagegen – die runde Seite zeigt so zur Außenwand.
+- Eine Klinge mit runder Seite oder Freiwinkel darf so breit sein wie die Nut (bisher 0,01 schmaler);
+  ohne beides bleibt die alte Grenze. Füllt sie die Nut und hat keinen Platz hinter der Schneide, sagt der
+  Satz, was einzutragen ist.
+- Gemessen (Nut 3 breit, R 10, Klinge 3 × 7, rund 5, Freiwinkel 1°): Luft +0,003 mm, falsch herum
+  −0,85 mm (abgelehnt); kleinster Radius der Mittellinie 4,47. Die gerade Seite braucht einen Freiwinkel
+  (ohne: Ablehnung mit Hinweis) – welchen Manuels Klinge hat, trägt er ein.
+- Geprüft im Wochen-Build 18.11.: test_hobeln, test_werkzeuge, szenario_werkzeugverwaltung (Bild
+  6f_stosswerkzeug angesehen), szenario_hobeln.
 ## P-2026-11-21-01 hobelklinge-horn-supermini-105
 
 ### EINGELESEN

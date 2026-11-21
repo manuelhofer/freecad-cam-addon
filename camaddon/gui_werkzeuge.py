@@ -1427,6 +1427,7 @@ def _tooltip(feld):
         "klingenlaenge": tr("wv.klingenlaenge.tooltip"),
         "spindelwinkel": tr("wv.spindelwinkel.tooltip"),
         "freiwinkel": tr("wv.freiwinkel.tooltip"),
+        "klingenradius": tr("wv.klingenradius.tooltip"),
         wz.STEIGUNG: tr("wv.steigung.tooltip"),
     }.get(feld, "")
 

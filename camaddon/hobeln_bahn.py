@@ -328,34 +328,61 @@ def schritt_im_bogen(radius, schritt=SCHRITT):
     return min(schritt, max(SCHRITT_MIN, 2.0 * radius * math.tan(BOGEN_WINKEL)))
 
 
-def klingen_umriss(breite, laenge, freiwinkel=0.0, teile=4):
+# Rund geschliffene Klingen (Manuel, 2026-11-21, Horn Supermini 105: „die auf eine seite rund ist …
+# der kleinste drehdurchmesser wäre 10mm also ein radius von 5mm“): Eine Seite ist mit dem Radius
+# `rund` geschliffen und passt so in die Außenwand jeder Nut ab diesem Radius; die andere Seite ist
+# gerade. Die Klinge darf dann so breit sein wie die Nut – direkt hinter der Schneide schabt die
+# Flanke höchstens VOLL mit.
+VOLL = 0.003  # mm
+
+
+def klingen_umriss(breite, laenge, freiwinkel=0.0, teile=4, rund=0.0):
     """[(u, v)] Punkte des Umrisses der Klinge von oben: u längs (0 an der Schneide, nach hinten
-    negativ), v quer (± die halbe Breite). Mit seitlichem Freiwinkel (Grad) wird sie nach hinten je
-    Seite um u · tan(Winkel) schmaler (ein Trapez; 0: ein Rechteck)."""
+    negativ), v quer (+ links in Fahrtrichtung, an der Schneide ± die halbe Breite). Mit seitlichem
+    Freiwinkel (Grad) wird sie nach hinten je Seite um u · tan(Winkel) schmaler (ein Trapez; 0: ein
+    Rechteck). `rund` (mm): Eine Seite ist mit diesem Radius rund geschliffen – > 0 die linke, < 0
+    die rechte; wo die Rundung die gerade Seite trifft, endet die Klinge."""
     b2, lg = breite / 2.0, max(laenge, 0.0)
     schmaler = math.tan(math.radians(max(freiwinkel, 0.0)))
+    rho = abs(rund)
+    if rho > 0:
+        teile = max(teile, 8)
+        # Die Rundung trifft die gerade Seite nach diesem Weg – dahinter ist keine Klinge mehr.
+        lg = min(lg, math.sqrt(max(rho * rho - max(rho - breite, 0.0) ** 2, 0.0)))
     punkte = [(0.0, b2), (0.0, -b2)]
     for k in range(1, teile + 1):
         u = lg * k / teile
         v = max(b2 - u * schmaler, 0.0)
-        punkte += [(-u, v), (-u, -v)]
+        if rho <= 0:
+            punkte += [(-u, v), (-u, -v)]
+            continue
+        runde = max(min(b2 - (rho - math.sqrt(max(rho * rho - u * u, 0.0))), v), -v)
+        punkte += [(-u, runde), (-u, -v)] if rund > 0 else [(-u, v), (-u, -runde)]
     return punkte
 
 
-def _ueberstand(r, breite, laenge, schritt, r_mitte=None, freiwinkel=0.0):
+def _halbe_luft(nut_breite, breite):
+    """So weit darf die Klinge neben der Mittellinie der Nut liegen: bis SPIEL vor die Wand – ist
+    sie (fast) so breit wie die Nut, bis VOLL hinter ihre eigene Schneide."""
+    return max(nut_breite / 2.0 - SPIEL, breite / 2.0 + VOLL)
+
+
+def _ueberstand(r, breite, laenge, schritt, r_mitte=None, freiwinkel=0.0, rund=0.0):
     """(außen, innen): so weit ragt die Klinge über die halbe Schneidenbreite neben ihrer Spur
     hinaus – auf einem Bogen, auf dem die Spur den Radius `r` hat (inf: auf einer Geraden), wenn
     sie bis zu einem halben Satzschritt (Satz im Bogen ÷ 2 · `r_mitte`, der Radius der Mittellinie)
     und WINKEL_FEHLER neben der Fahrtrichtung steht, nach beiden Seiten. Außen: was weiter vom
     Mittelpunkt kommt als die Schneide; innen: was näher kommt, dazu die Höhe der Sehne zwischen
-    zwei Sätzen. Die Klinge mit ihrem Umriss (klingen_umriss, auch mit seitlichem Freiwinkel)."""
+    zwei Sätzen. Die Klinge mit ihrem Umriss (klingen_umriss, auch mit seitlichem Freiwinkel);
+    `rund`: der Radius ihrer runden Seite – > 0: sie zeigt nach außen, < 0: nach innen."""
     b2 = breite / 2.0
-    umriss = klingen_umriss(breite, laenge, freiwinkel, 16)
+    umriss = klingen_umriss(breite, laenge, freiwinkel, 16, rund)  # v: + nach außen
     if not math.isfinite(r):
         d = WINKEL_FEHLER
         c, s = math.cos(d), math.sin(d)
-        seite = max(abs(u * s) + abs(v) * c for u, v in umriss) - b2
-        return max(seite, 0.0), max(seite, 0.0)
+        aussen = max(max(abs(u) * s + v * c, -abs(u) * s + v * c) for u, v in umriss) - b2
+        innen = max(max(abs(u) * s - v * c, -abs(u) * s - v * c) for u, v in umriss) - b2
+        return max(aussen, 0.0), max(innen, 0.0)
     rm = r if r_mitte is None else r_mitte
     satz = schritt_im_bogen(rm, schritt)
     d = min(satz / (2.0 * max(rm, 1e-9)) + WINKEL_FEHLER, math.pi / 4)
@@ -365,26 +392,29 @@ def _ueberstand(r, breite, laenge, schritt, r_mitte=None, freiwinkel=0.0):
         hx, hy = -math.sin(dd), math.cos(dd)  # längs
         nx, ny = math.cos(dd), math.sin(dd)  # quer, nach außen
         for u, v in umriss:
-            for vv in (v, -v):
-                x, y = r + u * hx + vv * nx, u * hy + vv * ny
-                abstand = math.hypot(x, y)
-                weitest, naechst = max(weitest, abstand), min(naechst, abstand)
+            x, y = r + u * hx + v * nx, u * hy + v * ny
+            abstand = math.hypot(x, y)
+            weitest, naechst = max(weitest, abstand), min(naechst, abstand)
     # Zwischen zwei Sätzen fährt sie die Sehne: in der Mitte um ihre Höhe (s² ÷ 8R) nach innen.
     sehne = satz * satz / (8.0 * max(rm, 1e-9))
     return max(weitest - (r + b2), 0.0), max((r - b2) - naechst, 0.0) + sehne
 
 
-def kleinster_radius_fuer(nut_breite, breite, laenge, schritt=SCHRITT, freiwinkel=0.0):
+def kleinster_radius_fuer(nut_breite, breite, laenge, schritt=SCHRITT, freiwinkel=0.0, rund=0.0):
     """Der kleinste Radius der Mittellinie, den eine Klinge (`breite` breit, der Körper `laenge`
     hinter der Schneide) in einer Nut der Breite `nut_breite` fahren kann: Sie ragt dort nach
     keiner Seite weiter als bis SPIEL vor die Wand (_ueberstand). 0: jede Kurve; inf: die Klinge
-    ist zu breit, oder sie stößt schon auf einer Geraden an (WINKEL_FEHLER)."""
-    luft = (nut_breite - breite) / 2.0 - SPIEL
-    if luft < 0:
+    ist zu breit, oder sie stößt schon auf einer Geraden an (WINKEL_FEHLER). `rund`: der Radius
+    ihrer runden Seite (sie zeigt nach außen – so wählt planen() die Fahrtrichtung)."""
+    luft = _halbe_luft(nut_breite, breite) - breite / 2.0
+    if breite > nut_breite + 1e-6:
         return math.inf
 
     def geht(r):
-        return max(_ueberstand(r, breite, laenge, schritt, None, freiwinkel)) <= luft + 1e-12
+        return (
+            max(_ueberstand(r, breite, laenge, schritt, None, freiwinkel, abs(rund)))
+            <= luft + 1e-12
+        )
 
     if not geht(math.inf):
         return math.inf
@@ -402,14 +432,18 @@ def kleinster_radius_fuer(nut_breite, breite, laenge, schritt=SCHRITT, freiwinke
     return oben if unten > 0 or not geht(1e-9) else 0.0
 
 
-def klinge_pruefen(nut, breite, laenge, schritt=SCHRITT, freiwinkel=0.0):
+def klinge_pruefen(nut, breite, laenge, schritt=SCHRITT, freiwinkel=0.0, rund=0.0):
     """ "" wenn die Klinge die Nut fahren kann – sonst der Satz, warum nicht (zu breit; der
     Radius, den sie bräuchte)."""
     if breite <= 0:
         return tr("hn.grund.klinge_breite_fehlt")
-    if breite > nut.breite - 2 * SPIEL + 1e-9:
+    # So breit wie die Nut nur, wenn die Klinge hinter der Schneide schmaler wird.
+    grenze = nut.breite + 1e-6 if rund or freiwinkel > 0 else nut.breite - 2 * SPIEL + 1e-9
+    if breite > grenze:
         return tr("hn.grund.klinge_breit", b=_mm(breite), breite=_mm(nut.breite))
-    noetig = kleinster_radius_fuer(nut.breite, breite, laenge, schritt, freiwinkel)
+    noetig = kleinster_radius_fuer(nut.breite, breite, laenge, schritt, freiwinkel, rund)
+    if not math.isfinite(noetig):
+        return tr("hn.grund.klinge_gerade", b=_mm(breite), breite=_mm(nut.breite))
     if nut.r_min < noetig - 1e-9:
         return tr(
             "hn.grund.klinge_radius", r=_mm(nut.r_min), noetig=_mm(noetig), laenge=_mm(laenge)
@@ -417,9 +451,9 @@ def klinge_pruefen(nut, breite, laenge, schritt=SCHRITT, freiwinkel=0.0):
     return ""
 
 
-def _klinge_luft(nut, reihe, breite, laenge, freiwinkel=0.0):
+def _klinge_luft(nut, reihe, breite, laenge, freiwinkel=0.0, rund=0.0):
     """Je Stelle der Spur `reihe` ([(x, y, Richtung)], geschlossen) die kleinste Luft der Klinge
-    zur Wand, weniger SPIEL (< 0: zu nah), und die Seite (+1 links, −1 rechts), an der es am
+    zur Wand, weniger SPIEL (< 0: zu nah), und die Seite (+1 links, −1 rechts der Fahrt), an der es am
     engsten ist – genau gerechnet gegen die Mittellinie (die Wände liegen ± Breite/2 neben ihr),
     in jeder Stellung, die eine Steuerung fährt: am Punkt mit seinem Winkel (Siemens, SPOS im
     Satz); mit der Mitte aus dem Winkel davor und seinem am Punkt davor, unterwegs und am Punkt
@@ -464,12 +498,12 @@ def _klinge_luft(nut, reihe, breite, laenge, freiwinkel=0.0):
     stelle = np.concatenate([t[3] for t in teile])
     start = np.concatenate([t[4] for t in teile])
     b2, lg = breite / 2.0, max(laenge, 0.0)
-    lokal = klingen_umriss(breite, lg, freiwinkel)
+    lokal = klingen_umriss(breite, lg, freiwinkel, rund=rund)
     lu = np.array([u for u, _v in lokal])
     lv = np.array([v for _u, v in lokal])
     fenster = int(math.ceil((lg + b2 + 0.3) / PROBE)) + 2
     versatz = np.arange(-fenster, fenster + 1)
-    erlaubt = nut.breite / 2.0 - SPIEL
+    erlaubt = _halbe_luft(nut.breite, breite)
     luft = np.full(len(sx), np.inf)
     seite = np.zeros(len(sx))
     for k in range(0, len(sx), 256):
@@ -494,7 +528,9 @@ def _klinge_luft(nut, reihe, breite, laenge, freiwinkel=0.0):
         if luft[i] <= je_stelle[stelle[i]]:
             je_stelle[stelle[i]] = luft[i]
             seite_je[stelle[i]] = seite[i] or 1.0
-    return je_stelle, seite_je
+    # Die Seite zählte bis hier längs der Mittellinie – fährt die Spur andersherum: umdrehen.
+    mit = tx[naechste] * np.cos(pr) + ty[naechste] * np.sin(pr)
+    return je_stelle, np.where(mit < 0, -seite_je, seite_je)
 
 
 # --- Die Bahn ---------------------------------------------------------------------------------------
@@ -525,6 +561,8 @@ class Hobelwerte:
     sicherheit: float = 2.0  # so weit über der Oberkante endet der Eilgang hinab
     schritt: float = SCHRITT
     freiwinkel: float = 0.0  # Grad, seitlicher Freiwinkel der Klinge (klingen_umriss)
+    # mm – der Radius der runden Seite der Klinge: > 0 links in Schnittrichtung, < 0 rechts; 0: gerade
+    rund: float = 0.0
 
 
 @dataclass
@@ -697,24 +735,24 @@ _ERLAUBT = OrderedDict()
 ERLAUBT_GEMERKT = 4096
 
 
-def _versatz_erlaubt(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0):
+def _versatz_erlaubt(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0, rund=0.0):
     """So weit darf die Spur in einer Kurve mit `radius` (der Mittellinie) zur Außenwand hin liegen,
     damit die Klinge dort (_ueberstand, außen) vor ihr bleibt – −inf: nirgends. Gemerkt (_ERLAUBT,
-    genau dieselben Werte)."""
+    genau dieselben Werte). `rund`: wie _ueberstand (> 0: die runde Seite außen)."""
     schluessel = (
         float(nut.breite), float(breite), float(laenge), abs(float(radius)), float(schritt),
-        float(freiwinkel),
+        float(freiwinkel), float(rund),
     )  # fmt: skip
     wert = _ERLAUBT.get(schluessel)
     if wert is None:
-        wert = _versatz_rechnen(nut, breite, laenge, radius, schritt, freiwinkel)
+        wert = _versatz_rechnen(nut, breite, laenge, radius, schritt, freiwinkel, rund)
         _ERLAUBT[schluessel] = wert
         while len(_ERLAUBT) > ERLAUBT_GEMERKT:
             _ERLAUBT.popitem(last=False)
     return wert
 
 
-def _versatz_rechnen(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0):
+def _versatz_rechnen(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.0, rund=0.0):
     """_versatz_erlaubt ohne Merken."""
     r = abs(radius)
     if not math.isfinite(r):
@@ -722,7 +760,7 @@ def _versatz_rechnen(nut, breite, laenge, radius, schritt=SCHRITT, freiwinkel=0.
     wand = r + nut.breite / 2.0 - SPIEL
 
     def luft(d):
-        aussen, _innen = _ueberstand(r + d, breite, laenge, schritt, r, freiwinkel)
+        aussen, _innen = _ueberstand(r + d, breite, laenge, schritt, r, freiwinkel, rund)
         return wand - (r + d + breite / 2.0) - aussen
 
     unten, oben = -nut.breite / 2.0, nut.breite / 2.0
@@ -755,7 +793,11 @@ def _spur_planen(nut, w, stellen, d_spur, kruemmung, mehrere):
     reihe = [d_spur] * len(stellen)
     if mehrere:
         for i, radius in enumerate(kruemmung):
-            erlaubt = _versatz_erlaubt(nut, w.breite, w.laenge, radius, w.schritt, w.freiwinkel)
+            # Linkskurve: außen ist rechts – dort liegt die runde Seite bei w.rund < 0.
+            aussen = -w.rund if radius > 0 else w.rund
+            erlaubt = _versatz_erlaubt(
+                nut, w.breite, w.laenge, radius, w.schritt, w.freiwinkel, aussen
+            )
             if radius > 0:  # Linkskurve: die Außenwand liegt rechts (−)
                 reihe[i] = max(reihe[i], -erlaubt)
             elif radius < 0:
@@ -763,7 +805,7 @@ def _spur_planen(nut, w, stellen, d_spur, kruemmung, mehrere):
         reihe = _weich(stellen, reihe, d_spur)
     for _versuch in range(12):
         lage = _spur_lage(stellen, reihe)
-        luft, seite = _klinge_luft(nut, lage, w.breite, w.laenge, w.freiwinkel)
+        luft, seite = _klinge_luft(nut, lage, w.breite, w.laenge, w.freiwinkel, w.rund)
         zu_nah = [i for i in range(len(lage)) if luft[i] < -1e-4]
         if not zu_nah:
             return lage
@@ -791,7 +833,10 @@ SPURLAGEN_GEMERKT = 16
 
 def _spurlagen_schluessel(nut, w):
     """Wovon die Spurlagen abhängen: die Nut und die Klinge, nicht Höhen, Vorschub, Umläufe."""
-    return (nut, float(w.breite), float(w.laenge), max(float(w.schritt), 0.05), float(w.freiwinkel))
+    return (
+        nut, float(w.breite), float(w.laenge), max(float(w.schritt), 0.05), float(w.freiwinkel),
+        float(w.rund),
+    )  # fmt: skip
 
 
 def _spurlagen(nut, w):
@@ -802,6 +847,11 @@ def _spurlagen(nut, w):
         _SPURLAGEN.move_to_end(schluessel)
         return gemerkt
     stellen = _stellen_je_stueck(nut, max(w.schritt, 0.05))
+    if w.rund > 0:
+        # Die Mittellinie läuft gegen den Uhrzeigersinn, die Außenwand liegt rechts. Ist die linke
+        # Seite der Klinge die runde, fährt sie andersherum – dann zeigt die runde Seite nach außen
+        # („da müssen wir dann zwar auf die drehrichtung achten“, Manuel, 2026-11-21).
+        stellen = [(x, y, richtung + math.pi, nr) for x, y, richtung, nr in reversed(stellen)]
     c, m, gerade = _anfang(nut, stellen)
     stellen = stellen[c:] + stellen[:c]  # die Stelle, an der die Klinge ins Material kommt, zuerst
     spuren = _spuren(nut, w.breite)
@@ -873,7 +923,7 @@ def planen(nut, werte, mit_zeit=True):
     Geraden und die nächste Spur wie beim ersten Mal (ohne Gerade über dem Teil, weil die Spindel
     dreht); sie überlappen um SPUR_UEBERLAPP der Klingenbreite."""
     w = werte
-    grund = klinge_pruefen(nut, w.breite, w.laenge, w.schritt, w.freiwinkel)
+    grund = klinge_pruefen(nut, w.breite, w.laenge, w.schritt, w.freiwinkel, w.rund)
     if grund:
         raise ValueError(grund)
     if w.zustellung <= 0 or w.vorschub <= 0:

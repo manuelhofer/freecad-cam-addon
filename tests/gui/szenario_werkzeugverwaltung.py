@@ -245,6 +245,17 @@ def schritte(h):
         "Drehwerkzeug: Felder",
     )
     h.bild("6e_drehwerkzeug", d)
+    # Stoßwerkzeug: die runde Seite (Radius) und ihre Ausführung stehen bei den Maßen (2026-11-21).
+    art.setCurrentIndex(art.findData(wz.STOSSWERKZEUG))
+    yield 200
+    h.pruefe(
+        d.zeile_klingenradius.isVisible()
+        and d.beschriftung_klingenradius.text() == "Runde Seite: Radius"
+        and "DMIN" in d.feld_klingenradius.toolTip()
+        and d.feld_ausfuehrung.isVisible(),
+        f"Stoßwerkzeug: runde Seite {d.beschriftung_klingenradius.text()!r}",
+    )
+    h.bild("6f_stosswerkzeug", d)
     art.setCurrentIndex(art.findData(wz.TORUSFRAESER))
     yield 200
     w = d.werkzeug

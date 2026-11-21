@@ -187,7 +187,19 @@ def werte_fuer(werkzeug, sicher, vorschub, eintauchen=0.0, zustellung=ZUSTELLUNG
         sicherheit=float(sicherheit),
         schritt=max(float(satzlaenge), 0.05),
         freiwinkel=float(getattr(werkzeug, "freiwinkel", 0.0) or 0.0),
+        rund=rund_von(werkzeug),
     )
+
+
+def rund_von(werkzeug):
+    """Der Radius der runden Seite des Stoßwerkzeugs mit Vorzeichen (hobeln_bahn.Hobelwerte.rund):
+    Ausführung links → die linke Seite in Schnittrichtung (+), sonst die rechte (−); 0: gerade."""
+    from . import werkzeuge as wz
+
+    radius = float(getattr(werkzeug, "klingenradius", 0.0) or 0.0)
+    if radius <= 0:
+        return 0.0
+    return radius if getattr(werkzeug, "ausfuehrung", "") == wz.LINKS else -radius
 
 
 def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
@@ -337,6 +349,7 @@ def klinge_grund(nut, werkzeug, wand_aufmass=0.0, tiefe=None):
         float(werkzeug.schneidenbreite),
         float(werkzeug.klingenlaenge),
         freiwinkel=float(getattr(werkzeug, "freiwinkel", 0.0) or 0.0),
+        rund=rund_von(werkzeug),
     )
     if grund:
         return grund
